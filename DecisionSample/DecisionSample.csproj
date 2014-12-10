@@ -69,7 +69,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\explore\clr\explore_clr.vcxproj">
+    <ProjectReference Include="..\explore\clr\explore_clr.vcxproj">
       <Project>{8400da16-1f46-4a31-a126-bbe16f62bfd7}</Project>
       <Name>explore_clr</Name>
     </ProjectReference>
