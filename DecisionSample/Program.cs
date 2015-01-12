@@ -33,28 +33,33 @@ namespace DecisionSample
     {
         static void Main(string[] args)
         {
-            DecisionServiceRecorder<MyContext> recorder = new DecisionServiceRecorder<MyContext>(
-                new RetryStorageConfiguration()
-                {
-                    EndpointType = StorageEndpoint.LocalDisk,
-                    FilePath = @"C:\MyFile.type"
-                }
-                //, new BatchingConfiguration()
-                //{
-                //    Duration = TimeSpan.FromSeconds(30),
-                //    EventCount = 1000,
-                //    BufferSize = 2 * 1024 * 1024
-                //}
-            );
-            MwtExplorer<MyContext> mwtt = new MwtExplorer<MyContext>("mwt", recorder);
-            EpsilonGreedyExplorer<MyContext> explorer = new EpsilonGreedyExplorer<MyContext>(new MyPolicy(), epsilon: 0.2f, numActions: 10);
+            var serviceConfig = new DecisionServiceConfiguration<MyContext>();
+            serviceConfig.RetryStorage = new DiskRetryStorage(@"C:\MyFile.type");
+            //serviceConfig.BatchConfig = new BatchingConfiguration()
+            //{
+            //    Duration = TimeSpan.FromSeconds(30),
+            //    EventCount = 1000,
+            //    BufferSize = 2 * 1024 * 1024
+            //};
+            //serviceConfig.ContextJsonSerializer = context => "My Context Json";
+
+            var service = new DecisionService<MyContext>(serviceConfig);
+
+            // TODO: We could also have a DecisionServicePolicy object to handle the model update.
+            // TODO: We could have a DecisionService object that contains both the custom Recorder and Policy objects.
+
+            var mwtt = new MwtExplorer<MyContext>("mwt", service.Recorder);
+
+            // TODO: should we package these last parameters into a Configuration object
+            var explorer = new EpsilonGreedyExplorer<MyContext>(new MyPolicy(), epsilon: 0.2f, numActions: 10);
 
             // This will call MyAzureRecorder.Record with the <x, a, p, k> tuple
             uint action = mwtt.ChooseAction(explorer, unique_key: "eventid", context: new MyContext());
 
             Console.WriteLine("Chosen action: {0}", action);
 
-            recorder.ReportOutcome(new MyOutcome(), uniqueKey: "eventid");
+            // TODO: ReportOutcome can also be supported via MwtExplorer
+            service.ReportOutcome(JsonConvert.SerializeObject(new MyOutcome()), uniqueKey: "eventid");
         }
     }
 }
