@@ -43,6 +43,7 @@ namespace DecisionSample
         public StorageEndpoint EndpointType;
         public string FilePath;
         public string AzureConnectionString;
+        // TODO: Should storage size have an upper limit?
     }
 
     // Could also be templatized by Outcome type
@@ -57,6 +58,7 @@ namespace DecisionSample
             // . . .
         }
 
+        // TODO: should this also take a float reward?
         public void ReportOutcome(object outcome, string uniqueKey)
         {
             string outcomeJson = JsonConvert.SerializeObject(outcome);
