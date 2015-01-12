@@ -4,10 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MultiWorldTesting;
+using Newtonsoft.Json;
 
 namespace DecisionSample
 {
     class MyContext { }
+
+    class MyOutcome { }
 
     class MyAzureRecorder : IRecorder<MyContext>
     {
@@ -30,7 +33,19 @@ namespace DecisionSample
     {
         static void Main(string[] args)
         {
-            MyAzureRecorder recorder = new MyAzureRecorder();
+            DecisionServiceRecorder<MyContext> recorder = new DecisionServiceRecorder<MyContext>(
+                new RetryStorageConfiguration()
+                {
+                    EndpointType = StorageEndpoint.LocalDisk,
+                    FilePath = @"C:\MyFile.type"
+                }
+                //, new BatchingConfiguration()
+                //{
+                //    Duration = TimeSpan.FromSeconds(30),
+                //    EventCount = 1000,
+                //    BufferSize = 2 * 1024 * 1024
+                //}
+            );
             MwtExplorer<MyContext> mwtt = new MwtExplorer<MyContext>("mwt", recorder);
             EpsilonGreedyExplorer<MyContext> explorer = new EpsilonGreedyExplorer<MyContext>(new MyPolicy(), epsilon: 0.2f, numActions: 10);
 
@@ -38,6 +53,8 @@ namespace DecisionSample
             uint action = mwtt.ChooseAction(explorer, unique_key: "eventid", context: new MyContext());
 
             Console.WriteLine("Chosen action: {0}", action);
+
+            recorder.ReportOutcome(new MyOutcome(), uniqueKey: "eventid");
         }
     }
 }
