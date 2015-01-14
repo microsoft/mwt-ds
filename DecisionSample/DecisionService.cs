@@ -9,6 +9,19 @@ using Microsoft.WindowsAzure.Storage;
 
 namespace DecisionSample
 {
+    interface IExploreAlgorithm { }
+    class EpsilonGreedy : IExploreAlgorithm
+    {
+        public EpsilonGreedy(float epsilon, uint numActions)
+        {
+            Epsilon = epsilon;
+            NumActions = numActions;
+        }
+
+        public float Epsilon { get; set; }
+        public uint NumActions { get; set; }
+    }
+
     /// <summary>
     /// Configuration object for the client decision service which contains settings for batching, retry storage, etc...
     /// </summary>
@@ -35,23 +48,37 @@ namespace DecisionSample
     /// </summary>
     class DecisionService<TContext> : IDisposable
     {
-        public DecisionService(DecisionServiceConfiguration<TContext> config)
+        public DecisionService(string appId, DecisionServiceConfiguration<TContext> config)
         {
             recorder = new DecisionServiceRecorder<TContext>(config.BatchConfig);
             policy = new DecisionServicePolicy<TContext>();
+            mwt = new MwtExplorer<TContext>(appId, recorder);
         }
-        public void ReportOutcome(string outcomeJson, float? reward, string uniqueKey)
+
+        /*ReportSimpleReward*/
+        public void ReportReward(float reward, string uniqueKey)
         {
-            recorder.ReportOutcome(outcomeJson, reward, uniqueKey);
+            //recorder.ReportOutcome(outcomeJson, reward, uniqueKey);
         }
+
+        public void ReportOutcome(string outcomeJson, string uniqueKey)
+        {
+            //recorder.ReportOutcome(outcomeJson, reward, uniqueKey);
+        }
+
+        public uint ChooseAction(IExplorer<TContext> explorer, string uniqueKey, TContext context)
+        {
+            return mwt.ChooseAction(explorer, uniqueKey, context);
+        }
+
+        public void Dispose() { }
 
         public IRecorder<TContext> Recorder { get { return recorder; } }
         public IPolicy<TContext> Policy { get { return policy; } }
 
         private DecisionServiceRecorder<TContext> recorder;
         private DecisionServicePolicy<TContext> policy;
-
-        public void Dispose() { }
+        private MwtExplorer<TContext> mwt;
     }
 
     /// <summary>
@@ -78,6 +105,8 @@ namespace DecisionSample
         public ulong BufferSize { get; set; }
     }
 
+    // TODO: rename Recorder to Logger?
+    // TODO: Client can tag event as interaction or observation
     internal class DecisionServiceRecorder<TContext> : IRecorder<TContext>, IDisposable
     {
         public DecisionServiceRecorder(BatchingConfiguration batchConfig) { }
@@ -96,7 +125,7 @@ namespace DecisionSample
             // . . .
         }
 
-        // Background tasks can get back latest model version as a return value from the HTTP communication with Ingress worker
+        // Internally, background tasks can get back latest model version as a return value from the HTTP communication with Ingress worker
 
         public void Dispose() { }
     }
@@ -110,5 +139,14 @@ namespace DecisionSample
         }
 
         public void Dispose() { }
+    }
+
+    /// <summary>
+    /// TODO: separate object to handle the model communication with server?
+    /// </summary>
+    class ModelManager
+    { 
+        public void FindUpdateModel();
+        public void UpdateModel();
     }
 }

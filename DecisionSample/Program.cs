@@ -20,7 +20,7 @@ namespace DecisionSample
         }
     }
 
-    class MyPolicy : IPolicy<MyContext>
+    class UserPolicy : IPolicy<MyContext>
     {
         public uint ChooseAction(MyContext context)
         {
@@ -46,23 +46,30 @@ namespace DecisionSample
             // Set a custom json serializer for the context
             //serviceConfig.ContextJsonSerializer = context => "My Context Json";
 
+            serviceConfig.AppId = "mwt";
+            serviceConfig.Explore.Policy = new UserPolicy();
+            serviceConfig.Explore.Algorithm = new EpsilonGreedy(epsilon: 0.2f, numActions: 10);
+
             var service = new DecisionService<MyContext>(serviceConfig);
+
+            string uniqueKey = "eventid";
+
+            uint action = service.ChooseAction(uniqueKey, new MyContext());
+
+            // Report outcome as a JSON
+            service.ReportOutcome("my json outcome", uniqueKey);
+
+            // Report (simple) reward as a simple float
+            service.ReportReward(0.5f, uniqueKey);
 
             // TODO: We could also have a DecisionServicePolicy object to handle the model update.
             // TODO: We could have a DecisionService object that contains both the custom Recorder and Policy objects.
 
-            var mwtt = new MwtExplorer<MyContext>("mwt", service.Recorder);
-
             // TODO: should we package these last parameters into a Configuration object
-            var explorer = new EpsilonGreedyExplorer<MyContext>(new MyPolicy(), epsilon: 0.2f, numActions: 10);
+            //var explorer = new EpsilonGreedyExplorer<MyContext>(new UserPolicy(), epsilon: 0.2f, numActions: 10);
 
             // This will call MyAzureRecorder.Record with the <x, a, p, k> tuple
-            uint action = mwtt.ChooseAction(explorer, unique_key: "eventid", context: new MyContext());
 
-            Console.WriteLine("Chosen action: {0}", action);
-
-            // TODO: ReportOutcome can also be supported via MwtExplorer
-            service.ReportOutcome(JsonConvert.SerializeObject(new MyOutcome()), null, uniqueKey: "eventid");
         }
     }
 }
