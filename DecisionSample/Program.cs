@@ -34,13 +34,16 @@ namespace DecisionSample
         static void Main(string[] args)
         {
             var serviceConfig = new DecisionServiceConfiguration<MyContext>();
-            serviceConfig.RetryStorage = new DiskRetryStorage(@"C:\MyFile.type");
+            
+            // Configure batching logic if desired
             //serviceConfig.BatchConfig = new BatchingConfiguration()
             //{
             //    Duration = TimeSpan.FromSeconds(30),
             //    EventCount = 1000,
             //    BufferSize = 2 * 1024 * 1024
             //};
+
+            // Set a custom json serializer for the context
             //serviceConfig.ContextJsonSerializer = context => "My Context Json";
 
             var service = new DecisionService<MyContext>(serviceConfig);
@@ -59,7 +62,7 @@ namespace DecisionSample
             Console.WriteLine("Chosen action: {0}", action);
 
             // TODO: ReportOutcome can also be supported via MwtExplorer
-            service.ReportOutcome(JsonConvert.SerializeObject(new MyOutcome()), uniqueKey: "eventid");
+            service.ReportOutcome(JsonConvert.SerializeObject(new MyOutcome()), null, uniqueKey: "eventid");
         }
     }
 }

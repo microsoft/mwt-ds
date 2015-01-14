@@ -18,6 +18,7 @@ namespace DecisionSample
         {
             ContextJsonSerializer = x => JsonConvert.SerializeObject(x);
 
+            // Default configuration for batching
             BatchConfig = new BatchingConfiguration()
             {
                 BufferSize = 4 * 1024 * 1024,
@@ -26,7 +27,6 @@ namespace DecisionSample
             };
         }
         public Func<TContext, string> ContextJsonSerializer { get; set; }
-        public IRetryStorage RetryStorage { get; set; }
         public BatchingConfiguration BatchConfig { get; set; }
     }
 
@@ -37,12 +37,12 @@ namespace DecisionSample
     {
         public DecisionService(DecisionServiceConfiguration<TContext> config)
         {
-            recorder = new DecisionServiceRecorder<TContext>(config.RetryStorage, config.BatchConfig);
+            recorder = new DecisionServiceRecorder<TContext>(config.BatchConfig);
             policy = new DecisionServicePolicy<TContext>();
         }
-        public void ReportOutcome(string outcomeJson, string uniqueKey)
+        public void ReportOutcome(string outcomeJson, float? reward, string uniqueKey)
         {
-            recorder.ReportOutcome(outcomeJson, uniqueKey);
+            recorder.ReportOutcome(outcomeJson, reward, uniqueKey);
         }
 
         public IRecorder<TContext> Recorder { get { return recorder; } }
@@ -50,6 +50,8 @@ namespace DecisionSample
 
         private DecisionServiceRecorder<TContext> recorder;
         private DecisionServicePolicy<TContext> policy;
+
+        public void Dispose() { }
     }
 
     /// <summary>
@@ -76,35 +78,9 @@ namespace DecisionSample
         public ulong BufferSize { get; set; }
     }
 
-    /// <summary>
-    /// Represents a retry storage.
-    /// </summary>
-    interface IRetryStorage
-    {
-        // TODO: Should storage size have an upper limit?
-        // long GetMaxSize();
-    }
-
-    /// <summary>
-    /// Physical disk retry storage 
-    /// </summary>
-    class DiskRetryStorage : IRetryStorage
-    {
-        public DiskRetryStorage(string filePath) { }
-    }
-
-    /// <summary>
-    /// Azure Blob retry storage
-    /// </summary>
-    class AzureBlobRetryStorage : IRetryStorage
-    {
-        public AzureBlobRetryStorage(CloudStorageAccount authorizationObject) { }
-    }
-
     internal class DecisionServiceRecorder<TContext> : IRecorder<TContext>, IDisposable
     {
-        public DecisionServiceRecorder(IRetryStorage storage) { }
-        public DecisionServiceRecorder(IRetryStorage storage, BatchingConfiguration batchConfig) { }
+        public DecisionServiceRecorder(BatchingConfiguration batchConfig) { }
 
         public void Record(TContext context, uint action, float probability, string uniqueKey) 
         {
@@ -115,16 +91,24 @@ namespace DecisionSample
         }
 
         // TODO: should this also take a float reward?
-        public void ReportOutcome(string outcomeJson, string uniqueKey)
+        public void ReportOutcome(string outcomeJson, float? reward, string uniqueKey)
         {
             // . . .
         }
 
         // Background tasks can get back latest model version as a return value from the HTTP communication with Ingress worker
+
+        public void Dispose() { }
     }
 
     internal class DecisionServicePolicy<TContext> : IPolicy<TContext>, IDisposable
     { 
         // Recorder should talk to the Policy to pass over latest model version
+        public uint ChooseAction(TContext context)
+        {
+            return 0;
+        }
+
+        public void Dispose() { }
     }
 }
