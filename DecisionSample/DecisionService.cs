@@ -9,19 +9,6 @@ using Microsoft.WindowsAzure.Storage;
 
 namespace DecisionSample
 {
-    interface IExploreAlgorithm { }
-    class EpsilonGreedy : IExploreAlgorithm
-    {
-        public EpsilonGreedy(float epsilon, uint numActions)
-        {
-            Epsilon = epsilon;
-            NumActions = numActions;
-        }
-
-        public float Epsilon { get; set; }
-        public uint NumActions { get; set; }
-    }
-
     /// <summary>
     /// Configuration object for the client decision service which contains settings for batching, retry storage, etc...
     /// </summary>
@@ -39,8 +26,12 @@ namespace DecisionSample
                 EventCount = 10000
             };
         }
-        public Func<TContext, string> ContextJsonSerializer { get; set; }
+        public string AppId { get; set; }
+        public string AuthorizationToken { get; set; }
+        public IExploreAlgorithm<TContext> Explorer { get; set; }
+        public bool IsPolicyUpdatable { get; set; }
         public BatchingConfiguration BatchConfig { get; set; }
+        public Func<TContext, string> ContextJsonSerializer { get; set; }
     }
 
     /// <summary>
@@ -48,11 +39,12 @@ namespace DecisionSample
     /// </summary>
     class DecisionService<TContext> : IDisposable
     {
-        public DecisionService(string appId, DecisionServiceConfiguration<TContext> config)
+        public DecisionService(DecisionServiceConfiguration<TContext> config)
         {
             recorder = new DecisionServiceRecorder<TContext>(config.BatchConfig);
             policy = new DecisionServicePolicy<TContext>();
-            mwt = new MwtExplorer<TContext>(appId, recorder);
+            mwt = new MwtExplorer<TContext>(config.AppId, recorder);
+            exploreAlgorithm = config.Explorer;
         }
 
         /*ReportSimpleReward*/
@@ -66,16 +58,17 @@ namespace DecisionSample
             //recorder.ReportOutcome(outcomeJson, reward, uniqueKey);
         }
 
-        public uint ChooseAction(IExplorer<TContext> explorer, string uniqueKey, TContext context)
+        public uint ChooseAction(string uniqueKey, TContext context)
         {
-            return mwt.ChooseAction(explorer, uniqueKey, context);
+            return mwt.ChooseAction(exploreAlgorithm.Get(), uniqueKey, context);
         }
 
         public void Dispose() { }
 
         public IRecorder<TContext> Recorder { get { return recorder; } }
         public IPolicy<TContext> Policy { get { return policy; } }
-
+            
+        private IExploreAlgorithm<TContext> exploreAlgorithm;
         private DecisionServiceRecorder<TContext> recorder;
         private DecisionServicePolicy<TContext> policy;
         private MwtExplorer<TContext> mwt;
@@ -141,12 +134,100 @@ namespace DecisionSample
         public void Dispose() { }
     }
 
-    /// <summary>
-    /// TODO: separate object to handle the model communication with server?
-    /// </summary>
-    class ModelManager
-    { 
-        public void FindUpdateModel();
-        public void UpdateModel();
+    /* Temp classes to support interface */
+
+    interface IExploreAlgorithm<TContext>
+    {
+        IExplorer<TContext> Get();
+    }
+    class EpsilonGreedyExplorer<TContext> : IExploreAlgorithm<TContext>
+    {
+        public EpsilonGreedyExplorer(IPolicy<TContext> policy, float epsilon, uint numActions)
+        {
+            Epsilon = epsilon;
+            NumActions = numActions;
+            Policy = policy;
+        }
+
+        public IPolicy<TContext> Policy { get; set; }
+        public float Epsilon { get; set; }
+        public uint NumActions { get; set; }
+
+        public IExplorer<TContext> Get()
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    class TauFirstExplorer<TContext> : IExploreAlgorithm<TContext>
+    {
+        public TauFirstExplorer(IPolicy<TContext> policy, uint tau, uint numActions)
+        {
+            Tau = tau;
+            NumActions = numActions;
+            Policy = policy;
+        }
+
+        public IPolicy<TContext> Policy { get; set; }
+        public uint Tau { get; set; }
+        public uint NumActions { get; set; }
+
+        public IExplorer<TContext> Get()
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    class BootstrapExplorer<TContext> : IExploreAlgorithm<TContext>
+    {
+        public BootstrapExplorer(IPolicy<TContext>[] policies, uint numActions)
+        {
+            NumActions = numActions;
+            Policies = policies;
+        }
+
+        public IPolicy<TContext>[] Policies { get; set; }
+        public uint NumActions { get; set; }
+
+        public IExplorer<TContext> Get()
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    class SoftmaxExplorer<TContext> : IExploreAlgorithm<TContext>
+    {
+        public SoftmaxExplorer(IScorer<TContext> scorer, float lambda, uint numActions)
+        {
+            Lambda = lambda;
+            NumActions = numActions;
+            Scorer = scorer;
+        }
+
+        public IScorer<TContext> Scorer { get; set; }
+        public float Lambda { get; set; }
+        public uint NumActions { get; set; }
+
+        public IExplorer<TContext> Get()
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    class GenericExplorer<TContext> : IExploreAlgorithm<TContext>
+    {
+        public GenericExplorer(IScorer<TContext> scorer, uint numActions)
+        {
+            NumActions = numActions;
+            Scorer = scorer;
+        }
+
+        public IScorer<TContext> Scorer { get; set; }
+        public uint NumActions { get; set; }
+
+        public IExplorer<TContext> Get()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
