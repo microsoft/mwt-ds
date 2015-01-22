@@ -30,7 +30,7 @@ namespace DecisionSample
             this.batch.Window(batchConfig.Duration)
                 .Select(w => w.Buffer(batchConfig.EventCount, batchConfig.BufferSize, ev => ev.Measure()))
                 .SelectMany(buffer => buffer)
-                .Subscribe(events => this.UploadBatch(events));
+                .Subscribe(events => this.BatchProcess(events));
         }
 
         public void Record(TContext context, uint action, float probability, string uniqueKey)
@@ -62,7 +62,35 @@ namespace DecisionSample
         // TODO: at the time of server communication, if the client is out of memory (or meets some predefined upper bound):
         // 1. It can block the execution flow.
         // 2. Or drop events.
-        private void UploadBatch(IList<IEvent> events)
+        private void BatchProcess(IList<IEvent> events)
+        {
+            using (var jsonMemStream = new MemoryStream())
+            using (var jsonWriter = new JsonTextWriter(new StreamWriter(jsonMemStream)))
+            {
+                JsonSerializer ser = new JsonSerializer();
+                ser.Serialize(jsonWriter, new EventBatch 
+                { 
+                    Events = events, 
+                    ExperimentalUnitDurationInSeconds = this.experimentalUnitDurationInSeconds 
+                });
+                    
+                jsonWriter.Flush();
+                jsonMemStream.Position = 0;
+
+#if TEST
+                this.BatchLog("decision_service_test_output", jsonMemStream);
+#else
+                this.BatchUpload(jsonMemStream);
+#endif
+            }
+        }
+
+        private void BatchLog(string batchFile, MemoryStream jsonMemStream)
+        {
+            File.WriteAllText(batchFile, Encoding.UTF8.GetString(jsonMemStream.ToArray()));
+        }
+        
+        private void BatchUpload(MemoryStream jsonMemStream)
         {
             using (var client = new HttpClient())
             {
@@ -70,31 +98,17 @@ namespace DecisionSample
                 client.Timeout = TimeSpan.FromSeconds(this.ConnectionTimeOutInSeconds);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(this.AuthenticationScheme, this.authorizationToken);
 
-                using (var jsonMemStream = new MemoryStream())
-                using (var jsonWriter = new JsonTextWriter(new StreamWriter(jsonMemStream)))
+                Task<HttpResponseMessage> taskPost = client.PostAsync(this.ServicePostAddress, new StreamContent(jsonMemStream));
+                taskPost.Wait();
+
+                HttpResponseMessage response = taskPost.Result;
+                if (!response.IsSuccessStatusCode)
                 {
-                    JsonSerializer ser = new JsonSerializer();
-                    ser.Serialize(jsonWriter, new EventBatch 
-                    { 
-                        Events = events, 
-                        ExperimentalUnitDurationInSeconds = this.experimentalUnitDurationInSeconds 
-                    });
-                    
-                    jsonWriter.Flush();
-                    jsonMemStream.Position = 0;
+                    Task<string> taskReadResponse = response.Content.ReadAsStringAsync();
+                    taskReadResponse.Wait();
+                    string responseMessage = taskReadResponse.Result;
 
-                    Task<HttpResponseMessage> taskPost = client.PostAsync(this.ServicePostAddress, new StreamContent(jsonMemStream));
-                    taskPost.Wait();
-
-                    HttpResponseMessage response = taskPost.Result;
-                    if (!response.IsSuccessStatusCode)
-                    { 
-                        Task<string> taskReadResponse = response.Content.ReadAsStringAsync();
-                        taskReadResponse.Wait();
-                        string responseMessage = taskReadResponse.Result;
-                        
-                        // TODO: throw exception with custom message?
-                    }
+                    // TODO: throw exception with custom message?
                 }
             }
         }

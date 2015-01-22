@@ -5,11 +5,11 @@ namespace DecisionSample
 {
     /* Temp classes to support interface */
 
-    interface IExploreAlgorithm<TContext>
+    public interface IExploreAlgorithm<TContext>
     {
         IExplorer<TContext> Get();
     }
-    class EpsilonGreedyExplorer<TContext> : IExploreAlgorithm<TContext>
+    public class EpsilonGreedyExplorer<TContext> : IExploreAlgorithm<TContext>
     {
         public EpsilonGreedyExplorer(IPolicy<TContext> policy, float epsilon, uint numActions)
         {
@@ -28,7 +28,7 @@ namespace DecisionSample
         }
     }
 
-    class TauFirstExplorer<TContext> : IExploreAlgorithm<TContext>
+    public class TauFirstExplorer<TContext> : IExploreAlgorithm<TContext>
     {
         public TauFirstExplorer(IPolicy<TContext> policy, uint tau, uint numActions)
         {
@@ -47,7 +47,7 @@ namespace DecisionSample
         }
     }
 
-    class BootstrapExplorer<TContext> : IExploreAlgorithm<TContext>
+    public class BootstrapExplorer<TContext> : IExploreAlgorithm<TContext>
     {
         public BootstrapExplorer(IPolicy<TContext>[] policies, uint numActions)
         {
@@ -64,7 +64,7 @@ namespace DecisionSample
         }
     }
 
-    class SoftmaxExplorer<TContext> : IExploreAlgorithm<TContext>
+    public class SoftmaxExplorer<TContext> : IExploreAlgorithm<TContext>
     {
         public SoftmaxExplorer(IScorer<TContext> scorer, float lambda, uint numActions)
         {
@@ -83,7 +83,7 @@ namespace DecisionSample
         }
     }
 
-    class GenericExplorer<TContext> : IExploreAlgorithm<TContext>
+    public class GenericExplorer<TContext> : IExploreAlgorithm<TContext>
     {
         public GenericExplorer(IScorer<TContext> scorer, uint numActions)
         {

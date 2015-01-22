@@ -6,7 +6,7 @@ namespace DecisionSample
     /// <summary>
     /// Encapsulates logic for recorder with async server communications & policy update.
     /// </summary>
-    class DecisionService<TContext> : IDisposable
+    public class DecisionService<TContext> : IDisposable
     {
         public DecisionService(DecisionServiceConfiguration<TContext> config)
         {

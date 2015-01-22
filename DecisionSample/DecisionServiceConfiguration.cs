@@ -6,7 +6,7 @@ namespace DecisionSample
     /// <summary>
     /// Configuration object for the client decision service which contains settings for batching, retry storage, etc...
     /// </summary>
-    class DecisionServiceConfiguration<TContext>
+    public class DecisionServiceConfiguration<TContext>
     {
         public DecisionServiceConfiguration()
         {

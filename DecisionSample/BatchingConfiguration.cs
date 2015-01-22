@@ -8,7 +8,7 @@ namespace DecisionSample
     /// <remarks>
     /// A batch is created whenever a criterion is met.
     /// </remarks>
-    class BatchingConfiguration
+    public class BatchingConfiguration
     {
         /// <summary>
         /// Period of time where events are grouped in one batch.

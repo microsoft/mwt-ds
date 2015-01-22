@@ -6,6 +6,7 @@
 **/dll
 **/ipch
 **/packages
+**/bin
 
 # VS files
 *.opensdf
