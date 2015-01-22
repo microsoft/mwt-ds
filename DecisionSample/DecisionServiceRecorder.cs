@@ -26,6 +26,11 @@ namespace DecisionSample
             this.experimentalUnitDurationInSeconds = experimentalUnitDurationInSeconds;
             this.authorizationToken = authorizationToken;
 
+            httpClient = new HttpClient();
+            httpClient.BaseAddress = new Uri(this.ServiceAddress);
+            httpClient.Timeout = TimeSpan.FromSeconds(this.ConnectionTimeOutInSeconds);
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(this.AuthenticationScheme, this.authorizationToken);
+
             this.batch = new Subject<IEvent>();
             this.batch.Window(batchConfig.Duration)
                 .Select(w => w.Buffer(batchConfig.EventCount, batchConfig.BufferSize, ev => ev.Measure()))
@@ -62,7 +67,7 @@ namespace DecisionSample
         // TODO: at the time of server communication, if the client is out of memory (or meets some predefined upper bound):
         // 1. It can block the execution flow.
         // 2. Or drop events.
-        private void BatchProcess(IList<IEvent> events)
+        private async void BatchProcess(IList<IEvent> events)
         {
             using (var jsonMemStream = new MemoryStream())
             using (var jsonWriter = new JsonTextWriter(new StreamWriter(jsonMemStream)))
@@ -78,19 +83,19 @@ namespace DecisionSample
                 jsonMemStream.Position = 0;
 
 #if TEST
-                this.BatchLog("decision_service_test_output", jsonMemStream);
+                await this.BatchLog("decision_service_test_output", jsonMemStream);
 #else
-                this.BatchUpload(jsonMemStream);
+                await this.BatchUpload(jsonMemStream);
 #endif
             }
         }
 
-        private void BatchLog(string batchFile, MemoryStream jsonMemStream)
+        private async Task BatchLog(string batchFile, MemoryStream jsonMemStream)
         {
             File.WriteAllText(batchFile, Encoding.UTF8.GetString(jsonMemStream.ToArray()));
         }
         
-        private void BatchUpload(MemoryStream jsonMemStream)
+        private async Task BatchUpload(MemoryStream jsonMemStream)
         {
             using (var client = new HttpClient())
             {
@@ -98,10 +103,7 @@ namespace DecisionSample
                 client.Timeout = TimeSpan.FromSeconds(this.ConnectionTimeOutInSeconds);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(this.AuthenticationScheme, this.authorizationToken);
 
-                Task<HttpResponseMessage> taskPost = client.PostAsync(this.ServicePostAddress, new StreamContent(jsonMemStream));
-                taskPost.Wait();
-
-                HttpResponseMessage response = taskPost.Result;
+                HttpResponseMessage response = await client.PostAsync(this.ServicePostAddress, new StreamContent(jsonMemStream));
                 if (!response.IsSuccessStatusCode)
                 {
                     Task<string> taskReadResponse = response.Content.ReadAsStringAsync();
@@ -115,7 +117,10 @@ namespace DecisionSample
 
         // Internally, background tasks can get back latest model version as a return value from the HTTP communication with Ingress worker
 
-        public void Dispose() { }
+        public void Dispose() 
+        {
+            httpClient.Dispose();
+        }
 
         #region Members
         private BatchingConfiguration batchConfig;
@@ -123,6 +128,7 @@ namespace DecisionSample
         private Subject<IEvent> batch;
         private int experimentalUnitDurationInSeconds;
         private string authorizationToken;
+        private HttpClient httpClient;
         #endregion
 
         #region Constants
