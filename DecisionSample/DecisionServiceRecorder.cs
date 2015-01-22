@@ -67,9 +67,9 @@ namespace DecisionSample
             using (var jsonMemStream = new MemoryStream())
             using (var jsonWriter = new JsonTextWriter(new StreamWriter(jsonMemStream)))
             {
-                JsonSerializer ser = new JsonSerializer();
-                ser.Serialize(jsonWriter, new EventBatch 
-                { 
+                var serializer = new JsonSerializer();
+                serializer.Serialize(jsonWriter, new EventBatch 
+                {
                     Events = events, 
                     ExperimentalUnitDurationInSeconds = this.experimentalUnitDurationInSeconds 
                 });

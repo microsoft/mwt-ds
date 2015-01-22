@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using System;
+using System.IO;
 
 namespace DecisionServiceTest
 {
@@ -17,7 +18,7 @@ namespace DecisionServiceTest
                 Explorer = new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: 10),
                 BatchConfig = new BatchingConfiguration()
                 {
-                    Duration = TimeSpan.FromSeconds(30),
+                    Duration = TimeSpan.FromDays(30),
                     EventCount = 10,
                     BufferSize = 10 * 1024 * 1024
                 }
@@ -36,9 +37,8 @@ namespace DecisionServiceTest
                 service.ReportReward(0.5f, uniqueKey);
             }
 
-            string json = System.IO.File.ReadAllText("decision_service_test_output");
-            var batch = JsonConvert.DeserializeObject<EventBatch>(json);
-
+            var batch = JsonConvert.DeserializeObject<EventBatch>(File.ReadAllText("decision_service_test_output"), new EventJsonConverter());
+            Assert.AreEqual(10, batch.Events.Count);
         }
     }
 }

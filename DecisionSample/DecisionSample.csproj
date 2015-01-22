@@ -127,6 +127,7 @@
     <Compile Include="DecisionServiceConfiguration.cs" />
     <Compile Include="DecisionServicePolicy.cs" />
     <Compile Include="DecisionServiceRecorder.cs" />
+    <Compile Include="EventJsonConverter.cs" />
     <Compile Include="Events.cs" />
     <Compile Include="Explorers.cs" />
     <Compile Include="Extensions.cs" />
