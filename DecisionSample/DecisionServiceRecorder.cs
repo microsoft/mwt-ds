@@ -92,6 +92,7 @@ namespace DecisionSample
 
         private async Task BatchLog(string batchFile, MemoryStream jsonMemStream)
         {
+            // TODO: use other mechanisms to flush data than writing to disk
             File.WriteAllText(batchFile, Encoding.UTF8.GetString(jsonMemStream.ToArray()));
         }
         
