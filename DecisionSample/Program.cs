@@ -42,18 +42,15 @@ namespace DecisionSample
         static void Main(string[] args)
         {
             // Create configuration for the decision service
-            var serviceConfig = new DecisionServiceConfiguration<MyContext>() 
+            var serviceConfig = new DecisionServiceConfiguration<MyContext>(
+                appId: "mwt", 
+                authorizationToken: "", 
+                explorer: new EpsilonGreedyExplorer<MyContext>(new UserPolicy(), epsilon: 0.2f, numActions: 10))
+                //explorer = new TauFirstExplorer<MyContext>(new UserPolicy(), tau: 50, numActions: 10))
+                //explorer = new BootstrapExplorer<MyContext>(new IPolicy<MyContext>[2] { new UserPolicy(), new UserPolicy() }, numActions: 10))
+                //explorer = new SoftmaxExplorer<MyContext>(new UserScorer(), lambda: 0.5f, numActions: 10))
+                //explorer = new GenericExplorer<MyContext>(new UserScorer(), numActions: 10))
             {
-                AppId = "mwt",
-                AuthorizationToken = "", // Token to authorize with service side
-
-                // Choose the exploration algorithm
-                Explorer = new EpsilonGreedyExplorer<MyContext>(new UserPolicy(), epsilon: 0.2f, numActions: 10),
-                //Explorer = new TauFirstExplorer<MyContext>(new UserPolicy(), tau: 50, numActions: 10),
-                //Explorer = new BootstrapExplorer<MyContext>(new IPolicy<MyContext>[2] { new UserPolicy(), new UserPolicy() }, numActions: 10),
-                //Explorer = new SoftmaxExplorer<MyContext>(new UserScorer(), lambda: 0.5f, numActions: 10),
-                //Explorer = new GenericExplorer<MyContext>(new UserScorer(), numActions: 10),
-
                 // Allowing model update. Users can suppress model update by setting this to False.
                 IsPolicyUpdatable = true,
 

@@ -12,10 +12,9 @@ namespace DecisionServiceTest
         [TestMethod]
         public void TestBatchingByCount()
         {
-            var serviceConfig = new DecisionServiceConfiguration<TestContext>()
+            var serviceConfig = new DecisionServiceConfiguration<TestContext>("mwt", "",
+                new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: 10))
             {
-                AppId = "mwt",
-                Explorer = new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: 10),
                 BatchConfig = new BatchingConfiguration()
                 {
                     Duration = TimeSpan.FromDays(30),
@@ -39,10 +38,9 @@ namespace DecisionServiceTest
         [TestMethod]
         public void TestBatchingByTime()
         {
-            var serviceConfig = new DecisionServiceConfiguration<TestContext>()
+            var serviceConfig = new DecisionServiceConfiguration<TestContext>("mwt", "",
+                new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: 10))
             {
-                AppId = "mwt",
-                Explorer = new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: 10),
                 BatchConfig = new BatchingConfiguration()
                 {
                     Duration = TimeSpan.FromMilliseconds(100),
@@ -68,10 +66,9 @@ namespace DecisionServiceTest
         [TestMethod]
         public void TestBatchingBySize()
         {
-            var serviceConfig = new DecisionServiceConfiguration<TestContext>()
+            var serviceConfig = new DecisionServiceConfiguration<TestContext>("mwt", "",
+                new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: 10))
             {
-                AppId = "mwt",
-                Explorer = new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: 10),
                 BatchConfig = new BatchingConfiguration()
                 {
                     Duration = TimeSpan.FromSeconds(1),

@@ -8,8 +8,12 @@ namespace DecisionSample
     /// </summary>
     public class DecisionServiceConfiguration<TContext>
     {
-        public DecisionServiceConfiguration()
+        public DecisionServiceConfiguration(string appId, string authorizationToken, IExploreAlgorithm<TContext> explorer)
         {
+            this.appId = appId;
+            this.authorizationToken = authorizationToken;
+            this.explorer = explorer;
+
             ContextJsonSerializer = x => JsonConvert.SerializeObject(x);
 
             // Default configuration for batching
@@ -20,12 +24,16 @@ namespace DecisionSample
                 EventCount = 10000
             };
         }
-        public string AppId { get; set; }
-        public string AuthorizationToken { get; set; }
-        public IExploreAlgorithm<TContext> Explorer { get; set; }
+        public string AppId { get { return appId; } }
+        public string AuthorizationToken { get { return authorizationToken; } }
+        public IExploreAlgorithm<TContext> Explorer { get { return explorer; } }
         public int ExperimentalUnitDurationInSeconds { get; set; }
         public bool IsPolicyUpdatable { get; set; }
         public BatchingConfiguration BatchConfig { get; set; }
         public Func<TContext, string> ContextJsonSerializer { get; set; }
+
+        private string appId;
+        private string authorizationToken;
+        private IExploreAlgorithm<TContext> explorer;
     }
 }
