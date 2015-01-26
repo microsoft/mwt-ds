@@ -41,6 +41,7 @@ namespace DecisionSample
         [JsonProperty(PropertyName = "c")]
         public string Context { get; set; }
 
+        // TODO : change to measure by serialized string
 
         public int Measure()
         {

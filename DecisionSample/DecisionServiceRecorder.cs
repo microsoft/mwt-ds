@@ -26,6 +26,9 @@ namespace DecisionSample
             this.experimentalUnitDurationInSeconds = experimentalUnitDurationInSeconds;
             this.authorizationToken = authorizationToken;
 
+            // TODO: Whether to allow users to specify to drop data or not?
+
+            // TODO: Change this to use TransformBlock & ActionBlock
             httpClient = new HttpClient();
             httpClient.BaseAddress = new Uri(this.ServiceAddress);
             httpClient.Timeout = TimeSpan.FromSeconds(this.ConnectionTimeOutInSeconds);
@@ -35,7 +38,7 @@ namespace DecisionSample
             this.batch.Window(batchConfig.Duration)
                 .Select(w => w.Buffer(batchConfig.EventCount, batchConfig.BufferSize, ev => ev.Measure()))
                 .SelectMany(buffer => buffer)
-                .Subscribe(events => this.BatchProcess(events));
+                .Subscribe(events => this.BatchProcess(events)); // TODO: dispose it
         }
 
         public void Record(TContext context, uint action, float probability, string uniqueKey)
@@ -52,7 +55,7 @@ namespace DecisionSample
         {
             this.batch.OnNext(new Observation { 
                 ID = uniqueKey,
-                Value = reward.ToString()
+                Value = reward.ToString() // TODO: change this to a json serialized string
             });
         }
 
@@ -98,22 +101,25 @@ namespace DecisionSample
         
         private async Task BatchUpload(MemoryStream jsonMemStream)
         {
-            using (var client = new HttpClient())
+            HttpResponseMessage response = await httpClient.PostAsync(this.ServicePostAddress, new StreamContent(jsonMemStream)).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
             {
-                client.BaseAddress = new Uri(this.ServiceAddress);
-                client.Timeout = TimeSpan.FromSeconds(this.ConnectionTimeOutInSeconds);
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(this.AuthenticationScheme, this.authorizationToken);
+                Task<string> taskReadResponse = response.Content.ReadAsStringAsync();
+                taskReadResponse.Wait();
+                string responseMessage = taskReadResponse.Result;
 
-                HttpResponseMessage response = await client.PostAsync(this.ServicePostAddress, new StreamContent(jsonMemStream));
-                if (!response.IsSuccessStatusCode)
-                {
-                    Task<string> taskReadResponse = response.Content.ReadAsStringAsync();
-                    taskReadResponse.Wait();
-                    string responseMessage = taskReadResponse.Result;
-
-                    // TODO: throw exception with custom message?
-                }
+                // TODO: throw exception with custom message?
             }
+        }
+
+        /// <summary>
+        /// Blocking call now: Blocks further incoming messages and finishes processing all data in buffer.
+        /// </summary>
+        public void Flush()
+        {
+            // TransformBlock.Complete()
+            // wait for Task = ActionBlock.Completion
+            // TODO: set a flag to flush
         }
 
         // Internally, background tasks can get back latest model version as a return value from the HTTP communication with Ingress worker
