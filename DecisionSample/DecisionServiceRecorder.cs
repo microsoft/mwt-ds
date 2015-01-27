@@ -11,6 +11,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using System.Diagnostics;
 
 namespace DecisionSample
 {
@@ -36,7 +37,11 @@ namespace DecisionSample
             this.httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(this.AuthenticationScheme, this.authorizationToken);
 
             this.eventSource = new TransformBlock<IEvent, string>(ev => JsonConvert.SerializeObject(ev));
-            this.eventProcessor = new ActionBlock<IList<string>>(jsev => this.BatchProcess(jsev));
+            this.eventProcessor = new ActionBlock<IList<string>>((Func<IList<string>, Task>)this.BatchProcess, new ExecutionDataflowBlockOptions 
+            { 
+                MaxDegreeOfParallelism = 4,
+                BoundedCapacity = 10
+            });
 
             this.eventUnsubscriber = this.eventSource.AsObservable().Window(batchConfig.Duration)
                 .Select(w => w.Buffer(batchConfig.EventCount, batchConfig.BufferSize, json => Encoding.Default.GetByteCount(json)))
@@ -46,31 +51,37 @@ namespace DecisionSample
 
         public void Record(TContext context, uint action, float probability, string uniqueKey)
         {
-            this.eventSource.Post(new Interaction
+            bool success = this.eventSource.Post(new Interaction
             { 
                 ID = uniqueKey,
                 Action = (int)action,
                 Probability = probability,
                 Context = this.contextSerializer(context)
             });
+
+            // TODO: handle failed Post
         }
 
         public void ReportReward(float reward, string uniqueKey)
         {
-            this.eventSource.Post(new Observation
+            bool success = this.eventSource.Post(new Observation
             { 
                 ID = uniqueKey,
                 Value = reward.ToString() // TODO: change this to a json serialized string
             });
+
+            // TODO: handle failed Post, through Tracing maybe
         }
 
         public void ReportOutcome(string outcomeJson, string uniqueKey)
         {
-            this.eventSource.Post(new Observation
+            bool success = this.eventSource.Post(new Observation
             { 
                 ID = uniqueKey,
                 Value = outcomeJson
             });
+
+            // TODO: handle failed Post
         }
 
         // TODO: at the time of server communication, if the client is out of memory (or meets some predefined upper bound):
@@ -121,10 +132,14 @@ namespace DecisionSample
         /// <summary>
         /// Blocks further incoming messages and finishes processing all data in buffer. This is a blocking call.
         /// </summary>
-        public void Flush()
+        public async void FlushAsync()
         {
             this.eventSource.Complete();
-            this.eventProcessor.Completion.Wait();
+
+            // TODO: 
+            //this.eventProcessor.Completion.Wait();
+
+            await this.eventProcessor.Completion;
         }
 
         // Internally, background tasks can get back latest model version as a return value from the HTTP communication with Ingress worker

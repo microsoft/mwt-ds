@@ -35,7 +35,7 @@ namespace DecisionSample
 
         public void Flush()
         { 
-            recorder.Flush();
+            recorder.FlushAsync();
         }
 
         public void Dispose() { }
