@@ -33,6 +33,11 @@ namespace DecisionSample
             return mwt.ChooseAction(exploreAlgorithm.Get(), uniqueKey, context);
         }
 
+        public void Flush()
+        { 
+            recorder.Flush();
+        }
+
         public void Dispose() { }
 
         public IRecorder<TContext> Recorder { get { return recorder; } }

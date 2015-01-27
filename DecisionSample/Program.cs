@@ -76,6 +76,8 @@ namespace DecisionSample
             // Report (simple) reward as a simple float
             service.ReportReward(0.5f, uniqueKey);
 
+            service.Flush();
+
             // TODO: We could also have a DecisionServicePolicy object to handle the model update.
             // TODO: We could have a DecisionService object that contains both the custom Recorder and Policy objects.
 

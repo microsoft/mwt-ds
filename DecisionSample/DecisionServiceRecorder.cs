@@ -10,6 +10,7 @@ using System.Net.Http.Headers;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 
 namespace DecisionSample
 {
@@ -29,21 +30,24 @@ namespace DecisionSample
             // TODO: Whether to allow users to specify to drop data or not?
 
             // TODO: Change this to use TransformBlock & ActionBlock
-            httpClient = new HttpClient();
-            httpClient.BaseAddress = new Uri(this.ServiceAddress);
-            httpClient.Timeout = TimeSpan.FromSeconds(this.ConnectionTimeOutInSeconds);
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(this.AuthenticationScheme, this.authorizationToken);
+            this.httpClient = new HttpClient();
+            this.httpClient.BaseAddress = new Uri(this.ServiceAddress);
+            this.httpClient.Timeout = TimeSpan.FromSeconds(this.ConnectionTimeOutInSeconds);
+            this.httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(this.AuthenticationScheme, this.authorizationToken);
 
-            this.batch = new Subject<IEvent>();
-            this.batch.Window(batchConfig.Duration)
-                .Select(w => w.Buffer(batchConfig.EventCount, batchConfig.BufferSize, ev => ev.Measure()))
+            this.eventSource = new TransformBlock<IEvent, string>(ev => JsonConvert.SerializeObject(ev));
+            this.eventProcessor = new ActionBlock<IList<string>>(jsev => this.BatchProcess(jsev));
+
+            this.eventUnsubscriber = this.eventSource.AsObservable().Window(batchConfig.Duration)
+                .Select(w => w.Buffer(batchConfig.EventCount, batchConfig.BufferSize, json => Encoding.Default.GetByteCount(json)))
                 .SelectMany(buffer => buffer)
-                .Subscribe(events => this.BatchProcess(events)); // TODO: dispose it
+                .Subscribe(this.eventProcessor.AsObserver());
         }
 
         public void Record(TContext context, uint action, float probability, string uniqueKey)
         {
-            this.batch.OnNext(new Interaction { 
+            this.eventSource.Post(new Interaction
+            { 
                 ID = uniqueKey,
                 Action = (int)action,
                 Probability = probability,
@@ -53,7 +57,8 @@ namespace DecisionSample
 
         public void ReportReward(float reward, string uniqueKey)
         {
-            this.batch.OnNext(new Observation { 
+            this.eventSource.Post(new Observation
+            { 
                 ID = uniqueKey,
                 Value = reward.ToString() // TODO: change this to a json serialized string
             });
@@ -61,7 +66,8 @@ namespace DecisionSample
 
         public void ReportOutcome(string outcomeJson, string uniqueKey)
         {
-            this.batch.OnNext(new Observation { 
+            this.eventSource.Post(new Observation
+            { 
                 ID = uniqueKey,
                 Value = outcomeJson
             });
@@ -70,18 +76,18 @@ namespace DecisionSample
         // TODO: at the time of server communication, if the client is out of memory (or meets some predefined upper bound):
         // 1. It can block the execution flow.
         // 2. Or drop events.
-        private async void BatchProcess(IList<IEvent> events)
+        private async Task BatchProcess(IList<string> jsonEvents)
         {
             using (var jsonMemStream = new MemoryStream())
             using (var jsonWriter = new JsonTextWriter(new StreamWriter(jsonMemStream)))
             {
                 var serializer = new JsonSerializer();
-                serializer.Serialize(jsonWriter, new EventBatch 
+                serializer.Serialize(jsonWriter, new EventBatch
                 {
-                    Events = events, 
-                    ExperimentalUnitDurationInSeconds = this.experimentalUnitDurationInSeconds 
+                    Events = jsonEvents,
+                    ExperimentalUnitDurationInSeconds = this.experimentalUnitDurationInSeconds
                 });
-                    
+
                 jsonWriter.Flush();
                 jsonMemStream.Position = 0;
 
@@ -113,26 +119,28 @@ namespace DecisionSample
         }
 
         /// <summary>
-        /// Blocking call now: Blocks further incoming messages and finishes processing all data in buffer.
+        /// Blocks further incoming messages and finishes processing all data in buffer. This is a blocking call.
         /// </summary>
         public void Flush()
         {
-            // TransformBlock.Complete()
-            // wait for Task = ActionBlock.Completion
-            // TODO: set a flag to flush
+            this.eventSource.Complete();
+            this.eventProcessor.Completion.Wait();
         }
 
         // Internally, background tasks can get back latest model version as a return value from the HTTP communication with Ingress worker
 
         public void Dispose() 
         {
-            httpClient.Dispose();
+            this.httpClient.Dispose();
+            this.eventUnsubscriber.Dispose();
         }
 
         #region Members
         private BatchingConfiguration batchConfig;
         private Func<TContext, string> contextSerializer;
-        private Subject<IEvent> batch;
+        private TransformBlock<IEvent, string> eventSource;
+        private ActionBlock<IList<string>> eventProcessor;
+        private IDisposable eventUnsubscriber;
         private int experimentalUnitDurationInSeconds;
         private string authorizationToken;
         private HttpClient httpClient;
