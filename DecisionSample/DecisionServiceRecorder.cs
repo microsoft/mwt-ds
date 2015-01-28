@@ -52,6 +52,7 @@ namespace DecisionSample
         }
 
         // TODO: add a TryRecord that doesn't block and returns whether the operation was successful
+        // TODO: alternatively we could also use a Configuration setting to control how Record() behaves
         public void Record(TContext context, uint action, float probability, string uniqueKey)
         {
             bool success = this.eventSource.Post(new Interaction
