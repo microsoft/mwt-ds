@@ -13,16 +13,21 @@ namespace DecisionSample
         /// <summary>
         /// Period of time where events are grouped in one batch.
         /// </summary>
-        public TimeSpan Duration { get; set; }
+        public TimeSpan MaxDuration { get; set; }
 
         /// <summary>
         /// Maximum number of events in a batch.
         /// </summary>
-        public int EventCount { get; set; }
+        public int MaxEventCount { get; set; }
 
         /// <summary>
         /// Maximum size (in bytes) of a batch.
         /// </summary>
-        public int BufferSize { get; set; }
+        public int MaxBufferSizeInBytes { get; set; }
+
+        /// <summary>
+        /// Max size of queue for processing/uploading.
+        /// </summary>
+        public int MaxUploadQueueCapacity { get; set; }
     }
 }

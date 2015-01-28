@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using MultiWorldTesting;
 using Newtonsoft.Json;
+using System.Threading.Tasks.Dataflow;
 
 namespace DecisionSample
 {
@@ -55,12 +56,13 @@ namespace DecisionSample
                 IsPolicyUpdatable = true,
 
                 // Configure batching logic if desired
-                //BatchConfig = new BatchingConfiguration()
-                //{
-                //    Duration = TimeSpan.FromSeconds(30),
-                //    EventCount = 1000,
-                //    BufferSize = 2 * 1024 * 1024
-                //},
+                BatchConfig = new BatchingConfiguration()
+                {
+                    MaxDuration = TimeSpan.FromMilliseconds(5000),
+                    MaxEventCount = 2,
+                    MaxBufferSizeInBytes = 10 * 1024 * 1024,
+                    MaxUploadQueueCapacity = 2
+                },
 
                 // Set a custom json serializer for the context
                 //ContextJsonSerializer = context => "My Context Json",
@@ -76,7 +78,7 @@ namespace DecisionSample
             // Report (simple) reward as a simple float
             service.ReportReward(0.5f, uniqueKey);
 
-            service.Flush();
+            service.FlushAsync().Wait();
 
             // TODO: We could also have a DecisionServicePolicy object to handle the model update.
             // TODO: We could have a DecisionService object that contains both the custom Recorder and Policy objects.

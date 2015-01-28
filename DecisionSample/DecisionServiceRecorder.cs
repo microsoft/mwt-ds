@@ -28,27 +28,30 @@ namespace DecisionSample
             this.experimentalUnitDurationInSeconds = experimentalUnitDurationInSeconds;
             this.authorizationToken = authorizationToken;
 
-            // TODO: Whether to allow users to specify to drop data or not?
-
-            // TODO: Change this to use TransformBlock & ActionBlock
             this.httpClient = new HttpClient();
             this.httpClient.BaseAddress = new Uri(this.ServiceAddress);
             this.httpClient.Timeout = TimeSpan.FromSeconds(this.ConnectionTimeOutInSeconds);
             this.httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(this.AuthenticationScheme, this.authorizationToken);
 
-            this.eventSource = new TransformBlock<IEvent, string>(ev => JsonConvert.SerializeObject(ev));
+            this.eventSource = new TransformBlock<IEvent, string>(ev => JsonConvert.SerializeObject(ev), new ExecutionDataflowBlockOptions { 
+                // TODO: Discuss whether we should expose another config setting for this BoundedCapacity
+                BoundedCapacity = batchConfig.MaxUploadQueueCapacity
+            });
             this.eventProcessor = new ActionBlock<IList<string>>((Func<IList<string>, Task>)this.BatchProcess, new ExecutionDataflowBlockOptions 
             { 
-                MaxDegreeOfParallelism = 4,
-                BoundedCapacity = 10
+                // TODO: Finetune these numbers
+                MaxDegreeOfParallelism = Environment.ProcessorCount,
+                BoundedCapacity = batchConfig.MaxUploadQueueCapacity,
             });
 
-            this.eventUnsubscriber = this.eventSource.AsObservable().Window(batchConfig.Duration)
-                .Select(w => w.Buffer(batchConfig.EventCount, batchConfig.BufferSize, json => Encoding.Default.GetByteCount(json)))
+            this.eventUnsubscriber = this.eventSource.AsObservable()
+                .Window(batchConfig.MaxDuration)
+                .Select(w => w.Buffer(batchConfig.MaxEventCount, batchConfig.MaxBufferSizeInBytes, json => Encoding.Default.GetByteCount(json)))
                 .SelectMany(buffer => buffer)
                 .Subscribe(this.eventProcessor.AsObserver());
         }
 
+        // TODO: add a TryRecord that doesn't block and returns whether the operation was successful
         public void Record(TContext context, uint action, float probability, string uniqueKey)
         {
             bool success = this.eventSource.Post(new Interaction
@@ -59,29 +62,46 @@ namespace DecisionSample
                 Context = this.contextSerializer(context)
             });
 
-            // TODO: handle failed Post
+            if (!success)
+            {
+                Trace.TraceError("Cannot record interaction with key: {0}.", uniqueKey);
+            }
         }
 
         public void ReportReward(float reward, string uniqueKey)
         {
-            bool success = this.eventSource.Post(new Observation
+            this.eventSource.AsObserver().OnNext(new Observation
             { 
                 ID = uniqueKey,
-                Value = reward.ToString() // TODO: change this to a json serialized string
+                Value = JsonConvert.SerializeObject(reward)
             });
+        }
 
-            // TODO: handle failed Post, through Tracing maybe
+        public bool TryReportReward(float reward, string uniqueKey)
+        {
+            return this.eventSource.Post(new Observation
+            {
+                ID = uniqueKey,
+                Value = JsonConvert.SerializeObject(reward)
+            });
         }
 
         public void ReportOutcome(string outcomeJson, string uniqueKey)
         {
-            bool success = this.eventSource.Post(new Observation
+            this.eventSource.AsObserver().OnNext(new Observation
             { 
                 ID = uniqueKey,
                 Value = outcomeJson
             });
+        }
 
-            // TODO: handle failed Post
+        public bool TryReportOutcome(string outcomeJson, string uniqueKey)
+        {
+            return this.eventSource.Post(new Observation
+            {
+                ID = uniqueKey,
+                Value = outcomeJson
+            });
         }
 
         // TODO: at the time of server communication, if the client is out of memory (or meets some predefined upper bound):
@@ -110,12 +130,6 @@ namespace DecisionSample
             }
         }
 
-        private async Task BatchLog(string batchFile, MemoryStream jsonMemStream)
-        {
-            // TODO: use other mechanisms to flush data than writing to disk
-            File.WriteAllText(batchFile, Encoding.UTF8.GetString(jsonMemStream.ToArray()));
-        }
-        
         private async Task BatchUpload(MemoryStream jsonMemStream)
         {
             HttpResponseMessage response = await httpClient.PostAsync(this.ServicePostAddress, new StreamContent(jsonMemStream)).ConfigureAwait(false);
@@ -132,7 +146,7 @@ namespace DecisionSample
         /// <summary>
         /// Blocks further incoming messages and finishes processing all data in buffer. This is a blocking call.
         /// </summary>
-        public async void FlushAsync()
+        public async Task FlushAsync()
         {
             this.eventSource.Complete();
 
@@ -149,6 +163,14 @@ namespace DecisionSample
             this.httpClient.Dispose();
             this.eventUnsubscriber.Dispose();
         }
+
+#if TEST
+        private async Task BatchLog(string batchFile, MemoryStream jsonMemStream)
+        {
+            // TODO: use other mechanisms to flush data than writing to disk
+            File.WriteAllText(batchFile, Encoding.UTF8.GetString(jsonMemStream.ToArray()));
+        }
+#endif
 
         #region Members
         private BatchingConfiguration batchConfig;

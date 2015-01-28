@@ -1,5 +1,6 @@
 ﻿using MultiWorldTesting;
 using System;
+using System.Threading.Tasks;
 
 namespace DecisionSample
 {
@@ -33,9 +34,9 @@ namespace DecisionSample
             return mwt.ChooseAction(exploreAlgorithm.Get(), uniqueKey, context);
         }
 
-        public void Flush()
+        public async Task FlushAsync()
         { 
-            recorder.FlushAsync();
+            await recorder.FlushAsync();
         }
 
         public void Dispose() { }

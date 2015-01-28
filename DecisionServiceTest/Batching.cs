@@ -17,9 +17,9 @@ namespace DecisionServiceTest
             {
                 BatchConfig = new BatchingConfiguration()
                 {
-                    Duration = TimeSpan.FromDays(30),
-                    EventCount = 2,
-                    BufferSize = 10 * 1024 * 1024
+                    MaxDuration = TimeSpan.FromDays(30),
+                    MaxEventCount = 2,
+                    MaxBufferSizeInBytes = 10 * 1024 * 1024
                 }
             };
 
@@ -43,9 +43,9 @@ namespace DecisionServiceTest
             {
                 BatchConfig = new BatchingConfiguration()
                 {
-                    Duration = TimeSpan.FromMilliseconds(100),
-                    EventCount = 2,
-                    BufferSize = 10 * 1024 * 1024
+                    MaxDuration = TimeSpan.FromMilliseconds(100),
+                    MaxEventCount = 2,
+                    MaxBufferSizeInBytes = 10 * 1024 * 1024
                 }
             };
 
@@ -71,9 +71,9 @@ namespace DecisionServiceTest
             {
                 BatchConfig = new BatchingConfiguration()
                 {
-                    Duration = TimeSpan.FromSeconds(1),
-                    EventCount = 2,
-                    BufferSize = 1
+                    MaxDuration = TimeSpan.FromSeconds(1),
+                    MaxEventCount = 2,
+                    MaxBufferSizeInBytes = 1
                 }
             };
 

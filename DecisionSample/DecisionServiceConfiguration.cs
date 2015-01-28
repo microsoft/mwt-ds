@@ -16,12 +16,13 @@ namespace DecisionSample
 
             ContextJsonSerializer = x => JsonConvert.SerializeObject(x);
 
-            // Default configuration for batching
+            // TODO: Choose proper default configuration for batching
             BatchConfig = new BatchingConfiguration()
             {
-                BufferSize = 4 * 1024 * 1024,
-                Duration = TimeSpan.FromMinutes(1),
-                EventCount = 10000
+                MaxBufferSizeInBytes = 4 * 1024 * 1024,
+                MaxDuration = TimeSpan.FromMinutes(1),
+                MaxEventCount = 10000,
+                MaxUploadQueueCapacity = 100
             };
         }
         public string AppId { get { return appId; } }
