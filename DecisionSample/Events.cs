@@ -88,4 +88,13 @@ namespace DecisionSample
         [JsonProperty(PropertyName = "d")]
         public long ExperimentalUnitDurationInSeconds { get; set; }
     }
+
+    public class ExperimentalUnitFragment
+    {
+        [JsonProperty(PropertyName = "i")]
+        public string Id { get; set; }
+
+        [JsonProperty(PropertyName = "v")]
+        public object Value { get; set; }
+    }
 }

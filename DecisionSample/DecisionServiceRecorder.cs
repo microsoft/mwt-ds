@@ -33,10 +33,14 @@ namespace DecisionSample
             this.httpClient.Timeout = TimeSpan.FromSeconds(this.ConnectionTimeOutInSeconds);
             this.httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(this.AuthenticationScheme, this.authorizationToken);
 
-            this.eventSource = new TransformBlock<IEvent, string>(ev => JsonConvert.SerializeObject(ev), new ExecutionDataflowBlockOptions { 
+            this.eventSource = new TransformBlock<IEvent, string>(ev => JsonConvert.SerializeObject(new ExperimentalUnitFragment { Id = ev.ID, Value = ev }), 
+                new ExecutionDataflowBlockOptions
+            { 
                 // TODO: Discuss whether we should expose another config setting for this BoundedCapacity
                 BoundedCapacity = batchConfig.MaxUploadQueueCapacity
             });
+            this.eventObserver = this.eventSource.AsObserver();
+
             this.eventProcessor = new ActionBlock<IList<string>>((Func<IList<string>, Task>)this.BatchProcess, new ExecutionDataflowBlockOptions 
             { 
                 // TODO: Finetune these numbers
@@ -55,23 +59,18 @@ namespace DecisionSample
         // TODO: alternatively we could also use a Configuration setting to control how Record() behaves
         public void Record(TContext context, uint action, float probability, string uniqueKey)
         {
-            bool success = this.eventSource.Post(new Interaction
+            this.eventObserver.OnNext(new Interaction
             { 
                 ID = uniqueKey,
                 Action = (int)action,
                 Probability = probability,
                 Context = this.contextSerializer(context)
             });
-
-            if (!success)
-            {
-                Trace.TraceError("Cannot record interaction with key: {0}.", uniqueKey);
-            }
         }
 
         public void ReportReward(float reward, string uniqueKey)
         {
-            this.eventSource.AsObserver().OnNext(new Observation
+            this.eventObserver.OnNext(new Observation
             { 
                 ID = uniqueKey,
                 Value = JsonConvert.SerializeObject(reward)
@@ -89,7 +88,7 @@ namespace DecisionSample
 
         public void ReportOutcome(string outcomeJson, string uniqueKey)
         {
-            this.eventSource.AsObserver().OnNext(new Observation
+            this.eventObserver.OnNext(new Observation
             { 
                 ID = uniqueKey,
                 Value = outcomeJson
@@ -108,21 +107,12 @@ namespace DecisionSample
         // TODO: at the time of server communication, if the client is out of memory (or meets some predefined upper bound):
         // 1. It can block the execution flow.
         // 2. Or drop events.
-        private async Task BatchProcess(IList<string> jsonEvents)
+        private async Task BatchProcess(IList<string> jsonExpFragments)
         {
-            using (var jsonMemStream = new MemoryStream())
-            using (var jsonWriter = new JsonTextWriter(new StreamWriter(jsonMemStream)))
+            byte[] jsonByteArray = Encoding.UTF8.GetBytes(this.BuildJsonMessage(jsonExpFragments));
+
+            using (var jsonMemStream = new MemoryStream(jsonByteArray))
             {
-                var serializer = new JsonSerializer();
-                serializer.Serialize(jsonWriter, new EventBatch
-                {
-                    Events = jsonEvents,
-                    ExperimentalUnitDurationInSeconds = this.experimentalUnitDurationInSeconds
-                });
-
-                jsonWriter.Flush();
-                jsonMemStream.Position = 0;
-
 #if TEST
                 await this.BatchLog("decision_service_test_output", jsonMemStream);
 #else
@@ -142,6 +132,10 @@ namespace DecisionSample
 
                 // TODO: throw exception with custom message?
             }
+            else
+            {
+                Console.WriteLine("success");
+            }
         }
 
         /// <summary>
@@ -155,6 +149,19 @@ namespace DecisionSample
             //this.eventProcessor.Completion.Wait();
 
             await this.eventProcessor.Completion;
+        }
+
+        private string BuildJsonMessage(IList<string> jsonExpFragments)
+        {
+            StringBuilder jsonBuilder = new StringBuilder();
+            
+            jsonBuilder.Append("{\"e\":[");
+            jsonBuilder.Append(String.Join(",", jsonExpFragments));
+            jsonBuilder.Append("],\"d\":");
+            jsonBuilder.Append(this.experimentalUnitDurationInSeconds);
+            jsonBuilder.Append("}");
+
+            return jsonBuilder.ToString();
         }
 
         // Internally, background tasks can get back latest model version as a return value from the HTTP communication with Ingress worker
@@ -177,6 +184,7 @@ namespace DecisionSample
         private BatchingConfiguration batchConfig;
         private Func<TContext, string> contextSerializer;
         private TransformBlock<IEvent, string> eventSource;
+        private IObserver<IEvent> eventObserver;
         private ActionBlock<IList<string>> eventProcessor;
         private IDisposable eventUnsubscriber;
         private int experimentalUnitDurationInSeconds;
@@ -188,7 +196,7 @@ namespace DecisionSample
         //private readonly string ServiceAddress = "http://decisionservice.cloudapp.net";
         private readonly string ServiceAddress = "http://localhost:1362";
         private readonly string ServicePostAddress = "/DecisionService.svc/PostExperimentalUnits";
-        private readonly int ConnectionTimeOutInSeconds = 60;
+        private readonly int ConnectionTimeOutInSeconds = 60 * 5;
         private readonly string AuthenticationScheme = "Bearer";
         #endregion
     }
