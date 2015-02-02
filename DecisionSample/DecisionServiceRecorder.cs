@@ -59,6 +59,7 @@ namespace DecisionSample
         // TODO: alternatively we could also use a Configuration setting to control how Record() behaves
         public void Record(TContext context, uint action, float probability, string uniqueKey)
         {
+            // Blocking call if queue is full.
             this.eventObserver.OnNext(new Interaction
             { 
                 ID = uniqueKey,
@@ -144,15 +145,19 @@ namespace DecisionSample
         public async Task FlushAsync()
         {
             this.eventSource.Complete();
-
-            // TODO: 
-            //this.eventProcessor.Completion.Wait();
-
             await this.eventProcessor.Completion;
+        }
+
+        public void Flush()
+        { 
+            this.eventSource.Complete();
+            Task completeTask = this.eventProcessor.Completion;
+            completeTask.Wait(); // Propagate AggregateException
         }
 
         private string BuildJsonMessage(IList<string> jsonExpFragments)
         {
+            // TODO: use automatic serialization instead of building JSON manually
             StringBuilder jsonBuilder = new StringBuilder();
             
             jsonBuilder.Append("{\"e\":[");

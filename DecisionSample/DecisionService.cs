@@ -34,6 +34,11 @@ namespace DecisionSample
             return mwt.ChooseAction(exploreAlgorithm.Get(), uniqueKey, context);
         }
 
+        public void Flush()
+        {
+            recorder.Flush();
+        }
+
         public async Task FlushAsync()
         { 
             await recorder.FlushAsync();

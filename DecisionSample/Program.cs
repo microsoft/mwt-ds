@@ -30,16 +30,16 @@ namespace DecisionSample
                 //explorer = new GenericExplorer<MyContext>(new UserScorer(), numActions: 10))
             {
                 // Allowing model update. Users can suppress model update by setting this to False.
-                IsPolicyUpdatable = true,
+                //IsPolicyUpdatable = true,
 
                 // Configure batching logic if desired
-                BatchConfig = new BatchingConfiguration()
-                {
-                    MaxDuration = TimeSpan.FromMilliseconds(5000),
-                    MaxEventCount = 2,
-                    MaxBufferSizeInBytes = 10 * 1024 * 1024,
-                    MaxUploadQueueCapacity = 2
-                },
+                //BatchConfig = new BatchingConfiguration()
+                //{
+                //    MaxDuration = TimeSpan.FromMilliseconds(5000),
+                //    MaxEventCount = 2,
+                //    MaxBufferSizeInBytes = 10 * 1024 * 1024,
+                //    MaxUploadQueueCapacity = 2
+                //},
 
                 // Set a custom json serializer for the context
                 //ContextJsonSerializer = context => "My Context Json",
@@ -55,10 +55,12 @@ namespace DecisionSample
             // Report (simple) reward as a simple float
             service.ReportReward(0.5f, uniqueKey);
 
-            // Trigger a flush
-            Task flushTask = service.FlushAsync();
+            // Synchronous flush
+            service.Flush();
 
-            flushTask.Wait();
+            // Async flush
+            //Task flushTask = service.FlushAsync();
+            //flushTask.Wait();
         }
 
         static void TestServiceCommmunication()
