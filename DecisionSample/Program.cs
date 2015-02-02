@@ -55,15 +55,10 @@ namespace DecisionSample
             // Report (simple) reward as a simple float
             service.ReportReward(0.5f, uniqueKey);
 
-            service.FlushAsync().Wait();
+            // Trigger a flush
+            Task flushTask = service.FlushAsync();
 
-            // TODO: We could also have a DecisionServicePolicy object to handle the model update.
-            // TODO: We could have a DecisionService object that contains both the custom Recorder and Policy objects.
-
-            // TODO: should we package these last parameters into a Configuration object
-            //var explorer = new EpsilonGreedyExplorer<MyContext>(new UserPolicy(), epsilon: 0.2f, numActions: 10);
-
-            // This will call MyAzureRecorder.Record with the <x, a, p, k> tuple
+            flushTask.Wait();
         }
 
         static void TestServiceCommmunication()
