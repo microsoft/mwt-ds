@@ -39,11 +39,6 @@ namespace DecisionSample
             recorder.Flush();
         }
 
-        public async Task FlushAsync()
-        { 
-            await recorder.FlushAsync();
-        }
-
         public void Dispose() { }
 
         public IRecorder<TContext> Recorder { get { return recorder; } }

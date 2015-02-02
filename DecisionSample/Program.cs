@@ -57,10 +57,6 @@ namespace DecisionSample
 
             // Synchronous flush
             service.Flush();
-
-            // Async flush
-            //Task flushTask = service.FlushAsync();
-            //flushTask.Wait();
         }
 
         static void TestServiceCommmunication()

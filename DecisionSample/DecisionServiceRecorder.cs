@@ -139,20 +139,10 @@ namespace DecisionSample
             }
         }
 
-        /// <summary>
-        /// Blocks further incoming messages and finishes processing all data in buffer. This is a blocking call.
-        /// </summary>
-        public async Task FlushAsync()
-        {
-            this.eventSource.Complete();
-            await this.eventProcessor.Completion;
-        }
-
         public void Flush()
         { 
             this.eventSource.Complete();
-            Task completeTask = this.eventProcessor.Completion;
-            completeTask.Wait(); // Propagate AggregateException
+            this.eventProcessor.Completion.Wait();
         }
 
         private string BuildJsonMessage(IList<string> jsonExpFragments)
