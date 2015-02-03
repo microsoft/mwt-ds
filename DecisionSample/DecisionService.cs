@@ -24,9 +24,19 @@ namespace DecisionSample
             recorder.ReportReward(reward, uniqueKey);
         }
 
+        public bool TryReportReward(float reward, string uniqueKey)
+        {
+            return recorder.TryReportReward(reward, uniqueKey);
+        }
+
         public void ReportOutcome(string outcomeJson, string uniqueKey)
         {
             recorder.ReportOutcome(outcomeJson, uniqueKey);
+        }
+
+        public bool TryReportOutcome(string outcomeJson, string uniqueKey)
+        {
+            return recorder.TryReportOutcome(outcomeJson, uniqueKey);
         }
 
         public uint ChooseAction(string uniqueKey, TContext context)

@@ -80,15 +80,6 @@ namespace DecisionSample
         }
     }
 
-    public class EventBatch
-    {
-        [JsonProperty(PropertyName = "e")]
-        public IList<string> Events { get; set; }
-
-        [JsonProperty(PropertyName = "d")]
-        public long ExperimentalUnitDurationInSeconds { get; set; }
-    }
-
     public class ExperimentalUnitFragment
     {
         [JsonProperty(PropertyName = "i")]

@@ -1,4 +1,5 @@
 ﻿using MultiWorldTesting;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 
@@ -15,5 +16,13 @@ namespace DecisionServiceTest
             // Always returns the same action regardless of context
             return 5;
         }
+    }
+    public class EventBatch
+    {
+        [JsonProperty(PropertyName = "e")]
+        public IList<string> Events { get; set; }
+
+        [JsonProperty(PropertyName = "d")]
+        public long ExperimentalUnitDurationInSeconds { get; set; }
     }
 }
