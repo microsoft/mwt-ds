@@ -22,7 +22,8 @@ namespace DecisionSample
                 MaxBufferSizeInBytes = 4 * 1024 * 1024,
                 MaxDuration = TimeSpan.FromMinutes(1),
                 MaxEventCount = 10000,
-                MaxUploadQueueCapacity = 100
+                MaxUploadQueueCapacity = 100,
+                UploadRetryPolicy = BatchUploadRetryPolicy.Retry
             };
         }
         public string AppId { get { return appId; } }

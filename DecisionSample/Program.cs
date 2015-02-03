@@ -33,13 +33,14 @@ namespace DecisionSample
                 //IsPolicyUpdatable = true,
 
                 // Configure batching logic if desired
-                //BatchConfig = new BatchingConfiguration()
-                //{
-                //    MaxDuration = TimeSpan.FromMilliseconds(5000),
-                //    MaxEventCount = 2,
-                //    MaxBufferSizeInBytes = 10 * 1024 * 1024,
-                //    MaxUploadQueueCapacity = 2
-                //},
+                BatchConfig = new BatchingConfiguration()
+                {
+                    MaxDuration = TimeSpan.FromMilliseconds(5000),
+                    MaxEventCount = 2,
+                    MaxBufferSizeInBytes = 10 * 1024 * 1024,
+                    MaxUploadQueueCapacity = 2,
+                    UploadRetryPolicy = BatchUploadRetryPolicy.Retry
+                },
 
                 // Set a custom json serializer for the context
                 //ContextJsonSerializer = context => "My Context Json",

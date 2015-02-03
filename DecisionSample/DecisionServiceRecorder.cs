@@ -117,25 +117,25 @@ namespace DecisionSample
 #if TEST
                 await this.BatchLog("decision_service_test_output", jsonMemStream);
 #else
-                await this.BatchUpload(jsonMemStream);
+                HttpResponseMessage response = await httpClient.PostAsync(this.ServicePostAddress, new StreamContent(jsonMemStream)).ConfigureAwait(false);
+                if (!response.IsSuccessStatusCode)
+                {
+                    Task<string> taskReadResponse = response.Content.ReadAsStringAsync();
+                    taskReadResponse.Wait();
+
+                    Trace.TraceError("Unable to upload batch: " + taskReadResponse.Result);
+
+                    if (this.batchConfig.UploadRetryPolicy == BatchUploadRetryPolicy.Retry)
+                    {
+                        // TODO: push events back to queue
+                    }
+                    // TODO: throw exception with custom message?
+                }
+                else
+                {
+                    Console.WriteLine("success");
+                }
 #endif
-            }
-        }
-
-        private async Task BatchUpload(MemoryStream jsonMemStream)
-        {
-            HttpResponseMessage response = await httpClient.PostAsync(this.ServicePostAddress, new StreamContent(jsonMemStream)).ConfigureAwait(false);
-            if (!response.IsSuccessStatusCode)
-            {
-                Task<string> taskReadResponse = response.Content.ReadAsStringAsync();
-                taskReadResponse.Wait();
-                string responseMessage = taskReadResponse.Result;
-
-                // TODO: throw exception with custom message?
-            }
-            else
-            {
-                Console.WriteLine("success");
             }
         }
 
