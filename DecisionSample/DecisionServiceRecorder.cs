@@ -37,6 +37,7 @@ namespace DecisionSample
                 new ExecutionDataflowBlockOptions
             { 
                 // TODO: Discuss whether we should expose another config setting for this BoundedCapacity
+                MaxDegreeOfParallelism = Environment.ProcessorCount,
                 BoundedCapacity = batchConfig.MaxUploadQueueCapacity
             });
             this.eventObserver = this.eventSource.AsObserver();
@@ -44,7 +45,7 @@ namespace DecisionSample
             this.eventProcessor = new ActionBlock<IList<string>>((Func<IList<string>, Task>)this.BatchProcess, new ExecutionDataflowBlockOptions 
             { 
                 // TODO: Finetune these numbers
-                MaxDegreeOfParallelism = Environment.ProcessorCount,
+                MaxDegreeOfParallelism = Environment.ProcessorCount * 4,
                 BoundedCapacity = batchConfig.MaxUploadQueueCapacity,
             });
 
@@ -193,7 +194,7 @@ namespace DecisionSample
         #endregion
 
         #region Constants
-        //private readonly string ServiceAddress = "http://decisionservice.cloudapp.net";
+        // private readonly string ServiceAddress = "http://decisionservice.cloudapp.net";
         private readonly string ServiceAddress = "http://localhost:1362";
         private readonly string ServicePostAddress = "/DecisionService.svc/PostExperimentalUnits";
         private readonly int ConnectionTimeOutInSeconds = 60 * 5;
