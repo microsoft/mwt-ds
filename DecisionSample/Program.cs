@@ -104,7 +104,9 @@ namespace DecisionSample
                     MaxBufferSizeInBytes = 8 * 1024 * 1024,
                     MaxUploadQueueCapacity = 1024 * 32
                 },
-                ExperimentalUnitDurationInSeconds = 30
+                ExperimentalUnitDurationInSeconds = 30,
+                // Features must be top-level, no nesting supported
+                ContextJsonSerializer = uc => JsonConvert.SerializeObject(uc.FeatureVector)
             };
 
             var service = new DecisionService<UserContext>(serviceConfig);
@@ -184,7 +186,7 @@ namespace DecisionSample
 
             Console.WriteLine("Processing done: " + stopwatch.Elapsed);
 
-            service.FlushAsync().Wait();
+            service.Flush();
 
             Console.WriteLine("Service flushed done: " + stopwatch.Elapsed);
         }
