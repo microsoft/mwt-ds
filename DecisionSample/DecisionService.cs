@@ -24,9 +24,19 @@ namespace DecisionSample
             recorder.ReportReward(reward, uniqueKey);
         }
 
+        public bool TryReportReward(float reward, string uniqueKey)
+        {
+            return recorder.TryReportReward(reward, uniqueKey);
+        }
+
         public void ReportOutcome(string outcomeJson, string uniqueKey)
         {
             recorder.ReportOutcome(outcomeJson, uniqueKey);
+        }
+
+        public bool TryReportOutcome(string outcomeJson, string uniqueKey)
+        {
+            return recorder.TryReportOutcome(outcomeJson, uniqueKey);
         }
 
         public uint ChooseAction(string uniqueKey, TContext context)
@@ -34,9 +44,9 @@ namespace DecisionSample
             return mwt.ChooseAction(exploreAlgorithm.Get(), uniqueKey, context);
         }
 
-        public async Task FlushAsync()
-        { 
-            await recorder.FlushAsync();
+        public void Flush()
+        {
+            recorder.Flush();
         }
 
         public void Dispose() { }

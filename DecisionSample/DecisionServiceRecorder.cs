@@ -60,6 +60,7 @@ namespace DecisionSample
         // TODO: alternatively we could also use a Configuration setting to control how Record() behaves
         public void Record(TContext context, uint action, float probability, string uniqueKey)
         {
+            // Blocking call if queue is full.
             this.eventObserver.OnNext(new Interaction
             { 
                 ID = uniqueKey,
@@ -117,43 +118,37 @@ namespace DecisionSample
 #if TEST
                 await this.BatchLog("decision_service_test_output", jsonMemStream);
 #else
-                await this.BatchUpload(jsonMemStream);
+                HttpResponseMessage response = await httpClient.PostAsync(this.ServicePostAddress, new StreamContent(jsonMemStream)).ConfigureAwait(false);
+                if (!response.IsSuccessStatusCode)
+                {
+                    Task<string> taskReadResponse = response.Content.ReadAsStringAsync();
+                    taskReadResponse.Wait();
+
+                    Trace.TraceError("Unable to upload batch: " + taskReadResponse.Result);
+
+                    if (this.batchConfig.UploadRetryPolicy == BatchUploadRetryPolicy.Retry)
+                    {
+                        // TODO: push events back to queue
+                    }
+                    // TODO: throw exception with custom message?
+                }
+                else
+                {
+                    Console.WriteLine("success");
+                }
 #endif
             }
         }
 
-        private async Task BatchUpload(MemoryStream jsonMemStream)
-        {
-            HttpResponseMessage response = await httpClient.PostAsync(this.ServicePostAddress, new StreamContent(jsonMemStream)).ConfigureAwait(false);
-            if (!response.IsSuccessStatusCode)
-            {
-                Task<string> taskReadResponse = response.Content.ReadAsStringAsync();
-                taskReadResponse.Wait();
-                string responseMessage = taskReadResponse.Result;
-
-                // TODO: throw exception with custom message?
-            }
-            else
-            {
-                Console.WriteLine("success");
-            }
-        }
-
-        /// <summary>
-        /// Blocks further incoming messages and finishes processing all data in buffer. This is a blocking call.
-        /// </summary>
-        public async Task FlushAsync()
-        {
+        public void Flush()
+        { 
             this.eventSource.Complete();
-
-            // TODO: 
-            //this.eventProcessor.Completion.Wait();
-
-            await this.eventProcessor.Completion;
+            this.eventProcessor.Completion.Wait();
         }
 
         private string BuildJsonMessage(IList<string> jsonExpFragments)
         {
+            // TODO: use automatic serialization instead of building JSON manually
             StringBuilder jsonBuilder = new StringBuilder();
             
             jsonBuilder.Append("{\"e\":[");

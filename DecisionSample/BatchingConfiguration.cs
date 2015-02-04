@@ -29,5 +29,13 @@ namespace DecisionSample
         /// Max size of queue for processing/uploading.
         /// </summary>
         public int MaxUploadQueueCapacity { get; set; }
+
+        public BatchUploadRetryPolicy UploadRetryPolicy { get; set; }
+    }
+
+    public enum BatchUploadRetryPolicy
+    { 
+        None = 0,
+        Retry
     }
 }

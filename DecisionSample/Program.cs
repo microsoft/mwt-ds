@@ -42,7 +42,7 @@ namespace DecisionSample
                 //explorer = new GenericExplorer<MyContext>(new UserScorer(), numActions: 10))
             {
                 // Allowing model update. Users can suppress model update by setting this to False.
-                IsPolicyUpdatable = true,
+                //IsPolicyUpdatable = true,
 
                 // Configure batching logic if desired
                 BatchConfig = new BatchingConfiguration()
@@ -50,7 +50,8 @@ namespace DecisionSample
                     MaxDuration = TimeSpan.FromMilliseconds(5000),
                     MaxEventCount = 2,
                     MaxBufferSizeInBytes = 10 * 1024 * 1024,
-                    MaxUploadQueueCapacity = 2
+                    MaxUploadQueueCapacity = 2,
+                    UploadRetryPolicy = BatchUploadRetryPolicy.Retry
                 },
 
                 // Set a custom json serializer for the context
@@ -67,15 +68,8 @@ namespace DecisionSample
             // Report (simple) reward as a simple float
             service.ReportReward(0.5f, uniqueKey);
 
-            service.FlushAsync().Wait();
-
-            // TODO: We could also have a DecisionServicePolicy object to handle the model update.
-            // TODO: We could have a DecisionService object that contains both the custom Recorder and Policy objects.
-
-            // TODO: should we package these last parameters into a Configuration object
-            //var explorer = new EpsilonGreedyExplorer<MyContext>(new UserPolicy(), epsilon: 0.2f, numActions: 10);
-
-            // This will call MyAzureRecorder.Record with the <x, a, p, k> tuple
+            // Synchronous flush
+            service.Flush();
         }
 
         static void TestServiceCommmunication()
