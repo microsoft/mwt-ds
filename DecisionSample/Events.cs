@@ -39,6 +39,7 @@ namespace DecisionSample
         public double Probability { get; set; }
 
         [JsonProperty(PropertyName = "c")]
+        [JsonConverter(typeof(RawStringConverter))]
         public string Context { get; set; }
 
         // TODO : change to measure by serialized string
