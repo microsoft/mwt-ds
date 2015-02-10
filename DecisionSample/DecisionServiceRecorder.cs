@@ -37,6 +37,7 @@ namespace DecisionSample
                 new ExecutionDataflowBlockOptions
             { 
                 // TODO: Discuss whether we should expose another config setting for this BoundedCapacity
+                MaxDegreeOfParallelism = Environment.ProcessorCount,
                 BoundedCapacity = batchConfig.MaxUploadQueueCapacity
             });
             this.eventObserver = this.eventSource.AsObserver();
