@@ -11,6 +11,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "explore_static", "explore\s
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DecisionServiceTest", "DecisionServiceTest\DecisionServiceTest.csproj", "{8C5A34B2-FD5F-4D3C-888C-674DE232967E}"
 EndProject
+Project("{F088123C-0E9E-452A-89E6-6BA2F21D5CAC}") = "Modeling", "Modeling\Modeling.modelproj", "{66C11AA5-FC0C-419B-9174-C4757CF68CCA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -69,6 +71,12 @@ Global
 		{8C5A34B2-FD5F-4D3C-888C-674DE232967E}.Test|x64.Build.0 = Debug|x64
 		{8C5A34B2-FD5F-4D3C-888C-674DE232967E}.Test|x86.ActiveCfg = Debug|x86
 		{8C5A34B2-FD5F-4D3C-888C-674DE232967E}.Test|x86.Build.0 = Debug|x86
+		{66C11AA5-FC0C-419B-9174-C4757CF68CCA}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{66C11AA5-FC0C-419B-9174-C4757CF68CCA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{66C11AA5-FC0C-419B-9174-C4757CF68CCA}.Release|x64.ActiveCfg = Release|Any CPU
+		{66C11AA5-FC0C-419B-9174-C4757CF68CCA}.Release|x86.ActiveCfg = Release|Any CPU
+		{66C11AA5-FC0C-419B-9174-C4757CF68CCA}.Test|x64.ActiveCfg = Release|Any CPU
+		{66C11AA5-FC0C-419B-9174-C4757CF68CCA}.Test|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
