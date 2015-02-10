@@ -16,8 +16,6 @@ namespace DecisionSample
 
         [JsonProperty(PropertyName = "i")]
         string ID { get; set; }
-
-        int Measure();
     }
 
     public class Interaction : IEvent
@@ -41,19 +39,6 @@ namespace DecisionSample
         [JsonProperty(PropertyName = "c")]
         [JsonConverter(typeof(RawStringConverter))]
         public string Context { get; set; }
-
-        // TODO : change to measure by serialized string
-
-        public int Measure()
-        {
-            // TODO: Reflection? potential perf hit
-            return 
-                sizeof(EventType) +
-                sizeof(int) + 
-                sizeof(double) + 
-                Encoding.Unicode.GetByteCount(ID) +
-                Encoding.Unicode.GetByteCount(Context);
-        }
     }
 
     public class Observation : IEvent
@@ -70,15 +55,6 @@ namespace DecisionSample
 
         [JsonProperty(PropertyName = "v")]
         public string Value { get; set; }
-
-        public int Measure()
-        {
-            // TODO: Reflection? potential perf hit
-            return
-                sizeof(EventType) +
-                Encoding.Unicode.GetByteCount(ID) +
-                Encoding.Unicode.GetByteCount(Value);
-        }
     }
 
     public class ExperimentalUnitFragment

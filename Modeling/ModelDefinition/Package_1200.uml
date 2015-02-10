@@ -3062,7 +3062,7 @@
         <referencesInternal>
           <reference
             Id="3c2eff0c-522e-43eb-a203-74a9a4192361"
-            handle="viewcode://./CodeSchema_Interface?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx86%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DIEvent"
+            handle="viewcode://./CodeSchema_Interface?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx64%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DIEvent"
             tag="ViewCode" />
         </referencesInternal>
         <appliedStereotypesInternal>
@@ -3183,7 +3183,7 @@
             <referencesInternal>
               <reference
                 Id="264149ed-a8b5-49c8-8651-c508c97ce2cc"
-                handle="viewcode://./CodeSchema_Property?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx86%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DIEvent Member%3DID"
+                handle="viewcode://./CodeSchema_Property?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx64%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DIEvent Member%3DID"
                 tag="ViewCode" />
             </referencesInternal>
             <appliedStereotypesInternal>
@@ -3263,7 +3263,7 @@
             <referencesInternal>
               <reference
                 Id="be13e6b1-61c5-4484-8279-dfc5ad4e2300"
-                handle="viewcode://./CodeSchema_Property?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx86%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DIEvent Member%3DType"
+                handle="viewcode://./CodeSchema_Property?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx64%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DIEvent Member%3DType"
                 tag="ViewCode" />
             </referencesInternal>
             <appliedStereotypesInternal>
@@ -3331,87 +3331,6 @@
             </type_NamedElement>
           </property>
         </ownedAttributes>
-        <ownedOperations>
-          <operation
-            Id="bda5a1ba-393f-4271-ba56-3f72b4f52dc9"
-            name="Measure"
-            isLeaf="false"
-            isStatic="false"
-            isAbstract="true"
-            concurrency="Sequential"
-            isQuery="false">
-            <referencesInternal>
-              <reference
-                Id="a28e226f-985f-4c55-858f-fc71a5b257fe"
-                handle="viewcode://./CodeSchema_Method?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx86%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DIEvent Member%3DMeasure"
-                tag="ViewCode" />
-            </referencesInternal>
-            <appliedStereotypesInternal>
-              <stereotypeInstance
-                Id="237ffbc9-778a-40a4-aceb-980f8bd85f35"
-                name="method"
-                profile="CSharpProfile">
-                <propertyInstances>
-                  <stereotypeInstanceHasPropertyInstances
-                    Id="7fb73554-feaa-4e22-98db-9414cf345453">
-                    <propertyInstance
-                      Id="0bde0a92-78ea-4496-be02-abac441947e4"
-                      name="ClrAttributes" />
-                  </stereotypeInstanceHasPropertyInstances>
-                  <stereotypeInstanceHasPropertyInstances
-                    Id="a0e69180-ab68-4ec9-920c-e88d19244580">
-                    <propertyInstance
-                      Id="a862a766-d859-45a6-9563-4a5eb671ce27"
-                      name="IsPartial"
-                      value="false" />
-                  </stereotypeInstanceHasPropertyInstances>
-                  <stereotypeInstanceHasPropertyInstances
-                    Id="b9e46397-36d6-4c16-b2ad-f3e03aeeddd7">
-                    <propertyInstance
-                      Id="0cd52ad2-3ad4-4c31-b8f7-c119fe957bd3"
-                      name="IsUnsafe"
-                      value="false" />
-                  </stereotypeInstanceHasPropertyInstances>
-                  <stereotypeInstanceHasPropertyInstances
-                    Id="0957b942-6e0d-4a93-bf3a-59359bc02234">
-                    <propertyInstance
-                      Id="294533de-800b-45cc-925e-2902fe0a8f97"
-                      name="Inheritance"
-                      value="none" />
-                  </stereotypeInstanceHasPropertyInstances>
-                  <stereotypeInstanceHasPropertyInstances
-                    Id="3191fa2e-7031-4243-a743-863adb23bade">
-                    <propertyInstance
-                      Id="86785414-641d-4ac5-8ecd-7c7bc2d141df"
-                      name="PackageVisibility"
-                      value="internal" />
-                  </stereotypeInstanceHasPropertyInstances>
-                  <stereotypeInstanceHasPropertyInstances
-                    Id="c69d5100-0f43-4182-a056-3f0bb0328a25">
-                    <propertyInstance
-                      Id="8b0f8c92-b869-46ce-afd4-22ef67ecb211"
-                      name="params"
-                      value="false" />
-                  </stereotypeInstanceHasPropertyInstances>
-                </propertyInstances>
-              </stereotypeInstance>
-            </appliedStereotypesInternal>
-            <ownedParameters>
-              <operationHasOwnedParameters>
-                <parameter
-                  Id="72a16ba5-4d31-4d03-939f-04d0fdc149f9"
-                  direction="Return">
-                  <type_NamedElement>
-                    <primitiveTypeMoniker
-                      Id="220a3521-e091-4221-bae9-3ef9018e845c"
-                      LastKnownName="Integer"
-                      LastKnownLocation="Modeling.uml" />
-                  </type_NamedElement>
-                </parameter>
-              </operationHasOwnedParameters>
-            </ownedParameters>
-          </operation>
-        </ownedOperations>
       </Interface>
     </packageHasNamedElement>
     <packageHasNamedElement>
@@ -4370,7 +4289,7 @@
         <referencesInternal>
           <reference
             Id="d08826a1-3649-4637-a63c-f40d68fb9c45"
-            handle="viewcode://./CodeSchema_Enum?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx86%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DEventType"
+            handle="viewcode://./CodeSchema_Enum?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx64%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DEventType"
             tag="ViewCode" />
         </referencesInternal>
         <appliedStereotypesInternal>
@@ -4436,7 +4355,7 @@
         <referencesInternal>
           <reference
             Id="73b1df99-7eac-4790-a06a-4ddb0da7adf5"
-            handle="viewcode://./CodeSchema_Class?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx86%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DInteraction"
+            handle="viewcode://./CodeSchema_Class?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx64%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DInteraction"
             tag="ViewCode" />
         </referencesInternal>
         <appliedStereotypesInternal>
@@ -4639,7 +4558,7 @@
             <referencesInternal>
               <reference
                 Id="c1cf3f5e-fd5b-47d1-8be8-5868b37d7c83"
-                handle="viewcode://./CodeSchema_Property?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx86%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DInteraction Member%3DAction"
+                handle="viewcode://./CodeSchema_Property?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx64%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DInteraction Member%3DAction"
                 tag="ViewCode" />
             </referencesInternal>
             <appliedStereotypesInternal>
@@ -4719,7 +4638,7 @@
             <referencesInternal>
               <reference
                 Id="4ac31969-c38f-4e34-92e0-9675b661ca27"
-                handle="viewcode://./CodeSchema_Property?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx86%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DInteraction Member%3DContext"
+                handle="viewcode://./CodeSchema_Property?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx64%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DInteraction Member%3DContext"
                 tag="ViewCode" />
             </referencesInternal>
             <appliedStereotypesInternal>
@@ -4799,7 +4718,7 @@
             <referencesInternal>
               <reference
                 Id="942d5477-9576-4d53-a8d8-f999cae078f6"
-                handle="viewcode://./CodeSchema_Property?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx86%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DInteraction Member%3DID"
+                handle="viewcode://./CodeSchema_Property?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx64%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DInteraction Member%3DID"
                 tag="ViewCode" />
             </referencesInternal>
             <appliedStereotypesInternal>
@@ -4879,7 +4798,7 @@
             <referencesInternal>
               <reference
                 Id="0e160992-7eab-4a8d-ada3-5fecdff44bf3"
-                handle="viewcode://./CodeSchema_Property?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx86%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DInteraction Member%3DProbability"
+                handle="viewcode://./CodeSchema_Property?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx64%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DInteraction Member%3DProbability"
                 tag="ViewCode" />
             </referencesInternal>
             <appliedStereotypesInternal>
@@ -4959,7 +4878,7 @@
             <referencesInternal>
               <reference
                 Id="92f518a2-e420-4a88-b45a-ce48d87697ae"
-                handle="viewcode://./CodeSchema_Property?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx86%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DInteraction Member%3DType"
+                handle="viewcode://./CodeSchema_Property?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx64%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DInteraction Member%3DType"
                 tag="ViewCode" />
             </referencesInternal>
             <appliedStereotypesInternal>
@@ -5029,7 +4948,7 @@
         </ownedAttributesInternal>
         <ownedOperationsInternal>
           <operation
-            Id="4fabec43-95f7-45e1-9a12-a6c7d4fc600f"
+            Id="af37599d-6461-491e-8d34-c480f5f0f447"
             name="Interaction"
             isLeaf="false"
             isStatic="false"
@@ -5038,139 +4957,60 @@
             isQuery="false">
             <referencesInternal>
               <reference
-                Id="d149df5b-8675-4275-9fad-230710214ab6"
-                handle="viewcode://./CodeSchema_Method?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx86%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DInteraction Member%3D.ctor"
+                Id="2861920b-9214-4867-8ff5-7f8f243c3d1f"
+                handle="viewcode://./CodeSchema_Method?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx64%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DInteraction Member%3D.ctor"
                 tag="ViewCode" />
             </referencesInternal>
             <appliedStereotypesInternal>
               <stereotypeInstance
-                Id="1858255c-5289-4b1e-b0e1-ba9227d5266b"
+                Id="08506cf4-6d93-45d9-b68c-5c579aae7123"
                 name="method"
                 profile="CSharpProfile">
                 <propertyInstances>
                   <stereotypeInstanceHasPropertyInstances
-                    Id="3dae1a12-6ea9-400b-9e06-2160143783cb">
+                    Id="0c952b64-18fc-49a0-b9ee-fbfb51b62688">
                     <propertyInstance
-                      Id="39f98e2f-2a25-417b-8f91-2b95fa55e287"
+                      Id="26f765c7-8fc1-4999-80f3-60391423bbb2"
                       name="ClrAttributes" />
                   </stereotypeInstanceHasPropertyInstances>
                   <stereotypeInstanceHasPropertyInstances
-                    Id="423f5494-4dc0-48de-8add-6931f340658e">
+                    Id="3c73990f-fec9-43a0-8156-c02de5071a79">
                     <propertyInstance
-                      Id="35c34247-b383-4f32-b6bd-7be8d5198200"
+                      Id="10801222-22b1-4b07-b7ae-4c65ca505bf9"
                       name="IsPartial"
                       value="false" />
                   </stereotypeInstanceHasPropertyInstances>
                   <stereotypeInstanceHasPropertyInstances
-                    Id="7dc44b65-f527-4ef2-9b95-7403ee4aa257">
+                    Id="90cad044-30d5-4164-aaa5-da5485d1b028">
                     <propertyInstance
-                      Id="c889fc27-2803-48bd-b02e-a10866ae5861"
+                      Id="dbf06432-9fec-446b-9b9f-74dce61ccd2b"
                       name="IsUnsafe"
                       value="false" />
                   </stereotypeInstanceHasPropertyInstances>
                   <stereotypeInstanceHasPropertyInstances
-                    Id="42f79a10-45f6-4f06-8bdd-1229a2043258">
+                    Id="54217632-3def-444f-9ecf-0e1a45da7e05">
                     <propertyInstance
-                      Id="770da689-411b-43d7-9d53-12181d17a09c"
+                      Id="da39a8d9-686a-405c-8bd5-ad3874104582"
                       name="Inheritance"
                       value="none" />
                   </stereotypeInstanceHasPropertyInstances>
                   <stereotypeInstanceHasPropertyInstances
-                    Id="2d753a59-fc22-4e68-895c-40ad864f3488">
+                    Id="724943ec-d8c8-4f78-a231-a2858413e681">
                     <propertyInstance
-                      Id="bcc716ec-0adc-492f-8a79-90982e718c50"
+                      Id="dcf70a4c-f0c8-4c73-882f-2e5d71a1cd4e"
                       name="PackageVisibility"
                       value="internal" />
                   </stereotypeInstanceHasPropertyInstances>
                   <stereotypeInstanceHasPropertyInstances
-                    Id="39877b43-5343-49f9-a794-ca9cc4b8abfe">
+                    Id="1a42c57e-26e7-404d-aa3b-861202aea1bd">
                     <propertyInstance
-                      Id="659053be-a2f2-454a-bd41-19f1f387057d"
+                      Id="67376aaa-f518-4f31-83a7-5de83bbd2006"
                       name="params"
                       value="false" />
                   </stereotypeInstanceHasPropertyInstances>
                 </propertyInstances>
               </stereotypeInstance>
             </appliedStereotypesInternal>
-          </operation>
-          <operation
-            Id="0ccbf319-a0b2-4884-bc96-7a9b4cb71dda"
-            name="Measure"
-            isLeaf="false"
-            isStatic="false"
-            isAbstract="false"
-            concurrency="Sequential"
-            isQuery="false">
-            <referencesInternal>
-              <reference
-                Id="a829bdf0-9b85-491c-827c-8a0e1510a057"
-                handle="viewcode://./CodeSchema_Method?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx86%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DInteraction Member%3DMeasure"
-                tag="ViewCode" />
-            </referencesInternal>
-            <appliedStereotypesInternal>
-              <stereotypeInstance
-                Id="1769e2f7-29fb-4473-ab23-9da4b9df8fe0"
-                name="method"
-                profile="CSharpProfile">
-                <propertyInstances>
-                  <stereotypeInstanceHasPropertyInstances
-                    Id="20c5026f-4035-4b41-a7e0-c4a005f26f57">
-                    <propertyInstance
-                      Id="f2a5af23-10e4-438c-a11d-44011933aa97"
-                      name="ClrAttributes" />
-                  </stereotypeInstanceHasPropertyInstances>
-                  <stereotypeInstanceHasPropertyInstances
-                    Id="fb11f8a1-470c-4615-8263-ddd1e1157e3d">
-                    <propertyInstance
-                      Id="e8db4db8-2c99-42a2-a3e2-c0a75bd427be"
-                      name="IsPartial"
-                      value="false" />
-                  </stereotypeInstanceHasPropertyInstances>
-                  <stereotypeInstanceHasPropertyInstances
-                    Id="353b0f1d-b024-4aa1-a6aa-d9e6e6fc70c9">
-                    <propertyInstance
-                      Id="ed90784e-06f7-4e86-b664-e370298acfb2"
-                      name="IsUnsafe"
-                      value="false" />
-                  </stereotypeInstanceHasPropertyInstances>
-                  <stereotypeInstanceHasPropertyInstances
-                    Id="64fd176b-bdd2-4129-b62e-d3370f322dfc">
-                    <propertyInstance
-                      Id="527cd87a-387c-45bf-998f-f5bc4d581d2e"
-                      name="Inheritance"
-                      value="none" />
-                  </stereotypeInstanceHasPropertyInstances>
-                  <stereotypeInstanceHasPropertyInstances
-                    Id="3ba0e9d1-346f-499e-bc6a-625d250bf595">
-                    <propertyInstance
-                      Id="54272caa-449d-4972-88d5-ca2f7a9dd4aa"
-                      name="PackageVisibility"
-                      value="internal" />
-                  </stereotypeInstanceHasPropertyInstances>
-                  <stereotypeInstanceHasPropertyInstances
-                    Id="15b78b9b-3a3f-4d87-b3b8-a784966b67b4">
-                    <propertyInstance
-                      Id="431f4e10-d136-460c-adcb-3bad33fab3db"
-                      name="params"
-                      value="false" />
-                  </stereotypeInstanceHasPropertyInstances>
-                </propertyInstances>
-              </stereotypeInstance>
-            </appliedStereotypesInternal>
-            <ownedParameters>
-              <operationHasOwnedParameters>
-                <parameter
-                  Id="27e24369-2db8-45a8-b6ba-ec1f75634eac"
-                  direction="Return">
-                  <type_NamedElement>
-                    <primitiveTypeMoniker
-                      Id="220a3521-e091-4221-bae9-3ef9018e845c"
-                      LastKnownName="Integer"
-                      LastKnownLocation="Modeling.uml" />
-                  </type_NamedElement>
-                </parameter>
-              </operationHasOwnedParameters>
-            </ownedParameters>
           </operation>
         </ownedOperationsInternal>
       </class>
@@ -5185,7 +5025,7 @@
         <referencesInternal>
           <reference
             Id="9a33871c-d075-44ec-a532-369e8e984df4"
-            handle="viewcode://./CodeSchema_Class?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx86%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DObservation"
+            handle="viewcode://./CodeSchema_Class?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx64%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DObservation"
             tag="ViewCode" />
         </referencesInternal>
         <appliedStereotypesInternal>
@@ -5322,7 +5162,7 @@
             <referencesInternal>
               <reference
                 Id="58f460ca-da62-4eb5-8b43-09605b7c801e"
-                handle="viewcode://./CodeSchema_Property?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx86%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DObservation Member%3DID"
+                handle="viewcode://./CodeSchema_Property?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx64%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DObservation Member%3DID"
                 tag="ViewCode" />
             </referencesInternal>
             <appliedStereotypesInternal>
@@ -5402,7 +5242,7 @@
             <referencesInternal>
               <reference
                 Id="7f0636a6-5217-432d-9a1a-4768d285a268"
-                handle="viewcode://./CodeSchema_Property?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx86%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DObservation Member%3DType"
+                handle="viewcode://./CodeSchema_Property?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx64%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DObservation Member%3DType"
                 tag="ViewCode" />
             </referencesInternal>
             <appliedStereotypesInternal>
@@ -5482,7 +5322,7 @@
             <referencesInternal>
               <reference
                 Id="45161732-1803-4bfb-a336-84f26e02a881"
-                handle="viewcode://./CodeSchema_Property?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx86%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DObservation Member%3DValue"
+                handle="viewcode://./CodeSchema_Property?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx64%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DObservation Member%3DValue"
                 tag="ViewCode" />
             </referencesInternal>
             <appliedStereotypesInternal>
@@ -5552,7 +5392,7 @@
         </ownedAttributesInternal>
         <ownedOperationsInternal>
           <operation
-            Id="f77b80f3-bfc8-47b0-ab8b-7847ea601198"
+            Id="f14f2492-3725-4fc7-8441-c36e100860d1"
             name="Observation"
             isLeaf="false"
             isStatic="false"
@@ -5561,139 +5401,60 @@
             isQuery="false">
             <referencesInternal>
               <reference
-                Id="22689f4c-b5ba-4c58-9edd-a1f3c21376cd"
-                handle="viewcode://./CodeSchema_Method?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx86%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DObservation Member%3D.ctor"
+                Id="7305434d-da1f-45fd-9578-2e2f306d3112"
+                handle="viewcode://./CodeSchema_Method?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx64%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DObservation Member%3D.ctor"
                 tag="ViewCode" />
             </referencesInternal>
             <appliedStereotypesInternal>
               <stereotypeInstance
-                Id="4152b77d-b0ff-4438-a305-f3e5e468ff65"
+                Id="fa54cfdd-b757-42db-900c-1318f5fdce9f"
                 name="method"
                 profile="CSharpProfile">
                 <propertyInstances>
                   <stereotypeInstanceHasPropertyInstances
-                    Id="09207c15-6947-4c55-95c4-bef32e809d17">
+                    Id="135ecc14-7577-4cf4-aac5-46b5daf1fb0a">
                     <propertyInstance
-                      Id="cf6ce637-76a0-4f5d-9e09-e96d394f6304"
+                      Id="391c0282-a18b-48f3-bfcb-8f43d40004c1"
                       name="ClrAttributes" />
                   </stereotypeInstanceHasPropertyInstances>
                   <stereotypeInstanceHasPropertyInstances
-                    Id="916d1213-dfb9-4f4a-b230-cb470010fb53">
+                    Id="0cad4ef5-19fa-4d32-804f-90eaaf2ac79f">
                     <propertyInstance
-                      Id="65e5bf8a-2c81-4aa7-a117-3af805500e6e"
+                      Id="587ed999-65f9-4ba2-a3d2-9514d46665d2"
                       name="IsPartial"
                       value="false" />
                   </stereotypeInstanceHasPropertyInstances>
                   <stereotypeInstanceHasPropertyInstances
-                    Id="f04c9baa-6ce5-4d0c-9dff-041f578f26bb">
+                    Id="bc10f2df-4979-41ca-b0b1-ecbc73bbd662">
                     <propertyInstance
-                      Id="94046ba3-a093-4862-9452-fc9cdd1c1293"
+                      Id="518fcb3f-08c1-4a4b-bd4d-57d49cd733d9"
                       name="IsUnsafe"
                       value="false" />
                   </stereotypeInstanceHasPropertyInstances>
                   <stereotypeInstanceHasPropertyInstances
-                    Id="b5c72e35-643f-4b99-975d-41624fca1d5b">
+                    Id="c23be1d7-47ab-47b3-a509-35edb1561444">
                     <propertyInstance
-                      Id="3b691556-c471-4fd8-8745-bba7bbb18f22"
+                      Id="5e79a6a6-310c-421a-b67b-70ebfef5bc2a"
                       name="Inheritance"
                       value="none" />
                   </stereotypeInstanceHasPropertyInstances>
                   <stereotypeInstanceHasPropertyInstances
-                    Id="0cfca3ba-55f6-4cb8-b14c-2b51b12b02ee">
+                    Id="b7b5afc5-e175-488f-b00d-51a8fe5d5f6d">
                     <propertyInstance
-                      Id="2daadd3c-1b67-4f8a-a540-4b48e5670d8f"
+                      Id="8b12faad-a09b-414c-ab0e-3fc114303b43"
                       name="PackageVisibility"
                       value="internal" />
                   </stereotypeInstanceHasPropertyInstances>
                   <stereotypeInstanceHasPropertyInstances
-                    Id="18331fd1-87cd-4fb5-8455-df71a61465ae">
+                    Id="49d67ccb-870b-40d0-bc36-46b32636bfa4">
                     <propertyInstance
-                      Id="a8954121-4572-416f-85c3-70cd98a1c4f7"
+                      Id="10392a4a-3313-420b-af51-5c05c019d2a6"
                       name="params"
                       value="false" />
                   </stereotypeInstanceHasPropertyInstances>
                 </propertyInstances>
               </stereotypeInstance>
             </appliedStereotypesInternal>
-          </operation>
-          <operation
-            Id="38e99343-a784-4da9-874e-7350d0c7326b"
-            name="Measure"
-            isLeaf="false"
-            isStatic="false"
-            isAbstract="false"
-            concurrency="Sequential"
-            isQuery="false">
-            <referencesInternal>
-              <reference
-                Id="affb680a-7ecb-4c41-ad46-01cd9e2caeaa"
-                handle="viewcode://./CodeSchema_Method?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx86%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DObservation Member%3DMeasure"
-                tag="ViewCode" />
-            </referencesInternal>
-            <appliedStereotypesInternal>
-              <stereotypeInstance
-                Id="ca872abe-5572-4f0a-b7fc-4aa800f6ecef"
-                name="method"
-                profile="CSharpProfile">
-                <propertyInstances>
-                  <stereotypeInstanceHasPropertyInstances
-                    Id="f1993255-dc8e-44c6-9292-7d82d6ca9d7b">
-                    <propertyInstance
-                      Id="d3cb271f-a5eb-401a-bb41-f92bd8c4646f"
-                      name="ClrAttributes" />
-                  </stereotypeInstanceHasPropertyInstances>
-                  <stereotypeInstanceHasPropertyInstances
-                    Id="4b44f6b9-e9db-4ceb-a63f-af74022a20f3">
-                    <propertyInstance
-                      Id="e37d32c8-46d6-4544-b63b-f6aedb1b4825"
-                      name="IsPartial"
-                      value="false" />
-                  </stereotypeInstanceHasPropertyInstances>
-                  <stereotypeInstanceHasPropertyInstances
-                    Id="1ee7e915-0571-413f-af9b-ce7f44cf24c3">
-                    <propertyInstance
-                      Id="b21e76bc-5c97-485e-b374-9c07f550dfc2"
-                      name="IsUnsafe"
-                      value="false" />
-                  </stereotypeInstanceHasPropertyInstances>
-                  <stereotypeInstanceHasPropertyInstances
-                    Id="1a655d9b-d01d-440a-9782-46e16de90e07">
-                    <propertyInstance
-                      Id="59214f8c-f5b5-443f-8eea-1da6102b82f4"
-                      name="Inheritance"
-                      value="none" />
-                  </stereotypeInstanceHasPropertyInstances>
-                  <stereotypeInstanceHasPropertyInstances
-                    Id="ffdbcc2e-f3d3-4608-a36f-34ebcdeccd18">
-                    <propertyInstance
-                      Id="f2bbc685-f41b-43db-9246-f5079ad1a73e"
-                      name="PackageVisibility"
-                      value="internal" />
-                  </stereotypeInstanceHasPropertyInstances>
-                  <stereotypeInstanceHasPropertyInstances
-                    Id="65f3cce1-c83a-476f-81d0-7fb114a8daf2">
-                    <propertyInstance
-                      Id="f416ac90-cf9d-4027-bc48-c04579ba5d50"
-                      name="params"
-                      value="false" />
-                  </stereotypeInstanceHasPropertyInstances>
-                </propertyInstances>
-              </stereotypeInstance>
-            </appliedStereotypesInternal>
-            <ownedParameters>
-              <operationHasOwnedParameters>
-                <parameter
-                  Id="2817c6ef-99a6-44ae-961d-30dad572938e"
-                  direction="Return">
-                  <type_NamedElement>
-                    <primitiveTypeMoniker
-                      Id="220a3521-e091-4221-bae9-3ef9018e845c"
-                      LastKnownName="Integer"
-                      LastKnownLocation="Modeling.uml" />
-                  </type_NamedElement>
-                </parameter>
-              </operationHasOwnedParameters>
-            </ownedParameters>
           </operation>
         </ownedOperationsInternal>
       </class>
