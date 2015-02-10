@@ -522,7 +522,7 @@
               <primitiveTypeMoniker
                 Id="59259974-6d55-42c6-b7bd-763d77ac8ef9"
                 LastKnownName="String"
-                LastKnownLocation="ModelingProject1.uml" />
+                LastKnownLocation="Modeling.uml" />
             </type_NamedElement>
           </property>
           <property
@@ -589,7 +589,7 @@
               <primitiveTypeMoniker
                 Id="220a3521-e091-4221-bae9-3ef9018e845c"
                 LastKnownName="Integer"
-                LastKnownLocation="ModelingProject1.uml" />
+                LastKnownLocation="Modeling.uml" />
             </type_NamedElement>
           </property>
           <property
@@ -656,7 +656,7 @@
               <primitiveTypeMoniker
                 Id="59259974-6d55-42c6-b7bd-763d77ac8ef9"
                 LastKnownName="String"
-                LastKnownLocation="ModelingProject1.uml" />
+                LastKnownLocation="Modeling.uml" />
             </type_NamedElement>
           </property>
           <property
@@ -723,7 +723,7 @@
               <primitiveTypeMoniker
                 Id="59259974-6d55-42c6-b7bd-763d77ac8ef9"
                 LastKnownName="String"
-                LastKnownLocation="ModelingProject1.uml" />
+                LastKnownLocation="Modeling.uml" />
             </type_NamedElement>
           </property>
           <property
@@ -790,7 +790,7 @@
               <primitiveTypeMoniker
                 Id="59259974-6d55-42c6-b7bd-763d77ac8ef9"
                 LastKnownName="String"
-                LastKnownLocation="ModelingProject1.uml" />
+                LastKnownLocation="Modeling.uml" />
             </type_NamedElement>
           </property>
           <property
@@ -1259,7 +1259,7 @@
               <primitiveTypeMoniker
                 Id="220a3521-e091-4221-bae9-3ef9018e845c"
                 LastKnownName="Integer"
-                LastKnownLocation="ModelingProject1.uml" />
+                LastKnownLocation="Modeling.uml" />
             </type_NamedElement>
           </property>
           <property
@@ -1449,7 +1449,7 @@
                     <primitiveTypeMoniker
                       Id="220a3521-e091-4221-bae9-3ef9018e845c"
                       LastKnownName="Integer"
-                      LastKnownLocation="ModelingProject1.uml" />
+                      LastKnownLocation="Modeling.uml" />
                   </type_NamedElement>
                 </parameter>
               </operationHasOwnedParameters>
@@ -1468,7 +1468,7 @@
                     <primitiveTypeMoniker
                       Id="59259974-6d55-42c6-b7bd-763d77ac8ef9"
                       LastKnownName="String"
-                      LastKnownLocation="ModelingProject1.uml" />
+                      LastKnownLocation="Modeling.uml" />
                   </type_NamedElement>
                 </parameter>
               </operationHasOwnedParameters>
@@ -1647,7 +1647,7 @@
                     <primitiveTypeMoniker
                       Id="59259974-6d55-42c6-b7bd-763d77ac8ef9"
                       LastKnownName="String"
-                      LastKnownLocation="ModelingProject1.uml" />
+                      LastKnownLocation="Modeling.uml" />
                   </type_NamedElement>
                 </parameter>
               </operationHasOwnedParameters>
@@ -1809,7 +1809,7 @@
                     <primitiveTypeMoniker
                       Id="59259974-6d55-42c6-b7bd-763d77ac8ef9"
                       LastKnownName="String"
-                      LastKnownLocation="ModelingProject1.uml" />
+                      LastKnownLocation="Modeling.uml" />
                   </type_NamedElement>
                 </parameter>
               </operationHasOwnedParameters>
@@ -1895,7 +1895,7 @@
                     <primitiveTypeMoniker
                       Id="59259974-6d55-42c6-b7bd-763d77ac8ef9"
                       LastKnownName="String"
-                      LastKnownLocation="ModelingProject1.uml" />
+                      LastKnownLocation="Modeling.uml" />
                   </type_NamedElement>
                 </parameter>
               </operationHasOwnedParameters>
@@ -1914,7 +1914,7 @@
                     <primitiveTypeMoniker
                       Id="59259974-6d55-42c6-b7bd-763d77ac8ef9"
                       LastKnownName="String"
-                      LastKnownLocation="ModelingProject1.uml" />
+                      LastKnownLocation="Modeling.uml" />
                   </type_NamedElement>
                 </parameter>
               </operationHasOwnedParameters>
@@ -2019,7 +2019,7 @@
                     <primitiveTypeMoniker
                       Id="59259974-6d55-42c6-b7bd-763d77ac8ef9"
                       LastKnownName="String"
-                      LastKnownLocation="ModelingProject1.uml" />
+                      LastKnownLocation="Modeling.uml" />
                   </type_NamedElement>
                 </parameter>
               </operationHasOwnedParameters>
@@ -2098,7 +2098,7 @@
                     <primitiveTypeMoniker
                       Id="8943dc84-709e-4f62-b15a-a3273aa6f165"
                       LastKnownName="Boolean"
-                      LastKnownLocation="ModelingProject1.uml" />
+                      LastKnownLocation="Modeling.uml" />
                   </type_NamedElement>
                 </parameter>
               </operationHasOwnedParameters>
@@ -2117,7 +2117,7 @@
                     <primitiveTypeMoniker
                       Id="59259974-6d55-42c6-b7bd-763d77ac8ef9"
                       LastKnownName="String"
-                      LastKnownLocation="ModelingProject1.uml" />
+                      LastKnownLocation="Modeling.uml" />
                   </type_NamedElement>
                 </parameter>
               </operationHasOwnedParameters>
@@ -2136,7 +2136,7 @@
                     <primitiveTypeMoniker
                       Id="59259974-6d55-42c6-b7bd-763d77ac8ef9"
                       LastKnownName="String"
-                      LastKnownLocation="ModelingProject1.uml" />
+                      LastKnownLocation="Modeling.uml" />
                   </type_NamedElement>
                 </parameter>
               </operationHasOwnedParameters>
@@ -2215,7 +2215,7 @@
                     <primitiveTypeMoniker
                       Id="8943dc84-709e-4f62-b15a-a3273aa6f165"
                       LastKnownName="Boolean"
-                      LastKnownLocation="ModelingProject1.uml" />
+                      LastKnownLocation="Modeling.uml" />
                   </type_NamedElement>
                 </parameter>
               </operationHasOwnedParameters>
@@ -2253,7 +2253,7 @@
                     <primitiveTypeMoniker
                       Id="59259974-6d55-42c6-b7bd-763d77ac8ef9"
                       LastKnownName="String"
-                      LastKnownLocation="ModelingProject1.uml" />
+                      LastKnownLocation="Modeling.uml" />
                   </type_NamedElement>
                 </parameter>
               </operationHasOwnedParameters>
@@ -2660,7 +2660,7 @@
               <primitiveTypeMoniker
                 Id="220a3521-e091-4221-bae9-3ef9018e845c"
                 LastKnownName="Integer"
-                LastKnownLocation="ModelingProject1.uml" />
+                LastKnownLocation="Modeling.uml" />
             </type_NamedElement>
           </property>
           <property
@@ -2820,7 +2820,7 @@
               <primitiveTypeMoniker
                 Id="220a3521-e091-4221-bae9-3ef9018e845c"
                 LastKnownName="Integer"
-                LastKnownLocation="ModelingProject1.uml" />
+                LastKnownLocation="Modeling.uml" />
             </type_NamedElement>
           </property>
           <property
@@ -2900,7 +2900,7 @@
               <primitiveTypeMoniker
                 Id="220a3521-e091-4221-bae9-3ef9018e845c"
                 LastKnownName="Integer"
-                LastKnownLocation="ModelingProject1.uml" />
+                LastKnownLocation="Modeling.uml" />
             </type_NamedElement>
           </property>
           <property
@@ -3247,7 +3247,7 @@
               <primitiveTypeMoniker
                 Id="59259974-6d55-42c6-b7bd-763d77ac8ef9"
                 LastKnownName="String"
-                LastKnownLocation="ModelingProject1.uml" />
+                LastKnownLocation="Modeling.uml" />
             </type_NamedElement>
           </property>
           <property
@@ -3405,7 +3405,7 @@
                     <primitiveTypeMoniker
                       Id="220a3521-e091-4221-bae9-3ef9018e845c"
                       LastKnownName="Integer"
-                      LastKnownLocation="ModelingProject1.uml" />
+                      LastKnownLocation="Modeling.uml" />
                   </type_NamedElement>
                 </parameter>
               </operationHasOwnedParameters>
@@ -3622,7 +3622,7 @@
             <classMoniker
               Id="727b0b17-6fd9-4aae-b7c7-22b2a1f04e7c"
               LastKnownName="IPolicy&lt;&gt;"
-              LastKnownLocation="ModelingProject1.uml" />
+              LastKnownLocation="Modeling.uml" />
             <description>Property Policy references type IPolicy&lt;&gt;.</description>
             <relationshipOwnedElementsInternal>
               <associationHasOwnedEnds>
@@ -3944,7 +3944,7 @@
               <classMoniker
                 Id="727b0b17-6fd9-4aae-b7c7-22b2a1f04e7c"
                 LastKnownName="IPolicy&lt;&gt;"
-                LastKnownLocation="ModelingProject1.uml" />
+                LastKnownLocation="Modeling.uml" />
             </type_NamedElement>
           </property>
         </ownedAttributesInternal>
@@ -4029,7 +4029,7 @@
                     <classMoniker
                       Id="727b0b17-6fd9-4aae-b7c7-22b2a1f04e7c"
                       LastKnownName="IPolicy&lt;&gt;"
-                      LastKnownLocation="ModelingProject1.uml" />
+                      LastKnownLocation="Modeling.uml" />
                   </type_NamedElement>
                 </parameter>
               </operationHasOwnedParameters>
@@ -4146,7 +4146,7 @@
                     <classMoniker
                       Id="427dd88a-7ab9-4a9a-8507-bcd6410d1fd9"
                       LastKnownName="IExplorer&lt;&gt;"
-                      LastKnownLocation="ModelingProject1.uml" />
+                      LastKnownLocation="Modeling.uml" />
                   </type_NamedElement>
                 </parameter>
               </operationHasOwnedParameters>
@@ -4703,7 +4703,7 @@
               <primitiveTypeMoniker
                 Id="220a3521-e091-4221-bae9-3ef9018e845c"
                 LastKnownName="Integer"
-                LastKnownLocation="ModelingProject1.uml" />
+                LastKnownLocation="Modeling.uml" />
             </type_NamedElement>
           </property>
           <property
@@ -4783,7 +4783,7 @@
               <primitiveTypeMoniker
                 Id="59259974-6d55-42c6-b7bd-763d77ac8ef9"
                 LastKnownName="String"
-                LastKnownLocation="ModelingProject1.uml" />
+                LastKnownLocation="Modeling.uml" />
             </type_NamedElement>
           </property>
           <property
@@ -4863,7 +4863,7 @@
               <primitiveTypeMoniker
                 Id="59259974-6d55-42c6-b7bd-763d77ac8ef9"
                 LastKnownName="String"
-                LastKnownLocation="ModelingProject1.uml" />
+                LastKnownLocation="Modeling.uml" />
             </type_NamedElement>
           </property>
           <property
@@ -5166,7 +5166,7 @@
                     <primitiveTypeMoniker
                       Id="220a3521-e091-4221-bae9-3ef9018e845c"
                       LastKnownName="Integer"
-                      LastKnownLocation="ModelingProject1.uml" />
+                      LastKnownLocation="Modeling.uml" />
                   </type_NamedElement>
                 </parameter>
               </operationHasOwnedParameters>
@@ -5386,7 +5386,7 @@
               <primitiveTypeMoniker
                 Id="59259974-6d55-42c6-b7bd-763d77ac8ef9"
                 LastKnownName="String"
-                LastKnownLocation="ModelingProject1.uml" />
+                LastKnownLocation="Modeling.uml" />
             </type_NamedElement>
           </property>
           <property
@@ -5546,7 +5546,7 @@
               <primitiveTypeMoniker
                 Id="59259974-6d55-42c6-b7bd-763d77ac8ef9"
                 LastKnownName="String"
-                LastKnownLocation="ModelingProject1.uml" />
+                LastKnownLocation="Modeling.uml" />
             </type_NamedElement>
           </property>
         </ownedAttributesInternal>
@@ -5689,7 +5689,7 @@
                     <primitiveTypeMoniker
                       Id="220a3521-e091-4221-bae9-3ef9018e845c"
                       LastKnownName="Integer"
-                      LastKnownLocation="ModelingProject1.uml" />
+                      LastKnownLocation="Modeling.uml" />
                   </type_NamedElement>
                 </parameter>
               </operationHasOwnedParameters>
@@ -6435,7 +6435,7 @@
                     <primitiveTypeMoniker
                       Id="59259974-6d55-42c6-b7bd-763d77ac8ef9"
                       LastKnownName="String"
-                      LastKnownLocation="ModelingProject1.uml" />
+                      LastKnownLocation="Modeling.uml" />
                   </type_NamedElement>
                 </parameter>
               </operationHasOwnedParameters>
@@ -6454,7 +6454,7 @@
                     <primitiveTypeMoniker
                       Id="59259974-6d55-42c6-b7bd-763d77ac8ef9"
                       LastKnownName="String"
-                      LastKnownLocation="ModelingProject1.uml" />
+                      LastKnownLocation="Modeling.uml" />
                   </type_NamedElement>
                 </parameter>
               </operationHasOwnedParameters>
@@ -6559,7 +6559,7 @@
                     <primitiveTypeMoniker
                       Id="59259974-6d55-42c6-b7bd-763d77ac8ef9"
                       LastKnownName="String"
-                      LastKnownLocation="ModelingProject1.uml" />
+                      LastKnownLocation="Modeling.uml" />
                   </type_NamedElement>
                 </parameter>
               </operationHasOwnedParameters>
@@ -6873,7 +6873,7 @@
                     <primitiveTypeMoniker
                       Id="59259974-6d55-42c6-b7bd-763d77ac8ef9"
                       LastKnownName="String"
-                      LastKnownLocation="ModelingProject1.uml" />
+                      LastKnownLocation="Modeling.uml" />
                   </type_NamedElement>
                 </parameter>
               </operationHasOwnedParameters>
@@ -6971,7 +6971,7 @@
                     <primitiveTypeMoniker
                       Id="8943dc84-709e-4f62-b15a-a3273aa6f165"
                       LastKnownName="Boolean"
-                      LastKnownLocation="ModelingProject1.uml" />
+                      LastKnownLocation="Modeling.uml" />
                   </type_NamedElement>
                 </parameter>
               </operationHasOwnedParameters>
@@ -6990,7 +6990,7 @@
                     <primitiveTypeMoniker
                       Id="59259974-6d55-42c6-b7bd-763d77ac8ef9"
                       LastKnownName="String"
-                      LastKnownLocation="ModelingProject1.uml" />
+                      LastKnownLocation="Modeling.uml" />
                   </type_NamedElement>
                 </parameter>
               </operationHasOwnedParameters>
@@ -7009,7 +7009,7 @@
                     <primitiveTypeMoniker
                       Id="59259974-6d55-42c6-b7bd-763d77ac8ef9"
                       LastKnownName="String"
-                      LastKnownLocation="ModelingProject1.uml" />
+                      LastKnownLocation="Modeling.uml" />
                   </type_NamedElement>
                 </parameter>
               </operationHasOwnedParameters>
@@ -7088,7 +7088,7 @@
                     <primitiveTypeMoniker
                       Id="8943dc84-709e-4f62-b15a-a3273aa6f165"
                       LastKnownName="Boolean"
-                      LastKnownLocation="ModelingProject1.uml" />
+                      LastKnownLocation="Modeling.uml" />
                   </type_NamedElement>
                 </parameter>
               </operationHasOwnedParameters>
@@ -7126,7 +7126,7 @@
                     <primitiveTypeMoniker
                       Id="59259974-6d55-42c6-b7bd-763d77ac8ef9"
                       LastKnownName="String"
-                      LastKnownLocation="ModelingProject1.uml" />
+                      LastKnownLocation="Modeling.uml" />
                   </type_NamedElement>
                 </parameter>
               </operationHasOwnedParameters>
@@ -7574,7 +7574,7 @@
               <primitiveTypeMoniker
                 Id="59259974-6d55-42c6-b7bd-763d77ac8ef9"
                 LastKnownName="String"
-                LastKnownLocation="ModelingProject1.uml" />
+                LastKnownLocation="Modeling.uml" />
             </type_NamedElement>
           </property>
           <property
@@ -7654,7 +7654,7 @@
               <primitiveTypeMoniker
                 Id="59259974-6d55-42c6-b7bd-763d77ac8ef9"
                 LastKnownName="String"
-                LastKnownLocation="ModelingProject1.uml" />
+                LastKnownLocation="Modeling.uml" />
             </type_NamedElement>
           </property>
           <property
@@ -7894,7 +7894,7 @@
               <primitiveTypeMoniker
                 Id="220a3521-e091-4221-bae9-3ef9018e845c"
                 LastKnownName="Integer"
-                LastKnownLocation="ModelingProject1.uml" />
+                LastKnownLocation="Modeling.uml" />
             </type_NamedElement>
           </property>
           <property
@@ -8054,7 +8054,7 @@
               <primitiveTypeMoniker
                 Id="8943dc84-709e-4f62-b15a-a3273aa6f165"
                 LastKnownName="Boolean"
-                LastKnownLocation="ModelingProject1.uml" />
+                LastKnownLocation="Modeling.uml" />
             </type_NamedElement>
           </property>
           <property
@@ -8121,7 +8121,7 @@
               <primitiveTypeMoniker
                 Id="59259974-6d55-42c6-b7bd-763d77ac8ef9"
                 LastKnownName="String"
-                LastKnownLocation="ModelingProject1.uml" />
+                LastKnownLocation="Modeling.uml" />
             </type_NamedElement>
           </property>
           <property
@@ -8188,7 +8188,7 @@
               <primitiveTypeMoniker
                 Id="59259974-6d55-42c6-b7bd-763d77ac8ef9"
                 LastKnownName="String"
-                LastKnownLocation="ModelingProject1.uml" />
+                LastKnownLocation="Modeling.uml" />
             </type_NamedElement>
           </property>
           <property
@@ -8340,7 +8340,7 @@
                     <primitiveTypeMoniker
                       Id="59259974-6d55-42c6-b7bd-763d77ac8ef9"
                       LastKnownName="String"
-                      LastKnownLocation="ModelingProject1.uml" />
+                      LastKnownLocation="Modeling.uml" />
                   </type_NamedElement>
                 </parameter>
               </operationHasOwnedParameters>
@@ -8359,7 +8359,7 @@
                     <primitiveTypeMoniker
                       Id="59259974-6d55-42c6-b7bd-763d77ac8ef9"
                       LastKnownName="String"
-                      LastKnownLocation="ModelingProject1.uml" />
+                      LastKnownLocation="Modeling.uml" />
                   </type_NamedElement>
                 </parameter>
               </operationHasOwnedParameters>
@@ -8646,6 +8646,427 @@
           </templateBinding>
         </signatures>
       </Interface>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <class
+        Id="ad41e60b-6023-47fc-b884-95ba2ffa0179"
+        name="EventBatch"
+        isAbstract="false"
+        isLeaf="false"
+        isActiveClass="false">
+        <referencesInternal>
+          <reference
+            Id="4c9a8d17-a912-4e8c-874c-526490a7ab11"
+            handle="viewcode://./CodeSchema_Class?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx64%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DEventBatch"
+            tag="ViewCode" />
+        </referencesInternal>
+        <appliedStereotypesInternal>
+          <stereotypeInstance
+            Id="0ea9e070-92ca-4dcd-8f2b-e4c497598ec6"
+            name="class"
+            profile="CSharpProfile">
+            <propertyInstances>
+              <stereotypeInstanceHasPropertyInstances
+                Id="a01103a0-2afc-4705-995d-3247817718bd">
+                <propertyInstance
+                  Id="6e5a7924-cf65-4eaa-862b-60c7fa1eadfa"
+                  name="ClrAttributes" />
+              </stereotypeInstanceHasPropertyInstances>
+              <stereotypeInstanceHasPropertyInstances
+                Id="e2237f21-375e-498a-87a3-92f4978bb72e">
+                <propertyInstance
+                  Id="e8821097-b69e-4ca3-8a07-2745d9f8e8d1"
+                  name="IsPartial"
+                  value="false" />
+              </stereotypeInstanceHasPropertyInstances>
+              <stereotypeInstanceHasPropertyInstances
+                Id="8063541a-e799-47ab-b388-d0da8ca6eb44">
+                <propertyInstance
+                  Id="cd1ef457-2a16-4453-a646-e27615a945e3"
+                  name="IsStatic"
+                  value="False" />
+              </stereotypeInstanceHasPropertyInstances>
+              <stereotypeInstanceHasPropertyInstances
+                Id="ef415b6c-a6b8-46c8-a371-a72155d903b7">
+                <propertyInstance
+                  Id="a32a2db1-f97a-4f72-ad24-69bfaf41cc39"
+                  name="IsUnsafe"
+                  value="false" />
+              </stereotypeInstanceHasPropertyInstances>
+              <stereotypeInstanceHasPropertyInstances
+                Id="4b4ecfac-adb9-4026-afe8-77bfbf6c3b45">
+                <propertyInstance
+                  Id="95676b4a-366d-4b38-9917-96ec94a97ff6"
+                  name="PackageVisibility"
+                  value="internal" />
+              </stereotypeInstanceHasPropertyInstances>
+            </propertyInstances>
+          </stereotypeInstance>
+        </appliedStereotypesInternal>
+        <targetEnds>
+          <association
+            Id="b08502aa-c651-4b03-856c-c2087e5fe437"
+            isDerived="false"
+            sourceEndRoleName="EventBatch"
+            targetEndRoleName="ID"
+            isLeaf="false"
+            isAbstract="false">
+            <classMoniker
+              Id="912e58a4-5670-452e-b5dc-ff3f94dc8f73"
+              LastKnownName="Guid"
+              LastKnownLocation="Package1_1200.uml" />
+            <description>Property ID references type Guid.</description>
+            <relationshipOwnedElementsInternal>
+              <associationHasOwnedEnds>
+                <memberEnd
+                  Id="fc5c0a33-418d-46a4-9a10-941358c755e2"
+                  name="EventBatch"
+                  isLeaf="false"
+                  isStatic="false"
+                  isReadOnly="false"
+                  isDerived="false"
+                  isDerivedUnion="false"
+                  aggregation="None"
+                  isComposite="false"
+                  isNavigableOwned="false">
+                  <lowerValueInternal>
+                    <literalString
+                      Id="de9737c5-21d2-4adf-a393-196da481bada"
+                      name="Lower"
+                      value="*" />
+                  </lowerValueInternal>
+                  <upperValueInternal>
+                    <literalString
+                      Id="bfcd7b99-6975-4a4b-be3b-18b0834bc041"
+                      name="Upper"
+                      value="*" />
+                  </upperValueInternal>
+                </memberEnd>
+              </associationHasOwnedEnds>
+              <associationHasOwnedEnds>
+                <memberEnd
+                  Id="1ddc3efe-bf8d-4c21-b6d4-d79644bf4198"
+                  name="ID"
+                  isLeaf="false"
+                  isStatic="false"
+                  isReadOnly="false"
+                  isDerived="false"
+                  isDerivedUnion="false"
+                  aggregation="None"
+                  isComposite="false">
+                  <lowerValueInternal>
+                    <literalString
+                      Id="4a2179e0-d4bb-46a8-9e56-e0a09129a029"
+                      name="Lower"
+                      value="1" />
+                  </lowerValueInternal>
+                  <upperValueInternal>
+                    <literalString
+                      Id="f1abf465-f8f8-47c2-aa6a-42e0ccc26f9b"
+                      name="Upper"
+                      value="1" />
+                  </upperValueInternal>
+                </memberEnd>
+              </associationHasOwnedEnds>
+            </relationshipOwnedElementsInternal>
+          </association>
+          <association
+            Id="7464af3a-ebf0-4150-accf-d0ddebb93188"
+            isDerived="false"
+            sourceEndRoleName="EventBatch"
+            targetEndRoleName="JsonEvents"
+            isLeaf="false"
+            isAbstract="false">
+            <interfaceMoniker
+              Id="16b5a52f-9f89-4ef4-b2bf-00b4dd7bb6cd"
+              LastKnownName="IList&lt;String‎&gt;"
+              LastKnownLocation="Package5_1200.uml" />
+            <description>Property JsonEvents references type IList&lt;String‎&gt;.</description>
+            <relationshipOwnedElementsInternal>
+              <associationHasOwnedEnds>
+                <memberEnd
+                  Id="681387e4-9bc1-4536-876f-6ace25624293"
+                  name="EventBatch"
+                  isLeaf="false"
+                  isStatic="false"
+                  isReadOnly="false"
+                  isDerived="false"
+                  isDerivedUnion="false"
+                  aggregation="None"
+                  isComposite="false"
+                  isNavigableOwned="false">
+                  <lowerValueInternal>
+                    <literalString
+                      Id="2b354f46-feac-463b-b575-2672ce8c0fba"
+                      name="Lower"
+                      value="*" />
+                  </lowerValueInternal>
+                  <upperValueInternal>
+                    <literalString
+                      Id="b75750b1-5bdf-456f-bca2-7227bdc4caf8"
+                      name="Upper"
+                      value="*" />
+                  </upperValueInternal>
+                </memberEnd>
+              </associationHasOwnedEnds>
+              <associationHasOwnedEnds>
+                <memberEnd
+                  Id="2ba45775-9d47-476e-83b3-f282f58056ee"
+                  name="JsonEvents"
+                  isLeaf="false"
+                  isStatic="false"
+                  isReadOnly="false"
+                  isDerived="false"
+                  isDerivedUnion="false"
+                  aggregation="None"
+                  isComposite="false">
+                  <lowerValueInternal>
+                    <literalString
+                      Id="58defe01-16ec-4ff9-bf1e-c244ce89ee19"
+                      name="Lower"
+                      value="1" />
+                  </lowerValueInternal>
+                  <upperValueInternal>
+                    <literalString
+                      Id="41d2f80c-f689-48d6-8038-81944ee87bf5"
+                      name="Upper"
+                      value="1" />
+                  </upperValueInternal>
+                </memberEnd>
+              </associationHasOwnedEnds>
+            </relationshipOwnedElementsInternal>
+          </association>
+        </targetEnds>
+        <ownedAttributesInternal>
+          <property
+            Id="faf13063-c158-415b-9e46-a346d0948e73"
+            name="ID"
+            isLeaf="false"
+            isStatic="false"
+            isReadOnly="false"
+            isDerived="false"
+            isDerivedUnion="false"
+            aggregation="None"
+            isComposite="false">
+            <referencesInternal>
+              <reference
+                Id="464ab81e-4c14-4330-8f0c-b8ab39597a28"
+                handle="viewcode://./CodeSchema_Property?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx64%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DEventBatch Member%3DID"
+                tag="ViewCode" />
+            </referencesInternal>
+            <appliedStereotypesInternal>
+              <stereotypeInstance
+                Id="4add9ddf-5713-45e4-8df6-b28c26cd2598"
+                name="property"
+                profile="CSharpProfile">
+                <propertyInstances>
+                  <stereotypeInstanceHasPropertyInstances
+                    Id="41c64256-bf4a-4a91-822e-0cf4e9ddb465">
+                    <propertyInstance
+                      Id="9debb0db-3952-407d-923b-00db301b43d5"
+                      name="ClrAttributes" />
+                  </stereotypeInstanceHasPropertyInstances>
+                  <stereotypeInstanceHasPropertyInstances
+                    Id="15b2d247-cde8-4423-bde9-d6500a2faa2e">
+                    <propertyInstance
+                      Id="cc90d788-f1fe-42b3-9481-7e6037145806"
+                      name="Get"
+                      value="public" />
+                  </stereotypeInstanceHasPropertyInstances>
+                  <stereotypeInstanceHasPropertyInstances
+                    Id="a9b557a5-2d85-4ade-bf4e-61a251d61af9">
+                    <propertyInstance
+                      Id="f69cc0e6-6e8a-421a-a57c-5257229e5dbf"
+                      name="HasBody"
+                      value="false" />
+                  </stereotypeInstanceHasPropertyInstances>
+                  <stereotypeInstanceHasPropertyInstances
+                    Id="b072bb46-714c-4369-9a95-ed0a3d7caaa6">
+                    <propertyInstance
+                      Id="4bd116a0-4b05-42f0-88f2-4566ae7321b8"
+                      name="IsUnsafe"
+                      value="false" />
+                  </stereotypeInstanceHasPropertyInstances>
+                  <stereotypeInstanceHasPropertyInstances
+                    Id="203f9e2d-8296-4dc2-a9d4-207e20bc48a8">
+                    <propertyInstance
+                      Id="b6c21a02-c06b-4370-a628-dccc368447a3"
+                      name="Inheritance"
+                      value="none" />
+                  </stereotypeInstanceHasPropertyInstances>
+                  <stereotypeInstanceHasPropertyInstances
+                    Id="8ba31f19-add3-4ace-bbdb-f2bb42ebee90">
+                    <propertyInstance
+                      Id="890a1253-c2d1-4ac3-a2c9-abfb587c29d4"
+                      name="PackageVisibility"
+                      value="internal" />
+                  </stereotypeInstanceHasPropertyInstances>
+                  <stereotypeInstanceHasPropertyInstances
+                    Id="13c697cc-56c1-4bf5-a13c-ad693a10adb8">
+                    <propertyInstance
+                      Id="08616f8a-ebab-4a98-b123-40d157252c15"
+                      name="Set"
+                      value="public" />
+                  </stereotypeInstanceHasPropertyInstances>
+                </propertyInstances>
+              </stereotypeInstance>
+            </appliedStereotypesInternal>
+            <type_NamedElement>
+              <classMoniker
+                Id="912e58a4-5670-452e-b5dc-ff3f94dc8f73"
+                LastKnownName="Guid"
+                LastKnownLocation="Package1_1200.uml" />
+            </type_NamedElement>
+          </property>
+          <property
+            Id="27efd3bc-dd64-47bf-94b8-55eeb2055fb9"
+            name="JsonEvents"
+            isLeaf="false"
+            isStatic="false"
+            isReadOnly="false"
+            isDerived="false"
+            isDerivedUnion="false"
+            aggregation="None"
+            isComposite="false">
+            <referencesInternal>
+              <reference
+                Id="f0aec648-fc43-43cf-bdfd-45e2d597a37f"
+                handle="viewcode://./CodeSchema_Property?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx64%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DEventBatch Member%3DJsonEvents"
+                tag="ViewCode" />
+            </referencesInternal>
+            <appliedStereotypesInternal>
+              <stereotypeInstance
+                Id="4ae62dd4-cf94-44f9-a962-e589226f45ee"
+                name="property"
+                profile="CSharpProfile">
+                <propertyInstances>
+                  <stereotypeInstanceHasPropertyInstances
+                    Id="f22ee06b-fc2b-4785-97b5-140af7c2b1b4">
+                    <propertyInstance
+                      Id="47c9668d-a014-487d-9b6d-65ed5d510ba8"
+                      name="ClrAttributes" />
+                  </stereotypeInstanceHasPropertyInstances>
+                  <stereotypeInstanceHasPropertyInstances
+                    Id="58d96f75-2a35-4f41-9204-e195b4ce0b33">
+                    <propertyInstance
+                      Id="b0a93fe1-4833-4e51-bd7c-686e6d8aae43"
+                      name="Get"
+                      value="public" />
+                  </stereotypeInstanceHasPropertyInstances>
+                  <stereotypeInstanceHasPropertyInstances
+                    Id="3497d195-985e-4135-a6b0-6c400c6b5fa4">
+                    <propertyInstance
+                      Id="be08d1c3-18d0-430c-b7eb-61d765439d7e"
+                      name="HasBody"
+                      value="false" />
+                  </stereotypeInstanceHasPropertyInstances>
+                  <stereotypeInstanceHasPropertyInstances
+                    Id="54d69268-8ec4-41b5-b899-fb4949dcd7e8">
+                    <propertyInstance
+                      Id="51c6a76e-3a4d-4a99-9d39-07fbc56da578"
+                      name="IsUnsafe"
+                      value="false" />
+                  </stereotypeInstanceHasPropertyInstances>
+                  <stereotypeInstanceHasPropertyInstances
+                    Id="08afd5cb-b5e2-4ebe-a96e-98fb9c66cc4c">
+                    <propertyInstance
+                      Id="f4023761-fded-4066-bb12-962cb7def547"
+                      name="Inheritance"
+                      value="none" />
+                  </stereotypeInstanceHasPropertyInstances>
+                  <stereotypeInstanceHasPropertyInstances
+                    Id="0303386d-3281-47c0-acf5-4d9c39f2180b">
+                    <propertyInstance
+                      Id="7aea1d36-14c7-4d7b-a9a8-d50c3647c857"
+                      name="PackageVisibility"
+                      value="internal" />
+                  </stereotypeInstanceHasPropertyInstances>
+                  <stereotypeInstanceHasPropertyInstances
+                    Id="726e842c-6e18-4907-a17b-85e1b992aa26">
+                    <propertyInstance
+                      Id="99979c34-65a4-4f3c-8fac-1e000eed2c72"
+                      name="Set"
+                      value="public" />
+                  </stereotypeInstanceHasPropertyInstances>
+                </propertyInstances>
+              </stereotypeInstance>
+            </appliedStereotypesInternal>
+            <type_NamedElement>
+              <interfaceMoniker
+                Id="16b5a52f-9f89-4ef4-b2bf-00b4dd7bb6cd"
+                LastKnownName="IList&lt;String‎&gt;"
+                LastKnownLocation="Package5_1200.uml" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
+        <ownedOperationsInternal>
+          <operation
+            Id="1c74e9c5-7927-4921-b402-93434574d78e"
+            name="EventBatch"
+            isLeaf="false"
+            isStatic="false"
+            isAbstract="false"
+            concurrency="Sequential"
+            isQuery="false">
+            <referencesInternal>
+              <reference
+                Id="92e9dbca-0127-4253-9a1d-065f72bceca1"
+                handle="viewcode://./CodeSchema_Method?Assembly%3Dfile:%2F%2F%2FD:%2FGit%2Fdecision%2FDecisionSample%2Fbin%2Fx64%2FDebug%2FDecisionSample.exe Namespace%3DDecisionSample Type%3DEventBatch Member%3D.ctor"
+                tag="ViewCode" />
+            </referencesInternal>
+            <appliedStereotypesInternal>
+              <stereotypeInstance
+                Id="93904742-1e27-4c30-98ce-e272cb5ae6a9"
+                name="method"
+                profile="CSharpProfile">
+                <propertyInstances>
+                  <stereotypeInstanceHasPropertyInstances
+                    Id="d519ee21-f427-4c1c-b96e-8f42e5121a4c">
+                    <propertyInstance
+                      Id="6bd9d7d1-a84a-495f-8a56-feffe3f54a99"
+                      name="ClrAttributes" />
+                  </stereotypeInstanceHasPropertyInstances>
+                  <stereotypeInstanceHasPropertyInstances
+                    Id="08d38758-174a-466c-a5e5-07b853f0ac6c">
+                    <propertyInstance
+                      Id="82cabe46-6576-4bf5-aa01-e53b8aac3ae3"
+                      name="IsPartial"
+                      value="false" />
+                  </stereotypeInstanceHasPropertyInstances>
+                  <stereotypeInstanceHasPropertyInstances
+                    Id="ee305e8f-7be2-4d76-9094-6a3b119cd5c2">
+                    <propertyInstance
+                      Id="f2702d09-5323-47da-8003-1e8a939c4416"
+                      name="IsUnsafe"
+                      value="false" />
+                  </stereotypeInstanceHasPropertyInstances>
+                  <stereotypeInstanceHasPropertyInstances
+                    Id="dd2f29c8-7a83-4be3-b2c7-39ba74fd9b56">
+                    <propertyInstance
+                      Id="47571137-d374-4493-8eb6-eab186352128"
+                      name="Inheritance"
+                      value="none" />
+                  </stereotypeInstanceHasPropertyInstances>
+                  <stereotypeInstanceHasPropertyInstances
+                    Id="7198ce84-9042-4117-a6eb-130cccba8b95">
+                    <propertyInstance
+                      Id="65640b08-56df-435b-8430-bedd17d9edcf"
+                      name="PackageVisibility"
+                      value="internal" />
+                  </stereotypeInstanceHasPropertyInstances>
+                  <stereotypeInstanceHasPropertyInstances
+                    Id="0171bd53-df80-42a3-a581-f093de087280">
+                    <propertyInstance
+                      Id="0fb5afe0-3fdd-4bc1-8426-e7c57ddd8bf6"
+                      name="params"
+                      value="false" />
+                  </stereotypeInstanceHasPropertyInstances>
+                </propertyInstances>
+              </stereotypeInstance>
+            </appliedStereotypesInternal>
+          </operation>
+        </ownedOperationsInternal>
+      </class>
     </packageHasNamedElement>
   </packagedElements>
 </package>
