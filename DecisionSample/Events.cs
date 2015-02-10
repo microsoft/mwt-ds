@@ -89,4 +89,13 @@ namespace DecisionSample
         [JsonProperty(PropertyName = "v")]
         public object Value { get; set; }
     }
+
+    public class EventBatch
+    {
+        [JsonProperty(PropertyName = "i")]
+        public System.Guid ID { get; set; }
+
+        [JsonProperty(PropertyName = "j")]
+        public IList<string> JsonEvents { get; set; }
+    }
 }

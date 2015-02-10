@@ -29,7 +29,6 @@ namespace DecisionSample
         public string AppId { get { return appId; } }
         public string AuthorizationToken { get { return authorizationToken; } }
         public IExploreAlgorithm<TContext> Explorer { get { return explorer; } }
-        public int ExperimentalUnitDurationInSeconds { get; set; }
         public bool IsPolicyUpdatable { get; set; }
         public BatchingConfiguration BatchConfig { get; set; }
         public Func<TContext, string> ContextJsonSerializer { get; set; }

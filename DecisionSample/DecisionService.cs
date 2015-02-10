@@ -11,8 +11,11 @@ namespace DecisionSample
     {
         public DecisionService(DecisionServiceConfiguration<TContext> config)
         {
-            recorder = new DecisionServiceRecorder<TContext>(config.BatchConfig, config.ContextJsonSerializer,
-                config.ExperimentalUnitDurationInSeconds, config.AuthorizationToken);
+            recorder = new DecisionServiceRecorder<TContext>(
+                config.BatchConfig, 
+                config.ContextJsonSerializer,
+                config.AuthorizationToken);
+
             policy = new DecisionServicePolicy<TContext>();
             mwt = new MwtExplorer<TContext>(config.AppId, recorder);
             exploreAlgorithm = config.Explorer;

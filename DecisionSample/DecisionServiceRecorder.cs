@@ -20,12 +20,10 @@ namespace DecisionSample
     {
         public DecisionServiceRecorder(BatchingConfiguration batchConfig, 
             Func<TContext, string> contextSerializer, 
-            int experimentalUnitDurationInSeconds,
             string authorizationToken) 
         {
             this.batchConfig = batchConfig;
             this.contextSerializer = contextSerializer;
-            this.experimentalUnitDurationInSeconds = experimentalUnitDurationInSeconds;
             this.authorizationToken = authorizationToken;
 
             this.httpClient = new HttpClient();
@@ -111,7 +109,12 @@ namespace DecisionSample
         // 2. Or drop events.
         private async Task BatchProcess(IList<string> jsonExpFragments)
         {
-            byte[] jsonByteArray = Encoding.UTF8.GetBytes(this.BuildJsonMessage(jsonExpFragments));
+            EventBatch batch = new EventBatch { 
+                ID = Guid.NewGuid(),
+                JsonEvents = jsonExpFragments
+            };
+
+            byte[] jsonByteArray = Encoding.UTF8.GetBytes(this.BuildJsonMessage(batch));
 
             using (var jsonMemStream = new MemoryStream(jsonByteArray))
             {
@@ -128,9 +131,13 @@ namespace DecisionSample
 
                     if (this.batchConfig.UploadRetryPolicy == BatchUploadRetryPolicy.Retry)
                     {
-                        // TODO: push events back to queue
+                        // TODO: 2 options to handle retry:
+                        // 1. Push events back to queue
+                        // 2. Try to re-upload
+
+                        // TODO: How long should we retry for? Configurable?
+                        // TODO: throw exception with custom message if retry fails repeatedly?
                     }
-                    // TODO: throw exception with custom message?
                 }
                 else
                 {
@@ -146,16 +153,14 @@ namespace DecisionSample
             this.eventProcessor.Completion.Wait();
         }
 
-        private string BuildJsonMessage(IList<string> jsonExpFragments)
+        private string BuildJsonMessage(EventBatch batch)
         {
             // TODO: use automatic serialization instead of building JSON manually
             StringBuilder jsonBuilder = new StringBuilder();
             
             jsonBuilder.Append("{\"e\":[");
-            jsonBuilder.Append(String.Join(",", jsonExpFragments));
-            jsonBuilder.Append("],\"d\":");
-            jsonBuilder.Append(this.experimentalUnitDurationInSeconds);
-            jsonBuilder.Append("}");
+            jsonBuilder.Append(String.Join(",", batch.JsonEvents));
+            jsonBuilder.Append("]}");
 
             return jsonBuilder.ToString();
         }
@@ -183,7 +188,6 @@ namespace DecisionSample
         private IObserver<IEvent> eventObserver;
         private ActionBlock<IList<string>> eventProcessor;
         private IDisposable eventUnsubscriber;
-        private int experimentalUnitDurationInSeconds;
         private string authorizationToken;
         private HttpClient httpClient;
         #endregion

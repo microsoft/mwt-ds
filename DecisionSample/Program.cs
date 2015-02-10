@@ -33,7 +33,7 @@ namespace DecisionSample
         {
             // Create configuration for the decision service
             var serviceConfig = new DecisionServiceConfiguration<UserContext>(
-                appId: "mwt",
+                appId: "mwt", // TODO: Should salt be separate from application ID?
                 authorizationToken: "",
                 explorer: new EpsilonGreedyExplorer<UserContext>(new UserPolicy(), epsilon: 0.2f, numActions: 10))
                 //explorer = new TauFirstExplorer<MyContext>(new UserPolicy(), tau: 50, numActions: 10))
@@ -104,7 +104,6 @@ namespace DecisionSample
                     MaxBufferSizeInBytes = 8 * 1024 * 1024,
                     MaxUploadQueueCapacity = 1024 * 32
                 },
-                ExperimentalUnitDurationInSeconds = 30,
                 // Features must be top-level, no nesting supported
                 ContextJsonSerializer = uc => JsonConvert.SerializeObject(uc.FeatureVector)
             };
