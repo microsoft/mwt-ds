@@ -157,8 +157,10 @@ namespace DecisionSample
         {
             // TODO: use automatic serialization instead of building JSON manually
             StringBuilder jsonBuilder = new StringBuilder();
+
+            jsonBuilder.Append("{\"i\":\"" + batch.ID.ToString() + "\",");
             
-            jsonBuilder.Append("{\"e\":[");
+            jsonBuilder.Append("\"j\":[");
             jsonBuilder.Append(String.Join(",", batch.JsonEvents));
             jsonBuilder.Append("]}");
 
@@ -193,8 +195,8 @@ namespace DecisionSample
         #endregion
 
         #region Constants
-        // private readonly string ServiceAddress = "http://decisionservice2.cloudapp.net";
-        private readonly string ServiceAddress = "http://localhost:1362";
+        private readonly string ServiceAddress = "http://decisionservice2.cloudapp.net";
+        //private readonly string ServiceAddress = "http://localhost:1362";
         private readonly string ServicePostAddress = "/DecisionService.svc/PostExperimentalUnits";
         private readonly int ConnectionTimeOutInSeconds = 60 * 5;
         private readonly string AuthenticationScheme = "Bearer";

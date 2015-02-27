@@ -80,6 +80,9 @@ namespace DecisionSample
                 case "lhoang-pc7":
                     rcv1File = @"D:\Git\vw-original\rcv1.train.multiclass.vw";
                     break;
+                case "lhoang-surface":
+                    rcv1File = @"C:\Users\lhoang\Documents\Git\vw-explore\dataset\rcv1.train.multiclass.vw";
+                    break;
                 case "marie":
                     rcv1File = @"D:\work\DecisionService\rcv1.train.multiclass.vw";
                     break;
