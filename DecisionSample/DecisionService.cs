@@ -16,9 +16,9 @@ namespace DecisionSample
                 config.ContextJsonSerializer,
                 config.AuthorizationToken);
 
-            policy = new DecisionServicePolicy<TContext>();
+            policy = new DecisionServicePolicy<TContext>(UpdatePolicy, string.Format(ModelAddress, config.AuthorizationToken));
             mwt = new MwtExplorer<TContext>(config.AppId, recorder);
-            exploreAlgorithm = config.Explorer;
+            explorer = config.Explorer;
         }
 
         /*ReportSimpleReward*/
@@ -44,7 +44,7 @@ namespace DecisionSample
 
         public uint ChooseAction(string uniqueKey, TContext context)
         {
-            return mwt.ChooseAction(exploreAlgorithm.Get(), uniqueKey, context);
+            return mwt.ChooseAction(explorer, uniqueKey, context);
         }
 
         public void Flush()
@@ -54,12 +54,30 @@ namespace DecisionSample
 
         public void Dispose() { }
 
+        private void UpdatePolicy()
+        {
+            if (explorer is IConsumePolicy<TContext>)
+            {
+                ((IConsumePolicy<TContext>)explorer).UpdatePolicy(policy);
+            }
+            else
+            {
+                throw new NotSupportedException("This type of explorer does not currently support updating policy functions.");
+            }
+        }
+
         public IRecorder<TContext> Recorder { get { return recorder; } }
         public IPolicy<TContext> Policy { get { return policy; } }
             
-        private IExploreAlgorithm<TContext> exploreAlgorithm;
+        private IExplorer<TContext> explorer;
         private DecisionServiceRecorder<TContext> recorder;
         private DecisionServicePolicy<TContext> policy;
         private MwtExplorer<TContext> mwt;
+
+        #region Constants
+
+        private readonly string ModelAddress = "http://mwtds.azurewebsites.net/Application/GetSelectedModel?token={0}";
+
+        #endregion
     }
 }

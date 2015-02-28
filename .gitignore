@@ -12,7 +12,7 @@
 *.opensdf
 *.suo
 *.sdf
-*.vcxproj.user
+*.user
 *.so
 
 # doxygen output folders

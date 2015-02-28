@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using MultiWorldTesting;
+using Newtonsoft.Json;
 using System;
 
 namespace DecisionSample
@@ -8,7 +9,7 @@ namespace DecisionSample
     /// </summary>
     public class DecisionServiceConfiguration<TContext>
     {
-        public DecisionServiceConfiguration(string appId, string authorizationToken, IExploreAlgorithm<TContext> explorer)
+        public DecisionServiceConfiguration(string appId, string authorizationToken, IExplorer<TContext> explorer)
         {
             this.appId = appId;
             this.authorizationToken = authorizationToken;
@@ -28,13 +29,13 @@ namespace DecisionSample
         }
         public string AppId { get { return appId; } }
         public string AuthorizationToken { get { return authorizationToken; } }
-        public IExploreAlgorithm<TContext> Explorer { get { return explorer; } }
+        public IExplorer<TContext> Explorer { get { return explorer; } }
         public bool IsPolicyUpdatable { get; set; }
         public BatchingConfiguration BatchConfig { get; set; }
         public Func<TContext, string> ContextJsonSerializer { get; set; }
 
         private string appId;
         private string authorizationToken;
-        private IExploreAlgorithm<TContext> explorer;
+        private IExplorer<TContext> explorer;
     }
 }
