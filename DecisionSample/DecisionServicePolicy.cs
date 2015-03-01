@@ -1,6 +1,9 @@
 ﻿using MultiWorldTesting;
+using Newtonsoft.Json;
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.IO;
 using System.Net;
 using System.Threading;
 
@@ -58,17 +61,46 @@ namespace DecisionSample
             {
                 System.Threading.Thread.Sleep(PollDelayInMiliseconds);
 
-                using (var webClient = new WebClient())
+                try
                 {
-                    // TODO: check if there is an update before downloading?
-                    string modelBase64 = webClient.DownloadString(modelAddress);
-                    byte[] modelBytes = Convert.FromBase64String(modelBase64);
+                    HttpWebRequest request = (HttpWebRequest)WebRequest.Create(modelAddress);
+                    if (modelDate != null)
+                    {
+                        request.IfModifiedSince = modelDate.DateTime;
+                    }
 
-                    // TODO: use name of the Azure blob file instead
-                    string modelFileName = Guid.NewGuid().ToString();
-                    System.IO.File.WriteAllBytes(modelFileName, modelBytes);
+                    using (WebResponse response = request.GetResponse())
+                    using (StreamReader sr = new StreamReader(response.GetResponseStream()))
+                    {
+                        var model = JsonConvert.DeserializeObject<ModelTransferData>(sr.ReadToEnd());
 
-                    worker.ReportProgress(0, modelFileName);
+                        // Write model to file
+                        File.WriteAllBytes(model.Name, Convert.FromBase64String(model.ContentAsBase64));
+
+                        // Store last modified date for conditional get
+                        modelDate = model.LastModified;
+
+                        // Notify caller of model update
+                        worker.ReportProgress(0, model.Name);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    bool logErrors = true;
+                    if (ex is WebException)
+                    {
+                        HttpWebResponse httpResponse = ((WebException)ex).Response as HttpWebResponse;
+                        if (httpResponse.StatusCode == HttpStatusCode.NotModified)
+                        {
+                            // Exception is raised for NotModified http response but this is expected.
+                            logErrors = false;
+                        }
+                    }
+                    if (logErrors)
+                    {
+                        Trace.TraceError("Failed to retrieve new model information.");
+                        Trace.TraceError(ex.ToString());
+                    }
                 }
             }
         }
@@ -96,9 +128,11 @@ namespace DecisionSample
         
         Action notifyPolicyUpdate;
         string modelAddress;
+        DateTimeOffset modelDate;
 
         #region Constants
 
+        // TODO: Configurable?
         private readonly int PollDelayInMiliseconds = 5000;
 
         #endregion
