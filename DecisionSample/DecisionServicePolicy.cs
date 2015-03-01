@@ -66,7 +66,7 @@ namespace DecisionSample
                     HttpWebRequest request = (HttpWebRequest)WebRequest.Create(modelAddress);
                     if (modelDate != null)
                     {
-                        request.IfModifiedSince = modelDate.DateTime;
+                        request.IfModifiedSince = modelDate.UtcDateTime;
                     }
 
                     using (WebResponse response = request.GetResponse())
