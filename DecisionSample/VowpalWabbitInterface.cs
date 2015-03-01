@@ -15,7 +15,7 @@ namespace DecisionSample
 
     public sealed class VowpalWabbitInterface
     {
-        private const string LIBVW = "libvw.dll";
+        private const string LIBVW = "Include\\libvw.dll";
 
         [DllImport(LIBVW, EntryPoint = "VW_Initialize")]
         public static extern VwHandle Initialize([MarshalAs(UnmanagedType.LPWStr)]string arguments);

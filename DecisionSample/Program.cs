@@ -19,6 +19,8 @@ namespace DecisionSample
     {
         static void Main(string[] args)
         {
+            Trace.Listeners.Add(new ConsoleTraceListener());
+
             try
             {
                 TestServiceCommmunication();
@@ -81,7 +83,7 @@ namespace DecisionSample
                     rcv1File = @"D:\Git\vw-original\rcv1.train.multiclass.vw";
                     break;
                 case "lhoang-surface":
-                    rcv1File = @"C:\Users\lhoang\Documents\Git\vw-explore\dataset\rcv1.train.multiclass.vw";
+                    rcv1File = @"C:\Users\lhoang\Documents\Git\vw-sid\dataset\rcv1.train.multiclass.vw";
                     break;
                 case "marie":
                     rcv1File = @"D:\work\DecisionService\rcv1.train.multiclass.vw";
@@ -98,6 +100,8 @@ namespace DecisionSample
             var serviceConfig = new DecisionServiceConfiguration<UserContext>(
                 appId: "rcvtest",
                 authorizationToken: "c01ff675-5710-4814-a961-d03d2d6bce65",
+                //appId: "louiemart",
+                //authorizationToken: "c7b77291-f267-43da-8cc3-7df7ec2aeb06",
                 explorer: new EpsilonGreedyExplorer<UserContext>(new UserPolicy(), epsilon: 0.2f, numActions: 2))
             {
                 BatchConfig = new BatchingConfiguration()
@@ -175,7 +179,9 @@ namespace DecisionSample
 
                     obs.OnNext(Tuple.Create(lineNo++, line));
 
-                    if (lineNo > 10)
+                    System.Threading.Thread.Sleep(100);
+
+                    if (lineNo > 300)
                     {
                         break;
                     }

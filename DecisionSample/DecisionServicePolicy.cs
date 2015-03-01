@@ -1,6 +1,7 @@
 ﻿using MultiWorldTesting;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -19,6 +20,7 @@ namespace DecisionSample
             this.cancellationToken = new CancellationTokenSource();
 
             this.worker = new BackgroundWorker();
+            this.worker.WorkerReportsProgress = true;
             this.worker.DoWork += PollForUpdate;
             this.worker.ProgressChanged += FoundUpdate;
             this.worker.RunWorkerAsync(this.cancellationToken);
@@ -80,26 +82,43 @@ namespace DecisionSample
                         // Store last modified date for conditional get
                         modelDate = model.LastModified;
 
+                        Trace.TraceInformation("Retrieved new model: {0}", model.Name);
+
                         // Notify caller of model update
                         worker.ReportProgress(0, model.Name);
                     }
                 }
                 catch (Exception ex)
                 {
+                    var errorMessages = new List<string>(new string[] 
+                    { 
+                        "Failed to retrieve new model information.",
+                        ex.ToString()
+                    });
+
                     bool logErrors = true;
                     if (ex is WebException)
                     {
                         HttpWebResponse httpResponse = ((WebException)ex).Response as HttpWebResponse;
-                        if (httpResponse.StatusCode == HttpStatusCode.NotModified)
+                        
+                        switch (httpResponse.StatusCode)
                         {
-                            // Exception is raised for NotModified http response but this is expected.
-                            logErrors = false;
+                            case HttpStatusCode.NotModified:
+                                // Exception is raised for NotModified http response but this is expected.
+                                Trace.TraceInformation("No new model found.");
+                                logErrors = false;
+                                break;
+                            default:
+                                errorMessages.Add(httpResponse.StatusDescription);
+                                break;
                         }
                     }
                     if (logErrors)
                     {
-                        Trace.TraceError("Failed to retrieve new model information.");
-                        Trace.TraceError(ex.ToString());
+                        foreach (string message in errorMessages)
+                        {
+                            Trace.TraceError(message);
+                        }
                     }
                 }
             }
