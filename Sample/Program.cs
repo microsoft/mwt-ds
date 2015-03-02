@@ -12,10 +12,11 @@ using Newtonsoft.Json;
 using System.Threading.Tasks.Dataflow;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Queue;
+using ClientDecisionService;
 
-namespace ClientDecisionService
+namespace Sample
 {
-    class Sample
+    class Program
     {
         static void Main(string[] args)
         {
@@ -38,10 +39,10 @@ namespace ClientDecisionService
                 appId: "mwt", // TODO: Should salt be separate from application ID?
                 authorizationToken: "",
                 explorer: new EpsilonGreedyExplorer<UserContext>(new UserPolicy(), epsilon: 0.2f, numActions: 10))
-                //explorer = new TauFirstExplorer<MyContext>(new UserPolicy(), tau: 50, numActions: 10))
-                //explorer = new BootstrapExplorer<MyContext>(new IPolicy<MyContext>[2] { new UserPolicy(), new UserPolicy() }, numActions: 10))
-                //explorer = new SoftmaxExplorer<MyContext>(new UserScorer(), lambda: 0.5f, numActions: 10))
-                //explorer = new GenericExplorer<MyContext>(new UserScorer(), numActions: 10))
+            //explorer = new TauFirstExplorer<MyContext>(new UserPolicy(), tau: 50, numActions: 10))
+            //explorer = new BootstrapExplorer<MyContext>(new IPolicy<MyContext>[2] { new UserPolicy(), new UserPolicy() }, numActions: 10))
+            //explorer = new SoftmaxExplorer<MyContext>(new UserScorer(), lambda: 0.5f, numActions: 10))
+            //explorer = new GenericExplorer<MyContext>(new UserScorer(), numActions: 10))
             {
                 // Allowing model update. Users can suppress model update by setting this to False.
                 //IsPolicyUpdatable = true,
@@ -107,7 +108,7 @@ namespace ClientDecisionService
                 BatchConfig = new BatchingConfiguration()
                 {
                     MaxDuration = TimeSpan.FromSeconds(1),
-                    MaxEventCount = 1024 * 4, 
+                    MaxEventCount = 1024 * 4,
                     MaxBufferSizeInBytes = 8 * 1024 * 1024,
                     MaxUploadQueueCapacity = 1024 * 32
                 },
@@ -128,33 +129,33 @@ namespace ClientDecisionService
 2632671e-01 16893:1.9762035e-01 24036:3.2674628e-01 24303:2.2660980e-01
             */
             var transformBlock = new TransformBlock<Tuple<int, string>, Parsed>(t =>
+            {
+                string[] sections = t.Item2.Split(new string[] { "|f" }, StringSplitOptions.RemoveEmptyEntries);
+                int trueAction = int.Parse(sections[0]);
+
+                string[] features = sections[1].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+                var featureVector = features.Select(f =>
                 {
-                    string[] sections = t.Item2.Split(new string[] {"|f"}, StringSplitOptions.RemoveEmptyEntries);
-                    int trueAction = int.Parse(sections[0]);
-
-                    string[] features = sections[1].Split(new char[] {' '}, StringSplitOptions.RemoveEmptyEntries);
-
-                    var featureVector = features.Select(f =>
-                        {
-                            string[] ivPair = f.Split(new char[] {':'}, StringSplitOptions.RemoveEmptyEntries);
-                            return new
-                            {
-                                Index = int.Parse(ivPair[0]),
-                                Val = float.Parse(ivPair[1])
-                            };
-                        })
-                        .ToDictionary(a => "f" + a.Index, a => a.Val);
-
-                    return new Parsed
+                    string[] ivPair = f.Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
+                    return new
                     {
-                        UniqueId = t.Item1.ToString(),
-                        Context = new UserContext(featureVector),
-                        TrueAction = trueAction
+                        Index = int.Parse(ivPair[0]),
+                        Val = float.Parse(ivPair[1])
                     };
-                },
+                })
+                    .ToDictionary(a => "f" + a.Index, a => a.Val);
+
+                return new Parsed
+                {
+                    UniqueId = t.Item1.ToString(),
+                    Context = new UserContext(featureVector),
+                    TrueAction = trueAction
+                };
+            },
                 new ExecutionDataflowBlockOptions
                 {
-                    BoundedCapacity = 1024*8,
+                    BoundedCapacity = 1024 * 8,
                     MaxDegreeOfParallelism = Environment.ProcessorCount
                 });
 
@@ -236,7 +237,7 @@ namespace ClientDecisionService
     {
         public uint ChooseAction(UserContext context)
         {
-            return (uint) 1; //((context.FeatureVector.Length % 2) + 1);
+            return (uint)1; //((context.FeatureVector.Length % 2) + 1);
         }
     }
 
