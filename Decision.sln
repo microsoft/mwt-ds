@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientDecisionService", "DecisionSample\ClientDecisionService.csproj", "{140FCD6F-077F-432D-A9E4-0D63B5DACD93}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientDecisionService", "ClientDecisionService\ClientDecisionService.csproj", "{140FCD6F-077F-432D-A9E4-0D63B5DACD93}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "explore_clr", "explore\clr\explore_clr.vcxproj", "{8400DA16-1F46-4A31-A126-BBE16F62BFD7}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "explore_static", "explore\static\explore_static.vcxproj", "{ACE47E98-488C-4CDF-B9F1-36337B2855AD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientDecisionServiceTest", "DecisionServiceTest\ClientDecisionServiceTest.csproj", "{8C5A34B2-FD5F-4D3C-888C-674DE232967E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientDecisionServiceTest", "ClientDecisionServiceTest\ClientDecisionServiceTest.csproj", "{8C5A34B2-FD5F-4D3C-888C-674DE232967E}"
 EndProject
 Project("{F088123C-0E9E-452A-89E6-6BA2F21D5CAC}") = "Modeling", "Modeling\Modeling.modelproj", "{66C11AA5-FC0C-419B-9174-C4757CF68CCA}"
 EndProject
@@ -20,7 +20,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{17E140
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientDecisionServiceSample", "Sample\ClientDecisionServiceSample.csproj", "{990B09DC-236A-4D04-B109-23F5A5FCBF55}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientDecisionServiceSample", "ClientDecisionServiceSample\ClientDecisionServiceSample.csproj", "{990B09DC-236A-4D04-B109-23F5A5FCBF55}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

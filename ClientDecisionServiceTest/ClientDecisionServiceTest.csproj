@@ -80,7 +80,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DecisionSample\ClientDecisionService.csproj">
+    <ProjectReference Include="..\ClientDecisionService\ClientDecisionService.csproj">
       <Project>{140fcd6f-077f-432d-a9e4-0d63b5dacd93}</Project>
       <Name>ClientDecisionService</Name>
     </ProjectReference>
