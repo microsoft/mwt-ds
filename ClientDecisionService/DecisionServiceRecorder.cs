@@ -141,7 +141,7 @@ namespace ClientDecisionService
                 }
                 else
                 {
-                    Console.WriteLine("success");
+                    Trace.TraceInformation("Successfully uploaded batch {0} with {1} events.", batch.ID, batch.JsonEvents.Count);
                 }
 #endif
             }

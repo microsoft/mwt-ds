@@ -61,7 +61,12 @@ namespace ClientDecisionService
             var cancelToken = e.Argument as CancellationTokenSource;
             while (!cancelToken.IsCancellationRequested)
             {
-                System.Threading.Thread.Sleep(PollDelayInMiliseconds);
+                bool cancelled = cancelToken.Token.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(PollDelayInMiliseconds));
+                if (cancelled)
+                {
+                    Trace.TraceInformation("Cancellation request received while sleeping.");
+                    return;
+                }
 
                 try
                 {
