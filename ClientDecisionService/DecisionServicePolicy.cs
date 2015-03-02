@@ -41,6 +41,19 @@ namespace ClientDecisionService
         public void StopPolling()
         {
             this.cancellationToken.Cancel();
+
+            // Blocks until the worker can gracefully exit.
+            var waitWatch = new Stopwatch();
+            waitWatch.Start();
+            while (this.worker.IsBusy) 
+            {
+                if (waitWatch.ElapsedMilliseconds >= PollCancelWaitInMiliseconds)
+                {
+                    Trace.TraceWarning("Timed out waiting for model polling task: {0} ms.", PollCancelWaitInMiliseconds);
+                    break;
+                }
+            }
+
             this.VWFinish();
         }
 
@@ -159,6 +172,7 @@ namespace ClientDecisionService
 
         // TODO: Configurable?
         private readonly int PollDelayInMiliseconds = 5000;
+        private readonly int PollCancelWaitInMiliseconds = 2000;
 
         #endregion
     }
