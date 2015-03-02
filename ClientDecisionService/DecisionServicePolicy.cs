@@ -28,8 +28,8 @@ namespace ClientDecisionService
 
         public uint ChooseAction(TContext context)
         {
-            // TODO: how to create an example from just the context?
-            string exampleLine = string.Empty;
+            // Create example with bogus <a,r,p> data
+            string exampleLine = string.Format("1:1:1 | {0}", context.ToString());
 
             IntPtr example = VowpalWabbitInterface.ReadExample(vw, exampleLine);
             VowpalWabbitInterface.Predict(vw, example);
