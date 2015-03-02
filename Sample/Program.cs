@@ -14,7 +14,7 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Queue;
 using ClientDecisionService;
 
-namespace Sample
+namespace ClientDecisionServiceSample
 {
     class Program
     {

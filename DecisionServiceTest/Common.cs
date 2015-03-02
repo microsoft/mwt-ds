@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 
-namespace DecisionServiceTest
+namespace ClientDecisionServiceTest
 {
     class TestContext { }
 

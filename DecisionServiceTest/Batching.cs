@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 using System;
 using System.IO;
 
-namespace DecisionServiceTest
+namespace ClientDecisionServiceTest
 {
     [TestClass]
     public class Batching
