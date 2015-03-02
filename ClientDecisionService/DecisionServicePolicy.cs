@@ -122,6 +122,7 @@ namespace ClientDecisionService
                     }
                 }
             }
+            Trace.TraceInformation("Model polling has been cancelled per request.");
         }
 
         void VWInitialize(string arguments)

@@ -81,7 +81,7 @@ namespace ClientDecisionServiceSample
             switch (Environment.MachineName.ToLower())
             {
                 case "lhoang-pc7":
-                    rcv1File = @"D:\Git\vw-original\rcv1.train.multiclass.vw";
+                    rcv1File = @"D:\Git\vw-louie\rcv1.train.multiclass.vw";
                     break;
                 case "lhoang-surface":
                     rcv1File = @"C:\Users\lhoang\Documents\Git\vw-sid\dataset\rcv1.train.multiclass.vw";

@@ -49,6 +49,7 @@ namespace ClientDecisionService
 
         public void Flush()
         {
+            policy.StopPolling();
             recorder.Flush();
         }
 
