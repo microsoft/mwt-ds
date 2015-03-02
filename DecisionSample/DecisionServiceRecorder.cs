@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using System.Diagnostics;
 
-namespace DecisionSample
+namespace ClientDecisionService
 {
     // TODO: rename Recorder to Logger?
     internal class DecisionServiceRecorder<TContext> : IRecorder<TContext>, IDisposable

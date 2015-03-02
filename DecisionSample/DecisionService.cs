@@ -2,7 +2,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace DecisionSample
+namespace ClientDecisionService
 {
     /// <summary>
     /// Encapsulates logic for recorder with async server communications & policy update.

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace DecisionSample
+namespace ClientDecisionService
 {
     public class EventJsonConverter : JsonConverter
     {

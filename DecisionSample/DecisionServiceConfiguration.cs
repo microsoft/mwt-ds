@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 using System;
 
-namespace DecisionSample
+namespace ClientDecisionService
 {
     /// <summary>
     /// Configuration object for the client decision service which contains settings for batching, retry storage, etc...

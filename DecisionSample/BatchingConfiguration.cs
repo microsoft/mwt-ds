@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DecisionSample
+namespace ClientDecisionService
 {
     /// <summary>
     /// Represents a collection of batching criteria.  

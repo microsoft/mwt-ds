@@ -13,7 +13,7 @@ using System.Threading.Tasks.Dataflow;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Queue;
 
-namespace DecisionSample
+namespace ClientDecisionService
 {
     class Sample
     {

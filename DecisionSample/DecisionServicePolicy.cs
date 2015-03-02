@@ -8,7 +8,7 @@ using System.IO;
 using System.Net;
 using System.Threading;
 
-namespace DecisionSample
+namespace ClientDecisionService
 {
     internal class DecisionServicePolicy<TContext> : IPolicy<TContext>, IDisposable
     {

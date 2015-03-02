@@ -9,7 +9,7 @@ using System.Globalization;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace DecisionSample
+namespace ClientDecisionService
 {
     /// <summary>
     /// Custom JSON converter returning the underlying raw json (avoiding object allocation)

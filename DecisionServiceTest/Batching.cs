@@ -1,4 +1,4 @@
-﻿using DecisionSample;
+﻿using ClientDecisionService;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MultiWorldTesting;
 using Newtonsoft.Json;

@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace DecisionSample
+namespace ClientDecisionService
 {
     using VwExample = IntPtr;
     using VwHandle = IntPtr;

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace DecisionSample
+namespace ClientDecisionService
 {
     public enum EventType
     { 

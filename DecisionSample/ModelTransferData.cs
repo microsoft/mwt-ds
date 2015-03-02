@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DecisionSample
+namespace ClientDecisionService
 {
     public class ModelTransferData
     {

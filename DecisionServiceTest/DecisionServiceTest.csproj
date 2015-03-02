@@ -78,9 +78,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DecisionSample\DecisionSample.csproj">
+    <ProjectReference Include="..\DecisionSample\ClientDecisionService.csproj">
       <Project>{140fcd6f-077f-432d-a9e4-0d63b5dacd93}</Project>
-      <Name>DecisionSample</Name>
+      <Name>ClientDecisionService</Name>
     </ProjectReference>
     <ProjectReference Include="..\explore\clr\explore_clr.vcxproj">
       <Project>{8400da16-1f46-4a31-a126-bbe16f62bfd7}</Project>

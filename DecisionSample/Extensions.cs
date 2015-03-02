@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reactive;
 using System.Reactive.Subjects;
 
-namespace DecisionSample
+namespace ClientDecisionService
 {
     public static class ExtensionMethods
     {
