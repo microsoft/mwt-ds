@@ -31,17 +31,24 @@ namespace ClientDecisionService
             // Create example with bogus <a,r,p> data
             string exampleLine = string.Format("1:1:1 | {0}", context.ToString());
 
-            IntPtr example = VowpalWabbitInterface.ReadExample(vw, exampleLine);
-            VowpalWabbitInterface.Predict(vw, example);
-            VowpalWabbitInterface.FinishExample(vw, example);
+            uint action = 0;
 
-            return (uint)VowpalWabbitInterface.GetCostSensitivePrediction(example);
+            lock (this.vwLock)
+            {
+                IntPtr example = VowpalWabbitInterface.ReadExample(vw, exampleLine);
+                VowpalWabbitInterface.Predict(vw, example);
+                VowpalWabbitInterface.FinishExample(vw, example);
+                action = (uint)VowpalWabbitInterface.GetCostSensitivePrediction(example);
+            }
+
+            return action;
         }
 
         public void StopPolling()
         {
             this.cancellationToken.Cancel();
 
+            // TODO: use more robust mechanism to wait for background worker to finish
             // Blocks until the worker can gracefully exit.
             var waitWatch = new Stopwatch();
             waitWatch.Start();
@@ -54,7 +61,10 @@ namespace ClientDecisionService
                 }
             }
 
-            this.VWFinish();
+            lock (vwLock)
+            {
+                this.VWFinish();
+            }
         }
 
         public void Dispose() { }
@@ -62,9 +72,12 @@ namespace ClientDecisionService
         void FoundUpdate(object sender, ProgressChangedEventArgs e)
         {
             var newModelFileName = e.UserState as string;
-            
-            this.VWFinish(); // Finish previous run before initializing on new file
-            this.VWInitialize(string.Format("-t -i {0}", newModelFileName));
+
+            lock (vwLock)
+            {
+                this.VWFinish(); // Finish previous run before initializing on new file
+                this.VWInitialize(string.Format("-t -i {0}", newModelFileName));
+            }
             
             this.notifyPolicyUpdate();
         }
@@ -159,6 +172,7 @@ namespace ClientDecisionService
         }
 
         IntPtr vw;
+        readonly object vwLock = new object();
         VowpalWabbitState vwState;
 
         BackgroundWorker worker;
