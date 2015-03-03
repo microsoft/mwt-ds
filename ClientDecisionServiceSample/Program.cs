@@ -80,6 +80,9 @@ namespace ClientDecisionServiceSample
             string rcv1File = null;
             switch (Environment.MachineName.ToLower())
             {
+                case "lhoang2":
+                    rcv1File = @"D:\Git\vw-louie\rcv1.train.multiclass.vw";
+                    break;
                 case "lhoang-pc7":
                     rcv1File = @"D:\Git\vw-louie\rcv1.train.multiclass.vw";
                     break;
