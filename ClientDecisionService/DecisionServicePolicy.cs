@@ -126,6 +126,11 @@ namespace ClientDecisionService
                         var model = JsonConvert.DeserializeObject<ModelTransferData>(sr.ReadToEnd());
 
                         // Write model to file
+                        if (!string.IsNullOrWhiteSpace(this.modelOutputDir))
+                        {
+                            Directory.CreateDirectory(Path.GetDirectoryName(this.modelOutputDir));
+                        }
+
                         File.WriteAllBytes(Path.Combine(this.modelOutputDir, model.Name), Convert.FromBase64String(model.ContentAsBase64));
 
                         // Store last modified date for conditional get
