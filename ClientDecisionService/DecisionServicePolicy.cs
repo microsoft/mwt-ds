@@ -12,10 +12,11 @@ namespace ClientDecisionService
 {
     internal class DecisionServicePolicy<TContext> : IPolicy<TContext>, IDisposable
     {
-        public DecisionServicePolicy(Action notifyPolicyUpdate, string modelAddress)
+        public DecisionServicePolicy(Action notifyPolicyUpdate, string modelAddress, string modelOutputDir)
         {
             this.notifyPolicyUpdate = notifyPolicyUpdate;
             this.modelAddress = modelAddress;
+            this.modelOutputDir = string.IsNullOrWhiteSpace(modelOutputDir) ? string.Empty : modelOutputDir;
 
             this.cancellationToken = new CancellationTokenSource();
 
@@ -73,13 +74,30 @@ namespace ClientDecisionService
         {
             var newModelFileName = e.UserState as string;
 
+            bool modelUpdateSuccess = true;
             lock (vwLock)
             {
-                this.VWFinish(); // Finish previous run before initializing on new file
-                this.VWInitialize(string.Format("-t -i {0}", newModelFileName));
+                try
+                {
+                    this.VWFinish(); // Finish previous run before initializing on new file
+                    this.VWInitialize(string.Format("-t -i {0}", Path.Combine(this.modelOutputDir, newModelFileName)));
+                }
+                catch (Exception ex)
+                {
+                    Trace.TraceError("Unable to initialize VW.");
+                    Trace.TraceError(ex.ToString());
+                    modelUpdateSuccess = false;
+                }
             }
-            
-            this.notifyPolicyUpdate();
+
+            if (modelUpdateSuccess)
+            {
+                this.notifyPolicyUpdate();
+            }
+            else
+            {
+                Trace.TraceInformation("Attempt to update model failed.");
+            }
         }
 
         void PollForUpdate(object sender, DoWorkEventArgs e)
@@ -108,7 +126,7 @@ namespace ClientDecisionService
                         var model = JsonConvert.DeserializeObject<ModelTransferData>(sr.ReadToEnd());
 
                         // Write model to file
-                        File.WriteAllBytes(model.Name, Convert.FromBase64String(model.ContentAsBase64));
+                        File.WriteAllBytes(Path.Combine(this.modelOutputDir, model.Name), Convert.FromBase64String(model.ContentAsBase64));
 
                         // Store last modified date for conditional get
                         modelDate = model.LastModified;
@@ -143,6 +161,11 @@ namespace ClientDecisionService
                                 errorMessages.Add(httpResponse.StatusDescription);
                                 break;
                         }
+                    }
+                    else if (ex is UnauthorizedAccessException)
+                    {
+                        Trace.TraceError("Unable to write model to disk due to restricted access. Model polling will stop.");
+                        cancelToken.Cancel();
                     }
                     if (logErrors)
                     {
@@ -180,6 +203,7 @@ namespace ClientDecisionService
         
         Action notifyPolicyUpdate;
         string modelAddress;
+        string modelOutputDir;
         DateTimeOffset modelDate;
 
         #region Constants

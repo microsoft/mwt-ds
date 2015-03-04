@@ -1,5 +1,6 @@
 ﻿using MultiWorldTesting;
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace ClientDecisionService
@@ -16,7 +17,7 @@ namespace ClientDecisionService
                 config.ContextJsonSerializer,
                 config.AuthorizationToken);
 
-            policy = new DecisionServicePolicy<TContext>(UpdatePolicy, string.Format(ModelAddress, config.AuthorizationToken));
+            policy = new DecisionServicePolicy<TContext>(UpdatePolicy, string.Format(ModelAddress, config.AuthorizationToken), config.PolicyModelOutputDir);
             mwt = new MwtExplorer<TContext>(config.AppId, recorder);
             explorer = config.Explorer;
         }
@@ -60,6 +61,7 @@ namespace ClientDecisionService
             if (explorer is IConsumePolicy<TContext>)
             {
                 ((IConsumePolicy<TContext>)explorer).UpdatePolicy(policy);
+                Trace.TraceInformation("Model update succeeded.");
             }
             else
             {

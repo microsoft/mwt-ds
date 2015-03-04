@@ -31,6 +31,7 @@ namespace ClientDecisionService
         public string AuthorizationToken { get { return authorizationToken; } }
         public IExplorer<TContext> Explorer { get { return explorer; } }
         public bool IsPolicyUpdatable { get; set; }
+        public string PolicyModelOutputDir { get; set; }
         public BatchingConfiguration BatchConfig { get; set; }
         public Func<TContext, string> ContextJsonSerializer { get; set; }
 
