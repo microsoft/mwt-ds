@@ -1,4 +1,5 @@
 ﻿using ClientDecisionServiceWebSample.Extensions;
+using System.IO;
 using System.Web.Hosting;
 using System.Web.Mvc;
 
@@ -7,10 +8,12 @@ namespace ClientDecisionServiceWebSample.Controllers
     public class HomeController : AsyncController
     {
         static int requestCount = 0;
-        static readonly string exploreFile = HostingEnvironment.MapPath("~/dsexplore.txt");
+        static readonly string outputDir = HostingEnvironment.MapPath("~/Output");
+        static readonly string exploreFile = Path.Combine(outputDir, "dsexplore.txt");
 
         public ActionResult Index()
         {
+            Directory.CreateDirectory(outputDir);
             if (requestCount == 0)
             {
                 System.IO.File.Delete(exploreFile);
@@ -18,7 +21,12 @@ namespace ClientDecisionServiceWebSample.Controllers
             requestCount++;
 
             HostingEnvironment.QueueBackgroundWorkItem(token => {
-                DecisionServiceWrapper<string>.Create(HostingEnvironment.MapPath("~/"));
+                DecisionServiceWrapper<string>.Create(
+                    appId: "louiemart", 
+                    appToken: "c7b77291-f267-43da-8cc3-7df7ec2aeb06", 
+                    epsilon: .2f, 
+                    numActions: 10,
+                    modelOutputDir: outputDir);
 
                 string context = "context " + requestCount;
                 string outcome = "outcome " + requestCount;

@@ -13,20 +13,19 @@ namespace ClientDecisionServiceWebSample.Extensions
         public static DecisionServiceConfiguration<TContext> Configuration { get; set; }
         public static DecisionService<TContext> Service { get; set; }
 
-        public static void Create(string modelOutputDir)
+        public static void Create(string appId, string appToken, float epsilon, uint numActions, string modelOutputDir)
         {
             if (Explorer == null)
             {
-                Explorer = new EpsilonGreedyExplorer<TContext>(new MartPolicy<TContext>(), .2f, 10);
+                Explorer = new EpsilonGreedyExplorer<TContext>(new MartPolicy<TContext>(), epsilon, numActions);
             }
 
             if (Configuration == null)
             {
-                //Configuration = new DecisionServiceConfiguration<TContext>("rcvtest", "c01ff675-5710-4814-a961-d03d2d6bce65", Explorer)
-                Configuration = new DecisionServiceConfiguration<TContext>("louiemart", "c7b77291-f267-43da-8cc3-7df7ec2aeb06", Explorer)
+                Configuration = new DecisionServiceConfiguration<TContext>(appId, appToken, Explorer)
                 {
                     PolicyModelOutputDir = modelOutputDir,
-                    BatchConfig = new BatchingConfiguration 
+                    BatchConfig = new BatchingConfiguration
                     {
                         MaxDuration = TimeSpan.FromSeconds(5),
                         MaxBufferSizeInBytes = 10,
