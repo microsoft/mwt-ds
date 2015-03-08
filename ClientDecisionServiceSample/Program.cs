@@ -44,9 +44,6 @@ namespace ClientDecisionServiceSample
             //explorer = new SoftmaxExplorer<MyContext>(new UserScorer(), lambda: 0.5f, numActions: 10))
             //explorer = new GenericExplorer<MyContext>(new UserScorer(), numActions: 10))
             {
-                // Allowing model update. Users can suppress model update by setting this to False.
-                //IsPolicyUpdatable = true,
-
                 // Configure batching logic if desired
                 BatchConfig = new BatchingConfiguration()
                 {

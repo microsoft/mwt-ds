@@ -17,7 +17,10 @@ namespace ClientDecisionService
                 config.ContextJsonSerializer,
                 config.AuthorizationToken);
 
-            policy = new DecisionServicePolicy<TContext>(UpdatePolicy, string.Format(ModelAddress, config.AuthorizationToken), config.PolicyModelOutputDir);
+            policy = new DecisionServicePolicy<TContext>(UpdatePolicy, 
+                string.Format(ModelAddress, config.AuthorizationToken, config.UseLatestPolicy), 
+                config.PolicyModelOutputDir);
+
             mwt = new MwtExplorer<TContext>(config.AppId, recorder);
             explorer = config.Explorer;
         }
@@ -79,7 +82,7 @@ namespace ClientDecisionService
 
         #region Constants
 
-        private readonly string ModelAddress = "http://mwtds.azurewebsites.net/Application/GetSelectedModel?token={0}";
+        private readonly string ModelAddress = "http://mwtds.azurewebsites.net/Application/GetSelectedModel?token={0}&latest={1}";
 
         #endregion
     }
