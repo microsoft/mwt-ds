@@ -10,6 +10,7 @@ namespace ClientDecisionServiceWebSample.Controllers
 {
     public class HomeController : AsyncController
     {
+        static bool retrainModel = false;
         static int requestCount = 0;
         static readonly string outputDir = HostingEnvironment.MapPath("~/Output");
         static readonly string exploreFile = Path.Combine(outputDir, "dsexplore.txt");
@@ -30,7 +31,10 @@ namespace ClientDecisionServiceWebSample.Controllers
                 while (!cancelToken.IsCancellationRequested)
                 {
                     cancelToken.WaitHandle.WaitOne(5000);
-                    HomeController.RetrainModel(appToken, numberOfActions: 2);
+                    if (retrainModel)
+                    {
+                        HomeController.RetrainModel(appToken, numberOfActions: 2);
+                    }
                 }
             });
 
@@ -53,7 +57,8 @@ namespace ClientDecisionServiceWebSample.Controllers
 
             string explorationData = System.IO.File.Exists(exploreFile) ? string.Join("<br />", System.IO.File.ReadAllLines(exploreFile)) : string.Empty;
 
-            return Content(string.Format("Ok. Request: {0}. Exploration: {1}", requestCount, explorationData));
+            object model = string.Format("Ok. Request: {0}. Exploration: {1}", requestCount, explorationData);
+            return View(model);
         }
 
         static void RetrainModel(string appToken, int numberOfActions)
