@@ -74,6 +74,7 @@ namespace ClientDecisionServiceWebSample.Controllers
                 var content = new FormUrlEncodedContent(values);
 
                 var responseTask = client.PostAsync(
+                    // TODO: use https
                     "http://mwtds.azurewebsites.net//Application/RetrainModel",
                     content
                 );
