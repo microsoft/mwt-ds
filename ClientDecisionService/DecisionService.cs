@@ -77,7 +77,7 @@ namespace ClientDecisionService
 
         public IRecorder<TContext> Recorder { get { return recorder; } }
         public IPolicy<TContext> Policy { get { return policy; } }
-
+            
         private readonly IExplorer<TContext> explorer;
         private readonly DecisionServiceRecorder<TContext> recorder;
         private readonly DecisionServicePolicy<TContext> policy;
@@ -85,7 +85,8 @@ namespace ClientDecisionService
 
         #region Constants
 
-        private const string ModelAddress = "http://mwtds.azurewebsites.net/Application/GetSelectedModel?token={0}&latest={1}";
+        // TODO: use https
+        private readonly string ModelAddress = "http://mwtds.azurewebsites.net/Application/GetSelectedModel?token={0}&latest={1}";
 
         #endregion
     }
