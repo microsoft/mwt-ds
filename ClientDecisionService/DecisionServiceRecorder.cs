@@ -24,12 +24,11 @@ namespace ClientDecisionService
         {
             this.batchConfig = batchConfig;
             this.contextSerializer = contextSerializer;
-            this.authorizationToken = authorizationToken;
 
             this.httpClient = new HttpClient();
             this.httpClient.BaseAddress = new Uri(this.ServiceAddress);
-            this.httpClient.Timeout = TimeSpan.FromSeconds(this.ConnectionTimeOutInSeconds);
-            this.httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(this.AuthenticationScheme, this.authorizationToken);
+            this.httpClient.Timeout = this.ConnectionTimeOut;
+            this.httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(this.AuthenticationScheme, authorizationToken);
 
             this.eventSource = new TransformBlock<IEvent, string>(ev => JsonConvert.SerializeObject(new ExperimentalUnitFragment { Id = ev.ID, Value = ev }), 
                 new ExecutionDataflowBlockOptions
@@ -49,7 +48,7 @@ namespace ClientDecisionService
 
             this.eventUnsubscriber = this.eventSource.AsObservable()
                 .Window(batchConfig.MaxDuration)
-                .Select(w => w.Buffer(batchConfig.MaxEventCount, batchConfig.MaxBufferSizeInBytes, json => Encoding.Default.GetByteCount(json)))
+                .Select(w => w.Buffer(batchConfig.MaxEventCount, batchConfig.MaxBufferSizeInBytes, json => Encoding.UTF8.GetByteCount(json)))
                 .SelectMany(buffer => buffer)
                 .Subscribe(this.eventProcessor.AsObserver());
         }
@@ -124,10 +123,9 @@ namespace ClientDecisionService
                 HttpResponseMessage response = await httpClient.PostAsync(this.ServicePostAddress, new StreamContent(jsonMemStream)).ConfigureAwait(false);
                 if (!response.IsSuccessStatusCode)
                 {
-                    Task<string> taskReadResponse = response.Content.ReadAsStringAsync();
-                    taskReadResponse.Wait();
+                    string taskReadResponse = await response.Content.ReadAsStringAsync();
 
-                    Trace.TraceError("Unable to upload batch: " + taskReadResponse.Result);
+                    Trace.TraceError("Unable to upload batch: " + taskReadResponse);
 
                     if (this.batchConfig.UploadRetryPolicy == BatchUploadRetryPolicy.Retry)
                     {
@@ -156,6 +154,7 @@ namespace ClientDecisionService
         private string BuildJsonMessage(EventBatch batch)
         {
             // TODO: use automatic serialization instead of building JSON manually
+            // COMMENT: since the JsonEvents are already strings I'd say building JSON manually is the best way to go
             StringBuilder jsonBuilder = new StringBuilder();
 
             jsonBuilder.Append("{\"i\":\"" + batch.ID.ToString() + "\",");
@@ -169,10 +168,29 @@ namespace ClientDecisionService
 
         // Internally, background tasks can get back latest model version as a return value from the HTTP communication with Ingress worker
 
-        public void Dispose() 
+        public void Dispose()
         {
-            this.httpClient.Dispose();
-            this.eventUnsubscriber.Dispose();
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // free managed resources
+                if (this.httpClient != null)
+                {
+                    this.httpClient.Dispose();
+                    this.httpClient = null;
+                }
+
+                if (this.eventUnsubscriber != null)
+                {
+                    this.eventUnsubscriber.Dispose();
+                    this.eventUnsubscriber = null;
+                }
+            }
         }
 
 #if TEST
@@ -184,13 +202,12 @@ namespace ClientDecisionService
 #endif
 
         #region Members
-        private BatchingConfiguration batchConfig;
-        private Func<TContext, string> contextSerializer;
-        private TransformBlock<IEvent, string> eventSource;
-        private IObserver<IEvent> eventObserver;
-        private ActionBlock<IList<string>> eventProcessor;
+        private readonly BatchingConfiguration batchConfig;
+        private readonly Func<TContext, string> contextSerializer;
+        private readonly TransformBlock<IEvent, string> eventSource;
+        private readonly IObserver<IEvent> eventObserver;
+        private readonly ActionBlock<IList<string>> eventProcessor;
         private IDisposable eventUnsubscriber;
-        private string authorizationToken;
         private HttpClient httpClient;
         #endregion
 
@@ -198,7 +215,7 @@ namespace ClientDecisionService
         private readonly string ServiceAddress = "http://decisionservice2.cloudapp.net";
         //private readonly string ServiceAddress = "http://localhost:1362";
         private readonly string ServicePostAddress = "/DecisionService.svc/PostExperimentalUnits";
-        private readonly int ConnectionTimeOutInSeconds = 60 * 5;
+        private readonly TimeSpan ConnectionTimeOut = TimeSpan.FromMinutes(5);
         private readonly string AuthenticationScheme = "Bearer";
         #endregion
     }

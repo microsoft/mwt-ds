@@ -14,6 +14,7 @@ namespace ClientDecisionService
 
         public override bool CanConvert(Type objectType)
         {
+            // COMMENT: why not objectType == typeof(IEvent) or typeof(IEvent).IsAssignableFrom(objectType)
             return objectType.FullName == IEvent_Type;
         }
 

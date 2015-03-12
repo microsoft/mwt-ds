@@ -1,6 +1,7 @@
 ﻿using MultiWorldTesting;
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.Threading.Tasks;
 
 namespace ClientDecisionService
@@ -17,8 +18,9 @@ namespace ClientDecisionService
                 config.ContextJsonSerializer,
                 config.AuthorizationToken);
 
+            // COMMENT: I'd leave the model address in the string to improve readability
             policy = new DecisionServicePolicy<TContext>(UpdatePolicy, 
-                string.Format(ModelAddress, config.AuthorizationToken, config.UseLatestPolicy), 
+                string.Format(CultureInfo.InvariantCulture, ModelAddress, config.AuthorizationToken, config.UseLatestPolicy), 
                 config.PolicyModelOutputDir);
 
             mwt = new MwtExplorer<TContext>(config.AppId, recorder);
@@ -61,9 +63,10 @@ namespace ClientDecisionService
 
         private void UpdatePolicy()
         {
-            if (explorer is IConsumePolicy<TContext>)
+            IConsumePolicy<TContext> consumePolicy = explorer as IConsumePolicy<TContext>;
+            if (consumePolicy != null)
             {
-                ((IConsumePolicy<TContext>)explorer).UpdatePolicy(policy);
+                consumePolicy.UpdatePolicy(policy);
                 Trace.TraceInformation("Model update succeeded.");
             }
             else
@@ -74,15 +77,15 @@ namespace ClientDecisionService
 
         public IRecorder<TContext> Recorder { get { return recorder; } }
         public IPolicy<TContext> Policy { get { return policy; } }
-            
-        private IExplorer<TContext> explorer;
-        private DecisionServiceRecorder<TContext> recorder;
-        private DecisionServicePolicy<TContext> policy;
-        private MwtExplorer<TContext> mwt;
+
+        private readonly IExplorer<TContext> explorer;
+        private readonly DecisionServiceRecorder<TContext> recorder;
+        private readonly DecisionServicePolicy<TContext> policy;
+        private readonly MwtExplorer<TContext> mwt;
 
         #region Constants
 
-        private readonly string ModelAddress = "http://mwtds.azurewebsites.net/Application/GetSelectedModel?token={0}&latest={1}";
+        private const string ModelAddress = "http://mwtds.azurewebsites.net/Application/GetSelectedModel?token={0}&latest={1}";
 
         #endregion
     }

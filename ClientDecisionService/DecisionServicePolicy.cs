@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Threading;
@@ -19,6 +20,7 @@ namespace ClientDecisionService
             this.modelOutputDir = string.IsNullOrWhiteSpace(modelOutputDir) ? string.Empty : modelOutputDir;
 
             this.cancellationToken = new CancellationTokenSource();
+            this.pollFinishedEvent = new ManualResetEventSlim();
 
             this.worker = new BackgroundWorker();
             this.worker.WorkerReportsProgress = true;
@@ -30,7 +32,7 @@ namespace ClientDecisionService
         public uint ChooseAction(TContext context)
         {
             // Create example with bogus <a,r,p> data
-            string exampleLine = string.Format("1:1:1 | {0}", context.ToString());
+            string exampleLine = string.Format(CultureInfo.InvariantCulture, "1:1:1 | {0}", context);
 
             uint action = 0;
 
@@ -49,17 +51,9 @@ namespace ClientDecisionService
         {
             this.cancellationToken.Cancel();
 
-            // TODO: use more robust mechanism to wait for background worker to finish
-            // Blocks until the worker can gracefully exit.
-            var waitWatch = new Stopwatch();
-            waitWatch.Start();
-            while (this.worker.IsBusy) 
+            if (!this.pollFinishedEvent.Wait(this.PollCancelWait))
             {
-                if (waitWatch.ElapsedMilliseconds >= PollCancelWaitInMiliseconds)
-                {
-                    Trace.TraceWarning("Timed out waiting for model polling task: {0} ms.", PollCancelWaitInMiliseconds);
-                    break;
-                }
+                Trace.TraceWarning("Timed out waiting for model polling task: {0} ms.", this.PollCancelWait);
             }
 
             lock (vwLock)
@@ -68,7 +62,26 @@ namespace ClientDecisionService
             }
         }
 
-        public void Dispose() { }
+        public void Dispose()
+        {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // free managed resources
+                if (this.worker != null)
+                {
+                    this.worker.Dispose();
+                    this.worker = null;
+                }
+            }
+
+            // TODO: free unmanaged resources
+        }
 
         void FoundUpdate(object sender, ProgressChangedEventArgs e)
         {
@@ -80,7 +93,7 @@ namespace ClientDecisionService
                 try
                 {
                     this.VWFinish(); // Finish previous run before initializing on new file
-                    this.VWInitialize(string.Format("-t -i {0}", Path.Combine(this.modelOutputDir, newModelFileName)));
+                    this.VWInitialize(string.Format(CultureInfo.InvariantCulture, "-t -i {0}", Path.Combine(this.modelOutputDir, newModelFileName)));
                 }
                 catch (Exception ex)
                 {
@@ -103,85 +116,93 @@ namespace ClientDecisionService
         void PollForUpdate(object sender, DoWorkEventArgs e)
         {
             var cancelToken = e.Argument as CancellationTokenSource;
-            while (!cancelToken.IsCancellationRequested)
+
+            try
             {
-                bool cancelled = cancelToken.Token.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(PollDelayInMiliseconds));
-                if (cancelled)
+                while (!cancelToken.IsCancellationRequested)
                 {
-                    Trace.TraceInformation("Cancellation request received while sleeping.");
-                    return;
-                }
-
-                try
-                {
-                    HttpWebRequest request = (HttpWebRequest)WebRequest.Create(modelAddress);
-                    if (modelDate != null)
+                    bool cancelled = cancelToken.Token.WaitHandle.WaitOne(PollDelay);
+                    if (cancelled)
                     {
-                        request.IfModifiedSince = modelDate.UtcDateTime;
+                        Trace.TraceInformation("Cancellation request received while sleeping.");
+                        break;
                     }
 
-                    using (WebResponse response = request.GetResponse())
-                    using (StreamReader sr = new StreamReader(response.GetResponseStream()))
+                    try
                     {
-                        var model = JsonConvert.DeserializeObject<ModelTransferData>(sr.ReadToEnd());
-
-                        // Write model to file
-                        if (!string.IsNullOrWhiteSpace(this.modelOutputDir))
+                        HttpWebRequest request = (HttpWebRequest) WebRequest.Create(modelAddress);
+                        if (modelDate != null)
                         {
-                            Directory.CreateDirectory(Path.GetDirectoryName(this.modelOutputDir));
+                            request.IfModifiedSince = modelDate.UtcDateTime;
                         }
 
-                        File.WriteAllBytes(Path.Combine(this.modelOutputDir, model.Name), Convert.FromBase64String(model.ContentAsBase64));
-
-                        // Store last modified date for conditional get
-                        modelDate = model.LastModified;
-
-                        Trace.TraceInformation("Retrieved new model: {0}", model.Name);
-
-                        // Notify caller of model update
-                        worker.ReportProgress(0, model.Name);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    var errorMessages = new List<string>(new string[] 
-                    { 
-                        "Failed to retrieve new model information.",
-                        ex.ToString()
-                    });
-
-                    bool logErrors = true;
-                    if (ex is WebException)
-                    {
-                        HttpWebResponse httpResponse = ((WebException)ex).Response as HttpWebResponse;
-                        
-                        switch (httpResponse.StatusCode)
+                        using (WebResponse response = request.GetResponse())
+                        using (StreamReader sr = new StreamReader(response.GetResponseStream()))
                         {
-                            case HttpStatusCode.NotModified:
-                                // Exception is raised for NotModified http response but this is expected.
-                                Trace.TraceInformation("No new model found.");
-                                logErrors = false;
-                                break;
-                            default:
-                                errorMessages.Add(httpResponse.StatusDescription);
-                                break;
+                            var model = JsonConvert.DeserializeObject<ModelTransferData>(sr.ReadToEnd());
+
+                            // Write model to file
+                            if (!string.IsNullOrWhiteSpace(this.modelOutputDir))
+                            {
+                                Directory.CreateDirectory(Path.GetDirectoryName(this.modelOutputDir));
+                            }
+
+                            File.WriteAllBytes(Path.Combine(this.modelOutputDir, model.Name), Convert.FromBase64String(model.ContentAsBase64));
+
+                            // Store last modified date for conditional get
+                            modelDate = model.LastModified;
+
+                            Trace.TraceInformation("Retrieved new model: {0}", model.Name);
+
+                            // Notify caller of model update
+                            worker.ReportProgress(0, model.Name);
                         }
                     }
-                    else if (ex is UnauthorizedAccessException)
+                    catch (Exception ex)
                     {
-                        Trace.TraceError("Unable to write model to disk due to restricted access. Model polling will stop.");
-                        cancelToken.Cancel();
-                    }
-                    if (logErrors)
-                    {
-                        foreach (string message in errorMessages)
+                        var errorMessages = new List<string>(new string[]
                         {
-                            Trace.TraceError(message);
+                            "Failed to retrieve new model information.",
+                            ex.ToString()
+                        });
+
+                        bool logErrors = true;
+                        if (ex is WebException)
+                        {
+                            HttpWebResponse httpResponse = ((WebException) ex).Response as HttpWebResponse;
+
+                            switch (httpResponse.StatusCode)
+                            {
+                                case HttpStatusCode.NotModified:
+                                    // Exception is raised for NotModified http response but this is expected.
+                                    Trace.TraceInformation("No new model found.");
+                                    logErrors = false;
+                                    break;
+                                default:
+                                    errorMessages.Add(httpResponse.StatusDescription);
+                                    break;
+                            }
+                        }
+                        else if (ex is UnauthorizedAccessException)
+                        {
+                            Trace.TraceError("Unable to write model to disk due to restricted access. Model polling will stop.");
+                            cancelToken.Cancel();
+                        }
+                        if (logErrors)
+                        {
+                            foreach (string message in errorMessages)
+                            {
+                                Trace.TraceError(message);
+                            }
                         }
                     }
                 }
             }
-            Trace.TraceInformation("Model polling has been cancelled per request.");
+            finally
+            {
+                this.pollFinishedEvent.Set();
+                Trace.TraceInformation("Model polling has been cancelled per request.");
+            }
         }
 
         void VWInitialize(string arguments)
@@ -204,18 +225,20 @@ namespace ClientDecisionService
         VowpalWabbitState vwState;
 
         BackgroundWorker worker;
-        CancellationTokenSource cancellationToken;
-        
-        Action notifyPolicyUpdate;
-        string modelAddress;
-        string modelOutputDir;
+        readonly CancellationTokenSource cancellationToken;
+
+        readonly Action notifyPolicyUpdate;
+        readonly string modelAddress;
+        readonly string modelOutputDir;
         DateTimeOffset modelDate;
+
+        readonly ManualResetEventSlim pollFinishedEvent;
 
         #region Constants
 
         // TODO: Configurable?
-        private readonly int PollDelayInMiliseconds = 5000;
-        private readonly int PollCancelWaitInMiliseconds = 2000;
+        private readonly TimeSpan PollDelay = TimeSpan.FromSeconds(5);
+        private readonly TimeSpan PollCancelWait = TimeSpan.FromSeconds(2);
 
         #endregion
     }
