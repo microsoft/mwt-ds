@@ -118,7 +118,10 @@ namespace ClientDecisionService
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            writer.WriteRawValue((string)value);
+            if (value != null)
+            {
+                writer.WriteRawValue((string)value);
+            }
         }
     }
 }

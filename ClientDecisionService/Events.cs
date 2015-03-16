@@ -14,7 +14,7 @@ namespace ClientDecisionService
         [JsonProperty(PropertyName = "t")]
         EventType Type { get; }
 
-        [JsonProperty(PropertyName = "i")]
+        [JsonIgnore]
         string ID { get; set; }
     }
 
@@ -36,7 +36,7 @@ namespace ClientDecisionService
         [JsonProperty(PropertyName = "p")]
         public double Probability { get; set; }
 
-        [JsonProperty(PropertyName = "c")]
+        [JsonProperty(PropertyName = "c", NullValueHandling = NullValueHandling.Ignore)]
         [JsonConverter(typeof(RawStringConverter))]
         public string Context { get; set; }
     }
@@ -53,7 +53,8 @@ namespace ClientDecisionService
 
         public string ID { get; set; }
 
-        [JsonProperty(PropertyName = "v")]
+        [JsonProperty(PropertyName = "v", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonConverter(typeof(RawStringConverter))]
         public string Value { get; set; }
     }
 

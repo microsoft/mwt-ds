@@ -15,7 +15,7 @@ namespace ClientDecisionService
             this.AuthorizationToken = authorizationToken;
             this.Explorer = explorer;
 
-            this.ContextJsonSerializer = x => JsonConvert.SerializeObject(x);
+            this.ContextJsonSerializer = x => x == null ? null : JsonConvert.SerializeObject(x);
 
             // TODO: Choose proper default configuration for batching
             this.BatchConfig = new BatchingConfiguration()

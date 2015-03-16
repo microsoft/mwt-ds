@@ -175,7 +175,6 @@ namespace ClientDecisionService
                             {
                                 case HttpStatusCode.NotModified:
                                     // Exception is raised for NotModified http response but this is expected.
-                                    Trace.TraceInformation("No new model found.");
                                     logErrors = false;
                                     break;
                                 default:
