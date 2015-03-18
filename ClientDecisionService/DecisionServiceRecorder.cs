@@ -70,9 +70,9 @@ namespace ClientDecisionService
         public void ReportReward(float reward, string uniqueKey)
         {
             this.eventObserver.OnNext(new Observation
-            { 
+            {
                 ID = uniqueKey,
-                Value = JsonConvert.SerializeObject(reward)
+                Value = JsonConvert.SerializeObject(new { Reward = reward })
             });
         }
 
@@ -212,7 +212,7 @@ namespace ClientDecisionService
         #endregion
 
         #region Constants
-        private readonly string ServiceAddress = "http://decisionservice2.cloudapp.net";
+        private readonly string ServiceAddress = "http://decisionservice.cloudapp.net";
         //private readonly string ServiceAddress = "http://localhost:1362";
         private readonly string ServicePostAddress = "/DecisionService.svc/PostExperimentalUnits";
         private readonly TimeSpan ConnectionTimeOut = TimeSpan.FromMinutes(5);
