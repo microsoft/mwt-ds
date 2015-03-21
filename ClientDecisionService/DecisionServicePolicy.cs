@@ -32,7 +32,7 @@ namespace ClientDecisionService
         public uint ChooseAction(TContext context)
         {
             // Create example with bogus <a,r,p> data
-            string exampleLine = string.Format(CultureInfo.InvariantCulture, "1:1:1 | {0}", context);
+            string exampleLine = string.Format(CultureInfo.InvariantCulture, "1: | {0}", context);
 
             uint action = 0;
 
