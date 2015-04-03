@@ -135,6 +135,7 @@
     <Compile Include="BatchingConfiguration.cs" />
     <Compile Include="DecisionService.cs" />
     <Compile Include="DecisionServiceConfiguration.cs" />
+    <Compile Include="DecisionServiceConstants.cs" />
     <Compile Include="DecisionServicePolicy.cs" />
     <Compile Include="DecisionServiceRecorder.cs" />
     <Compile Include="Events.cs" />

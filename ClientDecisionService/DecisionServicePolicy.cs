@@ -51,9 +51,9 @@ namespace ClientDecisionService
         {
             this.cancellationToken.Cancel();
 
-            if (!this.pollFinishedEvent.Wait(this.PollCancelWait))
+            if (!this.pollFinishedEvent.Wait(DecisionServiceConstants.PollCancelWait))
             {
-                Trace.TraceWarning("Timed out waiting for model polling task: {0} ms.", this.PollCancelWait);
+                Trace.TraceWarning("Timed out waiting for model polling task: {0} ms.", DecisionServiceConstants.PollCancelWait);
             }
 
             lock (vwLock)
@@ -121,7 +121,7 @@ namespace ClientDecisionService
             {
                 while (!cancelToken.IsCancellationRequested)
                 {
-                    bool cancelled = cancelToken.Token.WaitHandle.WaitOne(PollDelay);
+                    bool cancelled = cancelToken.Token.WaitHandle.WaitOne(DecisionServiceConstants.PollDelay);
                     if (cancelled)
                     {
                         Trace.TraceInformation("Cancellation request received while sleeping.");
@@ -232,14 +232,6 @@ namespace ClientDecisionService
         DateTimeOffset modelDate;
 
         readonly ManualResetEventSlim pollFinishedEvent;
-
-        #region Constants
-
-        // TODO: Configurable?
-        private readonly TimeSpan PollDelay = TimeSpan.FromSeconds(5);
-        private readonly TimeSpan PollCancelWait = TimeSpan.FromSeconds(2);
-
-        #endregion
     }
 
 }

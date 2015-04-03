@@ -26,9 +26,9 @@ namespace ClientDecisionService
             this.contextSerializer = contextSerializer;
 
             this.httpClient = new HttpClient();
-            this.httpClient.BaseAddress = new Uri(this.ServiceAddress);
-            this.httpClient.Timeout = this.ConnectionTimeOut;
-            this.httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(this.AuthenticationScheme, authorizationToken);
+            this.httpClient.BaseAddress = new Uri(DecisionServiceConstants.ServiceAddress);
+            this.httpClient.Timeout = DecisionServiceConstants.ConnectionTimeOut;
+            this.httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(DecisionServiceConstants.AuthenticationScheme, authorizationToken);
 
             this.eventSource = new TransformBlock<IEvent, string>(ev => JsonConvert.SerializeObject(new ExperimentalUnitFragment { Id = ev.ID, Value = ev }), 
                 new ExecutionDataflowBlockOptions
@@ -117,10 +117,7 @@ namespace ClientDecisionService
 
             using (var jsonMemStream = new MemoryStream(jsonByteArray))
             {
-#if TEST
-                await this.BatchLog("decision_service_test_output", jsonMemStream);
-#else
-                HttpResponseMessage response = await httpClient.PostAsync(this.ServicePostAddress, new StreamContent(jsonMemStream)).ConfigureAwait(false);
+                HttpResponseMessage response = await httpClient.PostAsync(DecisionServiceConstants.ServicePostAddress, new StreamContent(jsonMemStream)).ConfigureAwait(false);
                 if (!response.IsSuccessStatusCode)
                 {
                     string taskReadResponse = await response.Content.ReadAsStringAsync();
@@ -141,7 +138,6 @@ namespace ClientDecisionService
                 {
                     Trace.TraceInformation("Successfully uploaded batch with {0} events.", batch.JsonEvents.Count);
                 }
-#endif
             }
         }
 
@@ -153,8 +149,6 @@ namespace ClientDecisionService
 
         private string BuildJsonMessage(EventBatch batch)
         {
-            // TODO: use automatic serialization instead of building JSON manually
-            // COMMENT: since the JsonEvents are already strings I'd say building JSON manually is the best way to go
             StringBuilder jsonBuilder = new StringBuilder();
 
             jsonBuilder.Append("{\"i\":\"" + batch.ID.ToString() + "\",");
@@ -165,8 +159,6 @@ namespace ClientDecisionService
 
             return jsonBuilder.ToString();
         }
-
-        // Internally, background tasks can get back latest model version as a return value from the HTTP communication with Ingress worker
 
         public void Dispose()
         {
@@ -193,14 +185,6 @@ namespace ClientDecisionService
             }
         }
 
-#if TEST
-        private async Task BatchLog(string batchFile, MemoryStream jsonMemStream)
-        {
-            // TODO: use other mechanisms to flush data than writing to disk
-            File.WriteAllText(batchFile, Encoding.UTF8.GetString(jsonMemStream.ToArray()));
-        }
-#endif
-
         #region Members
         private readonly BatchingConfiguration batchConfig;
         private readonly Func<TContext, string> contextSerializer;
@@ -209,14 +193,6 @@ namespace ClientDecisionService
         private readonly ActionBlock<IList<string>> eventProcessor;
         private IDisposable eventUnsubscriber;
         private HttpClient httpClient;
-        #endregion
-
-        #region Constants
-        private readonly string ServiceAddress = "http://decisionservice.cloudapp.net";
-        //private readonly string ServiceAddress = "http://localhost:1362";
-        private readonly string ServicePostAddress = "/DecisionService.svc/PostExperimentalUnits";
-        private readonly TimeSpan ConnectionTimeOut = TimeSpan.FromMinutes(5);
-        private readonly string AuthenticationScheme = "Bearer";
         #endregion
     }
 }

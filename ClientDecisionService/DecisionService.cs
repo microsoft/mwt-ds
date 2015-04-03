@@ -20,7 +20,7 @@ namespace ClientDecisionService
 
             // COMMENT: I'd leave the model address in the string to improve readability
             policy = new DecisionServicePolicy<TContext>(UpdatePolicy, 
-                string.Format(CultureInfo.InvariantCulture, ModelAddress, config.AuthorizationToken, config.UseLatestPolicy), 
+                string.Format(CultureInfo.InvariantCulture, DecisionServiceConstants.ModelAddress, config.AuthorizationToken, config.UseLatestPolicy), 
                 config.PolicyModelOutputDir);
 
             mwt = new MwtExplorer<TContext>(config.AppId, recorder);
@@ -71,6 +71,7 @@ namespace ClientDecisionService
             }
             else
             {
+                // TODO: how to handle updating policies for Bootstrap explorers?
                 throw new NotSupportedException("This type of explorer does not currently support updating policy functions.");
             }
         }
@@ -82,11 +83,5 @@ namespace ClientDecisionService
         private readonly DecisionServiceRecorder<TContext> recorder;
         private readonly DecisionServicePolicy<TContext> policy;
         private readonly MwtExplorer<TContext> mwt;
-
-        #region Constants
-
-        private readonly string ModelAddress = "https://mwtds.azurewebsites.net/Application/GetSelectedModel?token={0}&latest={1}";
-
-        #endregion
     }
 }
