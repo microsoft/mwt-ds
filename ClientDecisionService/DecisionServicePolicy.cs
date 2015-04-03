@@ -31,7 +31,6 @@ namespace ClientDecisionService
 
         public uint ChooseAction(TContext context)
         {
-            // Create example with bogus <a,r,p> data
             string exampleLine = string.Format(CultureInfo.InvariantCulture, "1: | {0}", context);
 
             uint action = 0;
@@ -80,7 +79,10 @@ namespace ClientDecisionService
                 }
             }
 
-            // TODO: free unmanaged resources
+            lock (vwLock)
+            {
+                this.VWFinish();
+            }
         }
 
         void FoundUpdate(object sender, ProgressChangedEventArgs e)
