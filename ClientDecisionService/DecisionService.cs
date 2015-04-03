@@ -85,8 +85,7 @@ namespace ClientDecisionService
 
         #region Constants
 
-        // TODO: use https
-        private readonly string ModelAddress = "http://mwtds.azurewebsites.net/Application/GetSelectedModel?token={0}&latest={1}";
+        private readonly string ModelAddress = "https://mwtds.azurewebsites.net/Application/GetSelectedModel?token={0}&latest={1}";
 
         #endregion
     }
