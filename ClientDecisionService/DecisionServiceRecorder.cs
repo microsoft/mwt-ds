@@ -12,10 +12,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using System.Diagnostics;
+using Microsoft.Practices.EnterpriseLibrary.TransientFaultHandling;
 
 namespace ClientDecisionService
 {
-    // TODO: rename Recorder to Logger?
     internal class DecisionServiceRecorder<TContext> : IRecorder<TContext>, IDisposable
     {
         public DecisionServiceRecorder(BatchingConfiguration batchConfig, 
@@ -30,10 +30,10 @@ namespace ClientDecisionService
             this.httpClient.Timeout = DecisionServiceConstants.ConnectionTimeOut;
             this.httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(DecisionServiceConstants.AuthenticationScheme, authorizationToken);
 
+            // TODO: Switch to using latency-link upload strategy?
             this.eventSource = new TransformBlock<IEvent, string>(ev => JsonConvert.SerializeObject(new ExperimentalUnitFragment { Id = ev.ID, Value = ev }), 
                 new ExecutionDataflowBlockOptions
             { 
-                // TODO: Discuss whether we should expose another config setting for this BoundedCapacity
                 MaxDegreeOfParallelism = Environment.ProcessorCount,
                 BoundedCapacity = batchConfig.MaxUploadQueueCapacity
             });
@@ -103,9 +103,6 @@ namespace ClientDecisionService
             });
         }
 
-        // TODO: at the time of server communication, if the client is out of memory (or meets some predefined upper bound):
-        // 1. It can block the execution flow.
-        // 2. Or drop events.
         private async Task BatchProcess(IList<string> jsonExpFragments)
         {
             EventBatch batch = new EventBatch { 
@@ -117,22 +114,38 @@ namespace ClientDecisionService
 
             using (var jsonMemStream = new MemoryStream(jsonByteArray))
             {
-                HttpResponseMessage response = await httpClient.PostAsync(DecisionServiceConstants.ServicePostAddress, new StreamContent(jsonMemStream)).ConfigureAwait(false);
+                HttpResponseMessage response = null;
+
+                if (batchConfig.UploadRetryPolicy == BatchUploadRetryPolicy.Retry)
+                {
+                    var retryStrategy = new ExponentialBackoff(DecisionServiceConstants.RetryCount,
+                    DecisionServiceConstants.RetryMinBackoff, DecisionServiceConstants.RetryMaxBackoff, DecisionServiceConstants.RetryDeltaBackoff);
+
+                    RetryPolicy retryPolicy = new RetryPolicy<DecisionServiceTransientErrorDetectionStrategy>(retryStrategy);
+
+                    response = await retryPolicy.ExecuteAsync(async () =>
+                    {
+                        HttpResponseMessage currentResponse = null;
+                        try
+                        {
+                            currentResponse = await httpClient.PostAsync(DecisionServiceConstants.ServicePostAddress, new StreamContent(jsonMemStream)).ConfigureAwait(false);
+                        }
+                        catch (TaskCanceledException e) // HttpClient throws this on timeout
+                        {
+                            // Convert to a different exception otherwise ExecuteAsync will see cancellation
+                            throw new HttpRequestException("Request timed out", e);
+                        }
+                        return currentResponse.EnsureSuccessStatusCode();
+                    });
+                }
+                else
+                {
+                    response = await httpClient.PostAsync(DecisionServiceConstants.ServicePostAddress, new StreamContent(jsonMemStream)).ConfigureAwait(false);
+                }
+                
                 if (!response.IsSuccessStatusCode)
                 {
-                    string taskReadResponse = await response.Content.ReadAsStringAsync();
-
-                    Trace.TraceError("Unable to upload batch: " + taskReadResponse);
-
-                    if (this.batchConfig.UploadRetryPolicy == BatchUploadRetryPolicy.Retry)
-                    {
-                        // TODO: 2 options to handle retry:
-                        // 1. Push events back to queue
-                        // 2. Try to re-upload
-
-                        // TODO: How long should we retry for? Configurable?
-                        // TODO: throw exception with custom message if retry fails repeatedly?
-                    }
+                    Trace.TraceError("Unable to upload batch: " + await response.Content.ReadAsStringAsync());
                 }
                 else
                 {
