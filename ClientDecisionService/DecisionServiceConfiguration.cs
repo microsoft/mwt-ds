@@ -30,9 +30,14 @@ namespace ClientDecisionService
         public string AppId { get; private set; }
         public string AuthorizationToken { get; private set; }
         public IExplorer<TContext> Explorer { get; private set; }
+
+        #region Optional Parameters
+
         public bool UseLatestPolicy { get; set; }
         public string PolicyModelOutputDir { get; set; }
         public BatchingConfiguration BatchConfig { get; set; }
         public Func<TContext, string> ContextJsonSerializer { get; set; }
+
+        #endregion
     }
 }
