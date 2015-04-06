@@ -23,7 +23,7 @@ namespace ClientDecisionService
                 string.Format(CultureInfo.InvariantCulture, DecisionServiceConstants.ModelAddress, config.AuthorizationToken, config.UseLatestPolicy), 
                 config.PolicyModelOutputDir);
 
-            mwt = new MwtExplorer<TContext>(config.AppId, recorder);
+            mwt = new MwtExplorer<TContext>(config.AuthorizationToken, recorder);
             explorer = config.Explorer;
         }
 

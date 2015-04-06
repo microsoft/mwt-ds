@@ -13,7 +13,7 @@ namespace ClientDecisionServiceWebSample.Extensions
         public static DecisionServiceConfiguration<TContext> Configuration { get; set; }
         public static DecisionService<TContext> Service { get; set; }
 
-        public static void Create(string appId, string appToken, float epsilon, uint numActions, string modelOutputDir)
+        public static void Create(string appToken, float epsilon, uint numActions, string modelOutputDir)
         {
             if (Explorer == null)
             {
@@ -22,7 +22,7 @@ namespace ClientDecisionServiceWebSample.Extensions
 
             if (Configuration == null)
             {
-                Configuration = new DecisionServiceConfiguration<TContext>(appId, appToken, Explorer)
+                Configuration = new DecisionServiceConfiguration<TContext>(appToken, Explorer)
                 {
                     PolicyModelOutputDir = modelOutputDir,
                     BatchConfig = new BatchingConfiguration

@@ -9,9 +9,8 @@ namespace ClientDecisionService
     /// </summary>
     public class DecisionServiceConfiguration<TContext>
     {
-        public DecisionServiceConfiguration(string appId, string authorizationToken, IExplorer<TContext> explorer)
+        public DecisionServiceConfiguration(string authorizationToken, IExplorer<TContext> explorer)
         {
-            this.AppId = appId;
             this.AuthorizationToken = authorizationToken;
             this.Explorer = explorer;
 
@@ -27,7 +26,6 @@ namespace ClientDecisionService
                 UploadRetryPolicy = BatchUploadRetryPolicy.Retry
             };
         }
-        public string AppId { get; private set; }
         public string AuthorizationToken { get; private set; }
         public IExplorer<TContext> Explorer { get; private set; }
 

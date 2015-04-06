@@ -13,7 +13,7 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         public void TestBatchingByCount()
         {
-            var serviceConfig = new DecisionServiceConfiguration<TestContext>("mwt", "",
+            var serviceConfig = new DecisionServiceConfiguration<TestContext>("",
                 new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: 10))
             {
                 BatchConfig = new BatchingConfiguration()
@@ -39,7 +39,7 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         public void TestBatchingByTime()
         {
-            var serviceConfig = new DecisionServiceConfiguration<TestContext>("mwt", "",
+            var serviceConfig = new DecisionServiceConfiguration<TestContext>("",
                 new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: 10))
             {
                 BatchConfig = new BatchingConfiguration()
@@ -67,7 +67,7 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         public void TestBatchingBySize()
         {
-            var serviceConfig = new DecisionServiceConfiguration<TestContext>("mwt", "",
+            var serviceConfig = new DecisionServiceConfiguration<TestContext>("",
                 new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: 10))
             {
                 BatchConfig = new BatchingConfiguration()

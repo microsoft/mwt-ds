@@ -40,7 +40,6 @@ namespace ClientDecisionServiceWebSample.Controllers
 
             HostingEnvironment.QueueBackgroundWorkItem(cancelToken => {
                 DecisionServiceWrapper<string>.Create(
-                    appId: "louiemart",
                     appToken: appToken, 
                     epsilon: .2f, 
                     numActions: 10,
