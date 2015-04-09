@@ -135,6 +135,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApplicationTransferMetadata.cs" />
     <Compile Include="BatchingConfiguration.cs" />
     <Compile Include="DecisionService.cs" />
     <Compile Include="DecisionServiceConfiguration.cs" />

@@ -8,7 +8,9 @@ namespace ClientDecisionService
 {
     internal static class DecisionServiceConstants
     {
-        internal static readonly string ModelAddress = "https://mwtds.azurewebsites.net/Application/GetSelectedModel?token={0}&latest={1}";
+        internal static readonly string CommandCenterAddress = "https://mwtds.azurewebsites.net";
+        internal static readonly string ModelAddress = "/Application/GetSelectedModel?token={0}&latest={1}";
+        internal static readonly string MetadataAddress = "/Application/GetMetadata?token={0}";
 
         internal static readonly string ServiceAddress = "http://decisionservice.cloudapp.net";
         internal static readonly string ServicePostAddress = "/DecisionService.svc/PostExperimentalUnits";

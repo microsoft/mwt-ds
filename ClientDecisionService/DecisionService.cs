@@ -1,7 +1,12 @@
-﻿using MultiWorldTesting;
+﻿using Microsoft.Practices.EnterpriseLibrary.TransientFaultHandling;
+using Microsoft.Research.DecisionService.Common;
+using MultiWorldTesting;
+using Newtonsoft.Json;
 using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace ClientDecisionService
@@ -13,14 +18,15 @@ namespace ClientDecisionService
     {
         public DecisionService(DecisionServiceConfiguration<TContext> config)
         {
+            this.DownloadSettings();
+
             recorder = new DecisionServiceRecorder<TContext>(
                 config.BatchConfig, 
                 config.ContextJsonSerializer,
                 config.AuthorizationToken);
 
-            // COMMENT: I'd leave the model address in the string to improve readability
             policy = new DecisionServicePolicy<TContext>(UpdatePolicy, 
-                string.Format(CultureInfo.InvariantCulture, DecisionServiceConstants.ModelAddress, config.AuthorizationToken, config.UseLatestPolicy), 
+                this.applicationModelBlobUri, this.applicationConnectionString,
                 config.PolicyModelOutputDir);
 
             mwt = new MwtExplorer<TContext>(config.AuthorizationToken, recorder);
@@ -61,6 +67,35 @@ namespace ClientDecisionService
 
         public void Dispose() { }
 
+        private void DownloadSettings()
+        {
+            var retryStrategy = new ExponentialBackoff(DecisionServiceConstants.RetryCount,
+                    DecisionServiceConstants.RetryMinBackoff, DecisionServiceConstants.RetryMaxBackoff, DecisionServiceConstants.RetryDeltaBackoff);
+
+            RetryPolicy retryPolicy = new RetryPolicy<DecisionServiceTransientErrorDetectionStrategy>(retryStrategy);
+
+            string metadataJson = retryPolicy.ExecuteAction(() =>
+            {
+                WebClient wc = new WebClient();
+                return wc.DownloadString(DecisionServiceConstants.CommandCenterAddress + DecisionServiceConstants.MetadataAddress);
+            });
+
+            if (String.IsNullOrEmpty(metadataJson))
+            {
+                throw new Exception("Unable to download application settings from control center.");
+            }
+
+            var metadata = JsonConvert.DeserializeObject<ApplicationTransferMetadata>(metadataJson);
+            this.applicationConnectionString = metadata.ConnectionString;
+            this.applicationSettingsBlobUri = metadata.SettingsBlobUri;
+            this.applicationModelBlobUri = metadata.ModelBlobUri;
+
+            if (!metadata.IsExplorationEnabled)
+            {
+                // TODO: Turn off exploration here
+            }
+        }
+
         private void UpdatePolicy()
         {
             IConsumePolicy<TContext> consumePolicy = explorer as IConsumePolicy<TContext>;
@@ -78,7 +113,11 @@ namespace ClientDecisionService
 
         public IRecorder<TContext> Recorder { get { return recorder; } }
         public IPolicy<TContext> Policy { get { return policy; } }
-            
+
+        private string applicationConnectionString;
+        private string applicationSettingsBlobUri;
+        private string applicationModelBlobUri;
+
         private readonly IExplorer<TContext> explorer;
         private readonly DecisionServiceRecorder<TContext> recorder;
         private readonly DecisionServicePolicy<TContext> policy;

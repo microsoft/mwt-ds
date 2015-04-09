@@ -1,4 +1,6 @@
-﻿using MultiWorldTesting;
+﻿using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
+using MultiWorldTesting;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -13,10 +15,11 @@ namespace ClientDecisionService
 {
     internal class DecisionServicePolicy<TContext> : IPolicy<TContext>, IDisposable
     {
-        public DecisionServicePolicy(Action notifyPolicyUpdate, string modelAddress, string modelOutputDir)
+        public DecisionServicePolicy(Action notifyPolicyUpdate, string modelAddress, string modelConnectionString, string modelOutputDir)
         {
             this.notifyPolicyUpdate = notifyPolicyUpdate;
             this.modelAddress = modelAddress;
+            this.modelConnectionString = modelConnectionString;
             this.modelOutputDir = string.IsNullOrWhiteSpace(modelOutputDir) ? string.Empty : modelOutputDir;
 
             this.cancellationToken = new CancellationTokenSource();
@@ -27,6 +30,12 @@ namespace ClientDecisionService
             this.worker.DoWork += PollForUpdate;
             this.worker.ProgressChanged += FoundUpdate;
             this.worker.RunWorkerAsync(this.cancellationToken);
+
+            bool accountFound = CloudStorageAccount.TryParse(this.modelConnectionString, out this.storageAccount);
+            if (!accountFound || storageAccount == null)
+            {
+                throw new Exception("Could not connect to Azure storage.");
+            }
         }
 
         public uint ChooseAction(TContext context)
@@ -132,33 +141,27 @@ namespace ClientDecisionService
 
                     try
                     {
-                        HttpWebRequest request = (HttpWebRequest) WebRequest.Create(modelAddress);
-                        if (modelDate != null)
+                        CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+                        ICloudBlob blob = blobClient.GetBlobReferenceFromServer(new Uri(this.modelAddress), 
+                            new AccessCondition { IfNoneMatchETag = this.modelEtag });
+
+                        if (blob.Properties != null)
                         {
-                            request.IfModifiedSince = modelDate.UtcDateTime;
+                            this.modelEtag = blob.Properties.ETag;
                         }
 
-                        using (WebResponse response = request.GetResponse())
-                        using (StreamReader sr = new StreamReader(response.GetResponseStream()))
+                        // Write model to file
+                        if (!string.IsNullOrWhiteSpace(this.modelOutputDir))
                         {
-                            var model = JsonConvert.DeserializeObject<ModelTransferData>(sr.ReadToEnd());
-
-                            // Write model to file
-                            if (!string.IsNullOrWhiteSpace(this.modelOutputDir))
-                            {
-                                Directory.CreateDirectory(Path.GetDirectoryName(this.modelOutputDir));
-                            }
-
-                            File.WriteAllBytes(Path.Combine(this.modelOutputDir, model.Name), Convert.FromBase64String(model.ContentAsBase64));
-
-                            // Store last modified date for conditional get
-                            modelDate = model.LastModified;
-
-                            Trace.TraceInformation("Retrieved new model: {0}", model.Name);
-
-                            // Notify caller of model update
-                            worker.ReportProgress(0, model.Name);
+                            Directory.CreateDirectory(Path.GetDirectoryName(this.modelOutputDir));
                         }
+
+                        blob.DownloadToFile(Path.Combine(this.modelOutputDir, blob.Name), FileMode.Truncate);
+
+                        Trace.TraceInformation("Retrieved new model");
+
+                        // Notify caller of model update
+                        worker.ReportProgress(0, blob.Name);
                     }
                     catch (Exception ex)
                     {
@@ -169,18 +172,17 @@ namespace ClientDecisionService
                         });
 
                         bool logErrors = true;
-                        if (ex is WebException)
+                        if (ex is StorageException)
                         {
-                            HttpWebResponse httpResponse = ((WebException) ex).Response as HttpWebResponse;
-
-                            switch (httpResponse.StatusCode)
+                            RequestResult result = ((StorageException)ex).RequestInformation;
+                            switch (result.HttpStatusCode)
                             {
-                                case HttpStatusCode.NotModified:
+                                case (int)HttpStatusCode.NotModified:
                                     // Exception is raised for NotModified http response but this is expected.
                                     logErrors = false;
                                     break;
                                 default:
-                                    errorMessages.Add(httpResponse.StatusDescription);
+                                    errorMessages.Add(result.HttpStatusMessage);
                                     break;
                             }
                         }
@@ -228,10 +230,12 @@ namespace ClientDecisionService
         BackgroundWorker worker;
         readonly CancellationTokenSource cancellationToken;
 
+        readonly CloudStorageAccount storageAccount;
         readonly Action notifyPolicyUpdate;
         readonly string modelAddress;
+        readonly string modelConnectionString;
         readonly string modelOutputDir;
-        DateTimeOffset modelDate;
+        string modelEtag;
 
         readonly ManualResetEventSlim pollFinishedEvent;
     }
