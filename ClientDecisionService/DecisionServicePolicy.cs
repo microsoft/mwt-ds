@@ -17,25 +17,10 @@ namespace ClientDecisionService
     {
         public DecisionServicePolicy(Action notifyPolicyUpdate, string modelAddress, string modelConnectionString, string modelOutputDir)
         {
+            this.blobUpdater = new AzureBlobUpdater(this.ModelUpdate, "model", modelAddress, modelConnectionString, modelOutputDir);
+
             this.notifyPolicyUpdate = notifyPolicyUpdate;
-            this.modelAddress = modelAddress;
-            this.modelConnectionString = modelConnectionString;
             this.modelOutputDir = string.IsNullOrWhiteSpace(modelOutputDir) ? string.Empty : modelOutputDir;
-
-            this.cancellationToken = new CancellationTokenSource();
-            this.pollFinishedEvent = new ManualResetEventSlim();
-
-            this.worker = new BackgroundWorker();
-            this.worker.WorkerReportsProgress = true;
-            this.worker.DoWork += PollForUpdate;
-            this.worker.ProgressChanged += FoundUpdate;
-            this.worker.RunWorkerAsync(this.cancellationToken);
-
-            bool accountFound = CloudStorageAccount.TryParse(this.modelConnectionString, out this.storageAccount);
-            if (!accountFound || storageAccount == null)
-            {
-                throw new Exception("Could not connect to Azure storage.");
-            }
         }
 
         public uint ChooseAction(TContext context)
@@ -57,12 +42,7 @@ namespace ClientDecisionService
 
         public void StopPolling()
         {
-            this.cancellationToken.Cancel();
-
-            if (!this.pollFinishedEvent.Wait(DecisionServiceConstants.PollCancelWait))
-            {
-                Trace.TraceWarning("Timed out waiting for model polling task: {0} ms.", DecisionServiceConstants.PollCancelWait);
-            }
+            this.blobUpdater.StopPolling();
 
             lock (vwLock)
             {
@@ -81,10 +61,10 @@ namespace ClientDecisionService
             if (disposing)
             {
                 // free managed resources
-                if (this.worker != null)
+                if (this.blobUpdater != null)
                 {
-                    this.worker.Dispose();
-                    this.worker = null;
+                    this.blobUpdater.Dispose();
+                    this.blobUpdater = null;
                 }
             }
 
@@ -94,17 +74,15 @@ namespace ClientDecisionService
             }
         }
 
-        void FoundUpdate(object sender, ProgressChangedEventArgs e)
+        void ModelUpdate(string modelFile)
         {
-            var newModelFileName = e.UserState as string;
-
             bool modelUpdateSuccess = true;
             lock (vwLock)
             {
                 try
                 {
                     this.VWFinish(); // Finish previous run before initializing on new file
-                    this.VWInitialize(string.Format(CultureInfo.InvariantCulture, "-t -i {0}", Path.Combine(this.modelOutputDir, newModelFileName)));
+                    this.VWInitialize(string.Format(CultureInfo.InvariantCulture, "-t -i {0}", Path.Combine(this.modelOutputDir, modelFile)));
                 }
                 catch (Exception ex)
                 {
@@ -124,90 +102,6 @@ namespace ClientDecisionService
             }
         }
 
-        void PollForUpdate(object sender, DoWorkEventArgs e)
-        {
-            var cancelToken = e.Argument as CancellationTokenSource;
-
-            try
-            {
-                while (!cancelToken.IsCancellationRequested)
-                {
-                    bool cancelled = cancelToken.Token.WaitHandle.WaitOne(DecisionServiceConstants.PollDelay);
-                    if (cancelled)
-                    {
-                        Trace.TraceInformation("Cancellation request received while sleeping.");
-                        break;
-                    }
-
-                    try
-                    {
-                        CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-                        ICloudBlob blob = blobClient.GetBlobReferenceFromServer(new Uri(this.modelAddress), 
-                            new AccessCondition { IfNoneMatchETag = this.modelEtag });
-
-                        if (blob.Properties != null)
-                        {
-                            this.modelEtag = blob.Properties.ETag;
-                        }
-
-                        // Write model to file
-                        if (!string.IsNullOrWhiteSpace(this.modelOutputDir))
-                        {
-                            Directory.CreateDirectory(Path.GetDirectoryName(this.modelOutputDir));
-                        }
-
-                        blob.DownloadToFile(Path.Combine(this.modelOutputDir, blob.Name), FileMode.Truncate);
-
-                        Trace.TraceInformation("Retrieved new model");
-
-                        // Notify caller of model update
-                        worker.ReportProgress(0, blob.Name);
-                    }
-                    catch (Exception ex)
-                    {
-                        var errorMessages = new List<string>(new string[]
-                        {
-                            "Failed to retrieve new model information.",
-                            ex.ToString()
-                        });
-
-                        bool logErrors = true;
-                        if (ex is StorageException)
-                        {
-                            RequestResult result = ((StorageException)ex).RequestInformation;
-                            switch (result.HttpStatusCode)
-                            {
-                                case (int)HttpStatusCode.NotModified:
-                                    // Exception is raised for NotModified http response but this is expected.
-                                    logErrors = false;
-                                    break;
-                                default:
-                                    errorMessages.Add(result.HttpStatusMessage);
-                                    break;
-                            }
-                        }
-                        else if (ex is UnauthorizedAccessException)
-                        {
-                            Trace.TraceError("Unable to write model to disk due to restricted access. Model polling will stop.");
-                            cancelToken.Cancel();
-                        }
-                        if (logErrors)
-                        {
-                            foreach (string message in errorMessages)
-                            {
-                                Trace.TraceError(message);
-                            }
-                        }
-                    }
-                }
-            }
-            finally
-            {
-                this.pollFinishedEvent.Set();
-                Trace.TraceInformation("Model polling has been cancelled per request.");
-            }
-        }
-
         void VWInitialize(string arguments)
         {
             vw = VowpalWabbitInterface.Initialize(arguments);
@@ -223,21 +117,14 @@ namespace ClientDecisionService
             }
         }
 
+        AzureBlobUpdater blobUpdater;
+
         IntPtr vw;
         readonly object vwLock = new object();
         VowpalWabbitState vwState;
 
-        BackgroundWorker worker;
-        readonly CancellationTokenSource cancellationToken;
-
-        readonly CloudStorageAccount storageAccount;
         readonly Action notifyPolicyUpdate;
-        readonly string modelAddress;
-        readonly string modelConnectionString;
         readonly string modelOutputDir;
-        string modelEtag;
-
-        readonly ManualResetEventSlim pollFinishedEvent;
     }
 
 }

@@ -1,12 +1,17 @@
 ﻿using Microsoft.Practices.EnterpriseLibrary.TransientFaultHandling;
 using Microsoft.Research.DecisionService.Common;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
 using MultiWorldTesting;
 using Newtonsoft.Json;
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ClientDecisionService
@@ -19,6 +24,12 @@ namespace ClientDecisionService
         public DecisionService(DecisionServiceConfiguration<TContext> config)
         {
             this.DownloadSettings();
+
+            this.blobUpdater = new AzureBlobUpdater(this.UpdateSettings, 
+                "settings", 
+                this.applicationSettingsBlobUri, 
+                this.applicationConnectionString, 
+                config.PolicyModelOutputDir);
 
             recorder = new DecisionServiceRecorder<TContext>(
                 config.BatchConfig, 
@@ -61,6 +72,7 @@ namespace ClientDecisionService
 
         public void Flush()
         {
+            blobUpdater.StopPolling();
             policy.StopPolling();
             recorder.Flush();
         }
@@ -90,10 +102,20 @@ namespace ClientDecisionService
             this.applicationSettingsBlobUri = metadata.SettingsBlobUri;
             this.applicationModelBlobUri = metadata.ModelBlobUri;
 
-            if (!metadata.IsExplorationEnabled)
-            {
-                // TODO: Turn off exploration here
-            }
+            this.ToggleExploration(metadata.IsExplorationEnabled);
+        }
+
+        private void UpdateSettings(string settingsFile)
+        {
+            string metadataJson = File.ReadAllText(settingsFile);
+            var metadata = JsonConvert.DeserializeObject<ApplicationTransferMetadata>(metadataJson);
+
+            this.ToggleExploration(metadata.IsExplorationEnabled);
+        }
+
+        private void ToggleExploration(bool explore)
+        {
+            // TODO: Turn off exploration here
         }
 
         private void UpdatePolicy()
@@ -113,6 +135,8 @@ namespace ClientDecisionService
 
         public IRecorder<TContext> Recorder { get { return recorder; } }
         public IPolicy<TContext> Policy { get { return policy; } }
+
+        AzureBlobUpdater blobUpdater;
 
         private string applicationConnectionString;
         private string applicationSettingsBlobUri;

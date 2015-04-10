@@ -136,6 +136,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApplicationTransferMetadata.cs" />
+    <Compile Include="AzureBlobUpdater.cs" />
     <Compile Include="BatchingConfiguration.cs" />
     <Compile Include="DecisionService.cs" />
     <Compile Include="DecisionServiceConfiguration.cs" />
