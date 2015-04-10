@@ -102,7 +102,7 @@ namespace ClientDecisionService
             this.applicationSettingsBlobUri = metadata.SettingsBlobUri;
             this.applicationModelBlobUri = metadata.ModelBlobUri;
 
-            this.ToggleExploration(metadata.IsExplorationEnabled);
+            this.explorer.EnableExplore(metadata.IsExplorationEnabled);
         }
 
         private void UpdateSettings(string settingsFile)
@@ -110,12 +110,7 @@ namespace ClientDecisionService
             string metadataJson = File.ReadAllText(settingsFile);
             var metadata = JsonConvert.DeserializeObject<ApplicationTransferMetadata>(metadataJson);
 
-            this.ToggleExploration(metadata.IsExplorationEnabled);
-        }
-
-        private void ToggleExploration(bool explore)
-        {
-            // TODO: Turn off exploration here
+            this.explorer.EnableExplore(metadata.IsExplorationEnabled);
         }
 
         private void UpdatePolicy()
