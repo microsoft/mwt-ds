@@ -23,7 +23,8 @@ namespace ClientDecisionService
     {
         public DecisionService(DecisionServiceConfiguration<TContext> config)
         {
-            this.DownloadSettings();
+            explorer = config.Explorer;
+            this.DownloadSettings(config.AuthorizationToken);
 
             this.blobUpdater = new AzureBlobUpdater(this.UpdateSettings, 
                 "settings", 
@@ -43,7 +44,6 @@ namespace ClientDecisionService
                 config.PolicyModelOutputDir);
 
             mwt = new MwtExplorer<TContext>(config.AuthorizationToken, recorder);
-            explorer = config.Explorer;
         }
 
         /*ReportSimpleReward*/
@@ -81,7 +81,7 @@ namespace ClientDecisionService
 
         public void Dispose() { }
 
-        private void DownloadSettings()
+        private void DownloadSettings(string token)
         {
             var retryStrategy = new ExponentialBackoff(DecisionServiceConstants.RetryCount,
                     DecisionServiceConstants.RetryMinBackoff, DecisionServiceConstants.RetryMaxBackoff, DecisionServiceConstants.RetryDeltaBackoff);
@@ -91,7 +91,7 @@ namespace ClientDecisionService
             string metadataJson = retryPolicy.ExecuteAction(() =>
             {
                 WebClient wc = new WebClient();
-                return wc.DownloadString(DecisionServiceConstants.CommandCenterAddress + DecisionServiceConstants.MetadataAddress);
+                return wc.DownloadString(string.Format(DecisionServiceConstants.CommandCenterAddress + DecisionServiceConstants.MetadataAddress, token));
             });
 
             if (String.IsNullOrEmpty(metadataJson))
