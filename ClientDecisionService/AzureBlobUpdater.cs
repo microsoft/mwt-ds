@@ -79,7 +79,10 @@ namespace ClientDecisionService
                             Directory.CreateDirectory(Path.GetDirectoryName(this.blobOutputDir));
                         }
 
-                        blob.DownloadToFile(Path.Combine(this.blobOutputDir, blob.Name), FileMode.Truncate);
+                        string blobFileName = Path.Combine(this.blobOutputDir, blob.Name);
+
+                        FileMode createMode = File.Exists(blobFileName) ? FileMode.Truncate : FileMode.CreateNew;
+                        blob.DownloadToFile(blobFileName, createMode);
 
                         Trace.TraceInformation("Retrieved new blob for {0}", this.blobName);
 
