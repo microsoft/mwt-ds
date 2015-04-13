@@ -20,13 +20,18 @@ namespace ClientDecisionService
     {
         public DecisionServiceRecorder(BatchingConfiguration batchConfig, 
             Func<TContext, string> contextSerializer, 
-            string authorizationToken) 
+            string authorizationToken,
+            string loggingServiceBaseAddress,
+            string loggingServicePostAddress) 
         {
             this.batchConfig = batchConfig;
             this.contextSerializer = contextSerializer;
 
+            this.loggingServiceBaseAddress = loggingServiceBaseAddress;
+            this.loggingServicePostAddress = loggingServicePostAddress;
+
             this.httpClient = new HttpClient();
-            this.httpClient.BaseAddress = new Uri(DecisionServiceConstants.ServiceAddress);
+            this.httpClient.BaseAddress = new Uri(loggingServiceBaseAddress);
             this.httpClient.Timeout = DecisionServiceConstants.ConnectionTimeOut;
             this.httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(DecisionServiceConstants.AuthenticationScheme, authorizationToken);
 
@@ -128,7 +133,7 @@ namespace ClientDecisionService
                         HttpResponseMessage currentResponse = null;
                         try
                         {
-                            currentResponse = await httpClient.PostAsync(DecisionServiceConstants.ServicePostAddress, new StreamContent(jsonMemStream)).ConfigureAwait(false);
+                            currentResponse = await httpClient.PostAsync(this.loggingServicePostAddress, new StreamContent(jsonMemStream)).ConfigureAwait(false);
                         }
                         catch (TaskCanceledException e) // HttpClient throws this on timeout
                         {
@@ -140,7 +145,7 @@ namespace ClientDecisionService
                 }
                 else
                 {
-                    response = await httpClient.PostAsync(DecisionServiceConstants.ServicePostAddress, new StreamContent(jsonMemStream)).ConfigureAwait(false);
+                    response = await httpClient.PostAsync(this.loggingServicePostAddress, new StreamContent(jsonMemStream)).ConfigureAwait(false);
                 }
                 
                 if (!response.IsSuccessStatusCode)
@@ -204,6 +209,8 @@ namespace ClientDecisionService
         private readonly TransformBlock<IEvent, string> eventSource;
         private readonly IObserver<IEvent> eventObserver;
         private readonly ActionBlock<IList<string>> eventProcessor;
+        private readonly string loggingServiceBaseAddress;
+        private readonly string loggingServicePostAddress;
         private IDisposable eventUnsubscriber;
         private HttpClient httpClient;
         #endregion

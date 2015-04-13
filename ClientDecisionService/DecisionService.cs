@@ -34,7 +34,9 @@ namespace ClientDecisionService
             recorder = new DecisionServiceRecorder<TContext>(
                 config.BatchConfig, 
                 config.ContextJsonSerializer,
-                config.AuthorizationToken);
+                config.AuthorizationToken,
+                config.LoggingServiceAddress,
+                config.LoggingServicePostAddress);
 
             policy = new DecisionServicePolicy<TContext>(UpdatePolicy, 
                 this.applicationModelBlobUri, this.applicationConnectionString,

@@ -25,6 +25,9 @@ namespace ClientDecisionService
                 MaxUploadQueueCapacity = 100,
                 UploadRetryPolicy = BatchUploadRetryPolicy.Retry
             };
+
+            LoggingServiceAddress = DecisionServiceConstants.ServiceAddress;
+            LoggingServicePostAddress = DecisionServiceConstants.ServicePostAddress;
         }
         public string AuthorizationToken { get; private set; }
         public IExplorer<TContext> Explorer { get; private set; }
@@ -35,6 +38,8 @@ namespace ClientDecisionService
         public string PolicyModelOutputDir { get; set; }
         public BatchingConfiguration BatchConfig { get; set; }
         public Func<TContext, string> ContextJsonSerializer { get; set; }
+        public string LoggingServiceAddress { get; set; }
+        public string LoggingServicePostAddress { get; set; }
 
         #endregion
     }
