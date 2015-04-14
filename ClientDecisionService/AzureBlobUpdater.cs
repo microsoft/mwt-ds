@@ -79,7 +79,7 @@ namespace ClientDecisionService
                             Directory.CreateDirectory(Path.GetDirectoryName(this.blobOutputDir));
                         }
 
-                        string blobFileName = Path.Combine(this.blobOutputDir, blob.Name);
+                        string blobFileName = Path.Combine(this.blobOutputDir, this.blobName + "-" + blob.Name);
 
                         FileMode createMode = File.Exists(blobFileName) ? FileMode.Truncate : FileMode.CreateNew;
                         blob.DownloadToFile(blobFileName, createMode);
@@ -87,7 +87,7 @@ namespace ClientDecisionService
                         Trace.TraceInformation("Retrieved new blob for {0}", this.blobName);
 
                         // Notify caller of blob update
-                        worker.ReportProgress(0, blob.Name);
+                        worker.ReportProgress(0, blobFileName);
                     }
                     catch (Exception ex)
                     {
@@ -103,6 +103,10 @@ namespace ClientDecisionService
                             RequestResult result = ((StorageException)ex).RequestInformation;
                             switch (result.HttpStatusCode)
                             {
+                                case (int)HttpStatusCode.NotFound:
+                                    Trace.TraceWarning("Did not find a blob for {0}", this.blobName);
+                                    logErrors = false;
+                                    break;
                                 case (int)HttpStatusCode.NotModified:
                                     // Exception is raised for NotModified http response but this is expected.
                                     logErrors = false;

@@ -20,7 +20,6 @@ namespace ClientDecisionService
             this.blobUpdater = new AzureBlobUpdater(this.ModelUpdate, "model", modelAddress, modelConnectionString, modelOutputDir);
 
             this.notifyPolicyUpdate = notifyPolicyUpdate;
-            this.modelOutputDir = string.IsNullOrWhiteSpace(modelOutputDir) ? string.Empty : modelOutputDir;
         }
 
         public uint ChooseAction(TContext context)
@@ -82,7 +81,7 @@ namespace ClientDecisionService
                 try
                 {
                     this.VWFinish(); // Finish previous run before initializing on new file
-                    this.VWInitialize(string.Format(CultureInfo.InvariantCulture, "-t -i {0}", Path.Combine(this.modelOutputDir, modelFile)));
+                    this.VWInitialize(string.Format(CultureInfo.InvariantCulture, "-t -i {0}", modelFile));
                 }
                 catch (Exception ex)
                 {
@@ -124,7 +123,6 @@ namespace ClientDecisionService
         VowpalWabbitState vwState;
 
         readonly Action notifyPolicyUpdate;
-        readonly string modelOutputDir;
     }
 
 }
