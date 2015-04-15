@@ -31,6 +31,7 @@ namespace ClientDecisionService
         }
         public string AuthorizationToken { get; private set; }
         public IExplorer<TContext> Explorer { get; private set; }
+        public ILogger<TContext> Logger { get; set; }
 
         #region Optional Parameters
 

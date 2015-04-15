@@ -16,9 +16,9 @@ using Microsoft.Practices.EnterpriseLibrary.TransientFaultHandling;
 
 namespace ClientDecisionService
 {
-    internal class DecisionServiceRecorder<TContext> : IRecorder<TContext>, IDisposable
+    internal class DecisionServiceLogger<TContext> : ILogger<TContext>, IDisposable
     {
-        public DecisionServiceRecorder(BatchingConfiguration batchConfig, 
+        public DecisionServiceLogger(BatchingConfiguration batchConfig, 
             Func<TContext, string> contextSerializer, 
             string authorizationToken,
             string loggingServiceBaseAddress,
@@ -81,28 +81,10 @@ namespace ClientDecisionService
             });
         }
 
-        public bool TryReportReward(float reward, string uniqueKey)
-        {
-            return this.eventSource.Post(new Observation
-            {
-                ID = uniqueKey,
-                Value = JsonConvert.SerializeObject(reward)
-            });
-        }
-
         public void ReportOutcome(string outcomeJson, string uniqueKey)
         {
             this.eventObserver.OnNext(new Observation
             { 
-                ID = uniqueKey,
-                Value = outcomeJson
-            });
-        }
-
-        public bool TryReportOutcome(string outcomeJson, string uniqueKey)
-        {
-            return this.eventSource.Post(new Observation
-            {
                 ID = uniqueKey,
                 Value = outcomeJson
             });

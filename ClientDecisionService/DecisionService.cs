@@ -32,7 +32,7 @@ namespace ClientDecisionService
                 this.applicationConnectionString, 
                 config.PolicyModelOutputDir);
 
-            recorder = new DecisionServiceRecorder<TContext>(
+            logger = config.Logger ?? new DecisionServiceLogger<TContext>(
                 config.BatchConfig, 
                 config.ContextJsonSerializer,
                 config.AuthorizationToken,
@@ -43,28 +43,18 @@ namespace ClientDecisionService
                 this.applicationModelBlobUri, this.applicationConnectionString,
                 config.PolicyModelOutputDir);
 
-            mwt = new MwtExplorer<TContext>(config.AuthorizationToken, recorder);
+            mwt = new MwtExplorer<TContext>(config.AuthorizationToken, logger);
         }
 
         /*ReportSimpleReward*/
         public void ReportReward(float reward, string uniqueKey)
         {
-            recorder.ReportReward(reward, uniqueKey);
-        }
-
-        public bool TryReportReward(float reward, string uniqueKey)
-        {
-            return recorder.TryReportReward(reward, uniqueKey);
+            logger.ReportReward(reward, uniqueKey);
         }
 
         public void ReportOutcome(string outcomeJson, string uniqueKey)
         {
-            recorder.ReportOutcome(outcomeJson, uniqueKey);
-        }
-
-        public bool TryReportOutcome(string outcomeJson, string uniqueKey)
-        {
-            return recorder.TryReportOutcome(outcomeJson, uniqueKey);
+            logger.ReportOutcome(outcomeJson, uniqueKey);
         }
 
         public uint ChooseAction(string uniqueKey, TContext context)
@@ -76,7 +66,7 @@ namespace ClientDecisionService
         {
             blobUpdater.StopPolling();
             policy.StopPolling();
-            recorder.Flush();
+            logger.Flush();
         }
 
         public void Dispose() { }
@@ -130,7 +120,7 @@ namespace ClientDecisionService
             }
         }
 
-        public IRecorder<TContext> Recorder { get { return recorder; } }
+        public IRecorder<TContext> Recorder { get { return logger; } }
         public IPolicy<TContext> Policy { get { return policy; } }
 
         AzureBlobUpdater blobUpdater;
@@ -140,7 +130,7 @@ namespace ClientDecisionService
         private string applicationModelBlobUri;
 
         private readonly IExplorer<TContext> explorer;
-        private readonly DecisionServiceRecorder<TContext> recorder;
+        private readonly ILogger<TContext> logger;
         private readonly DecisionServicePolicy<TContext> policy;
         private readonly MwtExplorer<TContext> mwt;
     }
