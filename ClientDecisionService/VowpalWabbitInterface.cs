@@ -6,7 +6,7 @@ namespace ClientDecisionService
     using VwExample = IntPtr;
     using VwHandle = IntPtr;
 
-    public enum VowpalWabbitState
+    internal enum VowpalWabbitState
     {
         NotStarted = 0,
         Initialized,
@@ -14,7 +14,7 @@ namespace ClientDecisionService
     }
 
     // COMMENT: why don't you model this as object wrapping VwHandle?
-    public sealed class VowpalWabbitInterface
+    internal sealed class VowpalWabbitInterface
     {
         private const string LIBVW = "Include\\libvw.dll";
 
@@ -35,5 +35,34 @@ namespace ClientDecisionService
 
         [DllImport(LIBVW, EntryPoint = "VW_Predict")]
         public static extern float Predict(VwHandle vw, VwExample example);
+    }
+
+    internal sealed class VowpalWabbitInstance
+    {
+        internal VowpalWabbitInstance(string arguments)
+        {
+            vw = VowpalWabbitInterface.Initialize(arguments);
+            vwState = VowpalWabbitState.Initialized;
+        }
+
+        internal uint Predict(string exampleLine)
+        {
+            IntPtr example = VowpalWabbitInterface.ReadExample(vw, exampleLine);
+            VowpalWabbitInterface.Predict(vw, example);
+            VowpalWabbitInterface.FinishExample(vw, example);
+            return (uint)VowpalWabbitInterface.GetCostSensitivePrediction(example);
+        }
+
+        internal void Finish()
+        {
+            if (vwState == VowpalWabbitState.Initialized)
+            {
+                VowpalWabbitInterface.Finish(vw);
+                vwState = VowpalWabbitState.Finished;
+            }
+        }
+
+        IntPtr vw;
+        VowpalWabbitState vwState;
     }
 }

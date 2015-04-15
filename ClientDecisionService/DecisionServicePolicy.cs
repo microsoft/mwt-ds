@@ -30,10 +30,7 @@ namespace ClientDecisionService
 
             lock (this.vwLock)
             {
-                IntPtr example = VowpalWabbitInterface.ReadExample(vw, exampleLine);
-                VowpalWabbitInterface.Predict(vw, example);
-                VowpalWabbitInterface.FinishExample(vw, example);
-                action = (uint)VowpalWabbitInterface.GetCostSensitivePrediction(example);
+                action = vw.Predict(exampleLine);
             }
 
             return action;
@@ -45,7 +42,7 @@ namespace ClientDecisionService
 
             lock (vwLock)
             {
-                this.VWFinish();
+                vw.Finish();
             }
         }
 
@@ -69,19 +66,20 @@ namespace ClientDecisionService
 
             lock (vwLock)
             {
-                this.VWFinish();
+                vw.Finish();
             }
         }
 
         void ModelUpdate(string modelFile)
         {
             bool modelUpdateSuccess = true;
+
             lock (vwLock)
             {
                 try
                 {
-                    this.VWFinish(); // Finish previous run before initializing on new file
-                    this.VWInitialize(string.Format(CultureInfo.InvariantCulture, "-t -i {0}", modelFile));
+                    vw.Finish(); // Finish previous run before initializing on new file
+                    vw = new VowpalWabbitInstance(string.Format(CultureInfo.InvariantCulture, "-t -i {0}", modelFile));
                 }
                 catch (Exception ex)
                 {
@@ -101,26 +99,10 @@ namespace ClientDecisionService
             }
         }
 
-        void VWInitialize(string arguments)
-        {
-            vw = VowpalWabbitInterface.Initialize(arguments);
-            vwState = VowpalWabbitState.Initialized;
-        }
-
-        void VWFinish()
-        {
-            if (vwState == VowpalWabbitState.Initialized)
-            {
-                VowpalWabbitInterface.Finish(vw);
-                vwState = VowpalWabbitState.Finished;
-            }
-        }
-
         AzureBlobUpdater blobUpdater;
 
-        IntPtr vw;
+        VowpalWabbitInstance vw;
         readonly object vwLock = new object();
-        VowpalWabbitState vwState;
 
         readonly Action notifyPolicyUpdate;
     }
