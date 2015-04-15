@@ -11,6 +11,16 @@ namespace ClientDecisionService
     {
         public DecisionServiceConfiguration(string authorizationToken, IExplorer<TContext> explorer)
         {
+            if (authorizationToken == null)
+            {
+                throw new ArgumentNullException("Authorization token cannot be null");
+            }
+
+            if (explorer == null)
+            {
+                throw new ArgumentNullException("Exploration algorithm cannot be null");
+            }
+
             this.AuthorizationToken = authorizationToken;
             this.Explorer = explorer;
 
@@ -27,20 +37,20 @@ namespace ClientDecisionService
             };
 
             LoggingServiceAddress = DecisionServiceConstants.ServiceAddress;
-            LoggingServicePostAddress = DecisionServiceConstants.ServicePostAddress;
+            CommandCenterAddress = DecisionServiceConstants.CommandCenterAddress;
         }
         public string AuthorizationToken { get; private set; }
         public IExplorer<TContext> Explorer { get; private set; }
-        public ILogger<TContext> Logger { get; set; }
 
         #region Optional Parameters
 
-        public bool UseLatestPolicy { get; set; }
-        public string PolicyModelOutputDir { get; set; }
-        public BatchingConfiguration BatchConfig { get; set; }
-        public Func<TContext, string> ContextJsonSerializer { get; set; }
-        public string LoggingServiceAddress { get; set; }
-        public string LoggingServicePostAddress { get; set; }
+        public bool OfflineMode { get; set; }
+        public ILogger<TContext> Logger { get; set { if (value == null) throw new ArgumentNullException("Logger cannot be null"); } }
+        public string BlobOutputDir { get; set { if (value == null) throw new ArgumentNullException("Blob output directory cannot be null"); } }
+        public BatchingConfiguration BatchConfig { get; set { if (value == null) throw new ArgumentNullException("Batch configuration cannot be null"); } }
+        public Func<TContext, string> ContextJsonSerializer { get; set { if (value == null) throw new ArgumentNullException("Custom JSON serializer cannot be null"); } }
+        public string LoggingServiceAddress { get; set { if (String.IsNullOrWhiteSpace(value)) throw new ArgumentNullException("Logging service address cannot be empty"); } }
+        public string CommandCenterAddress { get; set { if (String.IsNullOrWhiteSpace(value)) throw new ArgumentNullException("Command center address cannot be empty"); } }
 
         #endregion
     }

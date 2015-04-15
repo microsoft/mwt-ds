@@ -24,26 +24,29 @@ namespace ClientDecisionService
         public DecisionService(DecisionServiceConfiguration<TContext> config)
         {
             explorer = config.Explorer;
-            this.DownloadSettings(config.AuthorizationToken);
-
-            this.blobUpdater = new AzureBlobUpdater(this.UpdateSettings, 
-                "settings", 
-                this.applicationSettingsBlobUri, 
-                this.applicationConnectionString, 
-                config.PolicyModelOutputDir);
 
             logger = config.Logger ?? new DecisionServiceLogger<TContext>(
                 config.BatchConfig, 
                 config.ContextJsonSerializer,
                 config.AuthorizationToken,
-                config.LoggingServiceAddress,
-                config.LoggingServicePostAddress);
-
-            policy = new DecisionServicePolicy<TContext>(UpdatePolicy, 
-                this.applicationModelBlobUri, this.applicationConnectionString,
-                config.PolicyModelOutputDir);
+                config.LoggingServiceAddress);
 
             mwt = new MwtExplorer<TContext>(config.AuthorizationToken, logger);
+
+            if (!config.OfflineMode)
+            {
+                this.DownloadSettings(config.AuthorizationToken, config.CommandCenterAddress);
+
+                this.blobUpdater = new AzureBlobUpdater(this.UpdateSettings,
+                    "settings",
+                    this.applicationSettingsBlobUri,
+                    this.applicationConnectionString,
+                    config.BlobOutputDir);
+
+                policy = new DecisionServicePolicy<TContext>(UpdatePolicy,
+                    this.applicationModelBlobUri, this.applicationConnectionString,
+                    config.BlobOutputDir);
+            }
         }
 
         /*ReportSimpleReward*/
@@ -64,24 +67,35 @@ namespace ClientDecisionService
 
         public void Flush()
         {
-            blobUpdater.StopPolling();
-            policy.StopPolling();
-            logger.Flush();
+            if (blobUpdater != null)
+            {
+                blobUpdater.StopPolling();
+            }
+
+            if (policy != null)
+            {
+                policy.StopPolling();
+            }
+
+            if (logger != null)
+            {
+                logger.Flush();
+            }
         }
 
         public void Dispose() { }
 
-        private void DownloadSettings(string token)
+        private void DownloadSettings(string token, string commandCenterAddress)
         {
             var retryStrategy = new ExponentialBackoff(DecisionServiceConstants.RetryCount,
-                    DecisionServiceConstants.RetryMinBackoff, DecisionServiceConstants.RetryMaxBackoff, DecisionServiceConstants.RetryDeltaBackoff);
+                DecisionServiceConstants.RetryMinBackoff, DecisionServiceConstants.RetryMaxBackoff, DecisionServiceConstants.RetryDeltaBackoff);
 
             RetryPolicy retryPolicy = new RetryPolicy<DecisionServiceTransientErrorDetectionStrategy>(retryStrategy);
 
             string metadataJson = retryPolicy.ExecuteAction(() =>
             {
                 WebClient wc = new WebClient();
-                return wc.DownloadString(string.Format(DecisionServiceConstants.CommandCenterAddress + DecisionServiceConstants.MetadataAddress, token));
+                return wc.DownloadString(string.Format(commandCenterAddress + DecisionServiceConstants.MetadataAddress, token));
             });
 
             if (String.IsNullOrEmpty(metadataJson))

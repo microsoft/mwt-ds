@@ -24,7 +24,7 @@ namespace ClientDecisionServiceWebSample.Extensions
             {
                 Configuration = new DecisionServiceConfiguration<TContext>(appToken, Explorer)
                 {
-                    PolicyModelOutputDir = modelOutputDir,
+                    BlobOutputDir = modelOutputDir,
                     BatchConfig = new BatchingConfiguration
                     {
                         MaxDuration = TimeSpan.FromSeconds(5),

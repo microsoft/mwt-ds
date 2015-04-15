@@ -21,14 +21,13 @@ namespace ClientDecisionService
         public DecisionServiceLogger(BatchingConfiguration batchConfig, 
             Func<TContext, string> contextSerializer, 
             string authorizationToken,
-            string loggingServiceBaseAddress,
-            string loggingServicePostAddress) 
+            string loggingServiceBaseAddress) 
         {
             this.batchConfig = batchConfig;
             this.contextSerializer = contextSerializer;
 
             this.loggingServiceBaseAddress = loggingServiceBaseAddress;
-            this.loggingServicePostAddress = loggingServicePostAddress;
+            this.loggingServicePostAddress = DecisionServiceConstants.ServicePostAddress;
 
             this.httpClient = new HttpClient();
             this.httpClient.BaseAddress = new Uri(loggingServiceBaseAddress);
