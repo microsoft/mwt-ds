@@ -26,12 +26,7 @@ namespace ClientDecisionService
         {
             string exampleLine = string.Format(CultureInfo.InvariantCulture, "1: | {0}", context);
 
-            uint action = 0;
-
-            lock (this.vwLock)
-            {
-                action = vw.Predict(exampleLine);
-            }
+            uint action = vw.Predict(exampleLine);
 
             return action;
         }
@@ -40,10 +35,7 @@ namespace ClientDecisionService
         {
             this.blobUpdater.StopPolling();
 
-            lock (vwLock)
-            {
-                vw.Finish();
-            }
+            vw.Finish();
         }
 
         public void Dispose()
@@ -64,29 +56,24 @@ namespace ClientDecisionService
                 }
             }
 
-            lock (vwLock)
-            {
-                vw.Finish();
-            }
+            vw.Finish();
         }
 
         void ModelUpdate(string modelFile)
         {
             bool modelUpdateSuccess = true;
 
-            lock (vwLock)
+            try
             {
-                try
-                {
-                    vw.Finish(); // Finish previous run before initializing on new file
-                    vw = new VowpalWabbitInstance(string.Format(CultureInfo.InvariantCulture, "-t -i {0}", modelFile));
-                }
-                catch (Exception ex)
-                {
-                    Trace.TraceError("Unable to initialize VW.");
-                    Trace.TraceError(ex.ToString());
-                    modelUpdateSuccess = false;
-                }
+                VowpalWabbitInstance oldVw = vw;
+                vw = new VowpalWabbitInstance(string.Format(CultureInfo.InvariantCulture, "-t -i {0}", modelFile));
+                oldVw.Finish();
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceError("Unable to initialize VW.");
+                Trace.TraceError(ex.ToString());
+                modelUpdateSuccess = false;
             }
 
             if (modelUpdateSuccess)
@@ -102,7 +89,6 @@ namespace ClientDecisionService
         AzureBlobUpdater blobUpdater;
 
         VowpalWabbitInstance vw;
-        readonly object vwLock = new object();
 
         readonly Action notifyPolicyUpdate;
     }
