@@ -25,16 +25,14 @@ namespace ClientDecisionService
         {
             explorer = config.Explorer;
 
-            logger = config.Logger ?? new DecisionServiceLogger<TContext>(
-                config.BatchConfig, 
-                config.ContextJsonSerializer,
-                config.AuthorizationToken,
-                config.LoggingServiceAddress);
-
-            mwt = new MwtExplorer<TContext>(config.AuthorizationToken, logger);
-
             if (!config.OfflineMode)
             {
+                logger = config.Logger ?? new DecisionServiceLogger<TContext>(
+                    config.BatchConfig,
+                    config.ContextJsonSerializer,
+                    config.AuthorizationToken,
+                    config.LoggingServiceAddress);
+
                 this.commandCenterBaseAddress = config.CommandCenterAddress ?? DecisionServiceConstants.CommandCenterAddress;
                 this.DownloadSettings(config.AuthorizationToken);
 
@@ -48,6 +46,16 @@ namespace ClientDecisionService
                     this.applicationModelBlobUri, this.applicationConnectionString,
                     config.BlobOutputDir);
             }
+            else
+            {
+                logger = config.Logger;
+                if (logger == null)
+                {
+                    throw new ArgumentException("A custom logger must be defined when operating in offline mode.", "Logger");
+                }
+            }
+
+            mwt = new MwtExplorer<TContext>(config.AuthorizationToken, logger);
         }
 
         /*ReportSimpleReward*/
