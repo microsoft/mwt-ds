@@ -151,6 +151,7 @@
     <Compile Include="RawStringConverter.cs" />
     <Compile Include="DecisionServiceTransientErrorDetectionStrategy.cs" />
     <Compile Include="VowpalWabbitInterface.cs" />
+    <Compile Include="VWPolicy.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

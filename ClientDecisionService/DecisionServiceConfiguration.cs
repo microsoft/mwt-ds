@@ -23,21 +23,6 @@ namespace ClientDecisionService
 
             this.AuthorizationToken = authorizationToken;
             this.Explorer = explorer;
-
-            this.ContextJsonSerializer = x => x == null ? null : JsonConvert.SerializeObject(x);
-
-            // TODO: Choose proper default configuration for batching
-            this.BatchConfig = new BatchingConfiguration()
-            {
-                MaxBufferSizeInBytes = 4 * 1024 * 1024,
-                MaxDuration = TimeSpan.FromMinutes(1),
-                MaxEventCount = 10000,
-                MaxUploadQueueCapacity = 100,
-                UploadRetryPolicy = BatchUploadRetryPolicy.Retry
-            };
-
-            LoggingServiceAddress = DecisionServiceConstants.ServiceAddress;
-            CommandCenterAddress = DecisionServiceConstants.CommandCenterAddress;
         }
         public string AuthorizationToken { get; private set; }
         public IExplorer<TContext> Explorer { get; private set; }
@@ -45,12 +30,73 @@ namespace ClientDecisionService
         #region Optional Parameters
 
         public bool OfflineMode { get; set; }
-        public ILogger<TContext> Logger { get; set { if (value == null) throw new ArgumentNullException("Logger cannot be null"); } }
-        public string BlobOutputDir { get; set { if (value == null) throw new ArgumentNullException("Blob output directory cannot be null"); } }
-        public BatchingConfiguration BatchConfig { get; set { if (value == null) throw new ArgumentNullException("Batch configuration cannot be null"); } }
-        public Func<TContext, string> ContextJsonSerializer { get; set { if (value == null) throw new ArgumentNullException("Custom JSON serializer cannot be null"); } }
-        public string LoggingServiceAddress { get; set { if (String.IsNullOrWhiteSpace(value)) throw new ArgumentNullException("Logging service address cannot be empty"); } }
-        public string CommandCenterAddress { get; set { if (String.IsNullOrWhiteSpace(value)) throw new ArgumentNullException("Command center address cannot be empty"); } }
+
+        public ILogger<TContext> Logger 
+        { 
+            get { return logger; } 
+            set 
+            { 
+                if (value == null) throw new ArgumentNullException("Logger cannot be null");
+                logger = value;
+            } 
+        
+        }
+        public string BlobOutputDir 
+        { 
+            get { return blobOutputDir; } 
+            set 
+            { 
+                if (value == null) throw new ArgumentNullException("Blob output directory cannot be null");
+                blobOutputDir = value;
+            } 
+        }
+        
+        public BatchingConfiguration BatchConfig 
+        {
+            get { return batchConfig; }
+            set 
+            { 
+                if (value == null) throw new ArgumentNullException("Batch configuration cannot be null");
+                batchConfig = value;
+            } 
+        }
+        
+        public Func<TContext, string> ContextJsonSerializer 
+        {
+            get { return contextJsonSerializer; }
+            set 
+            { 
+                if (value == null) throw new ArgumentNullException("Custom JSON serializer cannot be null");
+                contextJsonSerializer = value;
+            } 
+        }
+        
+        public string LoggingServiceAddress 
+        {
+            get { return loggingServiceAddress; }
+            set 
+            { 
+                if (String.IsNullOrWhiteSpace(value)) throw new ArgumentNullException("Logging service address cannot be empty");
+                loggingServiceAddress = value;
+            } 
+        }
+        
+        public string CommandCenterAddress 
+        {
+            get { return commandCenterAddress; }
+            set 
+            { 
+                if (String.IsNullOrWhiteSpace(value)) throw new ArgumentNullException("Command center address cannot be empty");
+                commandCenterAddress = value;
+            } 
+        }
+
+        private ILogger<TContext> logger;
+        private string blobOutputDir;
+        private BatchingConfiguration batchConfig;
+        private Func<TContext, string> contextJsonSerializer;
+        private string loggingServiceAddress;
+        private string commandCenterAddress;
 
         #endregion
     }

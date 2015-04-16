@@ -35,7 +35,8 @@ namespace ClientDecisionService
 
             if (!config.OfflineMode)
             {
-                this.DownloadSettings(config.AuthorizationToken, config.CommandCenterAddress);
+                this.commandCenterBaseAddress = config.CommandCenterAddress ?? DecisionServiceConstants.CommandCenterAddress;
+                this.DownloadSettings(config.AuthorizationToken);
 
                 this.blobUpdater = new AzureBlobUpdater(this.UpdateSettings,
                     "settings",
@@ -85,7 +86,7 @@ namespace ClientDecisionService
 
         public void Dispose() { }
 
-        private void DownloadSettings(string token, string commandCenterAddress)
+        private void DownloadSettings(string token)
         {
             var retryStrategy = new ExponentialBackoff(DecisionServiceConstants.RetryCount,
                 DecisionServiceConstants.RetryMinBackoff, DecisionServiceConstants.RetryMaxBackoff, DecisionServiceConstants.RetryDeltaBackoff);
@@ -95,7 +96,7 @@ namespace ClientDecisionService
             string metadataJson = retryPolicy.ExecuteAction(() =>
             {
                 WebClient wc = new WebClient();
-                return wc.DownloadString(string.Format(commandCenterAddress + DecisionServiceConstants.MetadataAddress, token));
+                return wc.DownloadString(string.Format(this.commandCenterBaseAddress + DecisionServiceConstants.MetadataAddress, token));
             });
 
             if (String.IsNullOrEmpty(metadataJson))
@@ -136,6 +137,8 @@ namespace ClientDecisionService
 
         public IRecorder<TContext> Recorder { get { return logger; } }
         public IPolicy<TContext> Policy { get { return policy; } }
+
+        private readonly string commandCenterBaseAddress;
 
         AzureBlobUpdater blobUpdater;
 
