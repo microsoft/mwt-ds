@@ -45,7 +45,7 @@ namespace ClientDecisionService
                 new ExecutionDataflowBlockOptions
             { 
                 MaxDegreeOfParallelism = Environment.ProcessorCount,
-                BoundedCapacity = batchConfig.MaxUploadQueueCapacity
+                BoundedCapacity = this.batchConfig.MaxUploadQueueCapacity
             });
             this.eventObserver = this.eventSource.AsObserver();
 
@@ -53,12 +53,12 @@ namespace ClientDecisionService
             { 
                 // TODO: Finetune these numbers
                 MaxDegreeOfParallelism = Environment.ProcessorCount * 4,
-                BoundedCapacity = batchConfig.MaxUploadQueueCapacity,
+                BoundedCapacity = this.batchConfig.MaxUploadQueueCapacity,
             });
 
             this.eventUnsubscriber = this.eventSource.AsObservable()
-                .Window(batchConfig.MaxDuration)
-                .Select(w => w.Buffer(batchConfig.MaxEventCount, batchConfig.MaxBufferSizeInBytes, json => Encoding.UTF8.GetByteCount(json)))
+                .Window(this.batchConfig.MaxDuration)
+                .Select(w => w.Buffer(this.batchConfig.MaxEventCount, this.batchConfig.MaxBufferSizeInBytes, json => Encoding.UTF8.GetByteCount(json)))
                 .SelectMany(buffer => buffer)
                 .Subscribe(this.eventProcessor.AsObserver());
         }
