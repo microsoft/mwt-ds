@@ -26,16 +26,22 @@ namespace ClientDecisionService
         {
             string exampleLine = string.Format(CultureInfo.InvariantCulture, "1: | {0}", context);
 
-            uint action = vw.Predict(exampleLine);
+            uint action = this.vw.Predict(exampleLine);
 
             return action;
         }
 
         public void StopPolling()
         {
-            this.blobUpdater.StopPolling();
+            if (this.blobUpdater != null)
+            {
+                this.blobUpdater.StopPolling();
+            }
 
-            vw.Finish();
+            if (this.vw != null)
+            {
+                this.vw.Finish();
+            }
         }
 
         public void Dispose()
@@ -56,7 +62,7 @@ namespace ClientDecisionService
                 }
             }
 
-            vw.Finish();
+            this.vw.Finish();
         }
 
         void ModelUpdate(string modelFile)
@@ -65,8 +71,8 @@ namespace ClientDecisionService
 
             try
             {
-                VowpalWabbitInstance oldVw = vw;
-                vw = new VowpalWabbitInstance(string.Format(CultureInfo.InvariantCulture, "-t -i {0}", modelFile));
+                VowpalWabbitInstance oldVw = this.vw;
+                this.vw = new VowpalWabbitInstance(string.Format(CultureInfo.InvariantCulture, "-t -i {0}", modelFile));
                 oldVw.Finish();
             }
             catch (Exception ex)
