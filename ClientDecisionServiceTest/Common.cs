@@ -70,13 +70,27 @@ namespace ClientDecisionServiceTest
         int numOutcome;
     }
 
-    public class EventBatch
+    public class PartialExperimentalUnitFragment
     {
-        [JsonProperty(PropertyName = "e")]
-        public IList<string> Events { get; set; }
+        [JsonProperty(PropertyName = "i")]
+        public string Id { get; set; }
+
+        // TODO: does shortening really makes sense? http://stackoverflow.com/questions/22880344/shorten-property-names-in-json-does-it-make-sense
+        [JsonProperty(PropertyName = "v")]
+        [JsonConverter(typeof(RawStringConverter))]
+        public string Value { get; set; }
+    }
+
+    public class PartialDecisionServiceMessage
+    {
+        [JsonProperty(PropertyName = "i", Required = Required.Always)]
+        public Guid ID { get; set; }
+
+        [JsonProperty(PropertyName = "j", Required = Required.Always)]
+        public List<PartialExperimentalUnitFragment> ExperimentalUnitFragments { get; set; }
 
         [JsonProperty(PropertyName = "d")]
-        public long ExperimentalUnitDurationInSeconds { get; set; }
+        public int? ExperimentalUnitDuration { get; set; }
     }
 
     public static class Constants

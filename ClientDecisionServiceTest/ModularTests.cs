@@ -2,11 +2,19 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ClientDecisionService;
 using MultiWorldTesting;
+using System.Net;
+using System.Threading.Tasks;
+using System.Threading;
+using System.IO;
+using System.Text;
+using Microsoft.Research.DecisionService.Common;
+using Newtonsoft.Json;
+using System.Web;
 
 namespace ClientDecisionServiceTest
 {
     [TestClass]
-    public class UnitTest1
+    public class ModularTests
     {
         [TestMethod]
         public void TestOfflineModeArgument()
