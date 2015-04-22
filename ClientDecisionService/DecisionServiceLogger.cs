@@ -36,7 +36,7 @@ namespace ClientDecisionService
             this.loggingServiceBaseAddress = loggingServiceBaseAddress ?? DecisionServiceConstants.ServiceAddress;
 
             this.httpClient = new HttpClient();
-            this.httpClient.BaseAddress = new Uri(loggingServiceBaseAddress);
+            this.httpClient.BaseAddress = new Uri(this.loggingServiceBaseAddress);
             this.httpClient.Timeout = DecisionServiceConstants.ConnectionTimeOut;
             this.httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(DecisionServiceConstants.AuthenticationScheme, authorizationToken);
 

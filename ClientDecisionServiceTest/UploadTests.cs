@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Threading;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Microsoft.Research.DecisionService.Common;
 using Newtonsoft.Json;
@@ -17,7 +18,7 @@ namespace ClientDecisionServiceTest
     public class UploadTests
     {
         [TestMethod]
-        public void TestUpload()
+        public void TestUploadSingleEvent()
         {
             commandCenter.Reset();
             joinServer.Reset();
@@ -41,6 +42,32 @@ namespace ClientDecisionServiceTest
             Assert.AreEqual(1, joinServer.EventBatchList[0].ExperimentalUnitFragments.Count);
             Assert.AreEqual(uniqueKey, joinServer.EventBatchList[0].ExperimentalUnitFragments[0].Id);
             Assert.IsTrue(joinServer.EventBatchList[0].ExperimentalUnitFragments[0].Value.ToLower().Contains("\"a\":" + chosenAction + ","));
+        }
+
+        [TestMethod]
+        public void TestUploadMultipleEvents()
+        {
+            commandCenter.Reset();
+            joinServer.Reset();
+
+            string uniqueKey = "test interaction";
+
+            var dsConfig = new DecisionServiceConfiguration<TestContext>(
+                authorizationToken: this.authToken,
+                explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
+            dsConfig.LoggingServiceAddress = this.joinServerAddress;
+            dsConfig.CommandCenterAddress = this.commandCenterAddress;
+
+            var ds = new DecisionService<TestContext>(dsConfig);
+
+            uint chosenAction1 = ds.ChooseAction(uniqueKey, new TestContext());
+            uint chosenAction2 = ds.ChooseAction(uniqueKey, new TestContext());
+            ds.ReportReward(1.0f, uniqueKey);
+            ds.ReportOutcome(JsonConvert.SerializeObject(new { value = "test outcome" }), uniqueKey);
+
+            ds.Flush();
+
+            Assert.AreEqual(4, joinServer.EventBatchList.Sum(batch => batch.ExperimentalUnitFragments.Count));
         }
 
         [TestInitialize]
