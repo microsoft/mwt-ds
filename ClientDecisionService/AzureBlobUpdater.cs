@@ -13,16 +13,16 @@ using System.Threading.Tasks;
 
 namespace ClientDecisionService
 {
-    public class AzureBlobUpdater
+    internal class AzureBlobUpdater
     {
-        public AzureBlobUpdater(Action<string> notifyBlobUpdate, string blobName, string blobAddress, string blobConnectionString, string blobOutputDir)
+        public AzureBlobUpdater(string blobName, string blobAddress, string blobConnectionString, string blobOutputDir, TimeSpan pollDelay, Action<string> notifyBlobUpdate, Action<Exception> notifyPollFailure)
         {
-            this.notifyBlobUpdate = notifyBlobUpdate;
-
             this.blobName = blobName;
             this.blobAddress = blobAddress;
             this.blobConnectionString = blobConnectionString;
             this.blobOutputDir = string.IsNullOrWhiteSpace(blobOutputDir) ? string.Empty : blobOutputDir;
+
+            this.blobPollDelay = pollDelay;
 
             this.cancellationToken = new CancellationTokenSource();
             this.pollFinishedEvent = new ManualResetEventSlim();
@@ -32,6 +32,9 @@ namespace ClientDecisionService
             this.worker.DoWork += PollForUpdate;
             this.worker.ProgressChanged += FoundUpdate;
             this.worker.RunWorkerAsync(this.cancellationToken);
+
+            this.notifyBlobUpdate = notifyBlobUpdate;
+            this.notifyPollFailure = notifyPollFailure;
         }
 
         void FoundUpdate(object sender, ProgressChangedEventArgs e)
@@ -49,7 +52,7 @@ namespace ClientDecisionService
             {
                 while (!cancelToken.IsCancellationRequested)
                 {
-                    bool cancelled = cancelToken.Token.WaitHandle.WaitOne(DecisionServiceConstants.PollDelay);
+                    bool cancelled = cancelToken.Token.WaitHandle.WaitOne(this.blobPollDelay);
                     if (cancelled)
                     {
                         Trace.TraceInformation("Polling for {0} cancel request received while sleeping.", this.blobName);
@@ -128,6 +131,11 @@ namespace ClientDecisionService
                                 Trace.TraceError(message);
                             }
                         }
+
+                        if (this.notifyPollFailure != null)
+                        {
+                            this.notifyPollFailure(ex);
+                        }
                     }
                 }
             }
@@ -167,11 +175,13 @@ namespace ClientDecisionService
             }
         }
 
-        readonly Action<string> notifyBlobUpdate;
         readonly string blobName;
         readonly string blobAddress;
         readonly string blobConnectionString;
         readonly string blobOutputDir;
+        readonly TimeSpan blobPollDelay;
+        readonly Action<string> notifyBlobUpdate;
+        readonly Action<Exception> notifyPollFailure;
 
         string blobEtag;
         BackgroundWorker worker;

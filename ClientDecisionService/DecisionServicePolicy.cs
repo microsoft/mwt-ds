@@ -15,9 +15,13 @@ namespace ClientDecisionService
 {
     internal class DecisionServicePolicy<TContext> : IPolicy<TContext>, IDisposable
     {
-        public DecisionServicePolicy(Action notifyPolicyUpdate, string modelAddress, string modelConnectionString, string modelOutputDir)
+        public DecisionServicePolicy(string modelAddress, string modelConnectionString, 
+            string modelOutputDir, TimeSpan pollDelay, 
+            Action notifyPolicyUpdate, Action<Exception> modelPollFailureCallback)
         {
-            this.blobUpdater = new AzureBlobUpdater(this.ModelUpdate, "model", modelAddress, modelConnectionString, modelOutputDir);
+            this.blobUpdater = new AzureBlobUpdater("model", modelAddress,
+                modelConnectionString, modelOutputDir, pollDelay, 
+                this.ModelUpdate, modelPollFailureCallback);
 
             this.notifyPolicyUpdate = notifyPolicyUpdate;
         }

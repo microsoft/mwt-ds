@@ -91,12 +91,27 @@ namespace ClientDecisionService
             } 
         }
 
+        public TimeSpan PollingPeriod
+        {
+            get { return pollingPeriod; }
+            set 
+            {
+                if (value <= TimeSpan.FromSeconds(0)) throw new ArgumentNullException("Invalid polling period value.");
+                pollingPeriod = value;
+            }
+        }
+
         private ILogger<TContext> logger;
         private string blobOutputDir;
         private BatchingConfiguration batchConfig;
         private Func<TContext, string> contextJsonSerializer;
         private string loggingServiceAddress;
         private string commandCenterAddress;
+        private TimeSpan pollingPeriod;
+
+        // call-backs
+        public Action<Exception> ModelPollFailureCallback { get; set; }
+        public Action<Exception> SettingsPollFailureCallback { get; set; }
 
         #endregion
     }

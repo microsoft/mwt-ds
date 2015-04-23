@@ -1,4 +1,6 @@
 ﻿using Microsoft.Research.DecisionService.Common;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -14,6 +16,45 @@ namespace ClientDecisionServiceTest
     public class MockCommandCenter : MockHttpServer
     {
         public MockCommandCenter(string uri) : base(uri) { }
+
+        public void CreateBlobs(bool createSettingsBlob, bool createModelBlob)
+        {
+            if (createSettingsBlob || createModelBlob)
+            {
+                CloudStorageAccount storageAccount = CloudStorageAccount.Parse("UseDevelopmentStorage=true");
+                CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+
+                var localContainer = blobClient.GetContainerReference(this.localAzureContainerName);
+                localContainer.CreateIfNotExists();
+
+                if (createSettingsBlob)
+                {
+                    var settingsBlob = localContainer.GetBlockBlobReference(this.localAzureSettingsBlobName);
+                    byte[] settingsContent = this.GetSettingsBlobContent();
+                    settingsBlob.UploadFromByteArray(settingsContent, 0, settingsContent.Length);
+                    this.localAzureSettingsBlobUri = settingsBlob.Uri.ToString();
+                }
+
+                if (createModelBlob)
+                {
+                    var modelBlob = localContainer.GetBlockBlobReference(this.localAzureModelBlobName);
+                    byte[] modelContent = this.GetModelBlobContent();
+                    modelBlob.UploadFromByteArray(modelContent, 0, modelContent.Length);
+                    this.localAzureModelBlobUri = modelBlob.Uri.ToString();
+                }
+            }
+        }
+
+        public byte[] GetSettingsBlobContent()
+        {
+            return new byte[3] { 1, 2, 3 };
+        }
+
+        public byte[] GetModelBlobContent()
+        {
+            return new byte[2] { 5, 1 };
+        }
+
         protected override void Listen()
         {
             this.cancelTokenSource.Token.ThrowIfCancellationRequested();
@@ -33,11 +74,11 @@ namespace ClientDecisionServiceTest
                     var metadata = new ApplicationTransferMetadata
                     {
                         ApplicationID = "test",
-                        ConnectionString = "",
+                        ConnectionString = "UseDevelopmentStorage=true",
                         ExperimentalUnitDuration = 15,
                         IsExplorationEnabled = true,
-                        ModelBlobUri = null,
-                        SettingsBlobUri = null,
+                        ModelBlobUri = this.localAzureModelBlobUri,
+                        SettingsBlobUri = this.localAzureSettingsBlobUri,
                         ModelId = "latest"
                     };
                     string responseMessage = JsonConvert.SerializeObject(metadata);
@@ -70,5 +111,20 @@ namespace ClientDecisionServiceTest
                 }
             }
         }
+
+        public override void Reset()
+        {
+            base.Reset();
+
+            this.localAzureSettingsBlobUri = null;
+            this.localAzureModelBlobUri = null;
+        }
+
+        private string localAzureSettingsBlobUri;
+        private string localAzureModelBlobUri;
+
+        private readonly string localAzureContainerName = "localtestcontainer";
+        private readonly string localAzureSettingsBlobName = "localtestsettingsblob";
+        private readonly string localAzureModelBlobName = "localtestmodelblob";
     }
 }

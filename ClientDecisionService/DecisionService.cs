@@ -27,7 +27,7 @@ namespace ClientDecisionService
 
             if (!config.OfflineMode)
             {
-                logger = config.Logger ?? new DecisionServiceLogger<TContext>(
+                this.logger = config.Logger ?? new DecisionServiceLogger<TContext>(
                     config.BatchConfig,
                     config.ContextJsonSerializer,
                     config.AuthorizationToken,
@@ -36,26 +36,34 @@ namespace ClientDecisionService
                 this.commandCenterBaseAddress = config.CommandCenterAddress ?? DecisionServiceConstants.CommandCenterAddress;
                 this.DownloadSettings(config.AuthorizationToken);
 
-                this.blobUpdater = new AzureBlobUpdater(this.UpdateSettings,
+                this.blobPollDelay = config.PollingPeriod == TimeSpan.Zero ? DecisionServiceConstants.PollDelay : config.PollingPeriod;
+
+                this.blobUpdater = new AzureBlobUpdater(
                     "settings",
                     this.applicationSettingsBlobUri,
                     this.applicationConnectionString,
-                    config.BlobOutputDir);
+                    config.BlobOutputDir,
+                    this.blobPollDelay,
+                    this.UpdateSettings,
+                    config.SettingsPollFailureCallback);
 
-                policy = new DecisionServicePolicy<TContext>(UpdatePolicy,
+                this.policy = new DecisionServicePolicy<TContext>(
                     this.applicationModelBlobUri, this.applicationConnectionString,
-                    config.BlobOutputDir);
+                    config.BlobOutputDir,
+                    this.blobPollDelay,
+                    this.UpdatePolicy,
+                    config.ModelPollFailureCallback);
             }
             else
             {
-                logger = config.Logger;
-                if (logger == null)
+                this.logger = config.Logger;
+                if (this.logger == null)
                 {
                     throw new ArgumentException("A custom logger must be defined when operating in offline mode.", "Logger");
                 }
             }
 
-            mwt = new MwtExplorer<TContext>(config.AuthorizationToken, logger);
+            mwt = new MwtExplorer<TContext>(config.AuthorizationToken, this.logger);
         }
 
         /*ReportSimpleReward*/
@@ -147,6 +155,7 @@ namespace ClientDecisionService
         public IPolicy<TContext> Policy { get { return policy; } }
 
         private readonly string commandCenterBaseAddress;
+        private readonly TimeSpan blobPollDelay;
 
         AzureBlobUpdater blobUpdater;
 
