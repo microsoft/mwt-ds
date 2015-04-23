@@ -120,6 +120,16 @@ namespace ClientDecisionServiceTest
             this.localAzureModelBlobUri = null;
         }
 
+        public string LocalAzureSettingsBlobName
+        {
+            get { return localAzureSettingsBlobName; }
+        }
+
+        public string LocalAzureModelBlobName
+        {
+            get { return localAzureModelBlobName; }
+        }
+
         private string localAzureSettingsBlobUri;
         private string localAzureModelBlobUri;
 

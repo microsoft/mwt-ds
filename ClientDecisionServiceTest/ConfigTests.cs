@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Threading;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Microsoft.Research.DecisionService.Common;
 using Newtonsoft.Json;
@@ -18,7 +19,7 @@ namespace ClientDecisionServiceTest
     public class ConfigTests
     {
         [TestMethod]
-        public void TestInvalidOutputDir()
+        public void TestInvalidPathOutputDir()
         {
             commandCenter.Reset();
             joinServer.Reset();
@@ -51,6 +52,97 @@ namespace ClientDecisionServiceTest
             cancelTokenSource.Token.WaitHandle.WaitOne(5000);
 
             Assert.AreEqual(true, exceptionIsExpected);
+        }
+
+        [TestMethod]
+        public void TestUnauthorizedPathOutputDir()
+        {
+            commandCenter.Reset();
+            joinServer.Reset();
+
+            commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false);
+
+            var dsConfig = new DecisionServiceConfiguration<TestContext>(
+                authorizationToken: authToken,
+                explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: 2));
+
+            dsConfig.CommandCenterAddress = this.commandCenterAddress;
+            dsConfig.LoggingServiceAddress = this.joinServerAddress;
+            dsConfig.BlobOutputDir = @"c:\windows";
+            dsConfig.PollingPeriod = TimeSpan.FromMilliseconds(500);
+
+            var cancelTokenSource = new CancellationTokenSource();
+            bool exceptionIsExpected = false;
+
+            dsConfig.SettingsPollFailureCallback = (ex) =>
+            {
+                if (ex is UnauthorizedAccessException)
+                {
+                    exceptionIsExpected = true;
+                    cancelTokenSource.Cancel();
+                }
+            };
+
+            var ds = new DecisionService<TestContext>(dsConfig);
+
+            cancelTokenSource.Token.WaitHandle.WaitOne(5000);
+
+            Assert.AreEqual(true, exceptionIsExpected);
+        }
+
+        [TestMethod]
+        public void TestSettingsBlobOutput()
+        {
+            commandCenter.Reset();
+            joinServer.Reset();
+
+            string settingsPath = ".\\dstestsettings";
+            Directory.CreateDirectory(settingsPath);
+
+            commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false);
+
+            var dsConfig = new DecisionServiceConfiguration<TestContext>(
+                authorizationToken: authToken,
+                explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: 2));
+
+            dsConfig.CommandCenterAddress = this.commandCenterAddress;
+            dsConfig.LoggingServiceAddress = this.joinServerAddress;
+            dsConfig.BlobOutputDir = settingsPath;
+            dsConfig.PollingPeriod = TimeSpan.FromMilliseconds(500);
+
+            var ds = new DecisionService<TestContext>(dsConfig);
+
+            string settingsFile = Path.Combine(settingsPath, "settings-" + commandCenter.LocalAzureSettingsBlobName);
+
+            int sleepCount = 20;
+            while (true && sleepCount > 0)
+            {
+                Thread.Sleep(100);
+                sleepCount--;
+
+                if (File.Exists(settingsFile))
+                {
+                    break;
+                }
+            }
+
+            Assert.AreNotEqual(0, sleepCount);
+
+            while (true)
+            {
+                try
+                {
+                    byte[] settingsBytes = File.ReadAllBytes(settingsFile);
+
+                    Assert.IsTrue(Enumerable.SequenceEqual(settingsBytes, commandCenter.GetSettingsBlobContent()));
+                    break;
+                }
+                catch (IOException) { }
+            }
+
+            ds.Flush();
+
+            Directory.Delete(settingsPath, true);
         }
 
         [TestInitialize]

@@ -130,10 +130,25 @@ namespace ClientDecisionService
 
         private void UpdateSettings(string settingsFile)
         {
-            string metadataJson = File.ReadAllText(settingsFile);
-            var metadata = JsonConvert.DeserializeObject<ApplicationTransferMetadata>(metadataJson);
+            try
+            {
+                string metadataJson = File.ReadAllText(settingsFile);
+                var metadata = JsonConvert.DeserializeObject<ApplicationTransferMetadata>(metadataJson);
 
-            this.explorer.EnableExplore(metadata.IsExplorationEnabled);
+                this.explorer.EnableExplore(metadata.IsExplorationEnabled);
+            }
+            catch (Exception ex)
+            {
+                if (ex is JsonReaderException)
+                {
+                    Trace.TraceWarning("Cannot read new settings.");
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            
         }
 
         private void UpdatePolicy()
