@@ -30,6 +30,11 @@ namespace ClientDecisionService
         {
             string exampleLine = string.Format(CultureInfo.InvariantCulture, "1: | {0}", context);
 
+            if (this.vw == null)
+            {
+                throw new Exception("Internal Error: Vowpal Wabbit has not been initialized for scoring.");
+            }
+
             uint action = this.vw.Predict(exampleLine);
 
             return action;
@@ -66,7 +71,10 @@ namespace ClientDecisionService
                 }
             }
 
-            this.vw.Finish();
+            if (this.vw != null)
+            {
+                this.vw.Finish();
+            }
         }
 
         void ModelUpdate(string modelFile)
@@ -77,7 +85,11 @@ namespace ClientDecisionService
             {
                 VowpalWabbitInstance oldVw = this.vw;
                 this.vw = new VowpalWabbitInstance(string.Format(CultureInfo.InvariantCulture, "-t -i {0}", modelFile));
-                oldVw.Finish();
+
+                if (oldVw != null)
+                {
+                    oldVw.Finish();
+                }
             }
             catch (Exception ex)
             {
