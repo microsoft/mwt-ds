@@ -31,13 +31,13 @@ namespace ClientDecisionService
 
         public bool OfflineMode { get; set; }
 
-        public ILogger<TContext> Logger 
+        public IRecorder<TContext> Recorder 
         { 
-            get { return logger; } 
+            get { return recorder; } 
             set 
             { 
-                if (value == null) throw new ArgumentNullException("Logger cannot be null");
-                logger = value;
+                if (value == null) throw new ArgumentNullException("Recorder cannot be null");
+                recorder = value;
             } 
         
         }
@@ -101,7 +101,7 @@ namespace ClientDecisionService
             }
         }
 
-        private ILogger<TContext> logger;
+        private IRecorder<TContext> recorder;
         private string blobOutputDir;
         private BatchingConfiguration batchConfig;
         private Func<TContext, string> contextJsonSerializer;

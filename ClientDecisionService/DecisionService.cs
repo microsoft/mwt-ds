@@ -29,7 +29,7 @@ namespace ClientDecisionService
 
             if (!config.OfflineMode)
             {
-                this.logger = config.Logger ?? new DecisionServiceLogger<TContext>(
+                this.recorder = config.Recorder ?? new DecisionServiceLogger<TContext>(
                     config.BatchConfig,
                     config.ContextJsonSerializer,
                     config.AuthorizationToken,
@@ -58,25 +58,33 @@ namespace ClientDecisionService
             }
             else
             {
-                this.logger = config.Logger;
-                if (this.logger == null)
+                this.recorder = config.Recorder;
+                if (this.recorder == null)
                 {
-                    throw new ArgumentException("A custom logger must be defined when operating in offline mode.", "Logger");
+                    throw new ArgumentException("A custom recorder must be defined when operating in offline mode.", "Recorder");
                 }
             }
 
-            mwt = new MwtExplorer<TContext>(config.AuthorizationToken, this.logger);
+            mwt = new MwtExplorer<TContext>(config.AuthorizationToken, this.recorder);
         }
 
         /*ReportSimpleReward*/
         public void ReportReward(float reward, string uniqueKey)
         {
-            logger.ReportReward(reward, uniqueKey);
+            ILogger<TContext> logger = this.recorder as ILogger<TContext>;
+            if (logger != null)
+            {
+                logger.ReportReward(reward, uniqueKey);
+            }
         }
 
         public void ReportOutcome(string outcomeJson, string uniqueKey)
         {
-            logger.ReportOutcome(outcomeJson, uniqueKey);
+            ILogger<TContext> logger = this.recorder as ILogger<TContext>;
+            if (logger != null)
+            {
+                logger.ReportOutcome(outcomeJson, uniqueKey);
+            }
         }
 
         public uint ChooseAction(string uniqueKey, TContext context)
@@ -96,6 +104,7 @@ namespace ClientDecisionService
                 policy.StopPolling();
             }
 
+            ILogger<TContext> logger = this.recorder as ILogger<TContext>;
             if (logger != null)
             {
                 logger.Flush();
@@ -180,7 +189,7 @@ namespace ClientDecisionService
             }
         }
 
-        public IRecorder<TContext> Recorder { get { return logger; } }
+        public IRecorder<TContext> Recorder { get { return recorder; } }
         public IPolicy<TContext> Policy { get { return policy; } }
 
         private readonly string commandCenterBaseAddress;
@@ -193,7 +202,7 @@ namespace ClientDecisionService
         private string applicationModelBlobUri;
 
         private readonly IExplorer<TContext> explorer;
-        private readonly ILogger<TContext> logger;
+        private readonly IRecorder<TContext> recorder;
         private readonly DecisionServicePolicy<TContext> policy;
         private readonly MwtExplorer<TContext> mwt;
     }

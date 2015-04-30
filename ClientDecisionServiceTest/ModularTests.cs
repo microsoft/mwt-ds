@@ -43,7 +43,7 @@ namespace ClientDecisionServiceTest
                 explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
 
             dsConfig.OfflineMode = true;
-            dsConfig.Logger = new TestLogger();
+            dsConfig.Recorder = new TestLogger();
 
             int numChooseAction = 100;
             var ds = new DecisionService<TestContext>(dsConfig); 
@@ -52,7 +52,7 @@ namespace ClientDecisionServiceTest
                 ds.ChooseAction(i.ToString(), new TestContext());
             }
 
-            Assert.AreEqual(numChooseAction, ((TestLogger)dsConfig.Logger).NumRecord);
+            Assert.AreEqual(numChooseAction, ((TestLogger)dsConfig.Recorder).NumRecord);
 
             int numReward = 200;
             for (int i = 0; i < numReward; i++)
@@ -60,7 +60,7 @@ namespace ClientDecisionServiceTest
                 ds.ReportReward(i, i.ToString());
             }
 
-            Assert.AreEqual(numReward, ((TestLogger)dsConfig.Logger).NumReward);
+            Assert.AreEqual(numReward, ((TestLogger)dsConfig.Recorder).NumReward);
 
             int numOutcome = 300;
             for (int i = 0; i < numOutcome; i++)
@@ -68,13 +68,13 @@ namespace ClientDecisionServiceTest
                 ds.ReportOutcome(i.ToString(), i.ToString());
             }
 
-            Assert.AreEqual(numOutcome, ((TestLogger)dsConfig.Logger).NumOutcome);
+            Assert.AreEqual(numOutcome, ((TestLogger)dsConfig.Recorder).NumOutcome);
 
             ds.Flush();
 
-            Assert.AreEqual(0, ((TestLogger)dsConfig.Logger).NumRecord);
-            Assert.AreEqual(0, ((TestLogger)dsConfig.Logger).NumReward);
-            Assert.AreEqual(0, ((TestLogger)dsConfig.Logger).NumOutcome);
+            Assert.AreEqual(0, ((TestLogger)dsConfig.Recorder).NumRecord);
+            Assert.AreEqual(0, ((TestLogger)dsConfig.Recorder).NumReward);
+            Assert.AreEqual(0, ((TestLogger)dsConfig.Recorder).NumOutcome);
         }
 
         [TestMethod]
@@ -85,7 +85,7 @@ namespace ClientDecisionServiceTest
                 explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
 
             dsConfig.CommandCenterAddress = this.commandCenterAddress;
-            dsConfig.Logger = new TestLogger();
+            dsConfig.Recorder = new TestLogger();
 
             int numChooseAction = 100;
             var ds = new DecisionService<TestContext>(dsConfig);
@@ -94,7 +94,7 @@ namespace ClientDecisionServiceTest
                 ds.ChooseAction(i.ToString(), new TestContext());
             }
 
-            Assert.AreEqual(numChooseAction, ((TestLogger)dsConfig.Logger).NumRecord);
+            Assert.AreEqual(numChooseAction, ((TestLogger)dsConfig.Recorder).NumRecord);
 
             int numReward = 200;
             for (int i = 0; i < numReward; i++)
@@ -102,7 +102,7 @@ namespace ClientDecisionServiceTest
                 ds.ReportReward(i, i.ToString());
             }
 
-            Assert.AreEqual(numReward, ((TestLogger)dsConfig.Logger).NumReward);
+            Assert.AreEqual(numReward, ((TestLogger)dsConfig.Recorder).NumReward);
 
             int numOutcome = 300;
             for (int i = 0; i < numOutcome; i++)
@@ -110,13 +110,13 @@ namespace ClientDecisionServiceTest
                 ds.ReportOutcome(i.ToString(), i.ToString());
             }
 
-            Assert.AreEqual(numOutcome, ((TestLogger)dsConfig.Logger).NumOutcome);
+            Assert.AreEqual(numOutcome, ((TestLogger)dsConfig.Recorder).NumOutcome);
 
             ds.Flush();
 
-            Assert.AreEqual(0, ((TestLogger)dsConfig.Logger).NumRecord);
-            Assert.AreEqual(0, ((TestLogger)dsConfig.Logger).NumReward);
-            Assert.AreEqual(0, ((TestLogger)dsConfig.Logger).NumOutcome);
+            Assert.AreEqual(0, ((TestLogger)dsConfig.Recorder).NumRecord);
+            Assert.AreEqual(0, ((TestLogger)dsConfig.Recorder).NumReward);
+            Assert.AreEqual(0, ((TestLogger)dsConfig.Recorder).NumOutcome);
         }
 
         [TestMethod]
