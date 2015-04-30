@@ -17,6 +17,9 @@ namespace ClientDecisionService
         internal static readonly TimeSpan ConnectionTimeOut = TimeSpan.FromMinutes(5);
         internal static readonly string AuthenticationScheme = "Bearer";
 
+        internal static readonly string SettingsContainerName = "application-{0}";
+        internal static readonly string LatestSettingsBlobName = "settings";
+
         internal static readonly int RetryCount = 3;
         internal static readonly TimeSpan RetryMinBackoff = TimeSpan.FromMilliseconds(500);
         internal static readonly TimeSpan RetryMaxBackoff = TimeSpan.FromMilliseconds(4000);

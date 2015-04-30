@@ -2,6 +2,7 @@
 using Microsoft.Research.DecisionService.Common;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using MultiWorldTesting;
 using Newtonsoft.Json;
 using System;
@@ -11,6 +12,7 @@ using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -104,28 +106,40 @@ namespace ClientDecisionService
 
         private void DownloadSettings(string token)
         {
-            var retryStrategy = new ExponentialBackoff(DecisionServiceConstants.RetryCount,
-                DecisionServiceConstants.RetryMinBackoff, DecisionServiceConstants.RetryMaxBackoff, DecisionServiceConstants.RetryDeltaBackoff);
-
-            RetryPolicy retryPolicy = new RetryPolicy<DecisionServiceTransientErrorDetectionStrategy>(retryStrategy);
-
-            string metadataJson = retryPolicy.ExecuteAction(() =>
+            string serviceConnectionString = System.Configuration.ConfigurationManager.ConnectionStrings["AzureStorageConnectionString"].ConnectionString;
+            
+            CloudStorageAccount storageAccount = null;
+            bool accountFound = CloudStorageAccount.TryParse(serviceConnectionString, out storageAccount);
+            if (!accountFound || storageAccount == null)
             {
-                WebClient wc = new WebClient();
-                return wc.DownloadString(string.Format(this.commandCenterBaseAddress + DecisionServiceConstants.MetadataAddress, token));
-            });
-
-            if (String.IsNullOrEmpty(metadataJson))
-            {
-                throw new Exception("Unable to download application settings from control center.");
+                throw new Exception("Could not connect to Azure storage for the service.");
             }
 
-            var metadata = JsonConvert.DeserializeObject<ApplicationTransferMetadata>(metadataJson);
-            this.applicationConnectionString = metadata.ConnectionString;
-            this.applicationSettingsBlobUri = metadata.SettingsBlobUri;
-            this.applicationModelBlobUri = metadata.ModelBlobUri;
+            try
+            {
+                CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+                blobClient.DefaultRequestOptions.RetryPolicy = new ExponentialRetry(DecisionServiceConstants.RetryDeltaBackoff, DecisionServiceConstants.RetryCount);
 
-            this.explorer.EnableExplore(metadata.IsExplorationEnabled);
+                CloudBlobContainer settingsContainer = blobClient.GetContainerReference(string.Format(DecisionServiceConstants.SettingsContainerName, token));
+                CloudBlockBlob settingsBlob = settingsContainer.GetBlockBlobReference(DecisionServiceConstants.LatestSettingsBlobName);
+
+                using (var ms = new MemoryStream())
+                {
+                    settingsBlob.DownloadToStream(ms);
+                    string metadataJson = Encoding.UTF8.GetString(ms.ToArray());
+
+                    var metadata = JsonConvert.DeserializeObject<ApplicationTransferMetadata>(metadataJson);
+                    this.applicationConnectionString = metadata.ConnectionString;
+                    this.applicationSettingsBlobUri = metadata.SettingsBlobUri;
+                    this.applicationModelBlobUri = metadata.ModelBlobUri;
+
+                    this.explorer.EnableExplore(metadata.IsExplorationEnabled);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Unable to retrieve application settings from Azure blob storage: " + ex.ToString());
+            }
         }
 
         private void UpdateSettings(string settingsFile)
