@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace JoinServerUploader
@@ -25,7 +26,7 @@ namespace JoinServerUploader
             this.httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(Constants.AuthenticationScheme, authorizationToken);
         }
 
-        public async Task Upload(List<IEvent> e)
+        public async Task UploadAsync(List<IEvent> e, CancellationToken cancelToken)
         {
             List<string> jsonFragments = 
                 e.Select(ev => 
@@ -58,7 +59,7 @@ namespace JoinServerUploader
                     try
                     {
                         currentResponse = await httpClient
-                            .PostAsync(Constants.ServicePostAddress, new StreamContent(jsonMemStream))
+                            .PostAsync(Constants.ServicePostAddress, new StreamContent(jsonMemStream), cancelToken)
                             .ConfigureAwait(false);
                     }
                     catch (TaskCanceledException ex) // HttpClient throws this on timeout
