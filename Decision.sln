@@ -24,6 +24,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientDecisionServiceSample
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientDecisionServiceWebSample", "ClientDecisionServiceWebSample\ClientDecisionServiceWebSample.csproj", "{EB67FB8B-508D-44DD-B413-85C52819E764}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JoinServerUploader", "JoinServerUploader\JoinServerUploader.csproj", "{E2E33DE3-C3C4-47F4-AC39-5D10A0332189}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -112,6 +114,18 @@ Global
 		{EB67FB8B-508D-44DD-B413-85C52819E764}.Test|x64.Build.0 = Release|x64
 		{EB67FB8B-508D-44DD-B413-85C52819E764}.Test|x86.ActiveCfg = Release|x86
 		{EB67FB8B-508D-44DD-B413-85C52819E764}.Test|x86.Build.0 = Release|x86
+		{E2E33DE3-C3C4-47F4-AC39-5D10A0332189}.Debug|x64.ActiveCfg = Debug|x64
+		{E2E33DE3-C3C4-47F4-AC39-5D10A0332189}.Debug|x64.Build.0 = Debug|x64
+		{E2E33DE3-C3C4-47F4-AC39-5D10A0332189}.Debug|x86.ActiveCfg = Debug|x86
+		{E2E33DE3-C3C4-47F4-AC39-5D10A0332189}.Debug|x86.Build.0 = Debug|x86
+		{E2E33DE3-C3C4-47F4-AC39-5D10A0332189}.Release|x64.ActiveCfg = Release|x64
+		{E2E33DE3-C3C4-47F4-AC39-5D10A0332189}.Release|x64.Build.0 = Release|x64
+		{E2E33DE3-C3C4-47F4-AC39-5D10A0332189}.Release|x86.ActiveCfg = Release|x86
+		{E2E33DE3-C3C4-47F4-AC39-5D10A0332189}.Release|x86.Build.0 = Release|x86
+		{E2E33DE3-C3C4-47F4-AC39-5D10A0332189}.Test|x64.ActiveCfg = Release|x64
+		{E2E33DE3-C3C4-47F4-AC39-5D10A0332189}.Test|x64.Build.0 = Release|x64
+		{E2E33DE3-C3C4-47F4-AC39-5D10A0332189}.Test|x86.ActiveCfg = Release|x86
+		{E2E33DE3-C3C4-47F4-AC39-5D10A0332189}.Test|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
