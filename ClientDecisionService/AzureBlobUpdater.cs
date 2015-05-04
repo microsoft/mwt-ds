@@ -96,7 +96,7 @@ namespace ClientDecisionService
                     {
                         var errorMessages = new List<string>(new string[]
                         {
-                            "Failed to retrieve new blob information for " + this.blobName,
+                            "Failed to retrieve new blob information for " + this.blobName + " at " + this.blobAddress,
                             ex.ToString()
                         });
 
@@ -107,7 +107,7 @@ namespace ClientDecisionService
                             switch (result.HttpStatusCode)
                             {
                                 case (int)HttpStatusCode.NotFound:
-                                    Trace.TraceWarning("Did not find a blob for {0}", this.blobName);
+                                    Trace.TraceWarning("Did not find a blob for {0} at {1}", this.blobName, this.blobAddress);
                                     logErrors = false;
                                     break;
                                 case (int)HttpStatusCode.NotModified:

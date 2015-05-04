@@ -45,7 +45,7 @@ namespace JoinServerUploader
             this.httpClient = new HttpClient();
             this.httpClient.BaseAddress = new Uri(this.loggingServiceBaseAddress);
             this.httpClient.Timeout = Constants.ConnectionTimeOut;
-            this.httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(Constants.AuthenticationScheme, authorizationToken);
+            this.httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(Constants.TokenAuthenticationScheme, authorizationToken);
 
             this.eventSource = new TransformBlock<IEvent, string>(ev => JsonConvert.SerializeObject(new ExperimentalUnitFragment { Id = ev.Key, Value = ev }),
                 new ExecutionDataflowBlockOptions

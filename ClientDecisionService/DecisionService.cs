@@ -45,7 +45,8 @@ namespace ClientDecisionService
                     config.LoggingServiceAddress);
 
                 this.commandCenterBaseAddress = config.CommandCenterAddress ?? DecisionServiceConstants.CommandCenterAddress;
-                this.DownloadSettings(config.AuthorizationToken);
+                
+                ApplicationTransferMetadata metadata = this.GetBlobLocations(config.AuthorizationToken, config.AzureStorageConnectionString);
 
                 this.settingsBlobPollDelay = config.PollingForSettingsPeriod == TimeSpan.Zero ? DecisionServiceConstants.PollDelay : config.PollingForSettingsPeriod;
                 this.modelBlobPollDelay = config.PollingForModelPeriod == TimeSpan.Zero ? DecisionServiceConstants.PollDelay : config.PollingForModelPeriod;
@@ -54,8 +55,8 @@ namespace ClientDecisionService
                 {
                     this.blobUpdater = new AzureBlobUpdater(
                         "settings",
-                        this.applicationSettingsBlobUri,
-                        this.applicationConnectionString,
+                        metadata.SettingsBlobUri,
+                        metadata.ConnectionString,
                         config.BlobOutputDir,
                         this.settingsBlobPollDelay,
                         this.UpdateSettings,
@@ -63,7 +64,7 @@ namespace ClientDecisionService
                 }
                 
                 this.policy = new DecisionServicePolicy<TContext>(
-                    this.applicationModelBlobUri, this.applicationConnectionString,
+                    metadata.ModelBlobUri, metadata.ConnectionString,
                     config.BlobOutputDir,
                     this.modelBlobPollDelay,
                     this.InternalPolicyUpdated,
@@ -159,12 +160,29 @@ namespace ClientDecisionService
 
         public void Dispose() { }
 
-        private void DownloadSettings(string token)
+        private ApplicationTransferMetadata GetBlobLocations(string token, string userStorageConnectionString)
         {
-            string serviceConnectionString = System.Configuration.ConfigurationManager.ConnectionStrings["AzureStorageConnectionString"].ConnectionString;
-            
+            ApplicationTransferMetadata metadata = null;
             CloudStorageAccount storageAccount = null;
-            bool accountFound = CloudStorageAccount.TryParse(serviceConnectionString, out storageAccount);
+
+            string connectionString = string.Empty;
+            string blobContainerName = string.Empty;
+            string blobName = string.Empty;
+
+            if (userStorageConnectionString != null)
+            {
+                connectionString = userStorageConnectionString;
+                blobContainerName = string.Format(DecisionServiceConstants.SettingsContainerName, token);
+                blobName = DecisionServiceConstants.LatestSettingsBlobName;
+            }
+            else
+            {
+                connectionString = DecisionServiceConstants.ServiceAzureStorageConnectionString;
+                blobContainerName = DecisionServiceConstants.ApplicationBlobLocationContainerName;
+                blobName = token;
+            }
+
+            bool accountFound = CloudStorageAccount.TryParse(connectionString, out storageAccount);
             if (!accountFound || storageAccount == null)
             {
                 throw new Exception("Could not connect to Azure storage for the service.");
@@ -175,26 +193,20 @@ namespace ClientDecisionService
                 CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
                 blobClient.DefaultRequestOptions.RetryPolicy = new ExponentialRetry(DecisionServiceConstants.RetryDeltaBackoff, DecisionServiceConstants.RetryCount);
 
-                CloudBlobContainer settingsContainer = blobClient.GetContainerReference(string.Format(DecisionServiceConstants.SettingsContainerName, token));
-                CloudBlockBlob settingsBlob = settingsContainer.GetBlockBlobReference(DecisionServiceConstants.LatestSettingsBlobName);
+                CloudBlobContainer settingsContainer = blobClient.GetContainerReference(blobContainerName);
+                CloudBlockBlob settingsBlob = settingsContainer.GetBlockBlobReference(blobName);
 
                 using (var ms = new MemoryStream())
                 {
                     settingsBlob.DownloadToStream(ms);
-                    string metadataJson = Encoding.UTF8.GetString(ms.ToArray());
-
-                    var metadata = JsonConvert.DeserializeObject<ApplicationTransferMetadata>(metadataJson);
-                    this.applicationConnectionString = metadata.ConnectionString;
-                    this.applicationSettingsBlobUri = metadata.SettingsBlobUri;
-                    this.applicationModelBlobUri = metadata.ModelBlobUri;
-
-                    this.explorer.EnableExplore(metadata.IsExplorationEnabled);
+                    metadata = JsonConvert.DeserializeObject<ApplicationTransferMetadata>(Encoding.UTF8.GetString(ms.ToArray()));
                 }
             }
             catch (Exception ex)
             {
                 throw new Exception("Unable to retrieve application settings from Azure blob storage: " + ex.ToString());
             }
+            return metadata;
         }
 
         private void UpdateSettings(string settingsFile)
@@ -248,10 +260,6 @@ namespace ClientDecisionService
         private readonly TimeSpan modelBlobPollDelay;
 
         AzureBlobUpdater blobUpdater;
-
-        private string applicationConnectionString;
-        private string applicationSettingsBlobUri;
-        private string applicationModelBlobUri;
 
         private readonly IExplorer<TContext> explorer;
         private readonly IRecorder<TContext> recorder;

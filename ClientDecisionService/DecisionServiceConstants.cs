@@ -12,7 +12,10 @@ namespace ClientDecisionService
         internal static readonly string ModelAddress = "/Application/GetSelectedModel?token={0}&latest={1}";
         internal static readonly string MetadataAddress = "/Application/GetMetadata?token={0}";
 
-        internal static readonly string SettingsContainerName = "application-{0}";
+        internal static readonly string ServiceAzureStorageConnectionString = "DefaultEndpointsProtocol=https;AccountName=;AccountKey=";
+
+        internal static readonly string ApplicationBlobLocationContainerName = "app-locations";
+        internal static readonly string SettingsContainerName = "mwt-settings-{0}";
         internal static readonly string LatestSettingsBlobName = "settings";
 
         internal static readonly int RetryCount = 3;
