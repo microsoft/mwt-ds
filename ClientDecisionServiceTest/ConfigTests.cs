@@ -27,8 +27,10 @@ namespace ClientDecisionServiceTest
             commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false);
 
             var dsConfig = new DecisionServiceConfiguration<TestContext>(
-                authorizationToken: authToken,
-                explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: 2));
+                explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: 2))
+            {
+                AuthorizationToken = authToken
+            };
 
             dsConfig.CommandCenterAddress = this.commandCenterAddress;
             dsConfig.LoggingServiceAddress = this.joinServerAddress;
@@ -63,8 +65,10 @@ namespace ClientDecisionServiceTest
             commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false);
 
             var dsConfig = new DecisionServiceConfiguration<TestContext>(
-                authorizationToken: authToken,
-                explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: 2));
+                explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: 2))
+            {
+                AuthorizationToken = authToken
+            };
 
             dsConfig.CommandCenterAddress = this.commandCenterAddress;
             dsConfig.LoggingServiceAddress = this.joinServerAddress;
@@ -102,8 +106,10 @@ namespace ClientDecisionServiceTest
             commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false);
 
             var dsConfig = new DecisionServiceConfiguration<TestContext>(
-                authorizationToken: authToken,
-                explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: 2));
+                explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: 2))
+            {
+                AuthorizationToken = authToken
+            };
 
             dsConfig.CommandCenterAddress = this.commandCenterAddress;
             dsConfig.LoggingServiceAddress = this.joinServerAddress;

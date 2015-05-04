@@ -20,8 +20,10 @@ namespace ClientDecisionServiceTest
         public void TestOfflineModeArgument()
         {
             var dsConfig = new DecisionServiceConfiguration<TestContext>(
-                authorizationToken: "my token",
-                explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: 2));
+                explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: 2))
+            {
+                AuthorizationToken = "my token"
+            };
 
             dsConfig.OfflineMode = true;
 
@@ -39,8 +41,10 @@ namespace ClientDecisionServiceTest
         public void TestOfflineModeCustomLogger()
         {
             var dsConfig = new DecisionServiceConfiguration<TestContext>(
-                authorizationToken: "my token",
-                explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
+                explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions))
+            {
+                AuthorizationToken = "my token"
+            };
 
             dsConfig.OfflineMode = true;
             dsConfig.Recorder = new TestLogger();
@@ -81,8 +85,10 @@ namespace ClientDecisionServiceTest
         public void TestOnlineModeCustomLogger()
         {
             var dsConfig = new DecisionServiceConfiguration<TestContext>(
-                authorizationToken: this.authToken,
-                explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
+                explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions))
+            {
+                AuthorizationToken = this.authToken
+            };
 
             dsConfig.CommandCenterAddress = this.commandCenterAddress;
             dsConfig.Recorder = new TestLogger();
@@ -123,8 +129,10 @@ namespace ClientDecisionServiceTest
         public void TestOnlineModeInvalidToken()
         {
             var dsConfig = new DecisionServiceConfiguration<TestContext>(
-                authorizationToken: this.authToken,
-                explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
+                explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions))
+            {
+                AuthorizationToken = this.authToken
+            };
 
             HttpStatusCode exceptionCode = HttpStatusCode.OK;
             try

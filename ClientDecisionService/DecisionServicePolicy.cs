@@ -1,15 +1,7 @@
-﻿using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
-using MultiWorldTesting;
-using Newtonsoft.Json;
+﻿using MultiWorldTesting;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
-using System.IO;
-using System.Net;
-using System.Threading;
 
 namespace ClientDecisionService
 {

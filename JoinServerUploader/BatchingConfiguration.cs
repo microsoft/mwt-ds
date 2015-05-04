@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ClientDecisionService
+namespace JoinServerUploader
 {
     /// <summary>
     /// Represents a collection of batching criteria.  
@@ -34,14 +34,14 @@ namespace ClientDecisionService
     }
 
     public enum BatchUploadRetryPolicy
-    { 
+    {
         /// <summary>
         /// No retry when upload fails, data is dropped.
         /// </summary>
         None = 0,
 
         /// <summary>
-        /// Retry when upload fails.
+        /// Perform an exponential-backoff retry strategy with the upload.
         /// </summary>
         Retry
     }

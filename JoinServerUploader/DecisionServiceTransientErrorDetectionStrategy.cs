@@ -4,7 +4,7 @@ using System.Net;
 
 namespace JoinServerUploader
 {
-    class DecisionServiceTransientErrorDetectionStrategy : ITransientErrorDetectionStrategy
+    class JoinServiceTransientErrorDetectionStrategy : ITransientErrorDetectionStrategy
     {
         public bool IsTransient(Exception ex)
         {

@@ -122,6 +122,10 @@
       <Project>{8400da16-1f46-4a31-a126-bbe16f62bfd7}</Project>
       <Name>explore_clr</Name>
     </ProjectReference>
+    <ProjectReference Include="..\JoinServerUploader\JoinServerUploader.csproj">
+      <Project>{e2e33de3-c3c4-47f4-ac39-5d10a0332189}</Project>
+      <Name>JoinServerUploader</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />

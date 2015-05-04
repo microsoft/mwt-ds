@@ -29,6 +29,11 @@ namespace ClientDecisionService
         /// <param name="config">The configuration object.</param>
         public DecisionService(DecisionServiceConfiguration<TContext> config)
         {
+            if (config.AzureStorageConnectionString == null && config.AuthorizationToken == null)
+            {
+                throw new ArgumentException("Either connection string or authorization token must be set to a valid value.");
+            }
+
             explorer = config.Explorer;
 
             if (!config.OfflineMode)

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reactive;
 using System.Reactive.Subjects;
 
-namespace ClientDecisionService
+namespace JoinServerUploader
 {
     public static class ExtensionMethods
     {

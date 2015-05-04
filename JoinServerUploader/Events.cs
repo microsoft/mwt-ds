@@ -15,7 +15,7 @@ namespace JoinServerUploader
         EventType Type { get; }
 
         [JsonIgnore]
-        string ID { get; set; }
+        string Key { get; set; }
     }
 
     public class Interaction : IEvent
@@ -28,7 +28,7 @@ namespace JoinServerUploader
             }
         }
 
-        public string ID { get; set; }
+        public string Key { get; set; }
 
         [JsonProperty(PropertyName = "a")]
         public int Action { get; set; }
@@ -51,7 +51,7 @@ namespace JoinServerUploader
             }
         }
 
-        public string ID { get; set; }
+        public string Key { get; set; }
 
         [JsonProperty(PropertyName = "v", NullValueHandling = NullValueHandling.Ignore)]
         [JsonConverter(typeof(RawStringConverter))]

@@ -1,4 +1,5 @@
-﻿using MultiWorldTesting;
+﻿using JoinServerUploader;
+using MultiWorldTesting;
 using Newtonsoft.Json;
 using System;
 
@@ -9,48 +10,25 @@ namespace ClientDecisionService
     /// </summary>
     public class DecisionServiceConfiguration<TContext>
     {
-        // TODO: add xml comment once it's decided what to do with the token in offline mode.
-        public DecisionServiceConfiguration(string authorizationToken, IExplorer<TContext> explorer)
+        public DecisionServiceConfiguration(IExplorer<TContext> explorer)
         {
-            if (authorizationToken == null)
-            {
-                throw new ArgumentNullException("connectionString", "Authorization token cannot be null");
-            }
-
             if (explorer == null)
             {
                 throw new ArgumentNullException("explorer", "Exploration algorithm cannot be null");
             }
 
-            this.AuthorizationToken = authorizationToken;
-            this.Explorer = explorer;
-        }
-
-        public DecisionServiceConfiguration(string connectionString, IExplorer<TContext> explorer)
-        {
-            if (connectionString == null)
-            {
-                throw new ArgumentNullException("connectionString", "Connection string cannot be null");
-            }
-
-            if (explorer == null)
-            {
-                throw new ArgumentNullException("explorer", "Exploration algorithm cannot be null");
-            }
-
-            this.AzureStorageConnectionString = connectionString;
             this.Explorer = explorer;
         }
 
         /// <summary>
         /// The authorization token that is used for request authentication.
         /// </summary>
-        public string AuthorizationToken { get; private set; }
+        public string AuthorizationToken { get; set; }
 
         /// <summary>
         /// The connection string for Azure storage where settings and models are stored.
         /// </summary>
-        public string AzureStorageConnectionString { get; private set; }
+        public string AzureStorageConnectionString { get; set; }
 
         /// <summary>
         /// The <see cref="IExplorer{TContext}"/> object representing an exploration algorithm.

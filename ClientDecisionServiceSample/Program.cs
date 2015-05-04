@@ -1,4 +1,5 @@
 ﻿using ClientDecisionService;
+using JoinServerUploader;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using MultiWorldTesting;
@@ -164,7 +165,6 @@ namespace ClientDecisionServiceSample
         {
             // Create configuration for the decision service
             var serviceConfig = new DecisionServiceConfiguration<UserContext>(
-                authorizationToken: "",
                 explorer: new EpsilonGreedyExplorer<UserContext>(new UserPolicy(), epsilon: 0.2f, numActions: 10))
             //explorer = new TauFirstExplorer<MyContext>(new UserPolicy(), tau: 50, numActions: 10))
             //explorer = new BootstrapExplorer<MyContext>(new IPolicy<MyContext>[2] { new UserPolicy(), new UserPolicy() }, numActions: 10))
@@ -172,6 +172,7 @@ namespace ClientDecisionServiceSample
             //explorer = new GenericExplorer<MyContext>(new UserScorer(), numActions: 10))
             {
                 // Configure batching logic if desired
+                AuthorizationToken = "",
                 JoinServiceBatchConfiguration = new BatchingConfiguration()
                 {
                     MaxDuration = TimeSpan.FromMilliseconds(5000),
@@ -227,9 +228,9 @@ namespace ClientDecisionServiceSample
 
             var serviceConfig = new DecisionServiceConfiguration<UserContext>(
                 //authorizationToken: "c01ff675-5710-4814-a961-d03d2d6bce65",
-                authorizationToken: "10198550-a074-4f9c-8b15-cc389bc2bbbe",
                 explorer: new EpsilonGreedyExplorer<UserContext>(new UserPolicy(), epsilon: 0.2f, numActions: 2))
             {
+                AuthorizationToken = "10198550-a074-4f9c-8b15-cc389bc2bbbe",
                 JoinServiceBatchConfiguration = new BatchingConfiguration()
                 {
                     MaxDuration = TimeSpan.FromSeconds(1),

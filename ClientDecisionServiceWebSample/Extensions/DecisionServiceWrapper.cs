@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web;
 using MultiWorldTesting;
 using ClientDecisionService;
+using JoinServerUploader;
 
 namespace ClientDecisionServiceWebSample.Extensions
 {
@@ -22,8 +23,9 @@ namespace ClientDecisionServiceWebSample.Extensions
 
             if (Configuration == null)
             {
-                Configuration = new DecisionServiceConfiguration<TContext>(appToken, Explorer)
+                Configuration = new DecisionServiceConfiguration<TContext>(Explorer)
                 {
+                    AuthorizationToken = appToken,
                     BlobOutputDir = modelOutputDir,
                     JoinServiceBatchConfiguration = new BatchingConfiguration
                     {
