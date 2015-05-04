@@ -143,7 +143,7 @@
     <Compile Include="DecisionServiceConfiguration.cs" />
     <Compile Include="DecisionServiceConstants.cs" />
     <Compile Include="DecisionServicePolicy.cs" />
-    <Compile Include="DecisionServiceLogger.cs" />
+    <Compile Include="JoinServiceLogger.cs" />
     <Compile Include="Events.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="ILogger.cs" />

@@ -172,7 +172,7 @@ namespace ClientDecisionServiceSample
             //explorer = new GenericExplorer<MyContext>(new UserScorer(), numActions: 10))
             {
                 // Configure batching logic if desired
-                BatchConfig = new BatchingConfiguration()
+                JoinServiceBatchConfiguration = new BatchingConfiguration()
                 {
                     MaxDuration = TimeSpan.FromMilliseconds(5000),
                     MaxEventCount = 2,
@@ -230,7 +230,7 @@ namespace ClientDecisionServiceSample
                 authorizationToken: "10198550-a074-4f9c-8b15-cc389bc2bbbe",
                 explorer: new EpsilonGreedyExplorer<UserContext>(new UserPolicy(), epsilon: 0.2f, numActions: 2))
             {
-                BatchConfig = new BatchingConfiguration()
+                JoinServiceBatchConfiguration = new BatchingConfiguration()
                 {
                     MaxDuration = TimeSpan.FromSeconds(1),
                     MaxEventCount = 1024 * 4,

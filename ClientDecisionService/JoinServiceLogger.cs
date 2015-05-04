@@ -16,9 +16,9 @@ using Microsoft.Practices.EnterpriseLibrary.TransientFaultHandling;
 
 namespace ClientDecisionService
 {
-    internal class DecisionServiceLogger<TContext> : ILogger<TContext>, IDisposable
+    internal class JoinServiceLogger<TContext> : ILogger<TContext>, IDisposable
     {
-        public DecisionServiceLogger(BatchingConfiguration batchConfig, 
+        public JoinServiceLogger(BatchingConfiguration batchConfig, 
             Func<TContext, string> contextSerializer, 
             string authorizationToken,
             string loggingServiceBaseAddress) 

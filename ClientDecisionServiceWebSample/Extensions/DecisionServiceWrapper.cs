@@ -25,7 +25,7 @@ namespace ClientDecisionServiceWebSample.Extensions
                 Configuration = new DecisionServiceConfiguration<TContext>(appToken, Explorer)
                 {
                     BlobOutputDir = modelOutputDir,
-                    BatchConfig = new BatchingConfiguration
+                    JoinServiceBatchConfiguration = new BatchingConfiguration
                     {
                         MaxDuration = TimeSpan.FromSeconds(5),
                         MaxBufferSizeInBytes = 10,

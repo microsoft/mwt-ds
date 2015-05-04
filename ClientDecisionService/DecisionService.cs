@@ -23,14 +23,18 @@ namespace ClientDecisionService
     /// </summary>
     public class DecisionService<TContext> : IDisposable
     {
+        /// <summary>
+        /// Construct a <see cref="DecisionService{TContext}"/> object with the specified <see cref="DecisionServiceConfiguration{TContext}"/> configuration.
+        /// </summary>
+        /// <param name="config">The configuration object.</param>
         public DecisionService(DecisionServiceConfiguration<TContext> config)
         {
             explorer = config.Explorer;
 
             if (!config.OfflineMode)
             {
-                this.recorder = config.Recorder ?? new DecisionServiceLogger<TContext>(
-                    config.BatchConfig,
+                this.recorder = config.Recorder ?? new JoinServiceLogger<TContext>(
+                    config.JoinServiceBatchConfiguration,
                     config.ContextJsonSerializer,
                     config.AuthorizationToken,
                     config.LoggingServiceAddress);
@@ -57,7 +61,7 @@ namespace ClientDecisionService
                     this.applicationModelBlobUri, this.applicationConnectionString,
                     config.BlobOutputDir,
                     this.modelBlobPollDelay,
-                    this.UpdatePolicy,
+                    this.InternalPolicyUpdated,
                     config.ModelPollFailureCallback);
             }
             else
@@ -72,7 +76,11 @@ namespace ClientDecisionService
             mwt = new MwtExplorer<TContext>(config.AuthorizationToken, this.recorder);
         }
 
-        /*ReportSimpleReward*/
+        /// <summary>
+        /// Report a simple float reward for the experimental unit identified by the given unique key.
+        /// </summary>
+        /// <param name="reward">The simple float reward.</param>
+        /// <param name="uniqueKey">The unique key of the experimental unit.</param>
         public void ReportReward(float reward, string uniqueKey)
         {
             ILogger<TContext> logger = this.recorder as ILogger<TContext>;
@@ -82,6 +90,14 @@ namespace ClientDecisionService
             }
         }
 
+        /// <summary>
+        /// Report an outcome in JSON format for the experimental unit identified by the given unique key.
+        /// </summary>
+        /// <param name="outcomeJson">The outcome object in JSON format.</param>
+        /// <param name="uniqueKey">The unique key of the experimental unit.</param>
+        /// <remarks>
+        /// Outcomes are general forms of observations that can be converted to simple float rewards as required by some ML algorithms for optimization.
+        /// </remarks>
         public void ReportOutcome(string outcomeJson, string uniqueKey)
         {
             ILogger<TContext> logger = this.recorder as ILogger<TContext>;
@@ -91,11 +107,32 @@ namespace ClientDecisionService
             }
         }
 
+        /// <summary>
+        /// Performs explore-exploit to choose an action based on the specified context.
+        /// </summary>
+        /// <param name="uniqueKey">The unique key of the experimental unit.</param>
+        /// <param name="context">The context for this interaction.</param>
+        /// <returns>uint</returns>
+        /// <remarks>
+        /// This method will send logging data to the <see cref="IRecorder{TContext}"/> object specified at initialization.
+        /// </remarks>
         public uint ChooseAction(string uniqueKey, TContext context)
         {
             return mwt.ChooseAction(explorer, uniqueKey, context);
         }
 
+        /// <summary>
+        /// Update decision service with a new <see cref="IPolicy{TContext}"/> object that will be used by the exploration algorithm.
+        /// </summary>
+        /// <param name="newPolicy">The new <see cref="IPolicy{TContext}"/> object.</param>
+        public void UpdatePolicy(IPolicy<TContext> newPolicy)
+        {
+            UpdateInternalPolicy(newPolicy);
+        }
+
+        /// <summary>
+        /// Flush any pending data to be logged and request to stop all polling as appropriate.
+        /// </summary>
         public void Flush()
         {
             if (blobUpdater != null)
@@ -178,7 +215,12 @@ namespace ClientDecisionService
             
         }
 
-        private void UpdatePolicy()
+        private void InternalPolicyUpdated()
+        {
+            UpdateInternalPolicy(policy);
+        }
+
+        private void UpdateInternalPolicy(IPolicy<TContext> newPolicy)
         {
             IConsumePolicy<TContext> consumePolicy = explorer as IConsumePolicy<TContext>;
             if (consumePolicy != null)

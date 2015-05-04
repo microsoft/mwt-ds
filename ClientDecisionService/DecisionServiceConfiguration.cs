@@ -9,6 +9,7 @@ namespace ClientDecisionService
     /// </summary>
     public class DecisionServiceConfiguration<TContext>
     {
+        // TODO: add xml comment once it's decided what to do with the token in offline mode.
         public DecisionServiceConfiguration(string authorizationToken, IExplorer<TContext> explorer)
         {
             if (authorizationToken == null)
@@ -24,13 +25,30 @@ namespace ClientDecisionService
             this.AuthorizationToken = authorizationToken;
             this.Explorer = explorer;
         }
+
+        /// <summary>
+        /// The authorization token that is used for request authentication.
+        /// </summary>
         public string AuthorizationToken { get; private set; }
+
+        /// <summary>
+        /// The <see cref="IExplorer{TContext}"/> object representing an exploration algorithm.
+        /// </summary>
         public IExplorer<TContext> Explorer { get; private set; }
 
         #region Optional Parameters
 
+        /// <summary>
+        /// Indicates whether to operate in offline mode where polling and join service logging are turned off.
+        /// </summary>
+        /// <remarks>
+        /// In offline mode, a custom <see cref="IRecorder{TContext}"/> object must be defined.
+        /// </remarks>
         public bool OfflineMode { get; set; }
 
+        /// <summary>
+        /// Specifies a custom <see cref="IRecorder{TContext}"/> object to be used for logging exploration data. 
+        /// </summary>
         public IRecorder<TContext> Recorder 
         { 
             get { return recorder; } 
@@ -39,8 +57,11 @@ namespace ClientDecisionService
                 if (value == null) throw new ArgumentNullException("Recorder cannot be null");
                 recorder = value;
             } 
-        
         }
+
+        /// <summary>
+        /// Specifies the output directory on disk for blob download (e.g. of settings or model files).
+        /// </summary>
         public string BlobOutputDir 
         { 
             get { return blobOutputDir; } 
@@ -51,7 +72,13 @@ namespace ClientDecisionService
             } 
         }
         
-        public BatchingConfiguration BatchConfig 
+        /// <summary>
+        /// Specifies the batching configuration when uploading data to join service.
+        /// </summary>
+        /// <remarks>
+        /// In offline mode, batching configuration will not be used since the join service recorder is turned off.
+        /// </remarks>
+        public BatchingConfiguration JoinServiceBatchConfiguration 
         {
             get { return batchConfig; }
             set 
@@ -61,6 +88,10 @@ namespace ClientDecisionService
             } 
         }
         
+        // TODO: is this needed for v1?
+        /// <summary>
+        /// A custom serializer for the context.
+        /// </summary>
         public Func<TContext, string> ContextJsonSerializer 
         {
             get { return contextJsonSerializer; }
@@ -71,6 +102,12 @@ namespace ClientDecisionService
             } 
         }
         
+        /// <summary>
+        /// Specifies the address for a custom HTTP logging service.
+        /// </summary>
+        /// <remarks>
+        /// When specified, this will override the default join service logging provided by the Multiworld Testing Service.
+        /// </remarks>
         public string LoggingServiceAddress 
         {
             get { return loggingServiceAddress; }
@@ -81,6 +118,13 @@ namespace ClientDecisionService
             } 
         }
         
+        /// <summary>
+        /// Specifies the address for a custom HTTP command center.
+        /// </summary>
+        /// <remarks>
+        /// Command center is responsible for storing & distributing centralized config settings across different clients.
+        /// When specified, this will override the default command center provided by the Multiworld Testing Service.
+        /// </remarks>
         public string CommandCenterAddress 
         {
             get { return commandCenterAddress; }
@@ -91,6 +135,12 @@ namespace ClientDecisionService
             } 
         }
 
+        /// <summary>
+        /// Specifies the polling period to check for updated application settings.
+        /// </summary>
+        /// <remarks>
+        /// Polling is turned off if this value is set to <see cref="TimeSpan.MinValue"/>.
+        /// </remarks>
         public TimeSpan PollingForSettingsPeriod
         {
             get { return pollingForSettingsPeriod; }
@@ -101,6 +151,12 @@ namespace ClientDecisionService
             }
         }
 
+        /// <summary>
+        /// Specifies the polling period to check for updated ML model.
+        /// </summary>
+        /// /// <remarks>
+        /// Polling is turned off if this value is set to <see cref="TimeSpan.MinValue"/>.
+        /// </remarks>
         public TimeSpan PollingForModelPeriod
         {
             get { return pollingForModelPeriod; }
@@ -111,6 +167,9 @@ namespace ClientDecisionService
             }
         }
 
+        public Action<Exception> ModelPollFailureCallback { get; set; }
+        public Action<Exception> SettingsPollFailureCallback { get; set; }
+
         private IRecorder<TContext> recorder;
         private string blobOutputDir;
         private BatchingConfiguration batchConfig;
@@ -119,10 +178,6 @@ namespace ClientDecisionService
         private string commandCenterAddress;
         private TimeSpan pollingForSettingsPeriod;
         private TimeSpan pollingForModelPeriod;
-
-        // call-backs
-        public Action<Exception> ModelPollFailureCallback { get; set; }
-        public Action<Exception> SettingsPollFailureCallback { get; set; }
 
         #endregion
     }
