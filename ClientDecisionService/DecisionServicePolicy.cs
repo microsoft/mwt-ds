@@ -19,9 +19,12 @@ namespace ClientDecisionService
             string modelOutputDir, TimeSpan pollDelay, 
             Action notifyPolicyUpdate, Action<Exception> modelPollFailureCallback)
         {
-            this.blobUpdater = new AzureBlobUpdater("model", modelAddress,
-                modelConnectionString, modelOutputDir, pollDelay, 
-                this.ModelUpdate, modelPollFailureCallback);
+            if (pollDelay != TimeSpan.MinValue)
+            {
+                this.blobUpdater = new AzureBlobUpdater("model", modelAddress,
+                   modelConnectionString, modelOutputDir, pollDelay,
+                   this.ModelUpdate, modelPollFailureCallback);
+            }
 
             this.notifyPolicyUpdate = notifyPolicyUpdate;
         }

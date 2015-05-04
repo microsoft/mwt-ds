@@ -33,7 +33,7 @@ namespace ClientDecisionServiceTest
             dsConfig.CommandCenterAddress = this.commandCenterAddress;
             dsConfig.LoggingServiceAddress = this.joinServerAddress;
             dsConfig.BlobOutputDir = @"c:\";
-            dsConfig.PollingPeriod = TimeSpan.FromMilliseconds(500);
+            dsConfig.PollingForSettingsPeriod = TimeSpan.FromMilliseconds(500);
 
             var cancelTokenSource = new CancellationTokenSource();
             bool exceptionIsExpected = false;
@@ -69,7 +69,7 @@ namespace ClientDecisionServiceTest
             dsConfig.CommandCenterAddress = this.commandCenterAddress;
             dsConfig.LoggingServiceAddress = this.joinServerAddress;
             dsConfig.BlobOutputDir = @"c:\windows";
-            dsConfig.PollingPeriod = TimeSpan.FromMilliseconds(500);
+            dsConfig.PollingForSettingsPeriod = TimeSpan.FromMilliseconds(500);
 
             var cancelTokenSource = new CancellationTokenSource();
             bool exceptionIsExpected = false;
@@ -108,7 +108,7 @@ namespace ClientDecisionServiceTest
             dsConfig.CommandCenterAddress = this.commandCenterAddress;
             dsConfig.LoggingServiceAddress = this.joinServerAddress;
             dsConfig.BlobOutputDir = settingsPath;
-            dsConfig.PollingPeriod = TimeSpan.FromMilliseconds(500);
+            dsConfig.PollingForSettingsPeriod = TimeSpan.FromMilliseconds(500);
 
             var ds = new DecisionService<TestContext>(dsConfig);
 

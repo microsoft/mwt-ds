@@ -91,13 +91,23 @@ namespace ClientDecisionService
             } 
         }
 
-        public TimeSpan PollingPeriod
+        public TimeSpan PollingForSettingsPeriod
         {
-            get { return pollingPeriod; }
+            get { return pollingForSettingsPeriod; }
             set 
             {
                 if (value <= TimeSpan.FromSeconds(0)) throw new ArgumentNullException("Invalid polling period value.");
-                pollingPeriod = value;
+                pollingForSettingsPeriod = value;
+            }
+        }
+
+        public TimeSpan PollingForModelPeriod
+        {
+            get { return pollingForModelPeriod; }
+            set
+            {
+                if (value <= TimeSpan.FromSeconds(0)) throw new ArgumentNullException("Invalid polling period value.");
+                pollingForModelPeriod = value;
             }
         }
 
@@ -107,7 +117,8 @@ namespace ClientDecisionService
         private Func<TContext, string> contextJsonSerializer;
         private string loggingServiceAddress;
         private string commandCenterAddress;
-        private TimeSpan pollingPeriod;
+        private TimeSpan pollingForSettingsPeriod;
+        private TimeSpan pollingForModelPeriod;
 
         // call-backs
         public Action<Exception> ModelPollFailureCallback { get; set; }

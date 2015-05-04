@@ -38,21 +38,25 @@ namespace ClientDecisionService
                 this.commandCenterBaseAddress = config.CommandCenterAddress ?? DecisionServiceConstants.CommandCenterAddress;
                 this.DownloadSettings(config.AuthorizationToken);
 
-                this.blobPollDelay = config.PollingPeriod == TimeSpan.Zero ? DecisionServiceConstants.PollDelay : config.PollingPeriod;
+                this.settingsBlobPollDelay = config.PollingForSettingsPeriod == TimeSpan.Zero ? DecisionServiceConstants.PollDelay : config.PollingForSettingsPeriod;
+                this.modelBlobPollDelay = config.PollingForModelPeriod == TimeSpan.Zero ? DecisionServiceConstants.PollDelay : config.PollingForModelPeriod;
 
-                this.blobUpdater = new AzureBlobUpdater(
-                    "settings",
-                    this.applicationSettingsBlobUri,
-                    this.applicationConnectionString,
-                    config.BlobOutputDir,
-                    this.blobPollDelay,
-                    this.UpdateSettings,
-                    config.SettingsPollFailureCallback);
-
+                if (this.settingsBlobPollDelay != TimeSpan.MinValue)
+                {
+                    this.blobUpdater = new AzureBlobUpdater(
+                        "settings",
+                        this.applicationSettingsBlobUri,
+                        this.applicationConnectionString,
+                        config.BlobOutputDir,
+                        this.settingsBlobPollDelay,
+                        this.UpdateSettings,
+                        config.SettingsPollFailureCallback);
+                }
+                
                 this.policy = new DecisionServicePolicy<TContext>(
                     this.applicationModelBlobUri, this.applicationConnectionString,
                     config.BlobOutputDir,
-                    this.blobPollDelay,
+                    this.modelBlobPollDelay,
                     this.UpdatePolicy,
                     config.ModelPollFailureCallback);
             }
@@ -193,7 +197,8 @@ namespace ClientDecisionService
         public IPolicy<TContext> Policy { get { return policy; } }
 
         private readonly string commandCenterBaseAddress;
-        private readonly TimeSpan blobPollDelay;
+        private readonly TimeSpan settingsBlobPollDelay;
+        private readonly TimeSpan modelBlobPollDelay;
 
         AzureBlobUpdater blobUpdater;
 
