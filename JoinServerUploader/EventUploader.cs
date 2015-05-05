@@ -20,16 +20,14 @@ namespace JoinServerUploader
         /// <summary>
         /// Constructs an uploader object.
         /// </summary>
-        /// <param name="authorizationToken">The token that is used for request authentication by the join service.</param>
-        public EventUploader(string authorizationToken) : this(authorizationToken, null, null) { }
+        public EventUploader() : this(null, null) { }
 
         /// <summary>
         /// Constructs an uploader object.
         /// </summary>
-        /// <param name="authorizationToken">The token that is used for request authentication by the join service.</param>
-        /// <param name="loggingServiceBaseAddress">The address of a custom HTTP logging service. When null, the join service address is used.</param>
         /// <param name="batchConfig">The batching configuration that controls the buffer size.</param>
-        public EventUploader(string authorizationToken, string loggingServiceBaseAddress, BatchingConfiguration batchConfig)
+        /// <param name="loggingServiceBaseAddress">The address of a custom HTTP logging service. When null, the join service address is used.</param>
+        public EventUploader(BatchingConfiguration batchConfig, string loggingServiceBaseAddress)
         {
             this.batchConfig = batchConfig ?? new BatchingConfiguration()
             {
@@ -41,11 +39,6 @@ namespace JoinServerUploader
             };
 
             this.loggingServiceBaseAddress = loggingServiceBaseAddress ?? Constants.ServiceAddress;
-
-            this.httpClient = new HttpClient();
-            this.httpClient.BaseAddress = new Uri(this.loggingServiceBaseAddress);
-            this.httpClient.Timeout = Constants.ConnectionTimeOut;
-            this.httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(Constants.TokenAuthenticationScheme, authorizationToken);
 
             this.eventSource = new TransformBlock<IEvent, string>(ev => JsonConvert.SerializeObject(new ExperimentalUnitFragment { Id = ev.Key, Value = ev }),
                 new ExecutionDataflowBlockOptions
@@ -70,6 +63,24 @@ namespace JoinServerUploader
         }
 
         /// <summary>
+        /// Initialize the uploader to perform requests using the specified authorization token.
+        /// </summary>
+        /// <param name="authorizationToken">The token that is used for resource access authentication by the join service.</param>
+        public void InitializeWithToken(string authorizationToken)
+        {
+            Initialize(Constants.TokenAuthenticationScheme, authorizationToken);
+        }
+
+        /// <summary>
+        /// Initialize the uploader to perform requests using the specified connection string.
+        /// </summary>
+        /// <param name="authorizationToken">The connection string that is used to access resources by the join service.</param>
+        public void InitializeWithConnectionString(string connectionString)
+        {
+            Initialize(Constants.ConnectionStringAuthenticationScheme, connectionString);
+        }
+
+        /// <summary>
         /// Sends a single event to the buffer for upload.
         /// </summary>
         /// <param name="e">The event to be uploaded.</param>
@@ -88,6 +99,23 @@ namespace JoinServerUploader
             {
                 this.eventObserver.OnNext(e);
             }
+        }
+
+        /// <summary>
+        /// Initialize the HTTP client with proper authentication scheme.
+        /// </summary>
+        /// <param name="authenticationScheme">The authentication scheme.</param>
+        /// <param name="authenticationValue">The authentication value.</param>
+        private void Initialize(string authenticationScheme, string authenticationValue)
+        {
+            if (this.httpClient != null)
+            {
+                throw new InvalidOperationException("Uploader can only be initialized once.");
+            }
+            this.httpClient = new HttpClient();
+            this.httpClient.BaseAddress = new Uri(this.loggingServiceBaseAddress);
+            this.httpClient.Timeout = Constants.ConnectionTimeOut;
+            this.httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(authenticationScheme, authenticationValue);
         }
 
         /// <summary>

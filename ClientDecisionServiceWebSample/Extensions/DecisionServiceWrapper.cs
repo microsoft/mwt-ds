@@ -23,9 +23,8 @@ namespace ClientDecisionServiceWebSample.Extensions
 
             if (Configuration == null)
             {
-                Configuration = new DecisionServiceConfiguration<TContext>(Explorer)
+                Configuration = new DecisionServiceConfiguration<TContext>(appToken, Explorer)
                 {
-                    AuthorizationToken = appToken,
                     BlobOutputDir = modelOutputDir,
                     JoinServiceBatchConfiguration = new BatchingConfiguration
                     {

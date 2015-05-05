@@ -26,10 +26,9 @@ namespace ClientDecisionServiceTest
             string uniqueKey = "test interaction";
 
             var dsConfig = new DecisionServiceConfiguration<TestContext>(
-                explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions))
-            {
-                AuthorizationToken = this.authToken
-            };
+                authorizationToken: this.authToken,
+                explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
+
             dsConfig.LoggingServiceAddress = this.joinServerAddress;
             dsConfig.CommandCenterAddress = this.commandCenterAddress;
 
@@ -55,10 +54,9 @@ namespace ClientDecisionServiceTest
             string uniqueKey = "test interaction";
 
             var dsConfig = new DecisionServiceConfiguration<TestContext>(
-                explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions))
-            {
-                AuthorizationToken = this.authToken
-            };
+                authorizationToken: this.authToken,
+                explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
+
             dsConfig.LoggingServiceAddress = this.joinServerAddress;
             dsConfig.CommandCenterAddress = this.commandCenterAddress;
 

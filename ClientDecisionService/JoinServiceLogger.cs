@@ -11,7 +11,8 @@ namespace ClientDecisionService
             string authorizationToken,
             string loggingServiceBaseAddress)
         {
-            this.eventUploader = new EventUploader(authorizationToken, loggingServiceBaseAddress, batchConfig);
+            this.eventUploader = new EventUploader(batchConfig, loggingServiceBaseAddress);
+            this.eventUploader.InitializeWithToken(authorizationToken);
             this.contextSerializer = contextSerializer ?? (x => x == null ? null : JsonConvert.SerializeObject(x));
         }
 

@@ -29,11 +29,6 @@ namespace ClientDecisionService
         /// <param name="config">The configuration object.</param>
         public DecisionService(DecisionServiceConfiguration<TContext> config)
         {
-            if (config.AzureStorageConnectionString == null && config.AuthorizationToken == null)
-            {
-                throw new ArgumentException("Either connection string or authorization token must be set to a valid value.");
-            }
-
             explorer = config.Explorer;
 
             if (!config.OfflineMode)
@@ -46,7 +41,7 @@ namespace ClientDecisionService
 
                 this.commandCenterBaseAddress = config.CommandCenterAddress ?? DecisionServiceConstants.CommandCenterAddress;
                 
-                ApplicationTransferMetadata metadata = this.GetBlobLocations(config.AuthorizationToken, config.AzureStorageConnectionString);
+                ApplicationTransferMetadata metadata = this.GetBlobLocations(config.AuthorizationToken);
 
                 this.settingsBlobPollDelay = config.PollingForSettingsPeriod == TimeSpan.Zero ? DecisionServiceConstants.PollDelay : config.PollingForSettingsPeriod;
                 this.modelBlobPollDelay = config.PollingForModelPeriod == TimeSpan.Zero ? DecisionServiceConstants.PollDelay : config.PollingForModelPeriod;
@@ -160,29 +155,12 @@ namespace ClientDecisionService
 
         public void Dispose() { }
 
-        private ApplicationTransferMetadata GetBlobLocations(string token, string userStorageConnectionString)
+        private ApplicationTransferMetadata GetBlobLocations(string token)
         {
             ApplicationTransferMetadata metadata = null;
             CloudStorageAccount storageAccount = null;
 
-            string connectionString = string.Empty;
-            string blobContainerName = string.Empty;
-            string blobName = string.Empty;
-
-            if (userStorageConnectionString != null)
-            {
-                connectionString = userStorageConnectionString;
-                blobContainerName = string.Format(DecisionServiceConstants.SettingsContainerName, token);
-                blobName = DecisionServiceConstants.LatestSettingsBlobName;
-            }
-            else
-            {
-                connectionString = DecisionServiceConstants.ServiceAzureStorageConnectionString;
-                blobContainerName = DecisionServiceConstants.ApplicationBlobLocationContainerName;
-                blobName = token;
-            }
-
-            bool accountFound = CloudStorageAccount.TryParse(connectionString, out storageAccount);
+            bool accountFound = CloudStorageAccount.TryParse(DecisionServiceConstants.ServiceAzureStorageConnectionString, out storageAccount);
             if (!accountFound || storageAccount == null)
             {
                 throw new Exception("Could not connect to Azure storage for the service.");
@@ -193,8 +171,8 @@ namespace ClientDecisionService
                 CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
                 blobClient.DefaultRequestOptions.RetryPolicy = new ExponentialRetry(DecisionServiceConstants.RetryDeltaBackoff, DecisionServiceConstants.RetryCount);
 
-                CloudBlobContainer settingsContainer = blobClient.GetContainerReference(blobContainerName);
-                CloudBlockBlob settingsBlob = settingsContainer.GetBlockBlobReference(blobName);
+                CloudBlobContainer settingsContainer = blobClient.GetContainerReference(DecisionServiceConstants.ApplicationBlobLocationContainerName);
+                CloudBlockBlob settingsBlob = settingsContainer.GetBlockBlobReference(token);
 
                 using (var ms = new MemoryStream())
                 {

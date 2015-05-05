@@ -10,25 +10,26 @@ namespace ClientDecisionService
     /// </summary>
     public class DecisionServiceConfiguration<TContext>
     {
-        public DecisionServiceConfiguration(IExplorer<TContext> explorer)
+        public DecisionServiceConfiguration(string authorizationToken, IExplorer<TContext> explorer)
         {
+            if (authorizationToken == null)
+            {
+                throw new ArgumentNullException("authorizationToken", "Authorization token cannot be null");
+            }
+
             if (explorer == null)
             {
                 throw new ArgumentNullException("explorer", "Exploration algorithm cannot be null");
             }
 
+            this.AuthorizationToken = authorizationToken;
             this.Explorer = explorer;
         }
 
         /// <summary>
         /// The authorization token that is used for request authentication.
         /// </summary>
-        public string AuthorizationToken { get; set; }
-
-        /// <summary>
-        /// The connection string for Azure storage where settings and models are stored.
-        /// </summary>
-        public string AzureStorageConnectionString { get; set; }
+        public string AuthorizationToken { get; private set; }
 
         /// <summary>
         /// The <see cref="IExplorer{TContext}"/> object representing an exploration algorithm.
