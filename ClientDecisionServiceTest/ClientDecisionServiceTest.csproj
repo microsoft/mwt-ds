@@ -108,6 +108,7 @@
     <Compile Include="MockCommandCenter.cs" />
     <Compile Include="MockHttpServer.cs" />
     <Compile Include="ConfigTests.cs" />
+    <Compile Include="UploaderTest.cs" />
     <Compile Include="UploadTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ModularTests.cs" />
