@@ -33,6 +33,16 @@ namespace ClientDecisionServiceSample
             }
         }
 
+        private static void TestUploader()
+        {
+            var uploader = new EventUploader();
+            uploader.InitializeWithToken("10198550-a074-4f9c-8b15-cc389bc2bbbe");
+
+            uploader.Upload(new Interaction { Key = "sample-upload", Action = 1, Context = null, Probability = 0.5f });
+
+            uploader.Flush();
+        }
+
         private static void TestAzure()
         {
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse("DefaultEndpointsProtocol=https;AccountName=decisionservice;AccountKey=hAv42cl/DlFLwd+N23/wNQKub/nVSEYyO6zjlksgMFC9/HVhQMHpNVhdaZGTD1PT0W7lqfKbf9LVt2/z2K3Quw==");

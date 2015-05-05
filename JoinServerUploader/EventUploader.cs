@@ -177,6 +177,9 @@ namespace JoinServerUploader
             }
         }
 
+        /// <summary>
+        /// Flush the data buffer to upload all remaining events.
+        /// </summary>
         public void Flush()
         {
             this.eventSource.Complete();
