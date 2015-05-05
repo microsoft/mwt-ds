@@ -75,9 +75,11 @@ namespace JoinServerUploader
         /// Initialize the uploader to perform requests using the specified connection string.
         /// </summary>
         /// <param name="authorizationToken">The connection string that is used to access resources by the join service.</param>
-        public void InitializeWithConnectionString(string connectionString)
+        /// <param name="experimentalUnitDuration">The duration of the experimental unit during which events are joined by the join service.</param>
+        public void InitializeWithConnectionString(string connectionString, int experimentalUnitDuration)
         {
             Initialize(Constants.ConnectionStringAuthenticationScheme, connectionString);
+            this.experimentalUnitDuration = experimentalUnitDuration;
         }
 
         /// <summary>
@@ -131,7 +133,7 @@ namespace JoinServerUploader
                 JsonEvents = jsonExpFragments
             };
 
-            byte[] jsonByteArray = Encoding.UTF8.GetBytes(EventUploader.BuildJsonMessage(batch));
+            byte[] jsonByteArray = Encoding.UTF8.GetBytes(EventUploader.BuildJsonMessage(batch, this.experimentalUnitDuration));
 
             using (var jsonMemStream = new MemoryStream(jsonByteArray))
             {
@@ -205,7 +207,7 @@ namespace JoinServerUploader
             }
         }
 
-        private static string BuildJsonMessage(EventBatch batch)
+        private static string BuildJsonMessage(EventBatch batch, int? experimentalUnitDuration)
         {
             StringBuilder jsonBuilder = new StringBuilder();
 
@@ -213,13 +215,22 @@ namespace JoinServerUploader
 
             jsonBuilder.Append("\"j\":[");
             jsonBuilder.Append(String.Join(",", batch.JsonEvents));
-            jsonBuilder.Append("]}");
+            jsonBuilder.Append("]");
+
+            if (experimentalUnitDuration.HasValue)
+            {
+                jsonBuilder.Append(",\"d\":");
+                jsonBuilder.Append(experimentalUnitDuration.Value);
+            }
+
+            jsonBuilder.Append("}");
 
             return jsonBuilder.ToString();
         }
 
         private readonly BatchingConfiguration batchConfig;
         private readonly string loggingServiceBaseAddress;
+        private int? experimentalUnitDuration;
 
         private readonly TransformBlock<IEvent, string> eventSource;
         private readonly IObserver<IEvent> eventObserver;
