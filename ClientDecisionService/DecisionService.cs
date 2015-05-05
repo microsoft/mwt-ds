@@ -39,8 +39,6 @@ namespace ClientDecisionService
                     config.AuthorizationToken,
                     config.LoggingServiceAddress);
 
-                this.commandCenterBaseAddress = config.CommandCenterAddress ?? DecisionServiceConstants.CommandCenterAddress;
-                
                 ApplicationTransferMetadata metadata = this.GetBlobLocations(config.AuthorizationToken);
 
                 this.settingsBlobPollDelay = config.PollingForSettingsPeriod == TimeSpan.Zero ? DecisionServiceConstants.PollDelay : config.PollingForSettingsPeriod;
@@ -233,7 +231,6 @@ namespace ClientDecisionService
         public IRecorder<TContext> Recorder { get { return recorder; } }
         public IPolicy<TContext> Policy { get { return policy; } }
 
-        private readonly string commandCenterBaseAddress;
         private readonly TimeSpan settingsBlobPollDelay;
         private readonly TimeSpan modelBlobPollDelay;
 

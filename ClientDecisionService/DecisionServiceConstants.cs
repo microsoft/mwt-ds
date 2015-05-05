@@ -8,10 +8,6 @@ namespace ClientDecisionService
 {
     internal static class DecisionServiceConstants
     {
-        internal static readonly string CommandCenterAddress = "https://mwtds.azurewebsites.net";
-        internal static readonly string ModelAddress = "/Application/GetSelectedModel?token={0}&latest={1}";
-        internal static readonly string MetadataAddress = "/Application/GetMetadata?token={0}";
-
         internal static readonly string ServiceAzureStorageConnectionString = "DefaultEndpointsProtocol=https;AccountName=;AccountKey=";
 
         internal static readonly string ApplicationBlobLocationContainerName = "app-locations";
