@@ -90,6 +90,10 @@ namespace ClientDecisionServiceTest
 
             string uniqueKey = "test interaction";
 
+            var createAction = (Func<int, int>)((i) => { return i; });
+            var createObservation = (Func<int, string>)((i) => { return string.Format("00000", i); });
+            var createProbability = (Func<int, float>)((i) => { return i / 1000.0f; });
+
             var uploader = new EventUploader(null, this.localJoinServerAddress);
             int experimentalUnitDuration = 5;
             uploader.InitializeWithConnectionString(MockCommandCenter.StorageConnectionString, experimentalUnitDuration);
@@ -97,8 +101,8 @@ namespace ClientDecisionServiceTest
             int numEvents = 1000;
             Parallel.For(0, numEvents, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, (i) =>
             {
-                uploader.Upload(new Interaction { Action = i, Context = JsonConvert.SerializeObject(new TestContext()), Probability = i / 1000.0, Key = uniqueKey });
-                uploader.Upload(new Observation { Value = JsonConvert.SerializeObject(new { value = "999" + i }), Key = uniqueKey });
+                uploader.Upload(new Interaction { Action = createAction(i), Context = JsonConvert.SerializeObject(new TestContext()), Probability = createProbability(i), Key = uniqueKey });
+                uploader.Upload(new Observation { Value = JsonConvert.SerializeObject(new { value = createObservation(i) }), Key = uniqueKey });
             });
             uploader.Flush();
 
@@ -106,7 +110,6 @@ namespace ClientDecisionServiceTest
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
             IEnumerable<CloudBlobContainer> completeContainers = blobClient.ListContainers("complete");
 
-            int numActualEvents = 0;
             var parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 };
             foreach (CloudBlobContainer container in completeContainers)
             {
@@ -116,16 +119,39 @@ namespace ClientDecisionServiceTest
                 {
                     CloudBlockBlob bb = b as CloudBlockBlob;
                     string content = bb.DownloadText();
-                    var message = JsonConvert.DeserializeObject<PartialDecisionServiceMessage>(content);
+                    var completeBlobData = JsonConvert.DeserializeObject<CompleteDecisionServiceBlob>(content);
 
-                    Assert.IsTrue(message.ExperimentalUnitDuration.HasValue);
-                    Assert.AreEqual(message.ExperimentalUnitDuration.Value, experimentalUnitDuration);
+                    Assert.AreEqual(1, completeBlobData.Data.Count);
+                    Assert.AreEqual(uniqueKey, completeBlobData.Data[0].Key);
+                    Assert.AreEqual(numEvents * 2, completeBlobData.Data.Sum(d => d.Fragments.Count));
 
-                    numActualEvents += message.ExperimentalUnitFragments.Count;
+                    List<CompleteExperimentalUnitFragment> interactions = completeBlobData.Data[0].Fragments
+                        .Where(f => f.Value == null)
+                        .OrderBy(f => f.Action)
+                        .ToList();
+
+                    Assert.AreEqual(numEvents, interactions.Count);
+                    for (int i = 0; i < interactions.Count; i++)
+                    {
+                        Assert.AreEqual(createAction(i), interactions[i].Action.Value);
+                        Assert.AreEqual(createProbability(i), interactions[i].Probability.Value);
+                    }
+
+                    List<CompleteExperimentalUnitFragment> observations = completeBlobData.Data[0].Fragments
+                        .Where(f => f.Value != null)
+                        .OrderBy(f => f.Value)
+                        .ToList();
+
+                    Assert.AreEqual(numEvents, observations.Count);
+                    for (int i = 0; i < observations.Count; i++)
+                    {
+                        Assert.AreEqual(createObservation(i), observations[i].Value);
+                    }
+
+                    return;
                 }
             }
 
-            Assert.AreEqual(numEvents * 2, numActualEvents);
         }
 
         [TestInitialize]

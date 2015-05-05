@@ -93,6 +93,43 @@ namespace ClientDecisionServiceTest
         public int? ExperimentalUnitDuration { get; set; }
     }
 
+    public class CompleteDecisionServiceBlob
+    {
+        [JsonProperty(PropertyName = "blob", Required = Required.Always)]
+        public Guid Blob { get; set; }
+
+        [JsonProperty(PropertyName = "data", Required = Required.Always)]
+        public List<CompleteExperimentalUnitData> Data { get; set; }
+    }
+
+    public class CompleteExperimentalUnitData
+    {
+        [JsonProperty(PropertyName = "i", Required = Required.Always)]
+        public string Key { get; set; }
+
+        [JsonProperty(PropertyName = "f", Required = Required.Always)]
+        public List<CompleteExperimentalUnitFragment> Fragments { get; set; }
+    }
+
+    public class CompleteExperimentalUnitFragment
+    {
+        [JsonProperty(PropertyName = "t", Required = Required.Always)]
+        public string Type { get; set; }
+
+        [JsonProperty(PropertyName = "a")]
+        public int? Action { get; set; }
+
+        [JsonProperty(PropertyName = "p")]
+        public float? Probability { get; set; }
+
+        [JsonProperty(PropertyName = "c")]
+        [JsonConverter(typeof(RawStringConverter))]
+        public object Context { get; set; }
+
+        [JsonProperty(PropertyName = "v")]
+        public object Value { get; set; }
+    }
+
     public static class Constants
     {
         public static readonly uint NumberOfActions = 5;
