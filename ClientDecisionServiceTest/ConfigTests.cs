@@ -30,7 +30,7 @@ namespace ClientDecisionServiceTest
                 explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: 2));
 
             dsConfig.ServiceAzureStorageConnectionString = MockCommandCenter.StorageConnectionString;
-            dsConfig.LoggingServiceAddress = this.joinServerAddress;
+            dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
             dsConfig.BlobOutputDir = @"c:\";
             dsConfig.PollingForSettingsPeriod = TimeSpan.FromMilliseconds(500);
 
@@ -65,7 +65,7 @@ namespace ClientDecisionServiceTest
                 explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: 2));
 
             dsConfig.ServiceAzureStorageConnectionString = MockCommandCenter.StorageConnectionString;
-            dsConfig.LoggingServiceAddress = this.joinServerAddress;
+            dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
             dsConfig.BlobOutputDir = @"c:\windows";
             dsConfig.PollingForSettingsPeriod = TimeSpan.FromMilliseconds(500);
 
@@ -103,7 +103,7 @@ namespace ClientDecisionServiceTest
                 explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: 2));
 
             dsConfig.ServiceAzureStorageConnectionString = MockCommandCenter.StorageConnectionString;
-            dsConfig.LoggingServiceAddress = this.joinServerAddress;
+            dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
             dsConfig.BlobOutputDir = settingsPath;
             dsConfig.PollingForSettingsPeriod = TimeSpan.FromMilliseconds(500);
 
@@ -146,7 +146,7 @@ namespace ClientDecisionServiceTest
         public void Setup()
         {
             commandCenter = new MockCommandCenter(this.authToken);
-            joinServer = new MockJoinServer(joinServerAddress);
+            joinServer = new MockJoinServer(MockJoinServer.MockJoinServerAddress);
 
             joinServer.Run();
         }
@@ -157,7 +157,6 @@ namespace ClientDecisionServiceTest
             joinServer.Stop();
         }
 
-        private readonly string joinServerAddress = "http://localhost:9091/";
         private readonly string authToken = "test token";
         private MockJoinServer joinServer;
         private MockCommandCenter commandCenter;

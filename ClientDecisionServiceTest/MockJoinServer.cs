@@ -76,5 +76,12 @@ namespace ClientDecisionServiceTest
 
         private object syncLock = new object();
         private int requestCount;
+
+        public static readonly string MockJoinServerAddress = "http://localhost:9091/";
+
+        /// <summary>
+        /// Using this requires starting local deployment of join service
+        /// </summary>
+        public static readonly string LocalJoinServerAddress = "http://localhost:27254/";
     }
 }

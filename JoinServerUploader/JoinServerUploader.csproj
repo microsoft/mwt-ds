@@ -94,7 +94,7 @@
   <ItemGroup>
     <Compile Include="BatchingConfiguration.cs" />
     <Compile Include="Extensions.cs" />
-    <Compile Include="JoinServerUploader.cs" />
+    <Compile Include="RawStringConverter.cs" />
     <Compile Include="DecisionServiceTransientErrorDetectionStrategy.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Events.cs" />

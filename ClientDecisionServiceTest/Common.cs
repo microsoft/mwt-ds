@@ -127,6 +127,7 @@ namespace ClientDecisionServiceTest
         public object Context { get; set; }
 
         [JsonProperty(PropertyName = "v")]
+        [JsonConverter(typeof(RawStringConverter))]
         public object Value { get; set; }
     }
 
