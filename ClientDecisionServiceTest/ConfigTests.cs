@@ -21,7 +21,6 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         public void TestInvalidPathOutputDir()
         {
-            commandCenter.Reset();
             joinServer.Reset();
 
             commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false);
@@ -30,7 +29,7 @@ namespace ClientDecisionServiceTest
                 authorizationToken: authToken,
                 explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: 2));
 
-            dsConfig.CommandCenterAddress = this.commandCenterAddress;
+            dsConfig.ServiceAzureStorageConnectionString = MockCommandCenter.StorageConnectionString;
             dsConfig.LoggingServiceAddress = this.joinServerAddress;
             dsConfig.BlobOutputDir = @"c:\";
             dsConfig.PollingForSettingsPeriod = TimeSpan.FromMilliseconds(500);
@@ -57,7 +56,6 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         public void TestUnauthorizedPathOutputDir()
         {
-            commandCenter.Reset();
             joinServer.Reset();
 
             commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false);
@@ -66,7 +64,7 @@ namespace ClientDecisionServiceTest
                 authorizationToken: authToken,
                 explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: 2));
 
-            dsConfig.CommandCenterAddress = this.commandCenterAddress;
+            dsConfig.ServiceAzureStorageConnectionString = MockCommandCenter.StorageConnectionString;
             dsConfig.LoggingServiceAddress = this.joinServerAddress;
             dsConfig.BlobOutputDir = @"c:\windows";
             dsConfig.PollingForSettingsPeriod = TimeSpan.FromMilliseconds(500);
@@ -93,7 +91,6 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         public void TestSettingsBlobOutput()
         {
-            commandCenter.Reset();
             joinServer.Reset();
 
             string settingsPath = ".\\dstestsettings";
@@ -105,7 +102,7 @@ namespace ClientDecisionServiceTest
                 authorizationToken: authToken,
                 explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: 2));
 
-            dsConfig.CommandCenterAddress = this.commandCenterAddress;
+            dsConfig.ServiceAzureStorageConnectionString = MockCommandCenter.StorageConnectionString;
             dsConfig.LoggingServiceAddress = this.joinServerAddress;
             dsConfig.BlobOutputDir = settingsPath;
             dsConfig.PollingForSettingsPeriod = TimeSpan.FromMilliseconds(500);
@@ -148,24 +145,21 @@ namespace ClientDecisionServiceTest
         [TestInitialize]
         public void Setup()
         {
-            commandCenter = new MockCommandCenter(commandCenterAddress);
+            commandCenter = new MockCommandCenter(this.authToken);
             joinServer = new MockJoinServer(joinServerAddress);
 
-            commandCenter.Run();
             joinServer.Run();
         }
 
         [TestCleanup]
         public void CleanUp()
         {
-            commandCenter.Stop();
             joinServer.Stop();
         }
 
-        private readonly string commandCenterAddress = "http://localhost:9090/";
         private readonly string joinServerAddress = "http://localhost:9091/";
         private readonly string authToken = "test token";
-        private MockCommandCenter commandCenter;
         private MockJoinServer joinServer;
+        private MockCommandCenter commandCenter;
     }
 }

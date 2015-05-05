@@ -13,15 +13,18 @@ using System.Threading.Tasks;
 
 namespace ClientDecisionServiceTest
 {
-    public class MockCommandCenter : MockHttpServer
+    public class MockCommandCenter
     {
-        public MockCommandCenter(string uri) : base(uri) { }
+        public MockCommandCenter(string token)
+        {
+            this.token = token;
+        }
 
         public void CreateBlobs(bool createSettingsBlob, bool createModelBlob)
         {
             if (createSettingsBlob || createModelBlob)
             {
-                CloudStorageAccount storageAccount = CloudStorageAccount.Parse("UseDevelopmentStorage=true");
+                CloudStorageAccount storageAccount = CloudStorageAccount.Parse(MockCommandCenter.StorageConnectionString);
                 CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
 
                 var localContainer = blobClient.GetContainerReference(this.localAzureContainerName);
@@ -42,6 +45,23 @@ namespace ClientDecisionServiceTest
                     modelBlob.UploadFromByteArray(modelContent, 0, modelContent.Length);
                     this.localAzureModelBlobUri = modelBlob.Uri.ToString();
                 }
+
+                var locationContainer = blobClient.GetContainerReference(this.localAzureBlobLocationContainerName);
+                locationContainer.CreateIfNotExists();
+                var metadata = new ApplicationTransferMetadata
+                {
+                    ApplicationID = "test",
+                    ConnectionString = MockCommandCenter.StorageConnectionString,
+                    ExperimentalUnitDuration = 15,
+                    IsExplorationEnabled = true,
+                    ModelBlobUri = this.localAzureModelBlobUri,
+                    SettingsBlobUri = this.localAzureSettingsBlobUri,
+                    ModelId = "latest"
+                };
+
+                var locationBlob = locationContainer.GetBlockBlobReference(this.token);
+                byte[] locationBlobContent = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(metadata));
+                locationBlob.UploadFromByteArray(locationBlobContent, 0, locationBlobContent.Length);
             }
         }
 
@@ -55,71 +75,6 @@ namespace ClientDecisionServiceTest
             return new byte[2] { 5, 1 };
         }
 
-        protected override void Listen()
-        {
-            this.cancelTokenSource.Token.ThrowIfCancellationRequested();
-
-            while (!this.cancelTokenSource.Token.IsCancellationRequested)
-            {
-                HttpListenerContext ccContext = listener.GetContext();
-                HttpListenerRequest request = ccContext.Request;
-
-                //Response object
-                HttpListenerResponse response = ccContext.Response;
-
-                //Construct response
-                if (request.RawUrl.ToLower().Contains("/application/getmetadata?token=test%20token")
-                    && request.HttpMethod == "GET")
-                {
-                    var metadata = new ApplicationTransferMetadata
-                    {
-                        ApplicationID = "test",
-                        ConnectionString = "UseDevelopmentStorage=true",
-                        ExperimentalUnitDuration = 15,
-                        IsExplorationEnabled = true,
-                        ModelBlobUri = this.localAzureModelBlobUri,
-                        SettingsBlobUri = this.localAzureSettingsBlobUri,
-                        ModelId = "latest"
-                    };
-                    string responseMessage = JsonConvert.SerializeObject(metadata);
-
-                    string requestBody;
-                    Stream iStream = request.InputStream;
-                    Encoding encoding = request.ContentEncoding;
-                    StreamReader reader = new StreamReader(iStream, encoding);
-                    requestBody = reader.ReadToEnd();
-
-                    Console.WriteLine("POST request on {0} with body = [{1}]", request.RawUrl, requestBody);
-
-                    byte[] buffer = Encoding.UTF8.GetBytes(responseMessage);
-                    response.StatusCode = (int)HttpStatusCode.OK;
-                    response.ContentEncoding = System.Text.Encoding.UTF8;
-                    response.ContentType = "text/plain";
-                    response.ContentLength64 = buffer.Length;
-
-                    //Return a response
-                    using (Stream stream = response.OutputStream)
-                    {
-                        stream.Write(buffer, 0, buffer.Length);
-                    }
-
-                    response.Close();
-                }
-                else
-                {
-                    throw new Exception("Invalid Get Request: " + request.RawUrl);
-                }
-            }
-        }
-
-        public override void Reset()
-        {
-            base.Reset();
-
-            this.localAzureSettingsBlobUri = null;
-            this.localAzureModelBlobUri = null;
-        }
-
         public string LocalAzureSettingsBlobName
         {
             get { return localAzureSettingsBlobName; }
@@ -130,11 +85,15 @@ namespace ClientDecisionServiceTest
             get { return localAzureModelBlobName; }
         }
 
+        private string token;
         private string localAzureSettingsBlobUri;
         private string localAzureModelBlobUri;
 
+        private readonly string localAzureBlobLocationContainerName = "app-locations";
         private readonly string localAzureContainerName = "localtestcontainer";
         private readonly string localAzureSettingsBlobName = "localtestsettingsblob";
         private readonly string localAzureModelBlobName = "localtestmodelblob";
+
+        public static readonly string StorageConnectionString = "UseDevelopmentStorage=true";
     }
 }

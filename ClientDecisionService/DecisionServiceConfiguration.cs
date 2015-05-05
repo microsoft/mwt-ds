@@ -119,19 +119,19 @@ namespace ClientDecisionService
         }
         
         /// <summary>
-        /// Specifies the address for a custom HTTP command center.
+        /// Specifies the connection string for a custom service storage account.
         /// </summary>
         /// <remarks>
-        /// Command center is responsible for storing & distributing centralized config settings across different clients.
-        /// When specified, this will override the default command center provided by the Multiworld Testing Service.
+        /// Service storage account contains pointers to locations of settings and model blobs.
+        /// When specified, this will override the default storage account provided by Multiworld Testing Service.
         /// </remarks>
-        public string CommandCenterAddress 
+        public string ServiceAzureStorageConnectionString
         {
-            get { return commandCenterAddress; }
+            get { return serviceAzureStorageConnectionString; }
             set 
             { 
-                if (String.IsNullOrWhiteSpace(value)) throw new ArgumentNullException("Command center address cannot be empty");
-                commandCenterAddress = value;
+                if (String.IsNullOrWhiteSpace(value)) throw new ArgumentNullException("Connection string cannot be empty");
+                serviceAzureStorageConnectionString = value;
             } 
         }
 
@@ -175,7 +175,7 @@ namespace ClientDecisionService
         private BatchingConfiguration batchConfig;
         private Func<TContext, string> contextJsonSerializer;
         private string loggingServiceAddress;
-        private string commandCenterAddress;
+        private string serviceAzureStorageConnectionString;
         private TimeSpan pollingForSettingsPeriod;
         private TimeSpan pollingForModelPeriod;
 

@@ -39,7 +39,8 @@ namespace ClientDecisionService
                     config.AuthorizationToken,
                     config.LoggingServiceAddress);
 
-                ApplicationTransferMetadata metadata = this.GetBlobLocations(config.AuthorizationToken);
+                string serviceConnectionString = config.ServiceAzureStorageConnectionString ?? DecisionServiceConstants.MwtServiceAzureStorageConnectionString;
+                ApplicationTransferMetadata metadata = this.GetBlobLocations(config.AuthorizationToken, serviceConnectionString);
 
                 this.settingsBlobPollDelay = config.PollingForSettingsPeriod == TimeSpan.Zero ? DecisionServiceConstants.PollDelay : config.PollingForSettingsPeriod;
                 this.modelBlobPollDelay = config.PollingForModelPeriod == TimeSpan.Zero ? DecisionServiceConstants.PollDelay : config.PollingForModelPeriod;
@@ -153,12 +154,12 @@ namespace ClientDecisionService
 
         public void Dispose() { }
 
-        private ApplicationTransferMetadata GetBlobLocations(string token)
+        private ApplicationTransferMetadata GetBlobLocations(string token, string serviceAzureStorageConnectionString)
         {
             ApplicationTransferMetadata metadata = null;
             CloudStorageAccount storageAccount = null;
 
-            bool accountFound = CloudStorageAccount.TryParse(DecisionServiceConstants.ServiceAzureStorageConnectionString, out storageAccount);
+            bool accountFound = CloudStorageAccount.TryParse(serviceAzureStorageConnectionString, out storageAccount);
             if (!accountFound || storageAccount == null)
             {
                 throw new Exception("Could not connect to Azure storage for the service.");
@@ -180,7 +181,15 @@ namespace ClientDecisionService
             }
             catch (Exception ex)
             {
-                throw new Exception("Unable to retrieve application settings from Azure blob storage: " + ex.ToString());
+                var storageException = ex as StorageException;
+                if (storageException != null)
+                {
+                    if (storageException.RequestInformation.HttpStatusCode == 404)
+                    { 
+                        throw new StorageException("Unable to retrieve blob locations from storage using the specified token", ex.InnerException);
+                    }
+                }
+                throw;
             }
             return metadata;
         }

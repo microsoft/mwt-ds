@@ -31,7 +31,7 @@ namespace ClientDecisionServiceTest
             }
             catch (ArgumentException ex)
             {
-                Assert.AreEqual("Logger", ex.ParamName);
+                Assert.AreEqual("Recorder", ex.ParamName);
             }
         }
 
@@ -84,7 +84,7 @@ namespace ClientDecisionServiceTest
                 authorizationToken: this.authToken,
                 explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
 
-            dsConfig.CommandCenterAddress = this.commandCenterAddress;
+            dsConfig.ServiceAzureStorageConnectionString = MockCommandCenter.StorageConnectionString;
             dsConfig.Recorder = new TestLogger();
 
             int numChooseAction = 100;
@@ -133,7 +133,7 @@ namespace ClientDecisionServiceTest
             }
             catch (Exception ex)
             {
-                WebException webException = ex as WebException;
+                WebException webException = ex.InnerException as WebException;
                 if (webException != null)
                 {
                     HttpWebResponse response = webException.Response as HttpWebResponse;
@@ -146,22 +146,6 @@ namespace ClientDecisionServiceTest
             Assert.AreEqual(HttpStatusCode.NotFound, exceptionCode);
         }
 
-        [TestInitialize]
-        public void Setup()
-        {
-            commandCenter = new MockCommandCenter(commandCenterAddress);
-
-            commandCenter.Run();
-        }
-
-        [TestCleanup]
-        public void CleanUp()
-        {
-            commandCenter.Stop();
-        }
-
-        private readonly string commandCenterAddress = "http://localhost:9090/";
         private readonly string authToken = "test token";
-        private MockCommandCenter commandCenter;
     }
 }

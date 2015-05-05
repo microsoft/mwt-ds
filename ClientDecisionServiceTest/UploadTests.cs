@@ -20,7 +20,6 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         public void TestUploadSingleEvent()
         {
-            commandCenter.Reset();
             joinServer.Reset();
 
             string uniqueKey = "test interaction";
@@ -30,7 +29,7 @@ namespace ClientDecisionServiceTest
                 explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
 
             dsConfig.LoggingServiceAddress = this.joinServerAddress;
-            dsConfig.CommandCenterAddress = this.commandCenterAddress;
+            dsConfig.ServiceAzureStorageConnectionString = MockCommandCenter.StorageConnectionString;
 
             var ds = new DecisionService<TestContext>(dsConfig);
 
@@ -48,7 +47,6 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         public void TestUploadMultipleEvents()
         {
-            commandCenter.Reset();
             joinServer.Reset();
 
             string uniqueKey = "test interaction";
@@ -58,7 +56,7 @@ namespace ClientDecisionServiceTest
                 explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
 
             dsConfig.LoggingServiceAddress = this.joinServerAddress;
-            dsConfig.CommandCenterAddress = this.commandCenterAddress;
+            dsConfig.ServiceAzureStorageConnectionString = MockCommandCenter.StorageConnectionString;
 
             var ds = new DecisionService<TestContext>(dsConfig);
 
@@ -75,24 +73,19 @@ namespace ClientDecisionServiceTest
         [TestInitialize]
         public void Setup()
         {
-            commandCenter = new MockCommandCenter(commandCenterAddress);
             joinServer = new MockJoinServer(joinServerAddress);
 
-            commandCenter.Run();
             joinServer.Run();
         }
 
         [TestCleanup]
         public void CleanUp()
         {
-            commandCenter.Stop();
             joinServer.Stop();
         }
 
-        private readonly string commandCenterAddress = "http://localhost:9090/";
         private readonly string joinServerAddress = "http://localhost:9091/";
         private readonly string authToken = "test token";
-        private MockCommandCenter commandCenter;
         private MockJoinServer joinServer;
     }
 }
