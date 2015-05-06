@@ -40,7 +40,7 @@ namespace JoinServerUploader
 
             this.loggingServiceBaseAddress = loggingServiceBaseAddress ?? Constants.ServiceAddress;
 
-            this.eventSource = new TransformBlock<IEvent, string>(ev => JsonConvert.SerializeObject(new ExperimentalUnitFragment { Id = ev.Key, Value = ev }),
+            this.eventSource = new TransformBlock<IEvent, string>(ev => JsonConvert.SerializeObject(new ExperimentalUnitFragment { Key = ev.Key, Value = ev }),
                 new ExecutionDataflowBlockOptions
                 {
                     MaxDegreeOfParallelism = Environment.ProcessorCount,
@@ -129,7 +129,7 @@ namespace JoinServerUploader
         {
             EventBatch batch = new EventBatch
             {
-                ID = Guid.NewGuid(),
+                Id = Guid.NewGuid(),
                 JsonEvents = jsonExpFragments
             };
 
@@ -169,10 +169,18 @@ namespace JoinServerUploader
                 if (!response.IsSuccessStatusCode)
                 {
                     Trace.TraceError("Unable to upload batch: " + await response.Content.ReadAsStringAsync());
+                    if (PackageSendFailed != null)
+                    {
+                        PackageSendFailed(this, new PackageEventArgs { PackageId = batch.Id, Records = batch.JsonEvents });
+                    }
                 }
                 else
                 {
                     Trace.TraceInformation("Successfully uploaded batch with {0} events.", batch.JsonEvents.Count);
+                    if (PackageSent != null)
+                    {
+                        PackageSent(this, new PackageEventArgs { PackageId = batch.Id, Records = batch.JsonEvents });
+                    }
                 }
             }
         }
@@ -214,7 +222,7 @@ namespace JoinServerUploader
         {
             StringBuilder jsonBuilder = new StringBuilder();
 
-            jsonBuilder.Append("{\"i\":\"" + batch.ID.ToString() + "\",");
+            jsonBuilder.Append("{\"i\":\"" + batch.Id.ToString() + "\",");
 
             jsonBuilder.Append("\"j\":[");
             jsonBuilder.Append(String.Join(",", batch.JsonEvents));
@@ -230,6 +238,9 @@ namespace JoinServerUploader
 
             return jsonBuilder.ToString();
         }
+
+        public event PackageSentEventHandler PackageSent;
+        public event PackageSendFailedEventHandler PackageSendFailed;
 
         private readonly BatchingConfiguration batchConfig;
         private readonly string loggingServiceBaseAddress;

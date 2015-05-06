@@ -4,22 +4,48 @@ using System.Text;
 
 namespace JoinServerUploader
 {
+    /// <summary>
+    /// Represents the type of application event.
+    /// </summary>
     public enum EventType
     {
+        /// <summary>
+        /// Interactions are generated at the point of decision-making and are usually represented as a 4-tuple of
+        /// <chosen action, probability, context, key>
+        /// </summary>
         Interaction = 0,
+
+        /// <summary>
+        /// Observations represent observed outcomes that are associated with interactions.
+        /// These, for example, can be as simple as a single number indicating whether the outcome was positive or negative,
+        /// to more generic structure which can be later used for reward metric analysis.
+        /// </summary>
         Observation
     }
+
+    /// <summary>
+    /// Base interface for an application event.
+    /// </summary>
     public interface IEvent
     {
+        /// <summary>
+        /// The type of event.
+        /// </summary>
         [JsonProperty(PropertyName = "t")]
         EventType Type { get; }
 
+        /// <summary>
+        /// The unique experimental unit key that this event belongs to.
+        /// </summary>
         [JsonIgnore]
         string Key { get; set; }
     }
 
     public class Interaction : IEvent
     {
+        /// <summary>
+        /// Gets the type of event.
+        /// </summary>
         public EventType Type
         {
             get
@@ -28,14 +54,26 @@ namespace JoinServerUploader
             }
         }
 
+        /// <summary>
+        /// Gets or sets the unique experimental unit key that this event belongs to.
+        /// </summary>
         public string Key { get; set; }
 
+        /// <summary>
+        /// Gets or sets the action to take for this interaction.
+        /// </summary>
         [JsonProperty(PropertyName = "a")]
         public int Action { get; set; }
 
+        /// <summary>
+        /// Gets or sets the probability of choosing the action (before it was chosen).
+        /// </summary>
         [JsonProperty(PropertyName = "p")]
         public double Probability { get; set; }
 
+        /// <summary>
+        /// Gets or sets the context structure with relevant information for the current interaction.
+        /// </summary>
         [JsonProperty(PropertyName = "c", NullValueHandling = NullValueHandling.Ignore)]
         [JsonConverter(typeof(RawStringConverter))]
         public string Context { get; set; }
@@ -43,6 +81,9 @@ namespace JoinServerUploader
 
     public class Observation : IEvent
     {
+        /// <summary>
+        /// Gets the type of event.
+        /// </summary>
         public EventType Type
         {
             get
@@ -51,27 +92,51 @@ namespace JoinServerUploader
             }
         }
 
+        /// <summary>
+        /// Gets or sets the unique experimental unit key that this event belongs to.
+        /// </summary>
         public string Key { get; set; }
 
+        /// <summary>
+        /// Gets or sets the value of the observation.
+        /// </summary>
         [JsonProperty(PropertyName = "v", NullValueHandling = NullValueHandling.Ignore)]
         [JsonConverter(typeof(RawStringConverter))]
         public string Value { get; set; }
     }
 
-    public class ExperimentalUnitFragment
+    /// <summary>
+    /// Represents the fragment to be uploaded.
+    /// </summary>
+    internal class ExperimentalUnitFragment
     {
+        /// <summary>
+        /// The unique experimental unit key.
+        /// </summary>
         [JsonProperty(PropertyName = "i")]
-        public string Id { get; set; }
+        public string Key { get; set; }
 
+        /// <summary>
+        /// The event value.
+        /// </summary>
         [JsonProperty(PropertyName = "v")]
         public object Value { get; set; }
     }
 
-    public class EventBatch
+    /// <summary>
+    /// Represents a batch of events to be uploaded.
+    /// </summary>
+    internal class EventBatch
     {
+        /// <summary>
+        /// The auto-generated Id of the batch to be uploaded.
+        /// </summary>
         [JsonProperty(PropertyName = "i")]
-        public System.Guid ID { get; set; }
+        public System.Guid Id { get; set; }
 
+        /// <summary>
+        /// The list of json-serialized events to be uploaded.
+        /// </summary>
         [JsonProperty(PropertyName = "j")]
         public IList<string> JsonEvents { get; set; }
     }

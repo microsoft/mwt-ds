@@ -112,6 +112,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BatchingConfiguration.cs" />
+    <Compile Include="EventHandlers.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="RawStringConverter.cs" />
     <Compile Include="DecisionServiceTransientErrorDetectionStrategy.cs" />
