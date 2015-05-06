@@ -55,9 +55,9 @@
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="JoinServerUploader, Version=1.0.0.2, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="JoinServerUploader, Version=1.0.0.4, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\JoinServerUploader.1.0.0.2\lib\net45\JoinServerUploader.dll</HintPath>
+      <HintPath>..\packages\JoinServerUploader.1.0.0.4\lib\net45\JoinServerUploader.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Data.Edm, Version=5.6.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

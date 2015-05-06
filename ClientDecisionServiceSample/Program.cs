@@ -37,6 +37,7 @@ namespace ClientDecisionServiceSample
         {
             var uploader = new EventUploader();
             uploader.InitializeWithToken("10198550-a074-4f9c-8b15-cc389bc2bbbe");
+            uploader.PackageSent += (sender, pse) => { Console.WriteLine("Uploaded {0} events.", pse.Records.Count()); };
 
             uploader.Upload(new Interaction { Key = "sample-upload", Action = 1, Context = null, Probability = 0.5f });
 
@@ -189,7 +190,7 @@ namespace ClientDecisionServiceSample
                     MaxEventCount = 2,
                     MaxBufferSizeInBytes = 10 * 1024 * 1024,
                     MaxUploadQueueCapacity = 2,
-                    UploadRetryPolicy = BatchUploadRetryPolicy.Retry
+                    UploadRetryPolicy = BatchUploadRetryPolicy.ExponentialRetry
                 },
 
                 // Set a custom json serializer for the context
