@@ -37,5 +37,10 @@ namespace JoinServerUploader
         /// The identifier of the package that was sent.
         /// </summary>
         public Guid PackageId { get; set; }
+
+        /// <summary>
+        /// The exception which caused the package send to fail.
+        /// </summary>
+        public Exception Exception { get; set; }
     }
 }

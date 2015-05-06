@@ -27,12 +27,15 @@ namespace ClientDecisionServiceTest
             joinServer.Reset();
 
             string uniqueKey = "test interaction";
+            int eventSentCount = 0;
 
             var uploader = new EventUploader(null, MockJoinServer.MockJoinServerAddress);
-            uploader.InitializeWithToken(this.authToken);
+            uploader.InitializeWithToken(MockCommandCenter.AuthorizationToken);
+            uploader.PackageSent += (sender, e) => { eventSentCount += e.Records.Count(); };
             uploader.Upload(new Interaction { Action = 1, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.5, Key = uniqueKey });
             uploader.Flush();
 
+            Assert.AreEqual(1, eventSentCount);
             Assert.AreEqual(1, joinServer.RequestCount);
             Assert.AreEqual(1, joinServer.EventBatchList.Count);
             Assert.AreEqual(1, joinServer.EventBatchList[0].ExperimentalUnitFragments.Count);
@@ -41,14 +44,110 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
+        public void TestUploaderInvalidToken()
+        {
+            joinServer.Reset();
+
+            string uniqueKey = "test interaction";
+            int eventSentCount = 0;
+
+            var uploader = new EventUploader(null, MockJoinServer.MockJoinServerAddress);
+            bool exceptionCaught = false;
+
+            uploader.InitializeWithToken("test");
+            uploader.PackageSent += (sender, e) => { eventSentCount += e.Records.Count(); };
+            uploader.PackageSendFailed += (sender, e) => { exceptionCaught = e.Exception != null; };
+
+            uploader.Upload(new Interaction { Action = 1, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.5, Key = uniqueKey });
+            uploader.Flush();
+
+            Assert.AreEqual(1, joinServer.RequestCount);
+            Assert.AreEqual(0, eventSentCount);
+            Assert.AreEqual(0, joinServer.EventBatchList.Count);
+            Assert.AreEqual(true, exceptionCaught);
+        }
+
+        [TestMethod]
+        public void TestUploaderInvalidServerAddress()
+        {
+            joinServer.Reset();
+
+            string uniqueKey = "test interaction";
+            int eventSentCount = 0;
+
+            var uploader = new EventUploader(null, "http://uploader.test");
+            bool exceptionCaught = false;
+
+            uploader.InitializeWithToken(MockCommandCenter.AuthorizationToken);
+            uploader.PackageSent += (sender, e) => { eventSentCount += e.Records.Count(); };
+            uploader.PackageSendFailed += (sender, e) => { exceptionCaught = e.Exception != null; };
+
+            uploader.Upload(new Interaction { Action = 1, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.5, Key = uniqueKey });
+            uploader.Flush();
+
+            Assert.AreEqual(0, joinServer.RequestCount);
+            Assert.AreEqual(0, eventSentCount);
+            Assert.AreEqual(0, joinServer.EventBatchList.Count);
+            Assert.AreEqual(true, exceptionCaught);
+        }
+
+        [TestMethod]
+        public void TestUploaderInvalidConnectionString()
+        {
+            joinServer.Reset();
+
+            string uniqueKey = "test interaction";
+            int eventSentCount = 0;
+
+            var uploader = new EventUploader(null, MockJoinServer.MockJoinServerAddress);
+            bool exceptionCaught = false;
+
+            uploader.InitializeWithConnectionString("testconnectionstring", 15);
+            uploader.PackageSent += (sender, e) => { eventSentCount += e.Records.Count(); };
+            uploader.PackageSendFailed += (sender, e) => { exceptionCaught = e.Exception != null; };
+
+            uploader.Upload(new Interaction { Action = 1, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.5, Key = uniqueKey });
+            uploader.Flush();
+
+            Assert.AreEqual(1, joinServer.RequestCount);
+            Assert.AreEqual(0, eventSentCount);
+            Assert.AreEqual(0, joinServer.EventBatchList.Count);
+            Assert.AreEqual(true, exceptionCaught);
+        }
+
+        [TestMethod]
+        public void TestUploaderInvalidExperimentalUnitDuration()
+        {
+            joinServer.Reset();
+
+
+            var uploader = new EventUploader(null, MockJoinServer.MockJoinServerAddress);
+            bool exceptionCaught = false;
+
+            try
+            {
+                uploader.InitializeWithConnectionString(MockCommandCenter.StorageConnectionString, -1);
+            }
+            catch (ArgumentException)
+            {
+                exceptionCaught = true;
+            }
+
+            Assert.AreEqual(true, exceptionCaught);
+        }
+
+        [TestMethod]
         public void TestUploaderMultipleEvents()
         {
             joinServer.Reset();
 
             string uniqueKey = "test interaction";
+            int eventSentCount = 0;
 
             var uploader = new EventUploader(null, MockJoinServer.MockJoinServerAddress);
-            uploader.InitializeWithToken(this.authToken);
+            uploader.InitializeWithToken(MockCommandCenter.AuthorizationToken);
+            uploader.PackageSent += (sender, e) => { eventSentCount += e.Records.Count(); };
+
             uploader.Upload(new Interaction { Action = 1, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.5, Key = uniqueKey });
             uploader.Upload(new Interaction { Action = 2, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.7, Key = uniqueKey });
             uploader.Upload(new Interaction { Action = 0, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.5, Key = uniqueKey });
@@ -59,6 +158,7 @@ namespace ClientDecisionServiceTest
 
             uploader.Flush();
 
+            Assert.AreEqual(6, eventSentCount);
             Assert.AreEqual(6, joinServer.EventBatchList.Sum(batch => batch.ExperimentalUnitFragments.Count));
         }
 
@@ -68,9 +168,11 @@ namespace ClientDecisionServiceTest
             joinServer.Reset();
 
             string uniqueKey = "test interaction";
+            int eventSentCount = 0;
 
             var uploader = new EventUploader(null, MockJoinServer.MockJoinServerAddress);
-            uploader.InitializeWithToken(this.authToken);
+            uploader.InitializeWithToken(MockCommandCenter.AuthorizationToken);
+            uploader.PackageSent += (sender, e) => { Interlocked.Add(ref eventSentCount, e.Records.Count()); };
 
             int numEvents = 1000;
             Parallel.For(0, numEvents, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, (i) =>
@@ -80,6 +182,7 @@ namespace ClientDecisionServiceTest
             });
             uploader.Flush();
 
+            Assert.AreEqual(numEvents * 2, eventSentCount);
             Assert.AreEqual(numEvents * 2, joinServer.EventBatchList.Sum(batch => batch.ExperimentalUnitFragments.Count));
         }
 
@@ -175,7 +278,6 @@ namespace ClientDecisionServiceTest
             joinServer.Stop();
         }
 
-        private readonly string authToken = "test token";
         private MockJoinServer joinServer;
     }
 }

@@ -81,7 +81,7 @@ namespace ClientDecisionServiceTest
         public void TestOnlineModeCustomLogger()
         {
             var dsConfig = new DecisionServiceConfiguration<TestContext>(
-                authorizationToken: this.authToken,
+                authorizationToken: MockCommandCenter.AuthorizationToken,
                 explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
 
             dsConfig.ServiceAzureStorageConnectionString = MockCommandCenter.StorageConnectionString;
@@ -123,7 +123,7 @@ namespace ClientDecisionServiceTest
         public void TestOnlineModeInvalidToken()
         {
             var dsConfig = new DecisionServiceConfiguration<TestContext>(
-                authorizationToken: this.authToken,
+                authorizationToken: MockCommandCenter.AuthorizationToken,
                 explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
 
             HttpStatusCode exceptionCode = HttpStatusCode.OK;
@@ -145,7 +145,5 @@ namespace ClientDecisionServiceTest
             }
             Assert.AreEqual(HttpStatusCode.NotFound, exceptionCode);
         }
-
-        private readonly string authToken = "test token";
     }
 }

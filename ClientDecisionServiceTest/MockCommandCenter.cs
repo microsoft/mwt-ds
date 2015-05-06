@@ -95,5 +95,6 @@ namespace ClientDecisionServiceTest
         private readonly string localAzureModelBlobName = "localtestmodelblob";
 
         public static readonly string StorageConnectionString = "UseDevelopmentStorage=true";
+        public static readonly string AuthorizationToken = "test token";
     }
 }

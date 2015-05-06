@@ -26,7 +26,7 @@ namespace ClientDecisionServiceTest
             commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false);
 
             var dsConfig = new DecisionServiceConfiguration<TestContext>(
-                authorizationToken: authToken,
+                authorizationToken: MockCommandCenter.AuthorizationToken,
                 explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: 2));
 
             dsConfig.ServiceAzureStorageConnectionString = MockCommandCenter.StorageConnectionString;
@@ -61,7 +61,7 @@ namespace ClientDecisionServiceTest
             commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false);
 
             var dsConfig = new DecisionServiceConfiguration<TestContext>(
-                authorizationToken: authToken,
+                authorizationToken: MockCommandCenter.AuthorizationToken,
                 explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: 2));
 
             dsConfig.ServiceAzureStorageConnectionString = MockCommandCenter.StorageConnectionString;
@@ -99,7 +99,7 @@ namespace ClientDecisionServiceTest
             commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false);
 
             var dsConfig = new DecisionServiceConfiguration<TestContext>(
-                authorizationToken: authToken,
+                authorizationToken: MockCommandCenter.AuthorizationToken,
                 explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: 2));
 
             dsConfig.ServiceAzureStorageConnectionString = MockCommandCenter.StorageConnectionString;
@@ -145,7 +145,7 @@ namespace ClientDecisionServiceTest
         [TestInitialize]
         public void Setup()
         {
-            commandCenter = new MockCommandCenter(this.authToken);
+            commandCenter = new MockCommandCenter(MockCommandCenter.AuthorizationToken);
             joinServer = new MockJoinServer(MockJoinServer.MockJoinServerAddress);
 
             joinServer.Run();
@@ -157,7 +157,6 @@ namespace ClientDecisionServiceTest
             joinServer.Stop();
         }
 
-        private readonly string authToken = "test token";
         private MockJoinServer joinServer;
         private MockCommandCenter commandCenter;
     }

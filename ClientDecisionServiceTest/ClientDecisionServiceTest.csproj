@@ -102,6 +102,7 @@
   </Choose>
   <ItemGroup>
     <None Include="Batching.cs" />
+    <Compile Include="Authorization.cs" />
     <Compile Include="AzureStorageHelper.cs" />
     <Compile Include="Common.cs" />
     <Compile Include="EventJsonConverter.cs" />

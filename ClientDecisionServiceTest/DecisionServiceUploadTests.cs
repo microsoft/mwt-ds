@@ -23,7 +23,7 @@ namespace ClientDecisionServiceTest
             string uniqueKey = "test interaction";
 
             var dsConfig = new DecisionServiceConfiguration<TestContext>(
-                authorizationToken: this.authToken,
+                authorizationToken: MockCommandCenter.AuthorizationToken,
                 explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
 
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
@@ -50,7 +50,7 @@ namespace ClientDecisionServiceTest
             string uniqueKey = "test interaction";
 
             var dsConfig = new DecisionServiceConfiguration<TestContext>(
-                authorizationToken: this.authToken,
+                authorizationToken: MockCommandCenter.AuthorizationToken,
                 explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
 
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
@@ -78,7 +78,7 @@ namespace ClientDecisionServiceTest
             var createObservation = (Func<int, string>)((i) => { return string.Format("00000", i); });
 
             var dsConfig = new DecisionServiceConfiguration<TestContext>(
-                authorizationToken: this.authToken,
+                authorizationToken: MockCommandCenter.AuthorizationToken,
                 explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
 
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
@@ -156,7 +156,6 @@ namespace ClientDecisionServiceTest
             joinServer.Stop();
         }
 
-        private readonly string authToken = "test token";
         private MockJoinServer joinServer;
     }
 }

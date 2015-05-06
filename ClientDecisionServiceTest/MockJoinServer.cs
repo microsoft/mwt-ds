@@ -1,5 +1,6 @@
 ﻿using ClientDecisionService;
 using Microsoft.Research.DecisionService.Common;
+using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -36,6 +37,30 @@ namespace ClientDecisionServiceTest
                     && request.HttpMethod == "POST")
                 {
                     Interlocked.Increment(ref requestCount);
+
+                    Authorization auth = new Authorization(request.Headers);
+                    switch (auth.Type)
+                    {
+                        case AuthorizationType.DecisionService:
+                            if (auth.Token != MockCommandCenter.AuthorizationToken)
+                            {
+                                response.StatusCode = (int)HttpStatusCode.BadRequest;
+                                response.Close();
+                                continue;
+                            }
+                            break;
+                        case AuthorizationType.AzureStorage:
+                            CloudStorageAccount cloudStorageAccount;
+                            if (!CloudStorageAccount.TryParse(auth.AzureStorageConnectionString, out cloudStorageAccount))
+                            {
+                                response.StatusCode = (int)HttpStatusCode.BadRequest;
+                                response.Close();
+                                continue;
+                            }
+                            break;
+                        default:
+                            break;
+                    }
 
                     using (var reader = new StreamReader(request.InputStream, request.ContentEncoding))
                     {
@@ -82,6 +107,6 @@ namespace ClientDecisionServiceTest
         /// <summary>
         /// Using this requires starting local deployment of join service
         /// </summary>
-        public static readonly string LocalJoinServerAddress = "http://localhost:27254/";
+        public static readonly string LocalJoinServerAddress = "http://localhost:1362/";
     }
 }

@@ -78,6 +78,11 @@ namespace JoinServerUploader
         /// <param name="experimentalUnitDuration">The duration of the experimental unit during which events are joined by the join service.</param>
         public void InitializeWithConnectionString(string connectionString, int experimentalUnitDuration)
         {
+            if (experimentalUnitDuration <= 0)
+            {
+                throw new ArgumentException("Experimental Unit Duration must be a valid positive number", "experimentalUnitDuration");
+            }
+
             Initialize(Constants.ConnectionStringAuthenticationScheme, connectionString);
             this.experimentalUnitDuration = experimentalUnitDuration;
         }
@@ -146,41 +151,46 @@ namespace JoinServerUploader
 
                     RetryPolicy retryPolicy = new RetryPolicy<JoinServiceTransientErrorDetectionStrategy>(retryStrategy);
 
-                    response = await retryPolicy.ExecuteAsync(async () =>
+                    try
                     {
-                        HttpResponseMessage currentResponse = null;
-                        try
+                        response = await retryPolicy.ExecuteAsync(async () =>
                         {
-                            currentResponse = await httpClient.PostAsync(Constants.ServicePostAddress, new StreamContent(jsonMemStream)).ConfigureAwait(false);
-                        }
-                        catch (TaskCanceledException e) // HttpClient throws this on timeout
-                        {
-                            // Convert to a different exception otherwise ExecuteAsync will see cancellation
-                            throw new HttpRequestException("Request timed out", e);
-                        }
-                        return currentResponse.EnsureSuccessStatusCode();
-                    });
+                            HttpResponseMessage currentResponse = null;
+                            try
+                            {
+                                currentResponse = await httpClient.PostAsync(Constants.ServicePostAddress, new StreamContent(jsonMemStream)).ConfigureAwait(false);
+                            }
+                            catch (TaskCanceledException e) // HttpClient throws this on timeout
+                            {
+                                // Convert to a different exception otherwise ExecuteAsync will see cancellation
+                                throw new HttpRequestException("Request timed out", e);
+                            }
+                            return currentResponse.EnsureSuccessStatusCode();
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        this.RaiseSendFailedEvent(batch, ex);
+                        return;
+                    }
                 }
                 else
                 {
                     response = await httpClient.PostAsync(Constants.ServicePostAddress, new StreamContent(jsonMemStream)).ConfigureAwait(false);
                 }
 
-                if (!response.IsSuccessStatusCode)
+                if (response == null)
                 {
-                    Trace.TraceError("Unable to upload batch: " + await response.Content.ReadAsStringAsync());
-                    if (PackageSendFailed != null)
-                    {
-                        PackageSendFailed(this, new PackageEventArgs { PackageId = batch.Id, Records = batch.JsonEvents });
-                    }
+                    this.RaiseSendFailedEvent(batch, new HttpRequestException("No response received from the server."));
+                }
+                else if (!response.IsSuccessStatusCode)
+                {
+                    string reason = await response.Content.ReadAsStringAsync();
+                    this.RaiseSendFailedEvent(batch, new HttpRequestException(reason));
                 }
                 else
                 {
-                    Trace.TraceInformation("Successfully uploaded batch with {0} events.", batch.JsonEvents.Count);
-                    if (PackageSent != null)
-                    {
-                        PackageSent(this, new PackageEventArgs { PackageId = batch.Id, Records = batch.JsonEvents });
-                    }
+                    this.RaiseSentEvent(batch);
                 }
             }
         }
@@ -239,7 +249,44 @@ namespace JoinServerUploader
             return jsonBuilder.ToString();
         }
 
+        private void RaiseSentEvent(EventBatch batch)
+        {
+            if (batch != null)
+            {
+                if (batch.JsonEvents != null)
+                {
+                    Trace.TraceInformation("Successfully uploaded batch with {0} events.", batch.JsonEvents.Count);
+                }
+                if (PackageSent != null)
+                {
+                    PackageSent(this, new PackageEventArgs { PackageId = batch.Id, Records = batch.JsonEvents });
+                }
+            }
+        }
+
+        private void RaiseSendFailedEvent(EventBatch batch, Exception ex)
+        {
+            if (batch != null)
+            {
+                if (ex != null)
+                {
+                    Trace.TraceError("Unable to upload batch: " + ex.ToString());
+                }
+                if (PackageSendFailed != null)
+                {
+                    PackageSendFailed(this, new PackageEventArgs { PackageId = batch.Id, Records = batch.JsonEvents, Exception = ex });
+                }
+            }
+        }
+
+        /// <summary>
+        /// Occurs when a package was successfully uploaded to the join server.
+        /// </summary>
         public event PackageSentEventHandler PackageSent;
+
+        /// <summary>
+        /// Occurs when a package was not successfully uploaded to the join server.
+        /// </summary>
         public event PackageSendFailedEventHandler PackageSendFailed;
 
         private readonly BatchingConfiguration batchConfig;
