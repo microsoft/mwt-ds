@@ -32,7 +32,7 @@ namespace ClientDecisionServiceWebSample.Extensions
                         MaxBufferSizeInBytes = 10,
                         MaxEventCount = 1,
                         MaxUploadQueueCapacity = 1,
-                        UploadRetryPolicy = BatchUploadRetryPolicy.Retry
+                        UploadRetryPolicy = BatchUploadRetryPolicy.ExponentialRetry
                     }
                 };
             }

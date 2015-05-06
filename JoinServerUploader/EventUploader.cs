@@ -15,6 +15,9 @@ using System.Threading.Tasks.Dataflow;
 
 namespace JoinServerUploader
 {
+    /// <summary>
+    /// Uploader class to interface with the Join Server provided by Multiworld Testing Service.
+    /// </summary>
     public class EventUploader : IDisposable
     {
         /// <summary>
@@ -35,7 +38,7 @@ namespace JoinServerUploader
                 MaxDuration = TimeSpan.FromMinutes(1),
                 MaxEventCount = 10000,
                 MaxUploadQueueCapacity = 100,
-                UploadRetryPolicy = BatchUploadRetryPolicy.Retry
+                UploadRetryPolicy = BatchUploadRetryPolicy.ExponentialRetry
             };
 
             this.loggingServiceBaseAddress = loggingServiceBaseAddress ?? Constants.ServiceAddress;
@@ -74,7 +77,7 @@ namespace JoinServerUploader
         /// <summary>
         /// Initialize the uploader to perform requests using the specified connection string.
         /// </summary>
-        /// <param name="authorizationToken">The connection string that is used to access resources by the join service.</param>
+        /// <param name="connectionString">The connection string that is used to access resources by the join service.</param>
         /// <param name="experimentalUnitDuration">The duration of the experimental unit during which events are joined by the join service.</param>
         public void InitializeWithConnectionString(string connectionString, int experimentalUnitDuration)
         {
@@ -144,7 +147,7 @@ namespace JoinServerUploader
             {
                 HttpResponseMessage response = null;
 
-                if (batchConfig.UploadRetryPolicy == BatchUploadRetryPolicy.Retry)
+                if (batchConfig.UploadRetryPolicy == BatchUploadRetryPolicy.ExponentialRetry)
                 {
                     var retryStrategy = new ExponentialBackoff(Constants.RetryCount,
                     Constants.RetryMinBackoff, Constants.RetryMaxBackoff, Constants.RetryDeltaBackoff);
@@ -204,6 +207,9 @@ namespace JoinServerUploader
             this.eventProcessor.Completion.Wait();
         }
 
+        /// <summary>
+        /// Disposes the current object and all internal members.
+        /// </summary>
         public void Dispose()
         {
             this.Dispose(true);

@@ -11,7 +11,7 @@ namespace JoinServerUploader
     {
         /// <summary>
         /// Interactions are generated at the point of decision-making and are usually represented as a 4-tuple of
-        /// <chosen action, probability, context, key>
+        /// (chosen action, probability, context, key)
         /// </summary>
         Interaction = 0,
 
@@ -41,6 +41,10 @@ namespace JoinServerUploader
         string Key { get; set; }
     }
 
+    /// <summary>
+    /// Represents an interaction event that are usually represented as a 4-tuple of
+    /// (chosen action, probability, context, key).
+    /// </summary>
     public class Interaction : IEvent
     {
         /// <summary>
@@ -79,6 +83,9 @@ namespace JoinServerUploader
         public string Context { get; set; }
     }
 
+    /// <summary>
+    /// Represents an observed outcome that is associated with some interaction.
+    /// </summary>
     public class Observation : IEvent
     {
         /// <summary>
@@ -100,6 +107,10 @@ namespace JoinServerUploader
         /// <summary>
         /// Gets or sets the value of the observation.
         /// </summary>
+        /// <remarks>
+        /// Observation values can be as simple as a single number indicating whether the outcome was positive or negative,
+        /// or more generic structure which can be later used for reward metric analysis.
+        /// </remarks>
         [JsonProperty(PropertyName = "v", NullValueHandling = NullValueHandling.Ignore)]
         [JsonConverter(typeof(RawStringConverter))]
         public string Value { get; set; }

@@ -30,9 +30,15 @@ namespace JoinServerUploader
         /// </summary>
         public int MaxUploadQueueCapacity { get; set; }
 
+        /// <summary>
+        /// Gets or sets the retry policy in case of upload failure.
+        /// </summary>
         public BatchUploadRetryPolicy UploadRetryPolicy { get; set; }
     }
 
+    /// <summary>
+    /// Represents a retry policy for uploading events.
+    /// </summary>
     public enum BatchUploadRetryPolicy
     {
         /// <summary>
@@ -43,6 +49,6 @@ namespace JoinServerUploader
         /// <summary>
         /// Perform an exponential-backoff retry strategy with the upload.
         /// </summary>
-        Retry
+        ExponentialRetry
     }
 }

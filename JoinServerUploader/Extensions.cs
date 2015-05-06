@@ -5,9 +5,9 @@ using System.Reactive.Subjects;
 
 namespace JoinServerUploader
 {
-    public static class ExtensionMethods
+    internal static class ExtensionMethods
     {
-        public static IObservable<IList<T>> Buffer<T>(this IObservable<T> source, int maxCount, int maxSize, Func<T, int> measure)
+        internal static IObservable<IList<T>> Buffer<T>(this IObservable<T> source, int maxCount, int maxSize, Func<T, int> measure)
         {
             var subject = new Subject<IList<T>>();
             var state = new List<T>();

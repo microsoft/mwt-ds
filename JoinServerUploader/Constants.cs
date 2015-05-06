@@ -2,7 +2,7 @@
 
 namespace JoinServerUploader
 {
-    public static class Constants
+    internal static class Constants
     {
         internal static readonly string ServiceAddress = "http://decisionservice.cloudapp.net";
         internal static readonly string ServicePostAddress = "/join";

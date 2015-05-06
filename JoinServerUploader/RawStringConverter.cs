@@ -14,7 +14,7 @@ namespace JoinServerUploader
     /// <summary>
     /// Custom JSON converter returning the underlying raw json (avoiding object allocation)
     /// </summary>
-    public class RawStringConverter : JsonConverter
+    internal class RawStringConverter : JsonConverter
     {
         public override bool CanConvert(Type objectType)
         {
