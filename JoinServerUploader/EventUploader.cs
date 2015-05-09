@@ -23,14 +23,15 @@ namespace JoinServerUploader
         /// <summary>
         /// Constructs an uploader object.
         /// </summary>
-        public EventUploader() : this(null, null) { }
+        public EventUploader() : this(null, null, null) { }
 
         /// <summary>
         /// Constructs an uploader object.
         /// </summary>
-        /// <param name="batchConfig">The batching configuration that controls the buffer size.</param>
-        /// <param name="loggingServiceBaseAddress">The address of a custom HTTP logging service. When null, the join service address is used.</param>
-        public EventUploader(BatchingConfiguration batchConfig, string loggingServiceBaseAddress)
+        /// <param name="batchConfig">Optional; The batching configuration that controls the buffer size.</param>
+        /// <param name="loggingServiceBaseAddress">Optional; The address of a custom HTTP logging service. When null, the join service address is used.</param>
+        /// <param name="httpClient">Optional; The custom <see cref="IHttpClient"/> object to handle HTTP requests.</param>
+        public EventUploader(BatchingConfiguration batchConfig = null, string loggingServiceBaseAddress = null, IHttpClient httpClient = null)
         {
             this.batchConfig = batchConfig ?? new BatchingConfiguration()
             {
@@ -42,6 +43,8 @@ namespace JoinServerUploader
             };
 
             this.loggingServiceBaseAddress = loggingServiceBaseAddress ?? Constants.ServiceAddress;
+
+            this.httpClient = httpClient ?? new UploaderHttpClient();
 
             this.eventSource = new TransformBlock<IEvent, string>(ev => JsonConvert.SerializeObject(new ExperimentalUnitFragment { Key = ev.Key, Value = ev }),
                 new ExecutionDataflowBlockOptions
@@ -118,14 +121,7 @@ namespace JoinServerUploader
         /// <param name="authenticationValue">The authentication value.</param>
         private void Initialize(string authenticationScheme, string authenticationValue)
         {
-            if (this.httpClient != null)
-            {
-                throw new InvalidOperationException("Uploader can only be initialized once.");
-            }
-            this.httpClient = new HttpClient();
-            this.httpClient.BaseAddress = new Uri(this.loggingServiceBaseAddress);
-            this.httpClient.Timeout = Constants.ConnectionTimeOut;
-            this.httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(authenticationScheme, authenticationValue);
+            this.httpClient.Initialize(this.loggingServiceBaseAddress, Constants.ConnectionTimeOut, authenticationScheme, authenticationValue);
         }
 
         /// <summary>
@@ -141,60 +137,57 @@ namespace JoinServerUploader
                 JsonEvents = jsonExpFragments
             };
 
-            byte[] jsonByteArray = Encoding.UTF8.GetBytes(EventUploader.BuildJsonMessage(batch, this.experimentalUnitDuration));
+            string json = EventUploader.BuildJsonMessage(batch, this.experimentalUnitDuration);
 
-            using (var jsonMemStream = new MemoryStream(jsonByteArray))
+            IHttpResponse response = null;
+
+            if (batchConfig.UploadRetryPolicy == BatchUploadRetryPolicy.ExponentialRetry)
             {
-                HttpResponseMessage response = null;
+                var retryStrategy = new ExponentialBackoff(Constants.RetryCount,
+                Constants.RetryMinBackoff, Constants.RetryMaxBackoff, Constants.RetryDeltaBackoff);
 
-                if (batchConfig.UploadRetryPolicy == BatchUploadRetryPolicy.ExponentialRetry)
+                RetryPolicy retryPolicy = new RetryPolicy<JoinServiceTransientErrorDetectionStrategy>(retryStrategy);
+
+                try
                 {
-                    var retryStrategy = new ExponentialBackoff(Constants.RetryCount,
-                    Constants.RetryMinBackoff, Constants.RetryMaxBackoff, Constants.RetryDeltaBackoff);
-
-                    RetryPolicy retryPolicy = new RetryPolicy<JoinServiceTransientErrorDetectionStrategy>(retryStrategy);
-
-                    try
+                    response = await retryPolicy.ExecuteAsync(async () =>
                     {
-                        response = await retryPolicy.ExecuteAsync(async () =>
+                        IHttpResponse currentResponse = null;
+                        try
                         {
-                            HttpResponseMessage currentResponse = null;
-                            try
-                            {
-                                currentResponse = await httpClient.PostAsync(Constants.ServicePostAddress, new StreamContent(jsonMemStream)).ConfigureAwait(false);
-                            }
-                            catch (TaskCanceledException e) // HttpClient throws this on timeout
-                            {
-                                // Convert to a different exception otherwise ExecuteAsync will see cancellation
-                                throw new HttpRequestException("Request timed out", e);
-                            }
-                            return currentResponse.EnsureSuccessStatusCode();
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        this.RaiseSendFailedEvent(batch, ex);
-                        return;
-                    }
+                            currentResponse = await httpClient.PostAsync(Constants.ServicePostAddress, json);
+                        }
+                        catch (TaskCanceledException e) // HttpClient throws this on timeout
+                        {
+                            // Convert to a different exception otherwise ExecuteAsync will see cancellation
+                            throw new HttpRequestException("Request timed out", e);
+                        }
+                        return currentResponse;
+                    });
                 }
-                else
+                catch (Exception ex)
                 {
-                    response = await httpClient.PostAsync(Constants.ServicePostAddress, new StreamContent(jsonMemStream)).ConfigureAwait(false);
+                    this.RaiseSendFailedEvent(batch, ex);
+                    return;
                 }
+            }
+            else
+            {
+                response = await httpClient.PostAsync(Constants.ServicePostAddress, json);
+            }
 
-                if (response == null)
-                {
-                    this.RaiseSendFailedEvent(batch, new HttpRequestException("No response received from the server."));
-                }
-                else if (!response.IsSuccessStatusCode)
-                {
-                    string reason = await response.Content.ReadAsStringAsync();
-                    this.RaiseSendFailedEvent(batch, new HttpRequestException(reason));
-                }
-                else
-                {
-                    this.RaiseSentEvent(batch);
-                }
+            if (response == null)
+            {
+                this.RaiseSendFailedEvent(batch, new HttpRequestException("No response received from the server."));
+            }
+            else if (!response.IsSuccessStatusCode)
+            {
+                string reason = await response.GetContentAsync();
+                this.RaiseSendFailedEvent(batch, new HttpRequestException(reason));
+            }
+            else
+            {
+                this.RaiseSentEvent(batch);
             }
         }
 
@@ -304,6 +297,6 @@ namespace JoinServerUploader
         private readonly ActionBlock<IList<string>> eventProcessor;
         private IDisposable eventUnsubscriber;
 
-        private HttpClient httpClient;
+        private IHttpClient httpClient;
     }
 }
