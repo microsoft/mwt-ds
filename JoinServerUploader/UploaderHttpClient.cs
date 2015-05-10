@@ -23,7 +23,7 @@ namespace JoinServerUploader
             }
             this.httpClient = new HttpClient();
             this.httpClient.BaseAddress = new Uri(baseAddress);
-            this.httpClient.Timeout = Constants.ConnectionTimeOut;
+            this.httpClient.Timeout = timeout;
             this.httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(authenticationScheme, authenticationValue);
         }
 
@@ -33,7 +33,7 @@ namespace JoinServerUploader
 
             using (var jsonMemStream = new MemoryStream(jsonByteArray))
             {
-                HttpResponseMessage responseTask = await this.httpClient.PostAsync(Constants.ServicePostAddress, new StreamContent(jsonMemStream)).ConfigureAwait(false);
+                HttpResponseMessage responseTask = await this.httpClient.PostAsync(postAddress, new StreamContent(jsonMemStream)).ConfigureAwait(false);
 
                 return new UploaderHttpResponse(responseTask);
             }
