@@ -154,7 +154,7 @@ namespace ClientDecisionService
         /// <summary>
         /// Specifies the polling period to check for updated ML model.
         /// </summary>
-        /// /// <remarks>
+        /// <remarks>
         /// Polling is turned off if this value is set to <see cref="TimeSpan.MinValue"/>.
         /// </remarks>
         public TimeSpan PollingForModelPeriod
