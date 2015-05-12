@@ -1,8 +1,10 @@
 using System;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace ClientDecisionService
 {
+    using SizeT = IntPtr;
     using VwExample = IntPtr;
     using VwHandle = IntPtr;
 
@@ -33,6 +35,9 @@ namespace ClientDecisionService
         [DllImport(LIBVW, EntryPoint = "VW_GetCostSensitivePrediction")]
         public static extern float GetCostSensitivePrediction(VwExample example);
 
+        [DllImport(LIBVW, EntryPoint = "VW_GetMultilabelPredictions")]
+        public static extern IntPtr GetMultilabelPredictions(VwHandle vw, VwExample example, ref SizeT length);
+
         [DllImport(LIBVW, EntryPoint = "VW_Predict")]
         public static extern float Predict(VwHandle vw, VwExample example);
     }
@@ -45,14 +50,28 @@ namespace ClientDecisionService
             vwState = VowpalWabbitState.Initialized;
         }
 
-        internal uint[] Predict(string exampleLine)
+        internal uint Predict(string exampleLine)
         {
             IntPtr example = VowpalWabbitInterface.ReadExample(vw, exampleLine);
             VowpalWabbitInterface.Predict(vw, example);
             VowpalWabbitInterface.FinishExample(vw, example);
 
-            //return (uint)VowpalWabbitInterface.GetCostSensitivePrediction(example);
-            return null; // TODO: replace with VW multi-label prediction
+            return (uint)VowpalWabbitInterface.GetCostSensitivePrediction(example);
+        }
+
+        internal uint[] PredictMultilabel(string exampleLine)
+        {
+            IntPtr example = VowpalWabbitInterface.ReadExample(vw, exampleLine);
+            VowpalWabbitInterface.Predict(vw, example);
+            VowpalWabbitInterface.FinishExample(vw, example);
+
+            IntPtr labelCount = (IntPtr)0;
+            IntPtr labelsPtr = VowpalWabbitInterface.GetMultilabelPredictions(vw, example, ref labelCount);
+
+            int[] labels = new int[(int)labelCount];
+            Marshal.Copy(labelsPtr, labels, 0, labels.Length);
+
+            return labels.OfType<uint>().ToArray();
         }
 
         internal void Finish()

@@ -13,7 +13,7 @@ namespace ClientDecisionService
 
         public uint[] ChooseAction(TContext context)
         {
-            return vw.Predict(string.Format(CultureInfo.InvariantCulture, "1: | {0}", context));
+            return vw.PredictMultilabel(string.Format(CultureInfo.InvariantCulture, "1: | {0}", context));
         }
 
         public void Dispose()

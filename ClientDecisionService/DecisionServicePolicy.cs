@@ -30,7 +30,7 @@ namespace ClientDecisionService
                 throw new Exception("Internal Error: Vowpal Wabbit has not been initialized for scoring.");
             }
 
-            return this.vw.Predict(exampleLine);
+            return this.vw.PredictMultilabel(exampleLine);
         }
 
         public void StopPolling()
