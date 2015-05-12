@@ -45,12 +45,14 @@ namespace ClientDecisionService
             vwState = VowpalWabbitState.Initialized;
         }
 
-        internal uint Predict(string exampleLine)
+        internal uint[] Predict(string exampleLine)
         {
             IntPtr example = VowpalWabbitInterface.ReadExample(vw, exampleLine);
             VowpalWabbitInterface.Predict(vw, example);
             VowpalWabbitInterface.FinishExample(vw, example);
-            return (uint)VowpalWabbitInterface.GetCostSensitivePrediction(example);
+
+            //return (uint)VowpalWabbitInterface.GetCostSensitivePrediction(example);
+            return null; // TODO: replace with VW multi-label prediction
         }
 
         internal void Finish()

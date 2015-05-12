@@ -16,12 +16,12 @@ namespace ClientDecisionService
             this.contextSerializer = contextSerializer ?? (x => x == null ? null : JsonConvert.SerializeObject(x));
         }
 
-        public void Record(TContext context, uint action, float probability, string uniqueKey)
+        public void Record(TContext context, uint[] actions, float probability, string uniqueKey)
         {
             this.eventUploader.Upload(new Interaction
             { 
                 Key = uniqueKey,
-                Action = (int)action,
+                Actions = actions,
                 Probability = probability,
                 Context = this.contextSerializer(context)
             });

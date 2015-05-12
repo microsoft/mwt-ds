@@ -48,7 +48,7 @@ namespace ClientDecisionServiceWebSample.Controllers
                 string context = "context " + requestCount;
                 string outcome = "outcome " + requestCount;
 
-                uint action = DecisionServiceWrapper<string>.Service.ChooseAction(requestCount.ToString(), context);
+                uint[] action = DecisionServiceWrapper<string>.Service.ChooseAction(requestCount.ToString(), context);
                 DecisionServiceWrapper<string>.Service.ReportOutcome(outcome, requestCount.ToString());
 
                 System.IO.File.AppendAllLines(exploreFile, new string[] { "Action: " + action.ToString() });

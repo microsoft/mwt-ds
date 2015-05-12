@@ -11,7 +11,7 @@ namespace ClientDecisionService
             vw = new VowpalWabbitInstance(string.Format(CultureInfo.InvariantCulture, "-t -i {0}", vwModelFile));
         }
 
-        public uint ChooseAction(TContext context)
+        public uint[] ChooseAction(TContext context)
         {
             return vw.Predict(string.Format(CultureInfo.InvariantCulture, "1: | {0}", context));
         }

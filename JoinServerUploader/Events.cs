@@ -67,7 +67,7 @@ namespace JoinServerUploader
         /// Gets or sets the action to take for this interaction.
         /// </summary>
         [JsonProperty(PropertyName = "a")]
-        public int Action { get; set; }
+        public uint[] Actions { get; set; }
 
         /// <summary>
         /// Gets or sets the probability of choosing the action (before it was chosen).

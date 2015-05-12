@@ -13,6 +13,7 @@ namespace ClientDecisionServiceWebSample.Extensions
         public static EpsilonGreedyExplorer<TContext> Explorer { get; set; }
         public static DecisionServiceConfiguration<TContext> Configuration { get; set; }
         public static DecisionService<TContext> Service { get; set; }
+        public static int NumActions { get; set; }
 
         public static void Create(string appToken, float epsilon, uint numActions, string modelOutputDir)
         {
@@ -41,14 +42,16 @@ namespace ClientDecisionServiceWebSample.Extensions
             {
                 Service = new DecisionService<TContext>(Configuration);
             }
+
+            NumActions = (int)numActions;
         }
     }
 
     class MartPolicy<TContext> : IPolicy<TContext>
     {
-        public uint ChooseAction(TContext context)
+        public uint[] ChooseAction(TContext context)
         {
-            return 5;
+            return Enumerable.Range(1, DecisionServiceWrapper<string>.NumActions).Select(m => (uint)m).ToArray();
         }
     }
 }

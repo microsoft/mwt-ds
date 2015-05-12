@@ -21,7 +21,7 @@ namespace ClientDecisionService
             this.notifyPolicyUpdate = notifyPolicyUpdate;
         }
 
-        public uint ChooseAction(TContext context)
+        public uint[] ChooseAction(TContext context)
         {
             string exampleLine = string.Format(CultureInfo.InvariantCulture, "1: | {0}", context);
 
@@ -30,9 +30,7 @@ namespace ClientDecisionService
                 throw new Exception("Internal Error: Vowpal Wabbit has not been initialized for scoring.");
             }
 
-            uint action = this.vw.Predict(exampleLine);
-
-            return action;
+            return this.vw.Predict(exampleLine);
         }
 
         public void StopPolling()

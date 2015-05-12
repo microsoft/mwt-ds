@@ -31,7 +31,7 @@ namespace ClientDecisionServiceTest
 
             var ds = new DecisionService<TestContext>(dsConfig);
 
-            uint chosenAction = ds.ChooseAction(uniqueKey, new TestContext());
+            uint[] chosenActions = ds.ChooseAction(uniqueKey, new TestContext());
 
             ds.Flush();
 
@@ -39,7 +39,7 @@ namespace ClientDecisionServiceTest
             Assert.AreEqual(1, joinServer.EventBatchList.Count);
             Assert.AreEqual(1, joinServer.EventBatchList[0].ExperimentalUnitFragments.Count);
             Assert.AreEqual(uniqueKey, joinServer.EventBatchList[0].ExperimentalUnitFragments[0].Id);
-            Assert.IsTrue(joinServer.EventBatchList[0].ExperimentalUnitFragments[0].Value.ToLower().Contains("\"a\":" + chosenAction + ","));
+            Assert.IsTrue(joinServer.EventBatchList[0].ExperimentalUnitFragments[0].Value.ToLower().Contains("\"a\":[" + string.Join(",", chosenActions) + "],"));
         }
 
         [TestMethod]
@@ -58,8 +58,8 @@ namespace ClientDecisionServiceTest
 
             var ds = new DecisionService<TestContext>(dsConfig);
 
-            uint chosenAction1 = ds.ChooseAction(uniqueKey, new TestContext());
-            uint chosenAction2 = ds.ChooseAction(uniqueKey, new TestContext());
+            uint[] chosenAction1 = ds.ChooseAction(uniqueKey, new TestContext());
+            uint[] chosenAction2 = ds.ChooseAction(uniqueKey, new TestContext());
             ds.ReportReward(1.0f, uniqueKey);
             ds.ReportOutcome(JsonConvert.SerializeObject(new { value = "test outcome" }), uniqueKey);
 
@@ -88,7 +88,7 @@ namespace ClientDecisionServiceTest
 
             int numEvents = 1000;
 
-            var chosenActions = new ConcurrentBag<uint>();
+            var chosenActions = new ConcurrentBag<uint[]>();
 
             Parallel.For(0, numEvents, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, (i) =>
             {
@@ -117,15 +117,15 @@ namespace ClientDecisionServiceTest
             // Test actual interactions received 
             List<CompleteExperimentalUnitFragment> interactions = completeFragments
                 .Where(f => f.Value == null)
-                .OrderBy(f => f.Action)
+                .OrderBy(f => f.Actions[0])
                 .ToList();
 
             // Test values of the interactions
             Assert.AreEqual(numEvents, interactions.Count);
-            var chosenActionList = chosenActions.OrderBy(a => a).ToList();
+            var chosenActionList = chosenActions.OrderBy(a => a[0]).ToList();
             for (int i = 0; i < interactions.Count; i++)
             {
-                Assert.AreEqual((int)chosenActionList[i], interactions[i].Action.Value);
+                Assert.AreEqual((int)chosenActionList[i][0], interactions[i].Actions[0]);
             }
 
             // Test actual observations received
