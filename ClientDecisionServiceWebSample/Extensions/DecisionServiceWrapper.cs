@@ -4,7 +4,7 @@ using System.Linq;
 using System.Web;
 using MultiWorldTesting;
 using ClientDecisionService;
-using JoinServerUploader;
+using Microsoft.Research.DecisionService.Uploader;
 
 namespace ClientDecisionServiceWebSample.Extensions
 {

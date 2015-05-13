@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace JoinServerUploader
+namespace Microsoft.Research.DecisionService.Uploader
 {
     /// <summary>
     /// The custom HTTP client type for handling HTTP requests.

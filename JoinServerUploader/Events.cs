@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace JoinServerUploader
+namespace Microsoft.Research.DecisionService.Uploader
 {
     /// <summary>
     /// Represents the type of application event.
@@ -55,6 +55,9 @@ namespace JoinServerUploader
     /// </summary>
     public abstract class Interaction : IEvent
     {
+        /// <summary>
+        /// The type of event.
+        /// </summary>
         public abstract EventType Type { get; }
 
         /// <summary>

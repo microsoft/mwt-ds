@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reactive;
 using System.Reactive.Subjects;
 
-namespace JoinServerUploader
+namespace Microsoft.Research.DecisionService.Uploader
 {
     internal static class ExtensionMethods
     {

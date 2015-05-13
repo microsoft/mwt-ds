@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace JoinServerUploader
+namespace Microsoft.Research.DecisionService.Uploader
 {
     internal static class Constants
     {

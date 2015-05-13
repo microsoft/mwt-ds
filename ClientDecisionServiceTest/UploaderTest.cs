@@ -11,7 +11,7 @@ using System.Text;
 using Microsoft.Research.DecisionService.Common;
 using Newtonsoft.Json;
 using System.Web;
-using JoinServerUploader;
+using Microsoft.Research.DecisionService.Uploader;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System.Collections.Generic;
