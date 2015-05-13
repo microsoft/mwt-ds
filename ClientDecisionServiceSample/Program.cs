@@ -378,7 +378,7 @@ namespace ClientDecisionServiceSample
 
         public uint[] ChooseAction(UserContext context)
         {
-            return Enumerable.Range(1, numActions).OfType<uint>().ToArray(); //((context.FeatureVector.Length % 2) + 1);
+            return Enumerable.Range(1, numActions).Select(a => (uint)a).ToArray(); //((context.FeatureVector.Length % 2) + 1);
         }
 
         int numActions;
