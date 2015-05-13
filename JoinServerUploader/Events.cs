@@ -10,10 +10,18 @@ namespace JoinServerUploader
     public enum EventType
     {
         /// <summary>
+        /// Represents an interaction with a single action.
         /// Interactions are generated at the point of decision-making and are usually represented as a 4-tuple of
-        /// (chosen action, probability, context, key)
+        /// (chosen action(s), probability, context, key)
         /// </summary>
-        Interaction = 0,
+        SingleActionInteraction = 0,
+
+        /// <summary>
+        /// Represents an interaction with multiple actions.
+        /// Interactions are generated at the point of decision-making and are usually represented as a 4-tuple of
+        /// (chosen action(s), probability, context, key)
+        /// </summary>
+        MultiActionInteraction = 1,
 
         /// <summary>
         /// Observations represent observed outcomes that are associated with interactions.
@@ -43,31 +51,16 @@ namespace JoinServerUploader
 
     /// <summary>
     /// Represents an interaction event that are usually represented as a 4-tuple of
-    /// (chosen action, probability, context, key).
+    /// (chosen action(s), probability, context, key).
     /// </summary>
-    public class Interaction : IEvent
+    public abstract class Interaction : IEvent
     {
-        /// <summary>
-        /// Gets the type of event.
-        /// </summary>
-        public EventType Type
-        {
-            get
-            {
-                return EventType.Interaction;
-            }
-        }
+        public abstract EventType Type { get; }
 
         /// <summary>
         /// Gets or sets the unique experimental unit key that this event belongs to.
         /// </summary>
         public string Key { get; set; }
-
-        /// <summary>
-        /// Gets or sets the action to take for this interaction.
-        /// </summary>
-        [JsonProperty(PropertyName = "a")]
-        public uint[] Actions { get; set; }
 
         /// <summary>
         /// Gets or sets the probability of choosing the action (before it was chosen).
@@ -81,6 +74,52 @@ namespace JoinServerUploader
         [JsonProperty(PropertyName = "c", NullValueHandling = NullValueHandling.Ignore)]
         [JsonConverter(typeof(RawStringConverter))]
         public string Context { get; set; }
+    }
+
+    /// <summary>
+    /// Represents an interaction event with a single action.
+    /// </summary>
+    public class SingleActionInteraction : Interaction
+    {
+        /// <summary>
+        /// Gets the type of event.
+        /// </summary>
+        public override EventType Type
+        {
+            get
+            {
+                return EventType.SingleActionInteraction;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the action to take for this interaction.
+        /// </summary>
+        [JsonProperty(PropertyName = "a")]
+        public uint Action { get; set; }
+    }
+
+    /// <summary>
+    /// Represents an interaction event with multiple actions.
+    /// </summary>
+    public class MultiActionInteraction : Interaction
+    {
+        /// <summary>
+        /// Gets the type of event.
+        /// </summary>
+        public override EventType Type
+        {
+            get
+            {
+                return EventType.MultiActionInteraction;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the action to take for this interaction.
+        /// </summary>
+        [JsonProperty(PropertyName = "a")]
+        public uint[] Actions { get; set; }
     }
 
     /// <summary>

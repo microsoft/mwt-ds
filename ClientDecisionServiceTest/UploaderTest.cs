@@ -32,7 +32,7 @@ namespace ClientDecisionServiceTest
             var uploader = new EventUploader(null, MockJoinServer.MockJoinServerAddress);
             uploader.InitializeWithToken(MockCommandCenter.AuthorizationToken);
             uploader.PackageSent += (sender, e) => { eventSentCount += e.Records.Count(); };
-            uploader.Upload(new Interaction { Actions = new uint[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.5, Key = uniqueKey });
+            uploader.Upload(new MultiActionInteraction { Actions = new uint[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.5, Key = uniqueKey });
             uploader.Flush();
 
             Assert.AreEqual(1, eventSentCount);
@@ -58,7 +58,7 @@ namespace ClientDecisionServiceTest
             uploader.PackageSent += (sender, e) => { eventSentCount += e.Records.Count(); };
             uploader.PackageSendFailed += (sender, e) => { exceptionCaught = e.Exception != null; };
 
-            uploader.Upload(new Interaction { Actions = new uint[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.5, Key = uniqueKey });
+            uploader.Upload(new MultiActionInteraction { Actions = new uint[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.5, Key = uniqueKey });
             uploader.Flush();
 
             Assert.AreEqual(1, joinServer.RequestCount);
@@ -82,7 +82,7 @@ namespace ClientDecisionServiceTest
             uploader.PackageSent += (sender, e) => { eventSentCount += e.Records.Count(); };
             uploader.PackageSendFailed += (sender, e) => { exceptionCaught = e.Exception != null; };
 
-            uploader.Upload(new Interaction { Actions = new uint[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.5, Key = uniqueKey });
+            uploader.Upload(new MultiActionInteraction { Actions = new uint[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.5, Key = uniqueKey });
             uploader.Flush();
 
             Assert.AreEqual(0, joinServer.RequestCount);
@@ -106,7 +106,7 @@ namespace ClientDecisionServiceTest
             uploader.PackageSent += (sender, e) => { eventSentCount += e.Records.Count(); };
             uploader.PackageSendFailed += (sender, e) => { exceptionCaught = e.Exception != null; };
 
-            uploader.Upload(new Interaction { Actions = new uint[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.5, Key = uniqueKey });
+            uploader.Upload(new MultiActionInteraction { Actions = new uint[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.5, Key = uniqueKey });
             uploader.Flush();
 
             Assert.AreEqual(1, joinServer.RequestCount);
@@ -148,9 +148,9 @@ namespace ClientDecisionServiceTest
             uploader.InitializeWithToken(MockCommandCenter.AuthorizationToken);
             uploader.PackageSent += (sender, e) => { eventSentCount += e.Records.Count(); };
 
-            uploader.Upload(new Interaction { Actions = new uint[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.5, Key = uniqueKey });
-            uploader.Upload(new Interaction { Actions = new uint[] { 2 }, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.7, Key = uniqueKey });
-            uploader.Upload(new Interaction { Actions = new uint[] { 0 }, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.5, Key = uniqueKey });
+            uploader.Upload(new MultiActionInteraction { Actions = new uint[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.5, Key = uniqueKey });
+            uploader.Upload(new MultiActionInteraction { Actions = new uint[] { 2 }, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.7, Key = uniqueKey });
+            uploader.Upload(new MultiActionInteraction { Actions = new uint[] { 0 }, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.5, Key = uniqueKey });
 
             uploader.Upload(new Observation { Value = "1", Key = uniqueKey });
             uploader.Upload(new Observation { Value = "2", Key = uniqueKey });
@@ -177,7 +177,7 @@ namespace ClientDecisionServiceTest
             int numEvents = 1000;
             Parallel.For(0, numEvents, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, (i) =>
             {
-                uploader.Upload(new Interaction { Actions = new uint[] { (uint)i }, Context = JsonConvert.SerializeObject(new TestContext()), Probability = i / 1000.0, Key = uniqueKey });
+                uploader.Upload(new MultiActionInteraction { Actions = new uint[] { (uint)i }, Context = JsonConvert.SerializeObject(new TestContext()), Probability = i / 1000.0, Key = uniqueKey });
                 uploader.Upload(new Observation { Value = JsonConvert.SerializeObject(new { value = "999" + i }), Key = uniqueKey });
             });
             uploader.Flush();
@@ -203,7 +203,7 @@ namespace ClientDecisionServiceTest
             int numEvents = 1000;
             Parallel.For(0, numEvents, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, (i) =>
             {
-                uploader.Upload(new Interaction { Actions = new uint[] { (uint)createAction(i) }, Context = JsonConvert.SerializeObject(new TestContext()), Probability = createProbability(i), Key = uniqueKey });
+                uploader.Upload(new MultiActionInteraction { Actions = new uint[] { (uint)createAction(i) }, Context = JsonConvert.SerializeObject(new TestContext()), Probability = createProbability(i), Key = uniqueKey });
                 uploader.Upload(new Observation { Value = JsonConvert.SerializeObject(new { value = createObservation(i) }), Key = uniqueKey });
             });
             uploader.Flush();
@@ -232,7 +232,7 @@ namespace ClientDecisionServiceTest
 
                     List<CompleteExperimentalUnitFragment> interactions = completeBlobData.Data[0].Fragments
                         .Where(f => f.Value == null)
-                        .OrderBy(f => f.Actions)
+                        .OrderBy(f => f.Actions[0])
                         .ToList();
 
                     Assert.AreEqual(numEvents, interactions.Count);

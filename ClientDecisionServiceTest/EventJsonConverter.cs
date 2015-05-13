@@ -26,8 +26,10 @@ namespace ClientDecisionService
                 var jObject = JObject.Load(reader);
                 switch ((EventType)Convert.ToInt32(jObject["t"]))
                 {
-                    case EventType.Interaction:
-                        return jObject.ToObject<Interaction>();
+                    case EventType.SingleActionInteraction:
+                        return jObject.ToObject<SingleActionInteraction>();
+                    case EventType.MultiActionInteraction:
+                        return jObject.ToObject<MultiActionInteraction>();
                     case EventType.Observation:
                         return jObject.ToObject<Observation>();
                 }

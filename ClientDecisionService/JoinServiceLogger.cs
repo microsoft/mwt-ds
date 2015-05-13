@@ -18,7 +18,7 @@ namespace ClientDecisionService
 
         public void Record(TContext context, uint[] actions, float probability, string uniqueKey)
         {
-            this.eventUploader.Upload(new Interaction
+            this.eventUploader.Upload(new MultiActionInteraction
             { 
                 Key = uniqueKey,
                 Actions = actions,
