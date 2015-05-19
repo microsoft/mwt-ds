@@ -248,6 +248,8 @@ namespace ClientDecisionServiceSample
                     MaxBufferSizeInBytes = 8 * 1024 * 1024,
                     MaxUploadQueueCapacity = 1024 * 32
                 },
+                PollingForModelPeriod = TimeSpan.MinValue,
+                PollingForSettingsPeriod = TimeSpan.MinValue,
                 // Features must be top-level, no nesting supported
                 ContextJsonSerializer = uc => JsonConvert.SerializeObject(uc.FeatureVector)
             };
