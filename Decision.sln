@@ -22,8 +22,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{17E140
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientDecisionServiceSample", "ClientDecisionServiceSample\ClientDecisionServiceSample.csproj", "{990B09DC-236A-4D04-B109-23F5A5FCBF55}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientDecisionServiceWebSample", "ClientDecisionServiceWebSample\ClientDecisionServiceWebSample.csproj", "{EB67FB8B-508D-44DD-B413-85C52819E764}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JoinServerUploader", "JoinServerUploader\JoinServerUploader.csproj", "{E2E33DE3-C3C4-47F4-AC39-5D10A0332189}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MultiWorldTestingServiceContract", "MultiWorldTestingServiceContract\MultiWorldTestingServiceContract.csproj", "{D10392B9-7F76-4D1F-8F38-B0B63AA63760}"
@@ -125,21 +123,6 @@ Global
 		{990B09DC-236A-4D04-B109-23F5A5FCBF55}.Test|x64.Build.0 = Release|x64
 		{990B09DC-236A-4D04-B109-23F5A5FCBF55}.Test|x86.ActiveCfg = Release|x86
 		{990B09DC-236A-4D04-B109-23F5A5FCBF55}.Test|x86.Build.0 = Release|x86
-		{EB67FB8B-508D-44DD-B413-85C52819E764}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{EB67FB8B-508D-44DD-B413-85C52819E764}.Debug|x64.ActiveCfg = Debug|x64
-		{EB67FB8B-508D-44DD-B413-85C52819E764}.Debug|x64.Build.0 = Debug|x64
-		{EB67FB8B-508D-44DD-B413-85C52819E764}.Debug|x86.ActiveCfg = Debug|x86
-		{EB67FB8B-508D-44DD-B413-85C52819E764}.Debug|x86.Build.0 = Debug|x86
-		{EB67FB8B-508D-44DD-B413-85C52819E764}.Release|Any CPU.ActiveCfg = Release|x64
-		{EB67FB8B-508D-44DD-B413-85C52819E764}.Release|x64.ActiveCfg = Release|x64
-		{EB67FB8B-508D-44DD-B413-85C52819E764}.Release|x64.Build.0 = Release|x64
-		{EB67FB8B-508D-44DD-B413-85C52819E764}.Release|x86.ActiveCfg = Release|x86
-		{EB67FB8B-508D-44DD-B413-85C52819E764}.Release|x86.Build.0 = Release|x86
-		{EB67FB8B-508D-44DD-B413-85C52819E764}.Test|Any CPU.ActiveCfg = Release|x64
-		{EB67FB8B-508D-44DD-B413-85C52819E764}.Test|x64.ActiveCfg = Release|x64
-		{EB67FB8B-508D-44DD-B413-85C52819E764}.Test|x64.Build.0 = Release|x64
-		{EB67FB8B-508D-44DD-B413-85C52819E764}.Test|x86.ActiveCfg = Release|x86
-		{EB67FB8B-508D-44DD-B413-85C52819E764}.Test|x86.Build.0 = Release|x86
 		{E2E33DE3-C3C4-47F4-AC39-5D10A0332189}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E2E33DE3-C3C4-47F4-AC39-5D10A0332189}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E2E33DE3-C3C4-47F4-AC39-5D10A0332189}.Debug|x64.ActiveCfg = Debug|x64
