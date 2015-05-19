@@ -170,7 +170,7 @@ namespace ClientDecisionService
                 CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
                 blobClient.DefaultRequestOptions.RetryPolicy = new ExponentialRetry(DecisionServiceConstants.RetryDeltaBackoff, DecisionServiceConstants.RetryCount);
 
-                CloudBlobContainer settingsContainer = blobClient.GetContainerReference(ApplicationBlobConstants.ApplicationBlobLocationContainerName);
+                CloudBlobContainer settingsContainer = blobClient.GetContainerReference(ApplicationBlobConstants.RedirectionContainerName);
                 CloudBlockBlob settingsBlob = settingsContainer.GetBlockBlobReference(token);
 
                 using (var ms = new MemoryStream())

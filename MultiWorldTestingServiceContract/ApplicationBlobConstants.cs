@@ -8,7 +8,9 @@ namespace Microsoft.Research.MultiWorldTesting.Contract
 {
     public static class ApplicationBlobConstants
     {
-        public static readonly string ApplicationBlobLocationContainerName = "app-locations";
+        // Redirection blobs
+        public static readonly string RedirectionContainerName = "app-locations";
+        public static readonly string RedirectionBlobName = "{0}"; // resolved by token
         
         // Model blobs
         public static readonly string ModelContainerName = "mwt-models-{0}";
