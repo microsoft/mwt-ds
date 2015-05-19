@@ -8,7 +8,7 @@ namespace ClientDecisionService
 {
     internal static class DecisionServiceConstants
     {
-        internal static readonly string MwtServiceAzureStorageConnectionString = "DefaultEndpointsProtocol=https;AccountName=;AccountKey=";
+        internal static readonly string MwtServiceAzureStorageConnectionString = "DefaultEndpointsProtocol=https;AccountName=decisionservicestorage;AccountKey=2/205EDbKENilswA/Gdtr2tSM/wauWxqLn8/EuXnTU1Ma/3ZFNxBjLZOqUN+DcZ4gjtndnIviE+jzm6jJJ4dgw==";
 
         internal static readonly string ApplicationBlobLocationContainerName = "app-locations";
         internal static readonly string SettingsContainerName = "mwt-settings-{0}";

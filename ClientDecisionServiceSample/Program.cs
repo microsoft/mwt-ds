@@ -1,5 +1,5 @@
 ﻿using ClientDecisionService;
-using JoinServerUploader;
+using Microsoft.Research.DecisionService.Uploader;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using MultiWorldTesting;
@@ -39,7 +39,7 @@ namespace ClientDecisionServiceSample
             uploader.InitializeWithToken("10198550-a074-4f9c-8b15-cc389bc2bbbe");
             uploader.PackageSent += (sender, pse) => { Console.WriteLine("Uploaded {0} events.", pse.Records.Count()); };
 
-            uploader.Upload(new Interaction { Key = "sample-upload", Action = 1, Context = null, Probability = 0.5f });
+            uploader.Upload(new SingleActionInteraction { Key = "sample-upload", Action = 1, Context = null, Probability = 0.5f });
 
             uploader.Flush();
         }
@@ -177,7 +177,7 @@ namespace ClientDecisionServiceSample
             // Create configuration for the decision service
             var serviceConfig = new DecisionServiceConfiguration<UserContext>(
                 authorizationToken: "",
-                explorer: new EpsilonGreedyExplorer<UserContext>(new UserPolicy(), epsilon: 0.2f, numActions: 10))
+                explorer: new EpsilonGreedyExplorer<UserContext>(new UserPolicy(10), epsilon: 0.2f, numActions: 10))
             //explorer = new TauFirstExplorer<MyContext>(new UserPolicy(), tau: 50, numActions: 10))
             //explorer = new BootstrapExplorer<MyContext>(new IPolicy<MyContext>[2] { new UserPolicy(), new UserPolicy() }, numActions: 10))
             //explorer = new SoftmaxExplorer<MyContext>(new UserScorer(), lambda: 0.5f, numActions: 10))
@@ -200,7 +200,7 @@ namespace ClientDecisionServiceSample
             var service = new DecisionService<UserContext>(serviceConfig);
 
             string uniqueKey = "eventid";
-            uint action = service.ChooseAction(uniqueKey, new UserContext());
+            uint[] action = service.ChooseAction(uniqueKey, new UserContext());
 
             // Report outcome as a JSON
             service.ReportOutcome("my json outcome", uniqueKey);
@@ -239,7 +239,7 @@ namespace ClientDecisionServiceSample
 
             var serviceConfig = new DecisionServiceConfiguration<UserContext>(
                 authorizationToken: "10198550-a074-4f9c-8b15-cc389bc2bbbe",
-                explorer: new EpsilonGreedyExplorer<UserContext>(new UserPolicy(), epsilon: 0.2f, numActions: 2))
+                explorer: new EpsilonGreedyExplorer<UserContext>(new UserPolicy(2), epsilon: 0.2f, numActions: 2))
             {
                 JoinServiceBatchConfiguration = new BatchingConfiguration()
                 {
@@ -297,8 +297,8 @@ namespace ClientDecisionServiceSample
 
             var actionBlock = new ActionBlock<Parsed>(p =>
             {
-                uint action = service.ChooseAction(p.UniqueId.ToString(), p.Context);
-                service.ReportReward(-Math.Abs((int)action - p.TrueAction), p.UniqueId.ToString());
+                uint[] action = service.ChooseAction(p.UniqueId.ToString(), p.Context);
+                service.ReportReward(-Math.Abs((int)action[0] - p.TrueAction), p.UniqueId.ToString());
             });
 
             transformBlock.LinkTo(actionBlock, new DataflowLinkOptions { PropagateCompletion = true });
@@ -363,7 +363,7 @@ namespace ClientDecisionServiceSample
 
     class MyAzureRecorder : IRecorder<UserContext>
     {
-        public void Record(UserContext context, UInt32 action, float probability, string uniqueKey)
+        public void Record(UserContext context, UInt32[] action, float probability, string uniqueKey)
         {
             // Stores the tuple in Azure.
         }
@@ -371,10 +371,17 @@ namespace ClientDecisionServiceSample
 
     class UserPolicy : IPolicy<UserContext>
     {
-        public uint ChooseAction(UserContext context)
+        public UserPolicy(int numActions)
         {
-            return (uint)1; //((context.FeatureVector.Length % 2) + 1);
+            this.numActions = numActions;
         }
+
+        public uint[] ChooseAction(UserContext context)
+        {
+            return Enumerable.Range(1, numActions).Select(a => (uint)a).ToArray(); //((context.FeatureVector.Length % 2) + 1);
+        }
+
+        int numActions;
     }
 
     class UserScorer : IScorer<UserContext>

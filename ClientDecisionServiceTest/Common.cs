@@ -3,6 +3,7 @@ using MultiWorldTesting;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ClientDecisionServiceTest
 {
@@ -12,10 +13,10 @@ namespace ClientDecisionServiceTest
 
     class TestPolicy : IPolicy<TestContext>
     {
-        public uint ChooseAction(TestContext context)
+        public uint[] ChooseAction(TestContext context)
         {
             // Always returns the same action regardless of context
-            return Constants.NumberOfActions - 1;
+            return Enumerable.Range(1, (int)Constants.NumberOfActions).Select(m => (uint)m).ToArray();
         }
     }
 
@@ -45,7 +46,7 @@ namespace ClientDecisionServiceTest
             this.numOutcome = 0;
         }
 
-        public void Record(TestContext context, uint action, float probability, string uniqueKey)
+        public void Record(TestContext context, uint[] actions, float probability, string uniqueKey)
         {
             this.numRecord++;
         }
@@ -117,7 +118,7 @@ namespace ClientDecisionServiceTest
         public string Type { get; set; }
 
         [JsonProperty(PropertyName = "a")]
-        public int? Action { get; set; }
+        public int[] Actions { get; set; }
 
         [JsonProperty(PropertyName = "p")]
         public float? Probability { get; set; }

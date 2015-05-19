@@ -1,4 +1,4 @@
-﻿using JoinServerUploader;
+﻿using Microsoft.Research.DecisionService.Uploader;
 using MultiWorldTesting;
 using Newtonsoft.Json;
 using System;

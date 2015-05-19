@@ -13,7 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
-namespace JoinServerUploader
+namespace Microsoft.Research.DecisionService.Uploader
 {
     /// <summary>
     /// Uploader class to interface with the Join Server provided by Multiworld Testing Service.

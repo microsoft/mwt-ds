@@ -7,7 +7,7 @@
     <ProjectGuid>{E2E33DE3-C3C4-47F4-AC39-5D10A0332189}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>JoinServerUploader</RootNamespace>
+    <RootNamespace>Microsoft.Research.DecisionService.Uploader</RootNamespace>
     <AssemblyName>JoinServerUploader</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>

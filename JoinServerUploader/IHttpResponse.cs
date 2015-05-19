@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace JoinServerUploader
+namespace Microsoft.Research.DecisionService.Uploader
 {
     /// <summary>
     /// Defines methods for custom HTTP response types.

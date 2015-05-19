@@ -55,10 +55,6 @@
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="JoinServerUploader, Version=1.0.0.4, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\JoinServerUploader.1.0.0.4\lib\net45\JoinServerUploader.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.Data.Edm, Version=5.6.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Microsoft.Data.Edm.5.6.2\lib\net40\Microsoft.Data.Edm.dll</HintPath>
@@ -129,6 +125,10 @@
     <ProjectReference Include="..\explore\clr\explore_clr.vcxproj">
       <Project>{8400da16-1f46-4a31-a126-bbe16f62bfd7}</Project>
       <Name>explore_clr</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\JoinServerUploader\JoinServerUploader.csproj">
+      <Project>{e2e33de3-c3c4-47f4-ac39-5d10a0332189}</Project>
+      <Name>JoinServerUploader</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

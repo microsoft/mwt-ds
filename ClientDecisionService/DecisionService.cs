@@ -108,15 +108,15 @@ namespace ClientDecisionService
         }
 
         /// <summary>
-        /// Performs explore-exploit to choose an action based on the specified context.
+        /// Performs explore-exploit to choose a list of actions based on the specified context.
         /// </summary>
         /// <param name="uniqueKey">The unique key of the experimental unit.</param>
         /// <param name="context">The context for this interaction.</param>
-        /// <returns>uint</returns>
+        /// <returns>An array containing the chosen actions.</returns>
         /// <remarks>
         /// This method will send logging data to the <see cref="IRecorder{TContext}"/> object specified at initialization.
         /// </remarks>
-        public uint ChooseAction(string uniqueKey, TContext context)
+        public uint[] ChooseAction(string uniqueKey, TContext context)
         {
             return mwt.ChooseAction(explorer, uniqueKey, context);
         }
