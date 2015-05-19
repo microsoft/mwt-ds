@@ -17,18 +17,18 @@ namespace Microsoft.Research.DecisionService.Uploader
         SingleActionInteraction = 0,
 
         /// <summary>
-        /// Represents an interaction with multiple actions.
-        /// Interactions are generated at the point of decision-making and are usually represented as a 4-tuple of
-        /// (chosen action(s), probability, context, key)
-        /// </summary>
-        MultiActionInteraction = 1,
-
-        /// <summary>
         /// Observations represent observed outcomes that are associated with interactions.
         /// These, for example, can be as simple as a single number indicating whether the outcome was positive or negative,
         /// to more generic structure which can be later used for reward metric analysis.
         /// </summary>
-        Observation
+        Observation,
+
+        /// <summary>
+        /// Represents an interaction with multiple actions.
+        /// Interactions are generated at the point of decision-making and are usually represented as a 4-tuple of
+        /// (chosen action(s), probability, context, key)
+        /// </summary>
+        MultiActionInteraction
     }
 
     /// <summary>
