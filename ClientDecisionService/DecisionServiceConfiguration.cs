@@ -146,7 +146,7 @@ namespace ClientDecisionService
             get { return pollingForSettingsPeriod; }
             set 
             {
-                if (value <= TimeSpan.FromSeconds(0)) throw new ArgumentNullException("Invalid polling period value.");
+                if (value <= TimeSpan.FromSeconds(0) && value != TimeSpan.MinValue) throw new ArgumentNullException("Invalid polling period value.");
                 pollingForSettingsPeriod = value;
             }
         }
@@ -162,7 +162,7 @@ namespace ClientDecisionService
             get { return pollingForModelPeriod; }
             set
             {
-                if (value <= TimeSpan.FromSeconds(0)) throw new ArgumentNullException("Invalid polling period value.");
+                if (value <= TimeSpan.FromSeconds(0) && value != TimeSpan.MinValue) throw new ArgumentNullException("Invalid polling period value.");
                 pollingForModelPeriod = value;
             }
         }
