@@ -129,6 +129,12 @@
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MultiWorldTestingServiceContract\MultiWorldTestingServiceContract.csproj">
+      <Project>{d10392b9-7f76-4d1f-8f38-b0b63aa63760}</Project>
+      <Name>MultiWorldTestingServiceContract</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

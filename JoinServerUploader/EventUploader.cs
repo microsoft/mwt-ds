@@ -1,4 +1,5 @@
 ﻿using Microsoft.Practices.EnterpriseLibrary.TransientFaultHandling;
+using Microsoft.Research.MultiWorldTesting.Contract;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -42,7 +43,7 @@ namespace Microsoft.Research.DecisionService.Uploader
                 UploadRetryPolicy = BatchUploadRetryPolicy.ExponentialRetry
             };
 
-            this.loggingServiceBaseAddress = loggingServiceBaseAddress ?? Constants.ServiceAddress;
+            this.loggingServiceBaseAddress = loggingServiceBaseAddress ?? ServiceConstants.ServiceAddress;
 
             this.httpClient = httpClient ?? new UploaderHttpClient();
 
@@ -74,7 +75,7 @@ namespace Microsoft.Research.DecisionService.Uploader
         /// <param name="authorizationToken">The token that is used for resource access authentication by the join service.</param>
         public void InitializeWithToken(string authorizationToken)
         {
-            Initialize(Constants.TokenAuthenticationScheme, authorizationToken);
+            Initialize(ServiceConstants.TokenAuthenticationScheme, authorizationToken);
         }
 
         /// <summary>
@@ -89,7 +90,7 @@ namespace Microsoft.Research.DecisionService.Uploader
                 throw new ArgumentException("Experimental Unit Duration must be a valid positive number", "experimentalUnitDuration");
             }
 
-            Initialize(Constants.ConnectionStringAuthenticationScheme, connectionString);
+            Initialize(ServiceConstants.ConnectionStringAuthenticationScheme, connectionString);
             this.experimentalUnitDuration = experimentalUnitDuration;
         }
 
@@ -155,7 +156,7 @@ namespace Microsoft.Research.DecisionService.Uploader
                         IHttpResponse currentResponse = null;
                         try
                         {
-                            currentResponse = await httpClient.PostAsync(Constants.ServicePostAddress, json);
+                            currentResponse = await httpClient.PostAsync(ServiceConstants.ServicePostAddress, json);
                         }
                         catch (TaskCanceledException e) // HttpClient throws this on timeout
                         {
@@ -173,7 +174,7 @@ namespace Microsoft.Research.DecisionService.Uploader
             }
             else
             {
-                response = await httpClient.PostAsync(Constants.ServicePostAddress, json);
+                response = await httpClient.PostAsync(ServiceConstants.ServicePostAddress, json);
             }
 
             if (response == null)
