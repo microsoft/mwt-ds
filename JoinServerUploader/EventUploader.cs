@@ -43,7 +43,7 @@ namespace Microsoft.Research.DecisionService.Uploader
                 UploadRetryPolicy = BatchUploadRetryPolicy.ExponentialRetry
             };
 
-            this.loggingServiceBaseAddress = loggingServiceBaseAddress ?? ServiceConstants.ServiceAddress;
+            this.loggingServiceBaseAddress = loggingServiceBaseAddress ?? ServiceConstants.JoinAddress;
 
             this.httpClient = httpClient ?? new UploaderHttpClient();
 
@@ -156,7 +156,7 @@ namespace Microsoft.Research.DecisionService.Uploader
                         IHttpResponse currentResponse = null;
                         try
                         {
-                            currentResponse = await httpClient.PostAsync(ServiceConstants.ServicePostAddress, json);
+                            currentResponse = await httpClient.PostAsync(ServiceConstants.JoinPostAddress, json);
                         }
                         catch (TaskCanceledException e) // HttpClient throws this on timeout
                         {
@@ -174,7 +174,7 @@ namespace Microsoft.Research.DecisionService.Uploader
             }
             else
             {
-                response = await httpClient.PostAsync(ServiceConstants.ServicePostAddress, json);
+                response = await httpClient.PostAsync(ServiceConstants.JoinPostAddress, json);
             }
 
             if (response == null)
