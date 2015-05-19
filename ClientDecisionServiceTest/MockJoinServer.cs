@@ -1,5 +1,5 @@
 ﻿using ClientDecisionService;
-using Microsoft.Research.DecisionService.Common;
+using Microsoft.Research.MultiWorldTesting.Contract;
 using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 using System;

@@ -1,4 +1,4 @@
-﻿using Microsoft.Research.DecisionService.Common;
+﻿using Microsoft.Research.MultiWorldTesting.Contract;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;

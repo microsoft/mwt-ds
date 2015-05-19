@@ -1,5 +1,5 @@
 ﻿using Microsoft.Practices.EnterpriseLibrary.TransientFaultHandling;
-using Microsoft.Research.DecisionService.Common;
+using Microsoft.Research.MultiWorldTesting.Contract;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;

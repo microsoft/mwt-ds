@@ -120,7 +120,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ApplicationTransferMetadata.cs" />
     <Compile Include="AzureBlobUpdater.cs" />
     <Compile Include="DecisionService.cs" />
     <Compile Include="DecisionServiceConfiguration.cs" />
@@ -147,6 +146,10 @@
     <ProjectReference Include="..\JoinServerUploader\JoinServerUploader.csproj">
       <Project>{e2e33de3-c3c4-47f4-ac39-5d10a0332189}</Project>
       <Name>JoinServerUploader</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MultiWorldTestingServiceContract\MultiWorldTestingServiceContract.csproj">
+      <Project>{d10392b9-7f76-4d1f-8f38-b0b63aa63760}</Project>
+      <Name>MultiWorldTestingServiceContract</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.IO;
 using System.Text;
-using Microsoft.Research.DecisionService.Common;
+using Microsoft.Research.MultiWorldTesting.Contract;
 using Newtonsoft.Json;
 using System.Web;
 

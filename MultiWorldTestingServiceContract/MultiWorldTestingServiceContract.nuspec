@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>Multi-World Testing Service Contract</title>
+    <authors>John Langford, Luong Hoang, Markus Cozowicz, Sarah Bird, Sid Sen (mwtdev@microsoft.com)</authors>
+    <owners>Microsoft Research</owners>
+    <projectUrl>http://msrweb/projects/MWT</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Binding contract between components of MultiWorld Testing Service.</description>
+    <releaseNotes>MWT Decision Service C# API.</releaseNotes>
+    <copyright>Copyright (C) 2015 Microsoft Corporation</copyright>
+    <tags>"MS Internal Only"</tags>
+  </metadata>
+</package>
+

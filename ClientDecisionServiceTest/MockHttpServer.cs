@@ -1,4 +1,4 @@
-﻿using Microsoft.Research.DecisionService.Common;
+﻿using Microsoft.Research.MultiWorldTesting.Contract;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
