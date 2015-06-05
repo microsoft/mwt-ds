@@ -4,12 +4,12 @@
     <id>$id$</id>
     <version>$version$</version>
     <title>$title$</title>
-    <authors>John Langford, Luong Hoang, Markus Cozowicz, Sarah Bird, Sid Sen (mwtdev@microsoft.com)</authors>
-    <owners>Microsoft Research</owners>
+    <authors>mwtdev</authors>
+    <owners>mwtdev</owners>
     <projectUrl>http://msrweb/projects/MWT</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <licenseUrl>http://cbt-userguide/NugetCanUseInLabs.html</licenseUrl>
     <description>$description$</description>
-    <releaseNotes>MWT Decision Service C# API.</releaseNotes>
     <copyright>$copyright$</copyright>
     <releaseNotes>
         Created first version.
