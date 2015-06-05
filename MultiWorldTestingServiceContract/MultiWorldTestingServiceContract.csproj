@@ -37,11 +37,11 @@
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>mwt.pfx</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>mwtcontract.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <!-- A reference to the entire .NET Framework is automatically included -->
-    <None Include="mwt.pfx" />
+    <None Include="mwtcontract.snk" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApplicationBlobConstants.cs" />
