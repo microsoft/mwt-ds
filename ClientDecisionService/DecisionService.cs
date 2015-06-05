@@ -1,20 +1,10 @@
-﻿using Microsoft.Practices.EnterpriseLibrary.TransientFaultHandling;
-using Microsoft.Research.MultiWorldTesting.Contract;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.RetryPolicies;
+﻿using Microsoft.Research.MultiWorldTesting.Contract;
 using MultiWorldTesting;
 using Newtonsoft.Json;
 using System;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Net;
-using System.Net.Http;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace ClientDecisionService
 {
@@ -39,30 +29,36 @@ namespace ClientDecisionService
                     config.AuthorizationToken,
                     config.LoggingServiceAddress);
 
-                string serviceConnectionString = config.ServiceAzureStorageConnectionString ?? DecisionServiceConstants.MwtServiceAzureStorageConnectionString;
-                ApplicationTransferMetadata metadata = this.GetBlobLocations(config.AuthorizationToken, serviceConnectionString);
-
                 this.settingsBlobPollDelay = config.PollingForSettingsPeriod == TimeSpan.Zero ? DecisionServiceConstants.PollDelay : config.PollingForSettingsPeriod;
                 this.modelBlobPollDelay = config.PollingForModelPeriod == TimeSpan.Zero ? DecisionServiceConstants.PollDelay : config.PollingForModelPeriod;
 
-                if (this.settingsBlobPollDelay != TimeSpan.MinValue)
+                if (this.settingsBlobPollDelay != TimeSpan.MinValue || this.modelBlobPollDelay != TimeSpan.MinValue)
                 {
-                    this.blobUpdater = new AzureBlobUpdater(
-                        "settings",
-                        metadata.SettingsBlobUri,
-                        metadata.ConnectionString,
-                        config.BlobOutputDir,
-                        this.settingsBlobPollDelay,
-                        this.UpdateSettings,
-                        config.SettingsPollFailureCallback);
+                    string redirectionBlobLocation = string.Format(DecisionServiceConstants.RedirectionBlobLocation, config.AuthorizationToken);
+                    ApplicationTransferMetadata metadata = this.GetBlobLocations(config.AuthorizationToken, redirectionBlobLocation);
+
+                    if (this.settingsBlobPollDelay != TimeSpan.MinValue)
+                    {
+                        this.blobUpdater = new AzureBlobUpdater(
+                            "settings",
+                            metadata.SettingsBlobUri,
+                            metadata.ConnectionString,
+                            config.BlobOutputDir,
+                            this.settingsBlobPollDelay,
+                            this.UpdateSettings,
+                            config.SettingsPollFailureCallback);
+                    }
+
+                    if (this.modelBlobPollDelay != TimeSpan.MinValue)
+                    {
+                        this.policy = new DecisionServicePolicy<TContext>(
+                            metadata.ModelBlobUri, metadata.ConnectionString,
+                            config.BlobOutputDir,
+                            this.modelBlobPollDelay,
+                            this.InternalPolicyUpdated,
+                            config.ModelPollFailureCallback);
+                    }
                 }
-                
-                this.policy = new DecisionServicePolicy<TContext>(
-                    metadata.ModelBlobUri, metadata.ConnectionString,
-                    config.BlobOutputDir,
-                    this.modelBlobPollDelay,
-                    this.InternalPolicyUpdated,
-                    config.ModelPollFailureCallback);
             }
             else
             {
@@ -108,15 +104,15 @@ namespace ClientDecisionService
         }
 
         /// <summary>
-        /// Performs explore-exploit to choose a list of actions based on the specified context.
+        /// Performs explore-exploit to choose an action based on the specified context.
         /// </summary>
         /// <param name="uniqueKey">The unique key of the experimental unit.</param>
         /// <param name="context">The context for this interaction.</param>
-        /// <returns>An array containing the chosen actions.</returns>
+        /// <returns>uint</returns>
         /// <remarks>
         /// This method will send logging data to the <see cref="IRecorder{TContext}"/> object specified at initialization.
         /// </remarks>
-        public uint[] ChooseAction(string uniqueKey, TContext context)
+        public uint ChooseAction(string uniqueKey, TContext context)
         {
             return mwt.ChooseAction(explorer, uniqueKey, context);
         }
@@ -154,42 +150,21 @@ namespace ClientDecisionService
 
         public void Dispose() { }
 
-        private ApplicationTransferMetadata GetBlobLocations(string token, string serviceAzureStorageConnectionString)
+        private ApplicationTransferMetadata GetBlobLocations(string token, string redirectionBlobLocation)
         {
             ApplicationTransferMetadata metadata = null;
-            CloudStorageAccount storageAccount = null;
-
-            bool accountFound = CloudStorageAccount.TryParse(serviceAzureStorageConnectionString, out storageAccount);
-            if (!accountFound || storageAccount == null)
-            {
-                throw new Exception("Could not connect to Azure storage for the service.");
-            }
 
             try
             {
-                CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-                blobClient.DefaultRequestOptions.RetryPolicy = new ExponentialRetry(DecisionServiceConstants.RetryDeltaBackoff, DecisionServiceConstants.RetryCount);
-
-                CloudBlobContainer settingsContainer = blobClient.GetContainerReference(ApplicationBlobConstants.RedirectionContainerName);
-                CloudBlockBlob settingsBlob = settingsContainer.GetBlockBlobReference(token);
-
-                using (var ms = new MemoryStream())
+                using (var wc = new WebClient())
                 {
-                    settingsBlob.DownloadToStream(ms);
-                    metadata = JsonConvert.DeserializeObject<ApplicationTransferMetadata>(Encoding.UTF8.GetString(ms.ToArray()));
+                    string jsonMetadata = wc.DownloadString(redirectionBlobLocation);
+                    metadata = JsonConvert.DeserializeObject<ApplicationTransferMetadata>(jsonMetadata);
                 }
             }
             catch (Exception ex)
             {
-                var storageException = ex as StorageException;
-                if (storageException != null)
-                {
-                    if (storageException.RequestInformation.HttpStatusCode == 404)
-                    { 
-                        throw new StorageException("Unable to retrieve blob locations from storage using the specified token", ex.InnerException);
-                    }
-                }
-                throw;
+                throw new InvalidDataException("Unable to retrieve blob locations from storage using the specified token", ex);
             }
             return metadata;
         }

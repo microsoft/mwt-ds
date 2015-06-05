@@ -27,11 +27,10 @@ namespace ClientDecisionServiceTest
                 explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
 
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
-            dsConfig.ServiceAzureStorageConnectionString = MockCommandCenter.StorageConnectionString;
 
             var ds = new DecisionService<TestContext>(dsConfig);
 
-            uint[] chosenActions = ds.ChooseAction(uniqueKey, new TestContext());
+            uint chosenAction = ds.ChooseAction(uniqueKey, new TestContext());
 
             ds.Flush();
 
@@ -39,7 +38,7 @@ namespace ClientDecisionServiceTest
             Assert.AreEqual(1, joinServer.EventBatchList.Count);
             Assert.AreEqual(1, joinServer.EventBatchList[0].ExperimentalUnitFragments.Count);
             Assert.AreEqual(uniqueKey, joinServer.EventBatchList[0].ExperimentalUnitFragments[0].Id);
-            Assert.IsTrue(joinServer.EventBatchList[0].ExperimentalUnitFragments[0].Value.ToLower().Contains("\"a\":[" + string.Join(",", chosenActions) + "],"));
+            Assert.IsTrue(joinServer.EventBatchList[0].ExperimentalUnitFragments[0].Value.ToLower().Contains("\"a\":" + chosenAction + ","));
         }
 
         [TestMethod]
@@ -54,12 +53,11 @@ namespace ClientDecisionServiceTest
                 explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
 
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
-            dsConfig.ServiceAzureStorageConnectionString = MockCommandCenter.StorageConnectionString;
 
             var ds = new DecisionService<TestContext>(dsConfig);
 
-            uint[] chosenAction1 = ds.ChooseAction(uniqueKey, new TestContext());
-            uint[] chosenAction2 = ds.ChooseAction(uniqueKey, new TestContext());
+            uint chosenAction1 = ds.ChooseAction(uniqueKey, new TestContext());
+            uint chosenAction2 = ds.ChooseAction(uniqueKey, new TestContext());
             ds.ReportReward(1.0f, uniqueKey);
             ds.ReportOutcome(JsonConvert.SerializeObject(new { value = "test outcome" }), uniqueKey);
 
@@ -82,13 +80,12 @@ namespace ClientDecisionServiceTest
                 explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
 
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
-            dsConfig.ServiceAzureStorageConnectionString = MockCommandCenter.StorageConnectionString;
 
             var ds = new DecisionService<TestContext>(dsConfig);
 
             int numEvents = 1000;
 
-            var chosenActions = new ConcurrentBag<uint[]>();
+            var chosenActions = new ConcurrentBag<uint>();
 
             Parallel.For(0, numEvents, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, (i) =>
             {
@@ -117,15 +114,15 @@ namespace ClientDecisionServiceTest
             // Test actual interactions received 
             List<CompleteExperimentalUnitFragment> interactions = completeFragments
                 .Where(f => f.Value == null)
-                .OrderBy(f => f.Actions[0])
+                .OrderBy(f => f.Action)
                 .ToList();
 
             // Test values of the interactions
             Assert.AreEqual(numEvents, interactions.Count);
-            var chosenActionList = chosenActions.OrderBy(a => a[0]).ToList();
+            var chosenActionList = chosenActions.OrderBy(a => a).ToList();
             for (int i = 0; i < interactions.Count; i++)
             {
-                Assert.AreEqual((int)chosenActionList[i][0], interactions[i].Actions[0]);
+                Assert.AreEqual((int)chosenActionList[i], interactions[i].Action.Value);
             }
 
             // Test actual observations received

@@ -4,7 +4,10 @@ namespace ClientDecisionService
 {
     internal static class DecisionServiceConstants
     {
-        internal static readonly string MwtServiceAzureStorageConnectionString = "DefaultEndpointsProtocol=https;AccountName=decisionservicestorage;AccountKey=2/205EDbKENilswA/Gdtr2tSM/wauWxqLn8/EuXnTU1Ma/3ZFNxBjLZOqUN+DcZ4gjtndnIviE+jzm6jJJ4dgw==";
+        // TODO: Make test cases set this flag automatically
+        //internal static readonly string RedirectionBlobLocation = "http://127.0.0.1:10000/devstoreaccount1/app-locations/{0}";
+
+        internal static readonly string RedirectionBlobLocation = "http://decisionservicestorage.blob.core.windows.net/app-locations/{0}";
 
         internal static readonly int RetryCount = 3;
         internal static readonly TimeSpan RetryMinBackoff = TimeSpan.FromMilliseconds(500);

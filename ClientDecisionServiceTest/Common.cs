@@ -13,10 +13,10 @@ namespace ClientDecisionServiceTest
 
     class TestPolicy : IPolicy<TestContext>
     {
-        public uint[] ChooseAction(TestContext context)
+        public uint ChooseAction(TestContext context)
         {
             // Always returns the same action regardless of context
-            return Enumerable.Range(1, (int)Constants.NumberOfActions).Select(m => (uint)m).ToArray();
+            return Constants.NumberOfActions - 1;
         }
     }
 
@@ -46,7 +46,7 @@ namespace ClientDecisionServiceTest
             this.numOutcome = 0;
         }
 
-        public void Record(TestContext context, uint[] actions, float probability, string uniqueKey)
+        public void Record(TestContext context, uint action, float probability, string uniqueKey)
         {
             this.numRecord++;
         }
@@ -118,7 +118,7 @@ namespace ClientDecisionServiceTest
         public string Type { get; set; }
 
         [JsonProperty(PropertyName = "a")]
-        public int[] Actions { get; set; }
+        public int? Action { get; set; }
 
         [JsonProperty(PropertyName = "p")]
         public float? Probability { get; set; }

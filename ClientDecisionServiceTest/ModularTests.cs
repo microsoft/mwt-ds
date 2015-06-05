@@ -84,7 +84,6 @@ namespace ClientDecisionServiceTest
                 authorizationToken: MockCommandCenter.AuthorizationToken,
                 explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
 
-            dsConfig.ServiceAzureStorageConnectionString = MockCommandCenter.StorageConnectionString;
             dsConfig.Recorder = new TestLogger();
 
             int numChooseAction = 100;
@@ -126,24 +125,16 @@ namespace ClientDecisionServiceTest
                 authorizationToken: MockCommandCenter.AuthorizationToken,
                 explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
 
-            HttpStatusCode exceptionCode = HttpStatusCode.OK;
+            bool isExceptionExpected = false;
             try
             {
                 var ds = new DecisionService<TestContext>(dsConfig);
             }
-            catch (Exception ex)
+            catch (InvalidDataException)
             {
-                WebException webException = ex.InnerException as WebException;
-                if (webException != null)
-                {
-                    HttpWebResponse response = webException.Response as HttpWebResponse;
-                    if (response != null)
-                    {
-                        exceptionCode = response.StatusCode;
-                    }
-                }
+                isExceptionExpected = true;
             }
-            Assert.AreEqual(HttpStatusCode.NotFound, exceptionCode);
+            Assert.AreEqual(true, isExceptionExpected);
         }
     }
 }

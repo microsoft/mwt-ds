@@ -48,6 +48,15 @@ namespace ClientDecisionServiceTest
 
                 var locationContainer = blobClient.GetContainerReference(this.localAzureBlobLocationContainerName);
                 locationContainer.CreateIfNotExists();
+
+                var publicAccessPermission = new BlobContainerPermissions()
+                {
+                    PublicAccess = BlobContainerPublicAccessType.Blob
+                };
+
+                locationContainer.SetPermissions(publicAccessPermission);
+
+
                 var metadata = new ApplicationTransferMetadata
                 {
                     ApplicationID = "test",

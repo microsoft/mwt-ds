@@ -29,7 +29,6 @@ namespace ClientDecisionServiceTest
                 authorizationToken: MockCommandCenter.AuthorizationToken,
                 explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: 2));
 
-            dsConfig.ServiceAzureStorageConnectionString = MockCommandCenter.StorageConnectionString;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
             dsConfig.BlobOutputDir = @"c:\";
             dsConfig.PollingForSettingsPeriod = TimeSpan.FromMilliseconds(500);
@@ -64,7 +63,6 @@ namespace ClientDecisionServiceTest
                 authorizationToken: MockCommandCenter.AuthorizationToken,
                 explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: 2));
 
-            dsConfig.ServiceAzureStorageConnectionString = MockCommandCenter.StorageConnectionString;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
             dsConfig.BlobOutputDir = @"c:\windows";
             dsConfig.PollingForSettingsPeriod = TimeSpan.FromMilliseconds(500);
@@ -102,7 +100,6 @@ namespace ClientDecisionServiceTest
                 authorizationToken: MockCommandCenter.AuthorizationToken,
                 explorer: new EpsilonGreedyExplorer<TestContext>(new TestPolicy(), epsilon: 0.2f, numActions: 2));
 
-            dsConfig.ServiceAzureStorageConnectionString = MockCommandCenter.StorageConnectionString;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
             dsConfig.BlobOutputDir = settingsPath;
             dsConfig.PollingForSettingsPeriod = TimeSpan.FromMilliseconds(500);

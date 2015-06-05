@@ -119,23 +119,6 @@ namespace ClientDecisionService
         }
         
         /// <summary>
-        /// Specifies the connection string for a custom service storage account.
-        /// </summary>
-        /// <remarks>
-        /// Service storage account contains pointers to locations of settings and model blobs.
-        /// When specified, this will override the default storage account provided by Multiworld Testing Service.
-        /// </remarks>
-        public string ServiceAzureStorageConnectionString
-        {
-            get { return serviceAzureStorageConnectionString; }
-            set 
-            { 
-                if (String.IsNullOrWhiteSpace(value)) throw new ArgumentNullException("Connection string cannot be empty");
-                serviceAzureStorageConnectionString = value;
-            } 
-        }
-
-        /// <summary>
         /// Specifies the polling period to check for updated application settings.
         /// </summary>
         /// <remarks>
@@ -175,7 +158,6 @@ namespace ClientDecisionService
         private BatchingConfiguration batchConfig;
         private Func<TContext, string> contextJsonSerializer;
         private string loggingServiceAddress;
-        private string serviceAzureStorageConnectionString;
         private TimeSpan pollingForSettingsPeriod;
         private TimeSpan pollingForModelPeriod;
 
