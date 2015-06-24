@@ -15,7 +15,6 @@ namespace ClientDecisionService
         Finished
     }
 
-    // COMMENT: why don't you model this as object wrapping VwHandle?
     internal sealed class VowpalWabbitInterface
     {
         private const string LIBVW = "Include\\libvw.dll";
