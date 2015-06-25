@@ -79,7 +79,7 @@ namespace ClientDecisionServiceSample
                 uint topicId = service.ChooseAction(uniqueKey: userId, context: userContext);
 
                 // Display the news topic chosen by exploration process.
-                DisplayNewsTopic(topicId);
+                DisplayNewsTopic(topicId, user + 1);
 
                 // Report {0,1} reward as a simple float.
                 // In a real scenario, one could associated a reward of 1 if user
@@ -119,9 +119,10 @@ namespace ClientDecisionServiceSample
         /// Displays the id of the chosen topic.
         /// </summary>
         /// <param name="topicId">The topic id.</param>
-        static void DisplayNewsTopic(uint topicId)
+        /// <param name="userId">The user id.</param>
+        static void DisplayNewsTopic(uint topicId, int userId)
         {
-            Console.WriteLine("Topic {0} was chosen.", topicId);
+            Console.WriteLine("Topic {0} was chosen for user {1}.", topicId, userId);
         }
     }
 
@@ -144,7 +145,7 @@ namespace ClientDecisionServiceSample
         {
             // In this example, we are only picking among the first two topics.
             // This could simulate picking between the top 2 editorial picks.
-            return (uint)(context.Count % 2 + 1);
+            return (uint)(Math.Round(context.Sum(f => f.Value) / context.Count + 1));
         }
     }
 }
