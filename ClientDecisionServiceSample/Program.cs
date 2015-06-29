@@ -25,7 +25,7 @@ namespace ClientDecisionServiceSample
 
         /// <summary>
         /// Sample code simulating a news recommendation scenario. In this simple example, 
-        /// the rendering server has to pick 1 out of 10 articles to show to users (e.g. as featured article).
+        /// the rendering server has to pick 1 out of 10 news topics to show to users (e.g. as featured article).
         /// In order to do so, it uses the <see cref="DecisionService{TContext}"/> API to optimize the decision
         /// to make given certain user context (or features).
         /// </summary>
@@ -33,8 +33,8 @@ namespace ClientDecisionServiceSample
         {
             Trace.Listeners.Add(new ConsoleTraceListener());
 
-            uint numArticles = 10; // number of different article choices to show
-            float epsilon = 0.2f; // randomize the articles to show for 20% of traffic
+            uint numTopics = 10; // number of different topic choices to show
+            float epsilon = 0.2f; // randomize the topics to show for 20% of traffic
             int numUsers = 100; // number of users for the news site
 
             var defaultPolicy = new NewsDisplayPolicy();
@@ -46,7 +46,7 @@ namespace ClientDecisionServiceSample
 
                 // Specify the exploration algorithm to use, here we will use Epsilon-Greedy.
                 // For more details about this and other algorithms, refer to the MWT onboarding whitepaper.
-                explorer: new EpsilonGreedyExplorer<UserContext>(defaultPolicy, epsilon, numArticles)
+                explorer: new EpsilonGreedyExplorer<UserContext>(defaultPolicy, epsilon, numTopics)
             );
 
             // Optional: set the configuration for how often data is uploaded to the join server.
@@ -76,12 +76,14 @@ namespace ClientDecisionServiceSample
                 }
 
                 // Perform exploration given user features.
-                uint articleId = service.ChooseAction(uniqueKey: userId, context: userContext);
+                uint topicId = service.ChooseAction(uniqueKey: userId, context: userContext);
 
-                // Display the article chosen by exploration process.
-                DisplayNewsArticle(articleId);
+                // Display the news topic chosen by exploration process.
+                DisplayNewsTopic(topicId, user + 1);
 
                 // Report {0,1} reward as a simple float.
+                // In a real scenario, one could associated a reward of 1 if user
+                // clicks on the article and 0 otherwise.
                 float reward = 1 - (user % 2);
                 service.ReportReward(reward, uniqueKey: userId);
             }
@@ -116,12 +118,13 @@ namespace ClientDecisionServiceSample
         }
 
         /// <summary>
-        /// Displays the id of the chosen article.
+        /// Displays the id of the chosen topic.
         /// </summary>
-        /// <param name="articleId">The article id.</param>
-        static void DisplayNewsArticle(uint articleId)
+        /// <param name="topicId">The topic id.</param>
+        /// <param name="userId">The user id.</param>
+        static void DisplayNewsTopic(uint topicId, int userId)
         {
-            Console.WriteLine("Article {0} was chosen.", articleId);
+            Console.WriteLine("Topic {0} was chosen for user {1}.", topicId, userId);
         }
     }
 
@@ -131,20 +134,20 @@ namespace ClientDecisionServiceSample
     class UserContext : Dictionary<string, float> { }
 
     /// <summary>
-    /// The default policy for choosing article to display given some user context.
+    /// The default policy for choosing topic to display given some user context.
     /// </summary>
     class NewsDisplayPolicy : IPolicy<UserContext>
     {
         /// <summary>
-        /// Choose the action (or news article) to take given the specified context.
+        /// Choose the action (or news topic) to take given the specified context.
         /// </summary>
         /// <param name="context">The user context.</param>
-        /// <returns>The action (or news article) to take.</returns>
+        /// <returns>The action (or news topic) to take.</returns>
         public uint ChooseAction(UserContext context)
         {
-            // In this example, we are only picking among the first two articles.
+            // In this example, we are only picking among the first two topics.
             // This could simulate picking between the top 2 editorial picks.
-            return (uint)(context.Count % 2 + 1);
+            return (uint)(Math.Round(context.Sum(f => f.Value) / context.Count + 1));
         }
     }
 }
