@@ -11,7 +11,7 @@ namespace ClientDecisionServiceSample
     class Program
     {
         /***** Copy & Paste your authorization token here *****/
-        static readonly string MwtServiceToken = "10198550-a074-4f9c-8b15-cc389bc2bbbe";
+        static readonly string MwtServiceToken = "";
 
         static void Main(string[] args)
         {
@@ -86,7 +86,9 @@ namespace ClientDecisionServiceSample
                 service.ReportReward(reward, uniqueKey: userId);
             }
 
-            System.Threading.Thread.Sleep(TimeSpan.FromMinutes(10));
+            Console.WriteLine("DO NOT CLOSE THE CONSOLE WINDOW AT THIS POINT IF YOU ARE FOLLOWING THE GETTING STARTED GUIDE.");
+
+            System.Threading.Thread.Sleep(TimeSpan.FromHours(24));
 
             // There shouldn't be any data in the buffer at this point 
             // but flush the service to ensure they are uploaded if otherwise.
