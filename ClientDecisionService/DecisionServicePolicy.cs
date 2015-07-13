@@ -5,7 +5,7 @@ using System.Globalization;
 
 namespace ClientDecisionService
 {
-    internal class DecisionServicePolicy<TContext> : IPolicy<TContext>, IDisposable
+    internal class DecisionServicePolicy<TContext> : VWPolicy<TContext>
     {
         public DecisionServicePolicy(string modelAddress, string modelConnectionString, 
             string modelOutputDir, TimeSpan pollDelay, 
@@ -21,30 +21,11 @@ namespace ClientDecisionService
             this.notifyPolicyUpdate = notifyPolicyUpdate;
         }
 
-        public uint ChooseAction(TContext context)
-        {
-            string exampleLine = string.Format(CultureInfo.InvariantCulture, "1: | {0}", context);
-
-            if (this.vw == null)
-            {
-                throw new Exception("Internal Error: Vowpal Wabbit has not been initialized for scoring.");
-            }
-
-            uint action = this.vw.Predict(exampleLine);
-
-            return action;
-        }
-
         public void StopPolling()
         {
             if (this.blobUpdater != null)
             {
                 this.blobUpdater.StopPolling();
-            }
-
-            if (this.vw != null)
-            {
-                this.vw.Finish();
             }
         }
 
@@ -66,34 +47,12 @@ namespace ClientDecisionService
                 }
             }
 
-            if (this.vw != null)
-            {
-                this.vw.Finish();
-            }
+            base.Dispose(true);
         }
 
         void ModelUpdate(string modelFile)
         {
-            bool modelUpdateSuccess = true;
-
-            try
-            {
-                VowpalWabbitInstance oldVw = this.vw;
-                this.vw = new VowpalWabbitInstance(string.Format(CultureInfo.InvariantCulture, "-t -i {0}", modelFile));
-
-                if (oldVw != null)
-                {
-                    oldVw.Finish();
-                }
-            }
-            catch (Exception ex)
-            {
-                Trace.TraceError("Unable to initialize VW.");
-                Trace.TraceError(ex.ToString());
-                modelUpdateSuccess = false;
-            }
-
-            if (modelUpdateSuccess)
+            if (base.ModelUpdate(modelFile))
             {
                 this.notifyPolicyUpdate();
             }
@@ -104,8 +63,6 @@ namespace ClientDecisionService
         }
 
         AzureBlobUpdater blobUpdater;
-
-        VowpalWabbitInstance vw;
 
         readonly Action notifyPolicyUpdate;
     }
