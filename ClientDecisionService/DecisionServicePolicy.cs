@@ -5,6 +5,12 @@ using System.Globalization;
 
 namespace ClientDecisionService
 {
+    /// <summary>
+    /// Represent an updatable <see cref="IPolicy<TContext>"/> object which can consume different VowpalWabbit 
+    /// models to predict actions from an object of specified <see cref="TContext"/> type. This type 
+    /// of object can also observe Azure Storage for newer model files.
+    /// </summary>
+    /// <typeparam name="TContext">The type of the context.</typeparam>
     internal class DecisionServicePolicy<TContext> : VWPolicy<TContext>
     {
         public DecisionServicePolicy(string modelAddress, string modelConnectionString, 
@@ -15,12 +21,15 @@ namespace ClientDecisionService
             {
                 this.blobUpdater = new AzureBlobUpdater("model", modelAddress,
                    modelConnectionString, modelOutputDir, pollDelay,
-                   this.ModelUpdate, modelPollFailureCallback);
+                   this.UpdateFromFile, modelPollFailureCallback);
             }
 
             this.notifyPolicyUpdate = notifyPolicyUpdate;
         }
 
+        /// <summary>
+        /// Stop checking for new model update.
+        /// </summary>
         public void StopPolling()
         {
             if (this.blobUpdater != null)
@@ -29,14 +38,14 @@ namespace ClientDecisionService
             }
         }
 
-        public void Dispose()
+        /// <summary>
+        /// Dispose the object.
+        /// </summary>
+        /// <param name="disposing">Whether the object is disposing resources.</param>
+        protected override void Dispose(bool disposing)
         {
-            this.Dispose(true);
-            GC.SuppressFinalize(this);
-        }
+            base.Dispose(disposing);
 
-        private void Dispose(bool disposing)
-        {
             if (disposing)
             {
                 // free managed resources
@@ -46,11 +55,16 @@ namespace ClientDecisionService
                     this.blobUpdater = null;
                 }
             }
-
-            base.Dispose(true);
         }
 
-        void ModelUpdate(string modelFile)
+        /// <summary>
+        /// Update new model from file and trigger callback if success.
+        /// </summary>
+        /// <param name="modelFile">The model file to load from.</param>
+        /// <remarks>
+        /// Triggered when a new model blob is found.
+        /// </remarks>
+        internal void UpdateFromFile(string modelFile)
         {
             if (base.ModelUpdate(modelFile))
             {
