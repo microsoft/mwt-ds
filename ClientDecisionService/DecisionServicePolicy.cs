@@ -66,7 +66,7 @@ namespace ClientDecisionService
         /// </remarks>
         internal void UpdateFromFile(string modelFile)
         {
-            if (base.ModelUpdate(modelFile))
+            if (base.ModelUpdate(modelFile) && this.notifyPolicyUpdate != null)
             {
                 this.notifyPolicyUpdate();
             }
