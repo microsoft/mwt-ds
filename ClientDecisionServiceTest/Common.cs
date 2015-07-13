@@ -4,10 +4,40 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using VW.Labels;
+using VW.Interfaces;
+using VW.Serializer.Attributes;
 
 namespace ClientDecisionServiceTest
 {
     class TestContext { }
+
+    public class TestRcv1Context : IExample
+    {
+        [Feature(FeatureGroup = 'f', Namespace = "eatures", Order = 1)]
+        public IList<KeyValuePair<string, float>> Features { get; set; }
+
+        public ILabel Label { get; set; }
+
+        public static TestRcv1Context CreateRandom(int numActions, int numFeatures, Random rand)
+        {
+            var features = new List<KeyValuePair<string, float>>();
+            for (int i = 0; i < numFeatures; i++)
+            {
+                features.Add(new KeyValuePair<string, float>(i.ToString(), (float)rand.NextDouble()));
+            }
+            return new TestRcv1Context
+            {
+                Features = features,
+                Label = new ContextualBanditLabel
+                {
+                    Action = (uint)rand.Next(0, numActions) + 1,
+                    Cost = (float)rand.NextDouble(),
+                    Probability = (float)rand.NextDouble()
+                }
+            };
+        }
+    }
 
     class TestOutcome { }
 
@@ -17,6 +47,14 @@ namespace ClientDecisionServiceTest
         {
             // Always returns the same action regardless of context
             return Constants.NumberOfActions - 1;
+        }
+    }
+
+    public class TestRcv1ContextPolicy : IPolicy<TestRcv1Context>
+    {
+        public uint ChooseAction(TestRcv1Context context)
+        {
+            return 1;
         }
     }
 

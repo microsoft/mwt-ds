@@ -10,6 +10,7 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using VW;
 
 namespace ClientDecisionServiceTest
 {
@@ -82,6 +83,38 @@ namespace ClientDecisionServiceTest
         public byte[] GetModelBlobContent()
         {
             return new byte[2] { 5, 1 };
+        }
+
+        public byte[] GetModelBlobContent(int numExamples, int numFeatures, int numActions)
+        {
+            Random rg = new Random(numExamples + numFeatures);
+
+            string localOutputDir = "test";
+            string vwFileName = Path.Combine(localOutputDir, string.Format("test_vw_{0}.model", numExamples));
+            string vwArgs = "--cb " + numActions;
+
+            using (var vw = new VowpalWabbit<TestRcv1Context>(vwArgs))
+            {
+                // Create examples
+                for (int ie = 0; ie < numExamples; ie++)
+                {
+                    // Create features
+                    var context = TestRcv1Context.CreateRandom(numActions, numFeatures, rg);
+
+                    using (IVowpalWabbitExample example = vw.ReadExample(context))
+                    {
+                        example.Learn();
+                    }
+                }
+
+                vw.SaveModel(vwFileName);
+            }
+
+            byte[] vwModelBytes = File.ReadAllBytes(vwFileName);
+
+            Directory.Delete(localOutputDir, recursive: true);
+
+            return vwModelBytes;
         }
 
         public string LocalAzureSettingsBlobName

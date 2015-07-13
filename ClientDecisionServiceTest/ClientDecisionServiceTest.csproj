@@ -86,6 +86,14 @@
       <HintPath>..\packages\System.Spatial.5.6.2\lib\net40\System.Spatial.dll</HintPath>
     </Reference>
     <Reference Include="System.Web" />
+    <Reference Include="VowpalWabbit, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\VowpalWabbit.8.0.0.8\lib\net45\VowpalWabbit.dll</HintPath>
+    </Reference>
+    <Reference Include="VowpalWabbitCore, Version=0.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\VowpalWabbit.8.0.0.8\lib\net45\VowpalWabbitCore.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <Choose>
     <When Condition="('$(VisualStudioVersion)' == '10.0' or '$(VisualStudioVersion)' == '') and '$(TargetFrameworkVersion)' == 'v3.5'">
@@ -110,6 +118,7 @@
     <Compile Include="MockHttpServer.cs" />
     <Compile Include="ConfigTests.cs" />
     <Compile Include="RawStringConverter.cs" />
+    <Compile Include="ModelUpdateTests.cs" />
     <Compile Include="UploaderTest.cs" />
     <Compile Include="DecisionServiceUploadTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -202,7 +202,7 @@ namespace ClientDecisionService
             IConsumePolicy<TContext> consumePolicy = explorer as IConsumePolicy<TContext>;
             if (consumePolicy != null)
             {
-                consumePolicy.UpdatePolicy(policy);
+                consumePolicy.UpdatePolicy(newPolicy);
                 Trace.TraceInformation("Model update succeeded.");
             }
             else
