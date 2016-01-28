@@ -29,6 +29,11 @@ namespace Microsoft.Research.DecisionService.Uploader
 
         public async Task<IHttpResponse> PostAsync(string postAddress, string json)
         {
+            if (this.httpClient == null)
+            {
+                throw new InvalidOperationException("HttpClient not initialized. Initialize EventUploader using InitializeWithToken or InitializeWithConnectionString");
+            }
+
             byte[] jsonByteArray = Encoding.UTF8.GetBytes(json);
 
             using (var jsonMemStream = new MemoryStream(jsonByteArray))

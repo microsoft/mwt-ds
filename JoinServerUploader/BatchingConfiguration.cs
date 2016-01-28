@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Serialization;
+using System;
 
 namespace Microsoft.Research.DecisionService.Uploader
 {
@@ -10,6 +11,20 @@ namespace Microsoft.Research.DecisionService.Uploader
     /// </remarks>
     public class BatchingConfiguration
     {
+        /// <summary>
+        /// Constructor with default configuration values set.
+        /// </summary>
+        public BatchingConfiguration()
+        {
+            this.MaxBufferSizeInBytes = 4 * 1024 * 1024;
+            this.MaxDuration = TimeSpan.FromMinutes(1);
+            this.MaxEventCount = 10000;
+            this.MaxUploadQueueCapacity = 1024;
+            this.UploadRetryPolicy = BatchUploadRetryPolicy.ExponentialRetry;
+            this.MaxDegreeOfSerializationParallelism = Environment.ProcessorCount;
+            this.DroppingPolicy = new DroppingPolicy();
+        }
+
         /// <summary>
         /// Period of time where events are grouped in one batch.
         /// </summary>
@@ -34,6 +49,21 @@ namespace Microsoft.Research.DecisionService.Uploader
         /// Gets or sets the retry policy in case of upload failure.
         /// </summary>
         public BatchUploadRetryPolicy UploadRetryPolicy { get; set; }
+
+        /// <summary>
+        /// Gets or sets the reference resolver to be used with JSON.NET.
+        /// </summary>
+        public IReferenceResolver ReferenceResolver { get; set; }
+
+        /// <summary>
+        /// Gets or sets the maxium degree of parallelism employed when serializing events.
+        /// </summary>
+        public int MaxDegreeOfSerializationParallelism { get; set; }
+
+        /// <summary>
+        /// Gets or sets the data dropping policy which controls which events are sent to the upload queue.
+        /// </summary>
+        public DroppingPolicy DroppingPolicy { get; set; }
     }
 
     /// <summary>
@@ -50,5 +80,32 @@ namespace Microsoft.Research.DecisionService.Uploader
         /// Perform an exponential-backoff retry strategy with the upload.
         /// </summary>
         ExponentialRetry
+    }
+
+    /// <summary>
+    /// Represents settings which control how data can be dropped at high load.
+    /// </summary>
+    public class DroppingPolicy
+    {
+        /// <summary>
+        /// Constructor using default settings to not drop any data.
+        /// </summary>
+        public DroppingPolicy()
+        {
+            // By default don't drop anything
+            this.MaxQueueLevelBeforeDrop = 1f;
+            this.ProbabilityOfDrop = 0f;
+        }
+
+        /// <summary>
+        /// Gets or sets the threshold level (measured in % of total queue size) at which point
+        /// data are randomly dropped by the probability specified in <see cref="ProbabilityOfDrop"/>.
+        /// </summary>
+        public float MaxQueueLevelBeforeDrop { get; set; }
+
+        /// <summary>
+        /// Gets or sets the probability of dropping an event. This is used to reduce the system load.
+        /// </summary>
+        public float ProbabilityOfDrop { get; set; }
     }
 }

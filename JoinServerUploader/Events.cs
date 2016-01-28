@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -47,6 +48,21 @@ namespace Microsoft.Research.DecisionService.Uploader
         /// </summary>
         [JsonIgnore]
         string Key { get; set; }
+
+        /// <summary>
+        /// Workaround for ASA query: An ID field which is different for
+        /// events under same Key in order to use OrderBy. Otherwise
+        /// if the field in OrderBy is constant across events, ASA will
+        /// default to comparing records which does not work.
+        /// </summary>
+        [JsonProperty(PropertyName = "id")]
+        int Id { get; set; }
+
+        /// <summary>
+        /// The unique time stamp of this event.
+        /// </summary>
+        [JsonIgnore]
+        DateTime TimeStamp { get; set; }
     }
 
     /// <summary>
@@ -66,6 +82,19 @@ namespace Microsoft.Research.DecisionService.Uploader
         public string Key { get; set; }
 
         /// <summary>
+        /// Workaround for ASA query: An ID field which is different for
+        /// events under same Key in order to use OrderBy. Otherwise
+        /// if the field in OrderBy is constant across events, ASA will
+        /// default to comparing records which does not work.
+        /// </summary>
+        public int Id { get; set; }
+
+        /// <summary>
+        /// Gets or sets the time stamp of the event.
+        /// </summary>
+        public DateTime TimeStamp { get; set; }
+
+        /// <summary>
         /// Gets or sets the probability of choosing the action (before it was chosen).
         /// </summary>
         [JsonProperty(PropertyName = "p")]
@@ -75,8 +104,7 @@ namespace Microsoft.Research.DecisionService.Uploader
         /// Gets or sets the context structure with relevant information for the current interaction.
         /// </summary>
         [JsonProperty(PropertyName = "c", NullValueHandling = NullValueHandling.Ignore)]
-        [JsonConverter(typeof(RawStringConverter))]
-        public string Context { get; set; }
+        public object Context { get; set; }
     }
 
     /// <summary>
@@ -147,6 +175,19 @@ namespace Microsoft.Research.DecisionService.Uploader
         public string Key { get; set; }
 
         /// <summary>
+        /// Workaround for ASA query: An ID field which is different for
+        /// events under same Key in order to use OrderBy. Otherwise
+        /// if the field in OrderBy is constant across events, ASA will
+        /// default to comparing records which does not work.
+        /// </summary>
+        public int Id { get; set; }
+
+        /// <summary>
+        /// Gets or sets the time stamp of the event.
+        /// </summary>
+        public DateTime TimeStamp { get; set; }
+
+        /// <summary>
         /// Gets or sets the value of the observation.
         /// </summary>
         /// <remarks>
@@ -154,8 +195,7 @@ namespace Microsoft.Research.DecisionService.Uploader
         /// or more generic structure which can be later used for reward metric analysis.
         /// </remarks>
         [JsonProperty(PropertyName = "v", NullValueHandling = NullValueHandling.Ignore)]
-        [JsonConverter(typeof(RawStringConverter))]
-        public string Value { get; set; }
+        public object Value { get; set; }
     }
 
     /// <summary>
