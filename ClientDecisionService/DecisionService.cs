@@ -1,5 +1,6 @@
 ﻿using Microsoft.Research.MultiWorldTesting.Contract;
 using MultiWorldTesting;
+using MultiWorldTesting.SingleAction;
 using Newtonsoft.Json;
 using System;
 using System.Diagnostics;

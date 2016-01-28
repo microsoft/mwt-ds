@@ -1,6 +1,7 @@
 ﻿using ClientDecisionService;
 using Microsoft.Research.DecisionService.Uploader;
 using MultiWorldTesting;
+using MultiWorldTesting.SingleAction;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

@@ -1,8 +1,6 @@
 ﻿using ClientDecisionService;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
-using MultiWorldTesting;
+using MultiWorldTesting.SingleAction;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Concurrent;

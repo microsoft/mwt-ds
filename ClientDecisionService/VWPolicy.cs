@@ -1,10 +1,8 @@
-﻿using VW;
-using VW.Interfaces;
-using MultiWorldTesting;
+﻿using MultiWorldTesting.SingleAction;
 using System;
 using System.Diagnostics;
-using System.Linq;
 using System.IO;
+using VW;
 
 namespace ClientDecisionService
 {

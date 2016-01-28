@@ -1,5 +1,6 @@
 ﻿using Microsoft.Research.DecisionService.Uploader;
 using MultiWorldTesting;
+using MultiWorldTesting.SingleAction;
 using Newtonsoft.Json;
 using System;
 

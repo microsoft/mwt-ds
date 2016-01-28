@@ -7,6 +7,7 @@ using System.Linq;
 using VW.Labels;
 using VW.Interfaces;
 using VW.Serializer.Attributes;
+using MultiWorldTesting.SingleAction;
 
 namespace ClientDecisionServiceTest
 {

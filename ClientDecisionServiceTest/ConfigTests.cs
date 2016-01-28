@@ -1,17 +1,10 @@
-﻿using System;
+﻿using ClientDecisionService;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using ClientDecisionService;
-using MultiWorldTesting;
-using System.Net;
-using System.Threading.Tasks;
-using System.Threading;
+using MultiWorldTesting.SingleAction;
+using System;
 using System.IO;
 using System.Linq;
-using System.Text;
-using Microsoft.Research.MultiWorldTesting.Contract;
-using Newtonsoft.Json;
-using System.Web;
-using System.Diagnostics;
+using System.Threading;
 
 namespace ClientDecisionServiceTest
 {
