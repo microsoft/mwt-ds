@@ -136,9 +136,7 @@ namespace MultiWorldTesting.MultiAction
         /// <param name="tau">The number of events to be uniform over.</param>
         public TauFirstExplorer(IPolicy<TContext> defaultPolicy, uint tau) :
             this(defaultPolicy, tau, uint.MaxValue)
-        {
-            VariableActionHelper.ValidateContextType<TContext>();
-        }
+        { }
 
         public void UpdatePolicy(IPolicy<TContext> newPolicy)
         {
@@ -150,9 +148,9 @@ namespace MultiWorldTesting.MultiAction
             this.explore = explore;
         }
 
-        public DecisionTuple ChooseAction(ulong saltedSeed, TContext context)
+        public DecisionTuple ChooseAction(ulong saltedSeed, TContext context, Func<TContext, uint> getNumberOfActionsFunc)
         {
-            uint numActions = VariableActionHelper.GetNumberOfActions(context, this.numActions);
+            uint numActions = VariableActionHelper.GetNumberOfActions(getNumberOfActionsFunc, context, this.numActions);
 
             var random = new PRG(saltedSeed);
 

@@ -158,9 +158,7 @@ namespace MultiWorldTesting.MultiAction
         /// <param name="defaultPolicies">A set of default policies to be uniform random over.</param>
         public BootstrapExplorer(IPolicy<TContext>[] defaultPolicies) :
             this(defaultPolicies, uint.MaxValue)
-        {
-            VariableActionHelper.ValidateContextType<TContext>();
-        }
+        { }
 
         public void UpdatePolicy(IPolicy<TContext>[] newPolicies)
         {
@@ -172,9 +170,9 @@ namespace MultiWorldTesting.MultiAction
             this.explore = explore;
         }
 
-        public DecisionTuple ChooseAction(ulong saltedSeed, TContext context)
+        public DecisionTuple ChooseAction(ulong saltedSeed, TContext context, Func<TContext, uint> getNumberOfActionsFunc)
         {
-            uint numActions = VariableActionHelper.GetNumberOfActions(context, this.numActions);
+            uint numActions = VariableActionHelper.GetNumberOfActions(getNumberOfActionsFunc, context, this.numActions);
 
             var random = new PRG(saltedSeed);
 

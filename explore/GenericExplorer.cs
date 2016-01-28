@@ -145,9 +145,7 @@ namespace MultiWorldTesting.MultiAction
         /// <param name="defaultScorer">A function which outputs the probability of each action.</param>
         public GenericExplorer(IScorer<TContext> defaultScorer) :
             this(defaultScorer, uint.MaxValue)
-        {
-            VariableActionHelper.ValidateContextType<TContext>();
-        }
+        { }
 
         public void UpdateScorer(IScorer<TContext> newScorer)
         {
@@ -159,9 +157,9 @@ namespace MultiWorldTesting.MultiAction
             this.explore = explore;
         }
 
-        public DecisionTuple ChooseAction(ulong saltedSeed, TContext context)
+        public DecisionTuple ChooseAction(ulong saltedSeed, TContext context, Func<TContext, uint> getNumberOfActionsFunc)
         {
-            uint numActions = VariableActionHelper.GetNumberOfActions(context, this.numActions);
+            uint numActions = VariableActionHelper.GetNumberOfActions(getNumberOfActionsFunc, context, this.numActions);
 
             var random = new PRG(saltedSeed);
 

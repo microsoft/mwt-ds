@@ -34,5 +34,24 @@ namespace MultiWorldTesting
             }
             return numActions;
         }
+
+        internal static uint GetNumberOfActions<TContext>(Func<TContext, uint> getNumberOfActionsFunc, TContext context, uint defaultNumActions)
+        {
+            uint numActions = defaultNumActions;
+            if (numActions == uint.MaxValue)
+            {
+                if (getNumberOfActionsFunc == null)
+                {
+                    throw new InvalidOperationException("A callback to retrieve number of actions for the current context has not been set.");
+                }
+                numActions = getNumberOfActionsFunc(context);
+                if (numActions < 1)
+                {
+                    throw new ArgumentException("Number of actions must be at least 1.");
+                }
+            }
+            return numActions;
+        }
+
     }
 }
