@@ -24,7 +24,7 @@ namespace MultiWorldTesting.SingleAction
         }
 
 		/// <summary>
-		/// Choose_Action should be drop-in replacement for any existing policy function.
+		/// ChooseAction should be drop-in replacement for any existing policy function.
 		/// </summary>
 		/// <param name="explorer">An existing exploration algorithm (one of the above) which uses the default policy as a callback.</param>
 		/// <param name="uniqueKey">A unique identifier for the experimental unit. This could be a user id, a session id, etc...</param>
@@ -34,7 +34,7 @@ namespace MultiWorldTesting.SingleAction
         {
             ulong seed = MurMurHash3.ComputeIdHash(uniqueKey);
 
-            DecisionTuple decisionTuple = explorer.Choose_Action(seed + this.appId, context);
+            DecisionTuple decisionTuple = explorer.ChooseAction(seed + this.appId, context);
 
             if (decisionTuple.ShouldRecord)
             {
@@ -70,7 +70,7 @@ namespace MultiWorldTesting.MultiAction
         }
 
         /// <summary>
-        /// Choose_Action should be drop-in replacement for any existing policy function.
+        /// ChooseAction should be drop-in replacement for any existing policy function.
         /// </summary>
         /// <param name="explorer">An existing exploration algorithm (one of the above) which uses the default policy as a callback.</param>
         /// <param name="uniqueKey">A unique identifier for the experimental unit. This could be a user id, a session id, etc...</param>

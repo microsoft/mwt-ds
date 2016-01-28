@@ -84,7 +84,7 @@ namespace MultiWorldTesting.SingleAction
         /// A <see cref="DecisionTuple"/> object including the action to take, the probability it was chosen, 
         /// and a flag indicating whether to record this decision.
         /// </returns>
-        DecisionTuple Choose_Action(ulong saltedSeed, TContext context);
+        DecisionTuple ChooseAction(ulong saltedSeed, TContext context);
 
         void EnableExplore(bool explore);
     };
