@@ -100,14 +100,10 @@ namespace ClientDecisionServiceTest
                 {
                     // Create features
                     var context = TestRcv1Context.CreateRandom(numActions, numFeatures, rg);
-
-                    using (IVowpalWabbitExample example = vw.ReadExample(context))
-                    {
-                        example.Learn();
-                    }
+                    vw.Learn(context, context.Label);
                 }
 
-                vw.SaveModel(vwFileName);
+                vw.Native.SaveModel(vwFileName);
             }
 
             byte[] vwModelBytes = File.ReadAllBytes(vwFileName);

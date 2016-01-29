@@ -1,4 +1,5 @@
 ﻿using ClientDecisionService;
+using ClientDecisionService.SingleAction;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MultiWorldTesting.SingleAction;
 using System;

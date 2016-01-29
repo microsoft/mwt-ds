@@ -25,11 +25,11 @@ namespace MultiWorldTesting.SingleAction
         /// <param name="action">Chosen by an exploration algorithm given context.</param>
         /// <param name="probability">The probability of the chosen action given context.</param>
         /// <param name="uniqueKey">A user-defined identifer for the decision.</param>
-        public void Record(TContext context, uint action, float probability, string uniqueKey)
+        public void Record(TContext context, uint action, float probability, UniqueEventID uniqueKey)
         {
             recordingBuilder.Append(action.ToString(CultureInfo.InvariantCulture));
             recordingBuilder.Append(' ');
-            recordingBuilder.Append(uniqueKey);
+            recordingBuilder.Append(uniqueKey.Key);
             recordingBuilder.Append(' ');
 
             recordingBuilder.Append(probability.ToString("0.00000", CultureInfo.InvariantCulture));

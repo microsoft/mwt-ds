@@ -1,5 +1,7 @@
 ﻿using ClientDecisionService;
+using ClientDecisionService.SingleAction;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using MultiWorldTesting;
 using MultiWorldTesting.SingleAction;
 using System;
 using System.Collections.Generic;
@@ -47,19 +49,21 @@ namespace ClientDecisionServiceTest
                     byte[] modelContent = commandCenter.GetModelBlobContent(numExamples: 3 + modelIndex, numFeatures: numFeatures, numActions: numActions);
                     System.IO.File.WriteAllBytes(currentModelFile, modelContent);
 
-                    ds.UpdatePolicy(new VWPolicy<TestRcv1Context>(currentModelFile));
+                    ds.UpdatePolicy(new VWPolicy<TestRcv1Context>(DummySetModelIdFunc, currentModelFile));
 
                     actualModelFiles.Add(currentModelFile);
                 }
 
                 var context = TestRcv1Context.CreateRandom(numActions, numFeatures, rand: rg);
 
-                uint action = ds.ChooseAction(uniqueKey, context);
+                DateTime timeStamp = DateTime.UtcNow;
+
+                uint action = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, context);
 
                 // verify the actions are in the expected range
                 Assert.IsTrue(action >= 1 && action <= numActions);
 
-                ds.ReportReward(i / 100f, uniqueKey);
+                ds.ReportReward(i / 100f, new UniqueEventID { Key = uniqueKey });
             }
 
             ds.Flush();
@@ -108,17 +112,19 @@ namespace ClientDecisionServiceTest
 
                     var modelStream = new MemoryStream(modelContent);
 
-                    ds.UpdatePolicy(new VWPolicy<TestRcv1Context>(modelStream));
+                    ds.UpdatePolicy(new VWPolicy<TestRcv1Context>(DummySetModelIdFunc, modelStream));
                 }
 
                 var context = TestRcv1Context.CreateRandom(numActions, numFeatures, rg);
 
-                uint action = ds.ChooseAction(uniqueKey, context);
+                DateTime timeStamp = DateTime.UtcNow;
+
+                uint action = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, context);
 
                 // verify the actions are in the expected range
                 Assert.IsTrue(action >= 1 && action <= numActions);
 
-                ds.ReportReward(i / 100f, uniqueKey);
+                ds.ReportReward(i / 100f, new UniqueEventID { Key = uniqueKey });
             }
 
             ds.Flush();
@@ -141,6 +147,8 @@ namespace ClientDecisionServiceTest
         {
             joinServer.Stop();
         }
+
+        private void DummySetModelIdFunc(TestRcv1Context context, string modelId) { }
 
         private MockJoinServer joinServer;
         private MockCommandCenter commandCenter;

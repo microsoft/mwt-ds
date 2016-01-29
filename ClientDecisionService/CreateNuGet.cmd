@@ -1,0 +1,1 @@
+..\.nuget\nuget pack ClientDecisionService.csproj -Prop "Configuration=Release;Platform=x64" -OutputDirectory . -IncludeReferencedProjects

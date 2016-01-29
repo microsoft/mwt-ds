@@ -30,9 +30,9 @@ namespace MultiWorldTesting.SingleAction
 		/// <param name="uniqueKey">A unique identifier for the experimental unit. This could be a user id, a session id, etc...</param>
 		/// <param name="context">The context upon which a decision is made. See SimpleContext above for an example.</param>
 		/// <returns>An unsigned 32-bit integer representing the 1-based chosen action.</returns>
-        public uint ChooseAction(IExplorer<TContext> explorer, string uniqueKey, TContext context)
+        public uint ChooseAction(IExplorer<TContext> explorer, UniqueEventID uniqueKey, TContext context)
         {
-            ulong seed = MurMurHash3.ComputeIdHash(uniqueKey);
+            ulong seed = MurMurHash3.ComputeIdHash(uniqueKey.Key);
 
             DecisionTuple decisionTuple = explorer.ChooseAction(seed + this.appId, context);
 

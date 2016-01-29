@@ -18,6 +18,7 @@
     <TestProjectType>UnitTest</TestProjectType>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <NuGetPackageImportStamp>752cb716</NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup>
     <OutputPath>$(SolutionDir)bin\$(Platform)\$(Configuration)</OutputPath>
@@ -85,14 +86,22 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\System.Spatial.5.6.2\lib\net40\System.Spatial.dll</HintPath>
     </Reference>
-    <Reference Include="System.Web" />
-    <Reference Include="VowpalWabbit, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\VowpalWabbit.8.0.0.8\lib\net45\VowpalWabbit.dll</HintPath>
+    <Reference Include="System.Threading.Tasks.Dataflow, Version=4.5.24.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.Tpl.Dataflow.4.5.24\lib\portable-net45+win8+wpa81\System.Threading.Tasks.Dataflow.dll</HintPath>
     </Reference>
-    <Reference Include="VowpalWabbitCore, Version=0.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+    <Reference Include="System.Web" />
+    <Reference Include="VowpalWabbit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\VowpalWabbit.8.0.0.8\lib\net45\VowpalWabbitCore.dll</HintPath>
+      <HintPath>..\packages\VowpalWabbit.8.0.0.30\lib\net45\VowpalWabbit.dll</HintPath>
+    </Reference>
+    <Reference Include="VowpalWabbit.Common, Version=1.0.0.0, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\VowpalWabbit.8.0.0.30\lib\net45\VowpalWabbit.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="VowpalWabbitCore, Version=0.0.0.0, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\VowpalWabbit.8.0.0.30\lib\net45\VowpalWabbitCore.dll</HintPath>
     </Reference>
   </ItemGroup>
   <Choose>
@@ -172,7 +181,9 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
+    <Error Condition="!Exists('..\packages\VowpalWabbit.8.0.0.30\build\VowpalWabbit.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\VowpalWabbit.8.0.0.30\build\VowpalWabbit.targets'))" />
   </Target>
+  <Import Project="..\packages\VowpalWabbit.8.0.0.30\build\VowpalWabbit.targets" Condition="Exists('..\packages\VowpalWabbit.8.0.0.30\build\VowpalWabbit.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

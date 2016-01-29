@@ -1,4 +1,5 @@
 ﻿using Microsoft.Research.DecisionService.Uploader;
+using MultiWorldTesting;
 using Newtonsoft.Json;
 using System;
 
@@ -6,42 +7,66 @@ namespace ClientDecisionService
 {
     internal class JoinServiceLogger<TContext> : ILogger<TContext>, IDisposable
     {
-        public JoinServiceLogger(BatchingConfiguration batchConfig, 
-            Func<TContext, string> contextSerializer, 
+        public void InitializeWithCustomAzureJoinServer(
             string authorizationToken,
-            string loggingServiceBaseAddress)
+            string loggingServiceBaseAddress,
+            BatchingConfiguration batchConfig)
         {
-            this.eventUploader = new EventUploader(batchConfig, loggingServiceBaseAddress);
-            this.eventUploader.InitializeWithToken(authorizationToken);
-            this.contextSerializer = contextSerializer ?? (x => x == null ? null : JsonConvert.SerializeObject(x));
+            var eventUploader = new EventUploader(batchConfig, loggingServiceBaseAddress);
+            eventUploader.InitializeWithToken(authorizationToken);
+
+            this.eventUploader = eventUploader;
         }
 
-        public void Record(TContext context, uint action, float probability, string uniqueKey)
+        public void InitializeWithAzureStreamAnalyticsJoinServer(
+            string eventHubConnectionString,
+            string eventHubInputName,
+            BatchingConfiguration batchConfig)
         {
-            this.eventUploader.Upload(new SingleActionInteraction
-            { 
-                Key = uniqueKey,
-                Action = action,
+            this.eventUploader = new EventUploaderASA(eventHubConnectionString, eventHubInputName, batchConfig);
+        }
+
+        public void Record(TContext context, uint[] actions, float probability, UniqueEventID uniqueKey)
+        {
+            this.eventUploader.TryUpload(new MultiActionInteraction
+            {
+                Key = uniqueKey.Key,
+                Id = uniqueKey.Id,
+                TimeStamp = uniqueKey.TimeStamp,
+                Actions = actions,
                 Probability = probability,
-                Context = this.contextSerializer(context)
+                Context = context
             });
         }
 
-        public void ReportReward(float reward, string uniqueKey)
+        public void Record(TContext context, uint action, float probability, UniqueEventID uniqueKey)
+        {
+            this.eventUploader.Upload(new SingleActionInteraction
+            { 
+                Key = uniqueKey.Key,
+                Action = action,
+                Probability = probability,
+                Context = context
+            });
+        }
+
+        public void ReportReward(UniqueEventID uniqueKey, float reward)
         {
             this.eventUploader.Upload(new Observation
             {
-                Key = uniqueKey,
+                Key = uniqueKey.Key,
                 Value = JsonConvert.SerializeObject(new { Reward = reward })
             });
         }
 
-        public void ReportOutcome(string outcomeJson, string uniqueKey)
+        public void ReportOutcome(UniqueEventID uniqueKey, object outcome)
         {
             this.eventUploader.Upload(new Observation
             {
-                Key = uniqueKey,
-                Value = outcomeJson
+                Key = uniqueKey.Key,
+                Id = uniqueKey.Id,
+                TimeStamp = uniqueKey.TimeStamp,
+                Value = outcome
             });
         }
 
@@ -69,8 +94,7 @@ namespace ClientDecisionService
         }
 
         #region Members
-        private EventUploader eventUploader;
-        private readonly Func<TContext, string> contextSerializer;
+        private IEventUploader eventUploader;
         #endregion
     }
 }

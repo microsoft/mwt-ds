@@ -1,5 +1,7 @@
 ﻿using ClientDecisionService;
+using ClientDecisionService.SingleAction;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using MultiWorldTesting;
 using MultiWorldTesting.SingleAction;
 using Newtonsoft.Json;
 using System;
@@ -28,7 +30,7 @@ namespace ClientDecisionServiceTest
 
             var ds = new DecisionService<TestContext>(dsConfig);
 
-            uint chosenAction = ds.ChooseAction(uniqueKey, new TestContext());
+            uint chosenAction = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
 
             ds.Flush();
 
@@ -54,10 +56,10 @@ namespace ClientDecisionServiceTest
 
             var ds = new DecisionService<TestContext>(dsConfig);
 
-            uint chosenAction1 = ds.ChooseAction(uniqueKey, new TestContext());
-            uint chosenAction2 = ds.ChooseAction(uniqueKey, new TestContext());
-            ds.ReportReward(1.0f, uniqueKey);
-            ds.ReportOutcome(JsonConvert.SerializeObject(new { value = "test outcome" }), uniqueKey);
+            uint chosenAction1 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
+            uint chosenAction2 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
+            ds.ReportReward(1.0f, new UniqueEventID { Key = uniqueKey });
+            ds.ReportOutcome(JsonConvert.SerializeObject(new { value = "test outcome" }), new UniqueEventID { Key = uniqueKey });
 
             ds.Flush();
 
@@ -85,11 +87,13 @@ namespace ClientDecisionServiceTest
 
             var chosenActions = new ConcurrentBag<uint>();
 
-            Parallel.For(0, numEvents, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, (i) =>
+            //Parallel.For(0, numEvents, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, (i) =>
+            for (int i = 0; i < numEvents; i++)
             {
-                chosenActions.Add(ds.ChooseAction(uniqueKey, new TestContext()));
-                ds.ReportOutcome(JsonConvert.SerializeObject(new { value = createObservation(i) }), uniqueKey);
-            });
+                chosenActions.Add(ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext()));
+                ds.ReportOutcome(JsonConvert.SerializeObject(new { value = createObservation(i) }), new UniqueEventID { Key = uniqueKey });
+            }
+            //);
 
             ds.Flush();
 

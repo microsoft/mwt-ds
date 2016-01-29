@@ -13,7 +13,7 @@ namespace ClientDecisionServiceTest
 {
     class TestContext { }
 
-    public class TestRcv1Context : IExample
+    public class TestRcv1Context
     {
         [Feature(FeatureGroup = 'f', Namespace = "eatures", Order = 1)]
         public IList<KeyValuePair<string, float>> Features { get; set; }
@@ -68,12 +68,12 @@ namespace ClientDecisionServiceTest
             this.numOutcome = 0;
         }
 
-        public void ReportReward(float reward, string uniqueKey)
+        public void ReportReward(UniqueEventID uniqueKey, float reward)
         {
             this.numReward++;
         }
 
-        public void ReportOutcome(string outcomeJson, string uniqueKey)
+        public void ReportOutcome(UniqueEventID uniqueKey, object outcomeJson)
         {
             this.numOutcome++;
         }
@@ -85,7 +85,12 @@ namespace ClientDecisionServiceTest
             this.numOutcome = 0;
         }
 
-        public void Record(TestContext context, uint action, float probability, string uniqueKey)
+        public void Record(TestContext context, uint action, float probability, UniqueEventID uniqueKey)
+        {
+            this.numRecord++;
+        }
+
+        public void Record(TestContext context, uint[] actions, float probability, UniqueEventID uniqueKey)
         {
             this.numRecord++;
         }

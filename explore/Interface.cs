@@ -38,7 +38,7 @@ namespace MultiWorldTesting.SingleAction
 	    /// <param name="action">Chosen by an exploration algorithm given context.</param>
 	    /// <param name="probability">The probability of the chosen action given context.</param>
 	    /// <param name="uniqueKey">A user-defined identifer for the decision.</param>
-	    void Record(TContext context, uint action, float probability, string uniqueKey);
+        void Record(TContext context, uint action, float probability, UniqueEventID uniqueKey);
     };
 
     /// <summary>

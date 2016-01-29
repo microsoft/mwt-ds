@@ -1,4 +1,5 @@
 ﻿using ClientDecisionService;
+using ClientDecisionService.SingleAction;
 using Microsoft.Research.DecisionService.Uploader;
 using MultiWorldTesting;
 using MultiWorldTesting.SingleAction;
@@ -80,7 +81,7 @@ namespace ClientDecisionServiceSample
                 var userContext = new SimpleContext(features);
 
                 // Perform exploration given user features.
-                uint topicId = service.ChooseAction(uniqueKey: userId, context: userContext);
+                uint topicId = service.ChooseAction(new UniqueEventID { Key = userId }, context: userContext);
 
                 // Display the news topic chosen by exploration process.
                 DisplayNewsTopic(topicId, user + 1);
@@ -89,7 +90,7 @@ namespace ClientDecisionServiceSample
                 // In a real scenario, one could associated a reward of 1 if user
                 // clicks on the article and 0 otherwise.
                 float reward = 1 - (user % 2);
-                service.ReportReward(reward, uniqueKey: userId);
+                service.ReportReward(reward, new UniqueEventID { Key = userId });
             }
 
             Console.WriteLine("DO NOT CLOSE THE CONSOLE WINDOW AT THIS POINT IF YOU ARE FOLLOWING THE GETTING STARTED GUIDE.");
@@ -154,7 +155,7 @@ namespace ClientDecisionServiceSample
                 }
 
                 // Perform exploration given user features.
-                uint topicId = service.ChooseAction(uniqueKey: userId, context: userContext);
+                uint topicId = service.ChooseAction(new UniqueEventID { Key = userId }, context: userContext);
 
                 // Display the news topic chosen by exploration process.
                 DisplayNewsTopic(topicId, user + 1);
@@ -163,7 +164,7 @@ namespace ClientDecisionServiceSample
                 // In a real scenario, one could associated a reward of 1 if user
                 // clicks on the article and 0 otherwise.
                 float reward = 1 - (user % 2);
-                service.ReportReward(reward, uniqueKey: userId);
+                service.ReportReward(reward, new UniqueEventID { Key = userId });
             }
 
             Console.WriteLine("DO NOT CLOSE THE CONSOLE WINDOW AT THIS POINT IF YOU ARE FOLLOWING THE GETTING STARTED GUIDE.");
