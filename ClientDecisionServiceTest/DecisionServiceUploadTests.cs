@@ -87,13 +87,11 @@ namespace ClientDecisionServiceTest
 
             var chosenActions = new ConcurrentBag<uint>();
 
-            //Parallel.For(0, numEvents, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, (i) =>
-            for (int i = 0; i < numEvents; i++)
+            Parallel.For(0, numEvents, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, (i) =>
             {
                 chosenActions.Add(ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext()));
-                ds.ReportOutcome(JsonConvert.SerializeObject(new { value = createObservation(i) }), new UniqueEventID { Key = uniqueKey });
-            }
-            //);
+                ds.ReportOutcome(new { value = createObservation(i) }, new UniqueEventID { Key = uniqueKey });
+            });
 
             ds.Flush();
 
