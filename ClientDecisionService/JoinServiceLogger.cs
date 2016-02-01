@@ -28,7 +28,7 @@ namespace ClientDecisionService
 
         public void Record(TContext context, uint[] actions, float probability, UniqueEventID uniqueKey)
         {
-            this.eventUploader.TryUpload(new MultiActionInteraction
+            this.eventUploader.Upload(new MultiActionInteraction
             {
                 Key = uniqueKey.Key,
                 Id = uniqueKey.Id,
@@ -42,8 +42,10 @@ namespace ClientDecisionService
         public void Record(TContext context, uint action, float probability, UniqueEventID uniqueKey)
         {
             this.eventUploader.Upload(new SingleActionInteraction
-            { 
+            {
                 Key = uniqueKey.Key,
+                Id = uniqueKey.Id,
+                TimeStamp = uniqueKey.TimeStamp,
                 Action = action,
                 Probability = probability,
                 Context = context
@@ -55,7 +57,9 @@ namespace ClientDecisionService
             this.eventUploader.Upload(new Observation
             {
                 Key = uniqueKey.Key,
-                Value = JsonConvert.SerializeObject(new { Reward = reward })
+                Id = uniqueKey.Id,
+                TimeStamp = uniqueKey.TimeStamp,
+                Value = new { Reward = reward }
             });
         }
 
