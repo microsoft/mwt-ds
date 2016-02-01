@@ -46,7 +46,7 @@ namespace ClientDecisionServiceTest
                     int modelIndex = i / 50;
                     string currentModelFile = string.Format(modelFile, modelIndex);
 
-                    byte[] modelContent = commandCenter.GetModelBlobContent(numExamples: 3 + modelIndex, numFeatures: numFeatures, numActions: numActions);
+                    byte[] modelContent = commandCenter.GetCBModelBlobContent(numExamples: 3 + modelIndex, numFeatures: numFeatures, numActions: numActions);
                     System.IO.File.WriteAllBytes(currentModelFile, modelContent);
 
                     ds.UpdatePolicy(new VWPolicy<TestRcv1Context>(DummySetModelIdFunc, currentModelFile));
@@ -108,7 +108,7 @@ namespace ClientDecisionServiceTest
                     int modelIndex = i / 50;
                     string currentModelFile = string.Format(modelFile, modelIndex);
 
-                    byte[] modelContent = commandCenter.GetModelBlobContent(numExamples: 3 + modelIndex, numFeatures: numFeatures, numActions: numActions);
+                    byte[] modelContent = commandCenter.GetCBModelBlobContent(numExamples: 3 + modelIndex, numFeatures: numFeatures, numActions: numActions);
 
                     var modelStream = new MemoryStream(modelContent);
 

@@ -118,6 +118,7 @@
   </Choose>
   <ItemGroup>
     <None Include="Batching.cs" />
+    <Compile Include="ActionDependentFeaturesTest.cs" />
     <Compile Include="Authorization.cs" />
     <Compile Include="AzureStorageHelper.cs" />
     <Compile Include="Common.cs" />
@@ -126,6 +127,7 @@
     <Compile Include="MockCommandCenter.cs" />
     <Compile Include="MockHttpServer.cs" />
     <Compile Include="ConfigTests.cs" />
+    <Compile Include="MultiRequestReferenceResolverTests.cs" />
     <Compile Include="RawStringConverter.cs" />
     <Compile Include="ModelUpdateTests.cs" />
     <Compile Include="UploaderTest.cs" />

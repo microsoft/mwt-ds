@@ -33,14 +33,17 @@ namespace ClientDecisionServiceTest
             uploader.InitializeWithToken(MockCommandCenter.AuthorizationToken);
             uploader.PackageSent += (sender, e) => { eventSentCount += e.Records.Count(); };
             uploader.Upload(new SingleActionInteraction { Action = 1, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.5, Key = uniqueKey });
+            uploader.Upload(new MultiActionInteraction { Actions = new uint[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.5, Key = uniqueKey });
             uploader.Flush();
 
-            Assert.AreEqual(1, eventSentCount);
+            Assert.AreEqual(2, eventSentCount);
             Assert.AreEqual(1, joinServer.RequestCount);
             Assert.AreEqual(1, joinServer.EventBatchList.Count);
-            Assert.AreEqual(1, joinServer.EventBatchList[0].ExperimentalUnitFragments.Count);
+            Assert.AreEqual(2, joinServer.EventBatchList[0].ExperimentalUnitFragments.Count);
             Assert.AreEqual(uniqueKey, joinServer.EventBatchList[0].ExperimentalUnitFragments[0].Id);
             Assert.IsTrue(joinServer.EventBatchList[0].ExperimentalUnitFragments[0].Value.ToLower().Contains("\"a\":1,"));
+            Assert.AreEqual(uniqueKey, joinServer.EventBatchList[0].ExperimentalUnitFragments[1].Id);
+            Assert.IsTrue(joinServer.EventBatchList[0].ExperimentalUnitFragments[1].Value.ToLower().Contains("\"a\":[1],"));
         }
 
         [TestMethod]
@@ -59,6 +62,7 @@ namespace ClientDecisionServiceTest
             uploader.PackageSendFailed += (sender, e) => { exceptionCaught = e.Exception != null; };
 
             uploader.Upload(new SingleActionInteraction { Action = 1, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.5, Key = uniqueKey });
+            uploader.Upload(new MultiActionInteraction { Actions = new uint[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.5, Key = uniqueKey });
             uploader.Flush();
 
             Assert.AreEqual(1, joinServer.RequestCount);
@@ -83,6 +87,7 @@ namespace ClientDecisionServiceTest
             uploader.PackageSendFailed += (sender, e) => { exceptionCaught = e.Exception != null; };
 
             uploader.Upload(new SingleActionInteraction { Action = 1, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.5, Key = uniqueKey });
+            uploader.Upload(new MultiActionInteraction { Actions = new uint[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.5, Key = uniqueKey });
             uploader.Flush();
 
             Assert.AreEqual(0, joinServer.RequestCount);
@@ -107,6 +112,7 @@ namespace ClientDecisionServiceTest
             uploader.PackageSendFailed += (sender, e) => { exceptionCaught = e.Exception != null; };
 
             uploader.Upload(new SingleActionInteraction { Action = 1, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.5, Key = uniqueKey });
+            uploader.Upload(new MultiActionInteraction { Actions = new uint[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.5, Key = uniqueKey });
             uploader.Flush();
 
             Assert.AreEqual(1, joinServer.RequestCount);
@@ -152,14 +158,18 @@ namespace ClientDecisionServiceTest
             uploader.Upload(new SingleActionInteraction { Action = 2, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.7, Key = uniqueKey });
             uploader.Upload(new SingleActionInteraction { Action = 0, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.5, Key = uniqueKey });
 
+            uploader.Upload(new MultiActionInteraction { Actions = new uint[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.5, Key = uniqueKey });
+            uploader.Upload(new MultiActionInteraction { Actions = new uint[] { 2 }, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.7, Key = uniqueKey });
+            uploader.Upload(new MultiActionInteraction { Actions = new uint[] { 0 }, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.5, Key = uniqueKey });
+
             uploader.Upload(new Observation { Value = "1", Key = uniqueKey });
             uploader.Upload(new Observation { Value = "2", Key = uniqueKey });
             uploader.Upload(new Observation { Value = JsonConvert.SerializeObject(new { value = "test outcome" }), Key = uniqueKey });
 
             uploader.Flush();
 
-            Assert.AreEqual(6, eventSentCount);
-            Assert.AreEqual(6, joinServer.EventBatchList.Sum(batch => batch.ExperimentalUnitFragments.Count));
+            Assert.AreEqual(9, eventSentCount);
+            Assert.AreEqual(9, joinServer.EventBatchList.Sum(batch => batch.ExperimentalUnitFragments.Count));
         }
 
         [TestMethod]
@@ -178,12 +188,13 @@ namespace ClientDecisionServiceTest
             Parallel.For(0, numEvents, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, (i) =>
             {
                 uploader.Upload(new SingleActionInteraction { Action = (uint)i, Context = JsonConvert.SerializeObject(new TestContext()), Probability = i / 1000.0, Key = uniqueKey });
+                uploader.Upload(new MultiActionInteraction { Actions = new uint[] { (uint)i }, Context = JsonConvert.SerializeObject(new TestContext()), Probability = i / 1000.0, Key = uniqueKey });
                 uploader.Upload(new Observation { Value = JsonConvert.SerializeObject(new { value = "999" + i }), Key = uniqueKey });
             });
             uploader.Flush();
 
-            Assert.AreEqual(numEvents * 2, eventSentCount);
-            Assert.AreEqual(numEvents * 2, joinServer.EventBatchList.Sum(batch => batch.ExperimentalUnitFragments.Count));
+            Assert.AreEqual(numEvents * 3, eventSentCount);
+            Assert.AreEqual(numEvents * 3, joinServer.EventBatchList.Sum(batch => batch.ExperimentalUnitFragments.Count));
         }
 
         [TestInitialize]

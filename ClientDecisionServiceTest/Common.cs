@@ -7,11 +7,96 @@ using System.Linq;
 using VW.Labels;
 using VW.Interfaces;
 using VW.Serializer.Attributes;
-using MultiWorldTesting.SingleAction;
 
 namespace ClientDecisionServiceTest
 {
-    class TestContext { }
+    enum InterfaceType
+    { 
+        SingleAction,
+        MultiAction
+    }
+
+    class TestContext
+    {
+        public int A { get; set; }
+    }
+
+    class DummyADFType { }
+
+    class TestADFContext
+    {
+        public TestADFContext(int count)
+        {
+            this.count = count;
+        }
+
+        public IReadOnlyList<string> ActionDependentFeatures
+        {
+            get
+            {
+                var features = new string[count];
+                for (int i = 0; i < count; i++)
+                {
+                    features[i] = i.ToString();
+                }
+
+                return features;
+            }
+        }
+
+        private int count;
+    }
+
+    public class TestADFContextWithFeatures
+    {
+        [Feature]
+        public string[] Shared { get; set; }
+
+        public IReadOnlyList<TestADFFeatures> ActionDependentFeatures { get; set; }
+
+        public static TestADFContextWithFeatures CreateRandom(int numActions, Random rg)
+        {
+            int iCB = rg.Next(0, numActions);
+
+            var fv = new TestADFFeatures[numActions];
+            for (int i = 0; i < numActions; i++)
+            {
+                fv[i] = new TestADFFeatures
+                {
+                    Features = new[] { "a_" + (i + 1), "b_" + (i + 1), "c_" + (i + 1) }
+                };
+
+                if (i == iCB) // Randomly place a Contextual Bandit label
+                {
+                    fv[i].Label = new ContextualBanditLabel
+                    {
+                        Cost = (float)rg.NextDouble(),
+                        Probability = (float)rg.NextDouble()
+                    };
+                }
+            }
+
+            var context = new TestADFContextWithFeatures
+            {
+                Shared = new string[] { "shared", "features" },
+                ActionDependentFeatures = fv
+            };
+            return context;
+        }
+    }
+
+    public class TestADFFeatures
+    {
+        [Feature]
+        public string[] Features { get; set; }
+
+        public override string ToString()
+        {
+            return string.Join(" ", this.Features);
+        }
+
+        public ILabel Label { get; set; }
+    }
 
     public class TestRcv1Context
     {
@@ -42,7 +127,7 @@ namespace ClientDecisionServiceTest
 
     class TestOutcome { }
 
-    class TestPolicy : IPolicy<TestContext>
+    class TestSingleActionPolicy : MultiWorldTesting.SingleAction.IPolicy<TestContext>
     {
         public uint ChooseAction(TestContext context)
         {
@@ -51,11 +136,38 @@ namespace ClientDecisionServiceTest
         }
     }
 
-    public class TestRcv1ContextPolicy : IPolicy<TestRcv1Context>
+    class TestMultiActionPolicy : MultiWorldTesting.MultiAction.IPolicy<TestContext>
+    {
+        public uint[] ChooseAction(TestContext context)
+        {
+            // Always returns the same action regardless of context
+            return Enumerable.Range(1, (int)Constants.NumberOfActions).Select(m => (uint)m).ToArray();
+        }
+    }
+
+    public class TestRcv1ContextPolicy : MultiWorldTesting.SingleAction.IPolicy<TestRcv1Context>
     {
         public uint ChooseAction(TestRcv1Context context)
         {
             return 1;
+        }
+    }
+
+    class TestADFPolicy : MultiWorldTesting.MultiAction.IPolicy<TestADFContext>
+    {
+        public uint[] ChooseAction(TestADFContext context)
+        {
+            // Always returns the same action regardless of context
+            return Enumerable.Range(1, (int)context.ActionDependentFeatures.Count).Select(m => (uint)m).ToArray();
+        }
+    }
+
+    class TestADFWithFeaturesPolicy : MultiWorldTesting.MultiAction.IPolicy<TestADFContextWithFeatures>
+    {
+        public uint[] ChooseAction(TestADFContextWithFeatures context)
+        {
+            // Always returns the same action regardless of context
+            return Enumerable.Range(1, (int)context.ActionDependentFeatures.Count).Select(m => (uint)m).ToArray();
         }
     }
 
@@ -73,7 +185,7 @@ namespace ClientDecisionServiceTest
             this.numReward++;
         }
 
-        public void ReportOutcome(UniqueEventID uniqueKey, object outcomeJson)
+        public void ReportOutcome(UniqueEventID uniqueKey, object outcome)
         {
             this.numOutcome++;
         }
@@ -153,16 +265,13 @@ namespace ClientDecisionServiceTest
         public string Key { get; set; }
 
         [JsonProperty(PropertyName = "f", Required = Required.Always)]
-        public List<CompleteExperimentalUnitFragment> Fragments { get; set; }
+        public List<SingleActionCompleteExperimentalUnitFragment> Fragments { get; set; }
     }
 
-    public class CompleteExperimentalUnitFragment
+    public class BaseCompleteExperimentalUnitFragment
     {
         [JsonProperty(PropertyName = "t", Required = Required.Always)]
         public string Type { get; set; }
-
-        [JsonProperty(PropertyName = "a")]
-        public int? Action { get; set; }
 
         [JsonProperty(PropertyName = "p")]
         public float? Probability { get; set; }
@@ -174,6 +283,18 @@ namespace ClientDecisionServiceTest
         [JsonProperty(PropertyName = "v")]
         [JsonConverter(typeof(RawStringConverter))]
         public object Value { get; set; }
+    }
+
+    public class SingleActionCompleteExperimentalUnitFragment : BaseCompleteExperimentalUnitFragment
+    {
+        [JsonProperty(PropertyName = "a")]
+        public int? Action { get; set; }
+    }
+
+    public class MultiActionCompleteExperimentalUnitFragment : BaseCompleteExperimentalUnitFragment
+    {
+        [JsonProperty(PropertyName = "a")]
+        public int[] Actions { get; set; }
     }
 
     public static class Constants
