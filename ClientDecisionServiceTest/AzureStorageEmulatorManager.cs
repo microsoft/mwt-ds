@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,21 +13,14 @@ namespace ClientDecisionServiceTest
     // Credits to David Peden http://stackoverflow.com/users/607701/david-peden for sharing this!
     public static class AzureStorageEmulatorManager
     {
-        private const string _windowsAzureStorageEmulatorPath = @"C:\Program Files (x86)\Microsoft SDKs\Azure\Storage Emulator\WAStorageEmulator.exe";
+        private static readonly string[] _windowsAzureStorageEmulatorPossiblePaths = new string[] 
+        { 
+            @"C:\Program Files (x86)\Microsoft SDKs\Azure\Storage Emulator\WAStorageEmulator.exe",
+            @"C:\Program Files (x86)\Microsoft SDKs\Azure\Storage Emulator\AzureStorageEmulator.exe"
+        };
+
         private const string _win7ProcessName = "WAStorageEmulator";
         private const string _win8ProcessName = "WASTOR~1";
-
-        private static readonly ProcessStartInfo startStorageEmulator = new ProcessStartInfo
-        {
-            FileName = _windowsAzureStorageEmulatorPath,
-            Arguments = "start",
-        };
-
-        private static readonly ProcessStartInfo stopStorageEmulator = new ProcessStartInfo
-        {
-            FileName = _windowsAzureStorageEmulatorPath,
-            Arguments = "stop",
-        };
 
         private static Process GetProcess()
         {
@@ -42,18 +36,41 @@ namespace ClientDecisionServiceTest
         {
             if (!IsProcessStarted())
             {
-                using (Process process = Process.Start(startStorageEmulator))
+                foreach (string storageEmulatorPath in _windowsAzureStorageEmulatorPossiblePaths)
                 {
-                    process.WaitForExit();
+                    if (File.Exists(storageEmulatorPath))
+                    {
+                        using (Process process = Process.Start(new ProcessStartInfo
+                        {
+                            FileName = storageEmulatorPath,
+                            Arguments = "start"
+                        }))
+                        {
+                            process.WaitForExit();
+                        }
+                        break;
+                    }
                 }
+                
             }
         }
 
         public static void StopStorageEmulator()
         {
-            using (Process process = Process.Start(stopStorageEmulator))
+            foreach (string storageEmulatorPath in _windowsAzureStorageEmulatorPossiblePaths)
             {
-                process.WaitForExit();
+                if (File.Exists(storageEmulatorPath))
+                {
+                    using (Process process = Process.Start(new ProcessStartInfo
+                    {
+                        FileName = storageEmulatorPath,
+                        Arguments = "stop",
+                    }))
+                    {
+                        process.WaitForExit();
+                    }
+                    break;
+                }
             }
         }
     }
