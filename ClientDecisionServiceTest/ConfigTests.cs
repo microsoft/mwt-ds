@@ -45,40 +45,6 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
-        public void TestSingleActionUnauthorizedPathOutputDir()
-        {
-            joinServer.Reset();
-
-            commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false);
-
-            var dsConfig = new ClientDecisionService.SingleAction.DecisionServiceConfiguration<TestContext>(
-                authorizationToken: MockCommandCenter.AuthorizationToken,
-                explorer: new MultiWorldTesting.SingleAction.EpsilonGreedyExplorer<TestContext>(new TestSingleActionPolicy(), epsilon: 0.2f, numActions: 2));
-
-            dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
-            dsConfig.BlobOutputDir = @"c:\windows";
-            dsConfig.PollingForSettingsPeriod = TimeSpan.FromMilliseconds(500);
-
-            var cancelTokenSource = new CancellationTokenSource();
-            bool exceptionIsExpected = false;
-
-            dsConfig.SettingsPollFailureCallback = (ex) =>
-            {
-                if (ex is UnauthorizedAccessException)
-                {
-                    exceptionIsExpected = true;
-                    cancelTokenSource.Cancel();
-                }
-            };
-
-            var ds = new ClientDecisionService.SingleAction.DecisionService<TestContext>(dsConfig);
-
-            cancelTokenSource.Token.WaitHandle.WaitOne(5000);
-
-            Assert.AreEqual(true, exceptionIsExpected);
-        }
-
-        [TestMethod]
         public void TestSingleActionSettingsBlobOutput()
         {
             joinServer.Reset();
@@ -153,45 +119,6 @@ namespace ClientDecisionServiceTest
             dsConfig.SettingsPollFailureCallback = (ex) =>
             {
                 if (ex is ArgumentNullException && ((ArgumentNullException)ex).ParamName == "path")
-                {
-                    exceptionIsExpected = true;
-                    cancelTokenSource.Cancel();
-                }
-            };
-
-            var ds = new ClientDecisionService.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig);
-
-            cancelTokenSource.Token.WaitHandle.WaitOne(5000);
-
-            Assert.AreEqual(true, exceptionIsExpected);
-        }
-
-        [TestMethod]
-        public void TestMultiActionUnauthorizedPathOutputDir()
-        {
-            // TODO: In setup, set Constants.RedirectionBlobLocation to 
-            // http://127.0.0.1:10000/devstoreaccount1/app-locations/{0}
-            // based on TestCategory.
-
-            joinServer.Reset();
-
-            commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false);
-
-            var dsConfig = new ClientDecisionService.MultiAction.DecisionServiceConfiguration<TestContext, DummyADFType>(
-                authorizationToken: MockCommandCenter.AuthorizationToken,
-                explorer: new MultiWorldTesting.MultiAction.EpsilonGreedyExplorer<TestContext>(new TestMultiActionPolicy(), epsilon: 0.2f, numActions: 2),
-                getNumberOfActionsFunc: (Func<TestContext, uint>)(c => { return Constants.NumberOfActions; }));
-
-            dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
-            dsConfig.BlobOutputDir = @"c:\windows";
-            dsConfig.PollingForSettingsPeriod = TimeSpan.FromMilliseconds(500);
-
-            var cancelTokenSource = new CancellationTokenSource();
-            bool exceptionIsExpected = false;
-
-            dsConfig.SettingsPollFailureCallback = (ex) =>
-            {
-                if (ex is UnauthorizedAccessException)
                 {
                     exceptionIsExpected = true;
                     cancelTokenSource.Cancel();
