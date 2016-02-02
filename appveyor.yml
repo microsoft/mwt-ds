@@ -1,0 +1,7 @@
+version: 1.0.{build}
+configuration: Release
+platform: x64
+build:
+  verbosity: minimal
+test_script:
+- ps: vstest.console /Platform:x64 /inIsolation bin\x64\Release\ClientDecisionServiceTest.dll

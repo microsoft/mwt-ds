@@ -8,6 +8,9 @@
 **/packages
 **/bin
 
+# VS test results
+**/TestResults
+
 # VS files
 *.opensdf
 *.suo
