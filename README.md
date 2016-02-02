@@ -1,3 +1,5 @@
+[![Build Status](https://ci.appveyor.com/api/projects/status/github/MultiWorldTesting/decision?branch=master&svg=true)](https://ci.appveyor.com/project/lhoang29/decision)
+
 Client Decision Service Library
 ========
 
