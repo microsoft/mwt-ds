@@ -1,4 +1,4 @@
-﻿namespace ClientDecisionService.SingleAction
+﻿namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction
 {
     using System;
     using System.IO;
@@ -45,7 +45,7 @@
     }
 }
 
-namespace ClientDecisionService.MultiAction
+namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
 {
     using System;
     using System.IO;

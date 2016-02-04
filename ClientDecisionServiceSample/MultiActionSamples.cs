@@ -1,13 +1,13 @@
-﻿using Microsoft.Research.DecisionService.Uploader;
-using MultiWorldTesting;
+﻿using Microsoft.Research.MultiWorldTesting.JoinUploader;
+using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ClientDecisionService.MultiAction;
-using MultiWorldTesting.MultiAction;
+using Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction;
+using Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction;
 using System.IO;
 using VW;
 
@@ -24,7 +24,7 @@ namespace ClientDecisionServiceSample
             {
                 PollingForModelPeriod = TimeSpan.MinValue,
                 PollingForSettingsPeriod = TimeSpan.MinValue,
-                JoinServerType = ClientDecisionService.JoinServerType.AzureStreamAnalytics,
+                JoinServerType = Microsoft.Research.MultiWorldTesting.ClientLibrary.JoinServerType.AzureStreamAnalytics,
                 //EventHubConnectionString = "Endpoint=sb://mwtbus.servicebus.windows.net/;SharedAccessKeyName=MWTASA;SharedAccessKey=Gt6SZtMJvESLQM74pfZyaYwYbn7X5YHBqi1QntpooNc=",
                 //EventHubInputName = "Impressions"
                 EventHubConnectionString = "Endpoint=sb://mwtbus.servicebus.windows.net/;SharedAccessKeyName=shared-policy-scratch;SharedAccessKey=MqKvUJ/ZqBYC28izl0hgzdSmt9b3JvA2uUdncV4lRJA=",

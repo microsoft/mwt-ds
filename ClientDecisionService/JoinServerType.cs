@@ -1,4 +1,4 @@
-﻿namespace ClientDecisionService
+﻿namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
     /// <summary>
     /// Collection of different Join Server implementation types.

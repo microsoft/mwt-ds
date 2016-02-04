@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using ClientDecisionService;
-using MultiWorldTesting;
+using Microsoft.Research.MultiWorldTesting.ClientLibrary;
+using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
 using System.Net;
 using System.Threading.Tasks;
 using System.Threading;
@@ -11,7 +11,7 @@ using System.Text;
 using Microsoft.Research.MultiWorldTesting.Contract;
 using Newtonsoft.Json;
 using System.Web;
-using Microsoft.Research.DecisionService.Uploader;
+using Microsoft.Research.MultiWorldTesting.JoinUploader;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System.Collections.Generic;

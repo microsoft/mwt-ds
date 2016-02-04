@@ -1,7 +1,7 @@
-﻿namespace ClientDecisionService
+﻿namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
     using System;
-    using Microsoft.Research.DecisionService.Uploader;
+    using Microsoft.Research.MultiWorldTesting.JoinUploader;
 
     public class BaseDecisionServiceConfiguration<TContext>
     {
@@ -152,14 +152,14 @@
 }
 
 
-namespace ClientDecisionService.SingleAction
+namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction
 {
-    using Microsoft.Research.DecisionService.Uploader;
-    using MultiWorldTesting;
-    using MultiWorldTesting.SingleAction;
+    using Microsoft.Research.MultiWorldTesting.JoinUploader;
+    using MultiWorldTesting.ExploreLibrary;
+    using MultiWorldTesting.ExploreLibrary.SingleAction;
     using Newtonsoft.Json;
     using System;
-    using ClientDecisionService;
+    using Microsoft.Research.MultiWorldTesting.ClientLibrary;
 
     /// <summary>
     /// Configuration object for the client decision service which contains settings for batching, retry storage, etc...
@@ -203,14 +203,14 @@ namespace ClientDecisionService.SingleAction
     }
 }
 
-namespace ClientDecisionService.MultiAction
+namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
 {
-    using Microsoft.Research.DecisionService.Uploader;
-    using MultiWorldTesting;
-    using MultiWorldTesting.MultiAction;
+    using Microsoft.Research.MultiWorldTesting.JoinUploader;
+    using MultiWorldTesting.ExploreLibrary;
+    using MultiWorldTesting.ExploreLibrary.MultiAction;
     using Newtonsoft.Json;
     using System;
-    using ClientDecisionService;
+    using Microsoft.Research.MultiWorldTesting.ClientLibrary;
     using System.Collections.Generic;
 
     /// <summary>

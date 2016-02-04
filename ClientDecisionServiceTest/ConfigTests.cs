@@ -1,4 +1,4 @@
-﻿using ClientDecisionService;
+﻿using Microsoft.Research.MultiWorldTesting.ClientLibrary;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
@@ -17,9 +17,9 @@ namespace ClientDecisionServiceTest
 
             commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false);
 
-            var dsConfig = new ClientDecisionService.SingleAction.DecisionServiceConfiguration<TestContext>(
+            var dsConfig = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionServiceConfiguration<TestContext>(
                 authorizationToken: MockCommandCenter.AuthorizationToken,
-                explorer: new MultiWorldTesting.SingleAction.EpsilonGreedyExplorer<TestContext>(new TestSingleActionPolicy(), epsilon: 0.2f, numActions: 2));
+                explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction.EpsilonGreedyExplorer<TestContext>(new TestSingleActionPolicy(), epsilon: 0.2f, numActions: 2));
 
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
             dsConfig.BlobOutputDir = @"c:\";
@@ -37,7 +37,7 @@ namespace ClientDecisionServiceTest
                 }
             };
 
-            var ds = new ClientDecisionService.SingleAction.DecisionService<TestContext>(dsConfig);
+            var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionService<TestContext>(dsConfig);
 
             cancelTokenSource.Token.WaitHandle.WaitOne(5000);
 
@@ -54,15 +54,15 @@ namespace ClientDecisionServiceTest
 
             commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false);
 
-            var dsConfig = new ClientDecisionService.SingleAction.DecisionServiceConfiguration<TestContext>(
+            var dsConfig = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionServiceConfiguration<TestContext>(
                 authorizationToken: MockCommandCenter.AuthorizationToken,
-                explorer: new MultiWorldTesting.SingleAction.EpsilonGreedyExplorer<TestContext>(new TestSingleActionPolicy(), epsilon: 0.2f, numActions: 2));
+                explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction.EpsilonGreedyExplorer<TestContext>(new TestSingleActionPolicy(), epsilon: 0.2f, numActions: 2));
 
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
             dsConfig.BlobOutputDir = settingsPath;
             dsConfig.PollingForSettingsPeriod = TimeSpan.FromMilliseconds(500);
 
-            var ds = new ClientDecisionService.SingleAction.DecisionService<TestContext>(dsConfig);
+            var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionService<TestContext>(dsConfig);
 
             string settingsFile = Path.Combine(settingsPath, "settings-" + commandCenter.LocalAzureSettingsBlobName);
 
@@ -104,9 +104,9 @@ namespace ClientDecisionServiceTest
 
             commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false);
 
-            var dsConfig = new ClientDecisionService.MultiAction.DecisionServiceConfiguration<TestContext, DummyADFType>(
+            var dsConfig = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionServiceConfiguration<TestContext, DummyADFType>(
                 authorizationToken: MockCommandCenter.AuthorizationToken,
-                explorer: new MultiWorldTesting.MultiAction.EpsilonGreedyExplorer<TestContext>(new TestMultiActionPolicy(), epsilon: 0.2f, numActions: 2));
+                explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.EpsilonGreedyExplorer<TestContext>(new TestMultiActionPolicy(), epsilon: 0.2f, numActions: 2));
 
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
             dsConfig.BlobOutputDir = @"c:\";
@@ -124,7 +124,7 @@ namespace ClientDecisionServiceTest
                 }
             };
 
-            var ds = new ClientDecisionService.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig);
+            var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig);
 
             cancelTokenSource.Token.WaitHandle.WaitOne(5000);
 
@@ -141,15 +141,15 @@ namespace ClientDecisionServiceTest
 
             commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false);
 
-            var dsConfig = new ClientDecisionService.MultiAction.DecisionServiceConfiguration<TestContext, DummyADFType>(
+            var dsConfig = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionServiceConfiguration<TestContext, DummyADFType>(
                 authorizationToken: MockCommandCenter.AuthorizationToken,
-                explorer: new MultiWorldTesting.MultiAction.EpsilonGreedyExplorer<TestContext>(new TestMultiActionPolicy(), epsilon: 0.2f, numActions: 2));
+                explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.EpsilonGreedyExplorer<TestContext>(new TestMultiActionPolicy(), epsilon: 0.2f, numActions: 2));
 
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
             dsConfig.BlobOutputDir = settingsPath;
             dsConfig.PollingForSettingsPeriod = TimeSpan.FromMilliseconds(500);
 
-            var ds = new ClientDecisionService.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig);
+            var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig);
 
             string settingsFile = Path.Combine(settingsPath, "settings-" + commandCenter.LocalAzureSettingsBlobName);
 

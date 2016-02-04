@@ -1,4 +1,4 @@
-﻿using ClientDecisionService;
+﻿using Microsoft.Research.MultiWorldTesting.ClientLibrary;
 using Microsoft.Research.MultiWorldTesting.Contract;
 using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;

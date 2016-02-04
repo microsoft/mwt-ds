@@ -1,9 +1,9 @@
-﻿using Microsoft.Research.DecisionService.Uploader;
-using MultiWorldTesting;
+﻿using Microsoft.Research.MultiWorldTesting.JoinUploader;
+using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
 using Newtonsoft.Json;
 using System;
 
-namespace ClientDecisionService
+namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
     internal class JoinServiceLogger<TContext> : ILogger<TContext>, IDisposable
     {

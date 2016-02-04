@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace MultiWorldTesting.SingleAction
+namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
 {
     /// <summary>
     /// Represents a recorder that exposes a method to record exploration data based on generic contexts. 
@@ -97,7 +97,7 @@ namespace MultiWorldTesting.SingleAction
     };
 }
 
-namespace MultiWorldTesting.MultiAction
+namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction
 {
     /// <summary>
     /// Represents a recorder that exposes a method to record exploration data based on generic contexts. 

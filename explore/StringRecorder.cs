@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using System.Text;
 
-namespace MultiWorldTesting.SingleAction
+namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
 {
     /// <summary>
 	/// A sample recorder class that converts the exploration tuple into string format.

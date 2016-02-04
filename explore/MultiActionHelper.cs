@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace MultiWorldTesting.MultiAction
+namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction
 {
     internal static class MultiActionHelper
     {

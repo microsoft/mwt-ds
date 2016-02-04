@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace MultiWorldTesting
+namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
     /// <summary>
 	/// Represents a feature in a sparse array.

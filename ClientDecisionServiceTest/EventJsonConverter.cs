@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Microsoft.Research.DecisionService.Uploader;
+using Microsoft.Research.MultiWorldTesting.JoinUploader;
 
-namespace ClientDecisionService
+namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
     public class EventJsonConverter : JsonConverter
     {

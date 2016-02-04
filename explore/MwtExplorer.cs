@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MultiWorldTesting.SingleAction
+namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
 {
     /// <summary>
 	/// The top level MwtExplorer class.  Using this makes sure that the
@@ -60,7 +60,7 @@ namespace MultiWorldTesting.SingleAction
 	};
 }
 
-namespace MultiWorldTesting.MultiAction
+namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction
 {
     /// <summary>
     /// The top level MwtExplorer class.  Using this makes sure that the

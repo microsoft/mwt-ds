@@ -1,7 +1,7 @@
 ﻿using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace Microsoft.Research.DecisionService.Uploader
+namespace Microsoft.Research.MultiWorldTesting.JoinUploader
 {
     /// <summary>
     /// Implementation of <see cref="IHttpResponse"/> that wraps the <see cref="HttpResponseMessage"/> object.

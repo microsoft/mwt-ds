@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace MultiWorldTesting
+namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
     internal static class VariableActionHelper
     {

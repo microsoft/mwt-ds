@@ -1,6 +1,6 @@
-﻿namespace ClientDecisionService.SingleAction
+﻿namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction
 {
-    using MultiWorldTesting.SingleAction;
+    using MultiWorldTesting.ExploreLibrary.SingleAction;
     using System;
     using System.Diagnostics;
     using System.IO;
@@ -128,11 +128,11 @@
     }
 }
 
-namespace ClientDecisionService.MultiAction
+namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
 {
     using VW;
     using VW.Interfaces;
-    using MultiWorldTesting.MultiAction;
+    using MultiWorldTesting.ExploreLibrary.MultiAction;
     using System;
     using System.Diagnostics;
     using System.Linq;

@@ -2,7 +2,7 @@
 using System;
 using System.Net;
 
-namespace ClientDecisionService
+namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
     class DecisionServiceTransientErrorDetectionStrategy : ITransientErrorDetectionStrategy
     {

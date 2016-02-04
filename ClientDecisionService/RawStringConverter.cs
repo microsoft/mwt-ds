@@ -9,7 +9,7 @@ using System.Globalization;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace ClientDecisionService
+namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
     /// <summary>
     /// Custom JSON converter returning the underlying raw json (avoiding object allocation)

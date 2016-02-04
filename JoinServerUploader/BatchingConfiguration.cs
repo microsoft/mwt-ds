@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json.Serialization;
 using System;
 
-namespace Microsoft.Research.DecisionService.Uploader
+namespace Microsoft.Research.MultiWorldTesting.JoinUploader
 {
     /// <summary>
     /// Represents a collection of batching criteria.  

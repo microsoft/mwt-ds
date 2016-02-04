@@ -1,6 +1,6 @@
 ﻿using ClientDecisionService;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using MultiWorldTesting;
+using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
 using Newtonsoft.Json;
 using System;
 using System.IO;

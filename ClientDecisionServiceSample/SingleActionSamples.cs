@@ -1,7 +1,7 @@
-﻿using ClientDecisionService.SingleAction;
-using Microsoft.Research.DecisionService.Uploader;
-using MultiWorldTesting;
-using MultiWorldTesting.SingleAction;
+﻿using Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction;
+using Microsoft.Research.MultiWorldTesting.JoinUploader;
+using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
+using Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

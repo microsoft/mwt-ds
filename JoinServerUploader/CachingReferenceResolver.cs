@@ -4,7 +4,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Newtonsoft.Json.Serialization;
 
-namespace Microsoft.Research.DecisionService.Uploader
+namespace Microsoft.Research.MultiWorldTesting.JoinUploader
 {
     /// <summary>
     /// A JSON.NET reference resolver keeping maintaining an age and/or size based cache of references.

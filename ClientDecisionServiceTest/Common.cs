@@ -1,5 +1,5 @@
-﻿using ClientDecisionService;
-using MultiWorldTesting;
+﻿using Microsoft.Research.MultiWorldTesting.ClientLibrary;
+using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -127,7 +127,7 @@ namespace ClientDecisionServiceTest
 
     class TestOutcome { }
 
-    class TestSingleActionPolicy : MultiWorldTesting.SingleAction.IPolicy<TestContext>
+    class TestSingleActionPolicy : Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction.IPolicy<TestContext>
     {
         public uint ChooseAction(TestContext context, uint numActionsVariable = uint.MaxValue)
         {
@@ -136,7 +136,7 @@ namespace ClientDecisionServiceTest
         }
     }
 
-    class TestMultiActionPolicy : MultiWorldTesting.MultiAction.IPolicy<TestContext>
+    class TestMultiActionPolicy : Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.IPolicy<TestContext>
     {
         public uint[] ChooseAction(TestContext context, uint numActionsVariable = uint.MaxValue)
         {
@@ -145,7 +145,7 @@ namespace ClientDecisionServiceTest
         }
     }
 
-    public class TestRcv1ContextPolicy : MultiWorldTesting.SingleAction.IPolicy<TestRcv1Context>
+    public class TestRcv1ContextPolicy : Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction.IPolicy<TestRcv1Context>
     {
         public uint ChooseAction(TestRcv1Context context, uint numActionsVariable = uint.MaxValue)
         {
@@ -153,7 +153,7 @@ namespace ClientDecisionServiceTest
         }
     }
 
-    class TestADFPolicy : MultiWorldTesting.MultiAction.IPolicy<TestADFContext>
+    class TestADFPolicy : Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.IPolicy<TestADFContext>
     {
         public uint[] ChooseAction(TestADFContext context, uint numActionsVariable = uint.MaxValue)
         {
@@ -162,7 +162,7 @@ namespace ClientDecisionServiceTest
         }
     }
 
-    class TestADFWithFeaturesPolicy : MultiWorldTesting.MultiAction.IPolicy<TestADFContextWithFeatures>
+    class TestADFWithFeaturesPolicy : Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.IPolicy<TestADFContextWithFeatures>
     {
         public uint[] ChooseAction(TestADFContextWithFeatures context, uint numActionsVariable = uint.MaxValue)
         {

@@ -1,8 +1,8 @@
-﻿namespace ClientDecisionService
+﻿namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    using MultiWorldTesting;
+    using MultiWorldTesting.ExploreLibrary;
 
-    public interface ILogger<TContext> : MultiWorldTesting.SingleAction.IRecorder<TContext>, MultiWorldTesting.MultiAction.IRecorder<TContext>
+    public interface ILogger<TContext> : MultiWorldTesting.ExploreLibrary.SingleAction.IRecorder<TContext>, MultiWorldTesting.ExploreLibrary.MultiAction.IRecorder<TContext>
     {
         void ReportReward(UniqueEventID uniqueKey, float reward);
         void ReportOutcome(UniqueEventID uniqueKey, object outcome);

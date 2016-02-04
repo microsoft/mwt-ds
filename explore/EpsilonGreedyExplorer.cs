@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace MultiWorldTesting.Core
+namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.Core
 {
     public static class EpsilonGreedy
     {
@@ -41,9 +41,9 @@ namespace MultiWorldTesting.Core
     }
 }
 
-namespace MultiWorldTesting.SingleAction
+namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
 {
-    using MultiWorldTesting.Core;
+    using Microsoft.Research.MultiWorldTesting.ExploreLibrary.Core;
 
     /// <summary>
 	/// The epsilon greedy exploration class.
@@ -127,9 +127,9 @@ namespace MultiWorldTesting.SingleAction
     };
 }
 
-namespace MultiWorldTesting.MultiAction
+namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction
 {
-    using MultiWorldTesting.Core;
+    using Microsoft.Research.MultiWorldTesting.ExploreLibrary.Core;
 
     /// <summary>
     /// The epsilon greedy exploration class.

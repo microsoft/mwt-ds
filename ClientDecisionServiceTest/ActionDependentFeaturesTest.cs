@@ -1,7 +1,7 @@
-﻿using ClientDecisionService.MultiAction;
+﻿using Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using MultiWorldTesting;
-using MultiWorldTesting.MultiAction;
+using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
+using Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction;
 using System;
 using System.Collections.Generic;
 using System.IO;

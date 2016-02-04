@@ -2,7 +2,7 @@
 using System;
 using System.Net;
 
-namespace Microsoft.Research.DecisionService.Uploader
+namespace Microsoft.Research.MultiWorldTesting.JoinUploader
 {
     class JoinServiceTransientErrorDetectionStrategy : ITransientErrorDetectionStrategy
     {

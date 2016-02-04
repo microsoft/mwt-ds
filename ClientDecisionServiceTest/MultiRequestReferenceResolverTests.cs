@@ -1,4 +1,4 @@
-﻿using Microsoft.Research.DecisionService.Uploader;
+﻿using Microsoft.Research.MultiWorldTesting.JoinUploader;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;

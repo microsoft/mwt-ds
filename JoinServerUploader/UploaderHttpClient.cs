@@ -8,7 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.Research.DecisionService.Uploader
+namespace Microsoft.Research.MultiWorldTesting.JoinUploader
 {
     /// <summary>
     /// Implementation of <see cref="IHttpClient"/> that wraps the <see cref="HttpClient"/> object.

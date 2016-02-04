@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MultiWorldTesting
+namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
     /// <summary>
     /// Represents a unique identifier for an event.

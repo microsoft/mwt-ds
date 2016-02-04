@@ -1,8 +1,8 @@
-﻿namespace ClientDecisionService.SingleAction
+﻿namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction
 {
-    using Microsoft.Research.MultiWorldTesting.Contract;
-    using MultiWorldTesting;
-    using MultiWorldTesting.SingleAction;
+    using MultiWorldTesting.Contract;
+    using MultiWorldTesting.ExploreLibrary;
+    using MultiWorldTesting.ExploreLibrary.SingleAction;
     using Newtonsoft.Json;
     using System;
     using System.Diagnostics;
@@ -249,11 +249,11 @@
     }
 }
 
-namespace ClientDecisionService.MultiAction
+namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
 {
     using Microsoft.Research.MultiWorldTesting.Contract;
-    using MultiWorldTesting;
-    using MultiWorldTesting.MultiAction;
+    using MultiWorldTesting.ExploreLibrary;
+    using MultiWorldTesting.ExploreLibrary.MultiAction;
     using Newtonsoft.Json;
     using System;
     using System.Diagnostics;

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace MultiWorldTesting
+namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
     /// <summary>
     /// Translated implemetation of C++ murmurhash3 in explore-cpp.

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MultiWorldTesting.SingleAction
+namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
 {
     /// <summary>
 	/// The tau-first exploration class.
@@ -93,7 +93,7 @@ namespace MultiWorldTesting.SingleAction
     };
 }
 
-namespace MultiWorldTesting.MultiAction
+namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction
 {
     /// <summary>
     /// The tau-first exploration class.

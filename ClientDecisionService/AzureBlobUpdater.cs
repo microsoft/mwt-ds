@@ -11,7 +11,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ClientDecisionService
+namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
     internal class AzureBlobUpdater
     {

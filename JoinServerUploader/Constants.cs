@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Microsoft.Research.DecisionService.Uploader
+namespace Microsoft.Research.MultiWorldTesting.JoinUploader
 {
     internal static class Constants
     {

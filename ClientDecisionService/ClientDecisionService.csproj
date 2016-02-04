@@ -7,8 +7,8 @@
     <ProjectGuid>{140FCD6F-077F-432D-A9E4-0D63B5DACD93}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>MwtClientLibrary</RootNamespace>
-    <AssemblyName>MwtClientLibrary</AssemblyName>
+    <RootNamespace>Microsoft.Research.MultiWorldTesting.ClientLibrary</RootNamespace>
+    <AssemblyName>Microsoft.Research.MultiWorldTesting.ClientLibrary</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>

@@ -1,6 +1,6 @@
-﻿using ClientDecisionService;
+﻿using Microsoft.Research.MultiWorldTesting.ClientLibrary;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using MultiWorldTesting;
+using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
 using System;
 using System.IO;
 
@@ -12,15 +12,15 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         public void TestSingleActionOfflineModeArgument()
         {
-            var dsConfig = new ClientDecisionService.SingleAction.DecisionServiceConfiguration<TestContext>(
+            var dsConfig = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionServiceConfiguration<TestContext>(
                 authorizationToken: "my token",
-                explorer: new MultiWorldTesting.SingleAction.EpsilonGreedyExplorer<TestContext>(new TestSingleActionPolicy(), epsilon: 0.2f, numActions: 2));
+                explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction.EpsilonGreedyExplorer<TestContext>(new TestSingleActionPolicy(), epsilon: 0.2f, numActions: 2));
 
             dsConfig.OfflineMode = true;
 
             try
             {
-                var ds = new ClientDecisionService.SingleAction.DecisionService<TestContext>(dsConfig);
+                var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionService<TestContext>(dsConfig);
             }
             catch (ArgumentException ex)
             {
@@ -31,15 +31,15 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         public void TestSingleActionOfflineModeCustomLogger()
         {
-            var dsConfig = new ClientDecisionService.SingleAction.DecisionServiceConfiguration<TestContext>(
+            var dsConfig = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionServiceConfiguration<TestContext>(
                 authorizationToken: "my token",
-                explorer: new MultiWorldTesting.SingleAction.EpsilonGreedyExplorer<TestContext>(new TestSingleActionPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
+                explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction.EpsilonGreedyExplorer<TestContext>(new TestSingleActionPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
 
             dsConfig.OfflineMode = true;
             dsConfig.Recorder = new TestLogger();
 
             int numChooseAction = 100;
-            var ds = new ClientDecisionService.SingleAction.DecisionService<TestContext>(dsConfig); 
+            var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionService<TestContext>(dsConfig); 
             for (int i = 0; i < numChooseAction; i++)
             {
                 ds.ChooseAction(new UniqueEventID { Key = i.ToString() }, new TestContext());
@@ -73,14 +73,14 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         public void TestSingleActionOnlineModeCustomLogger()
         {
-            var dsConfig = new ClientDecisionService.SingleAction.DecisionServiceConfiguration<TestContext>(
+            var dsConfig = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionServiceConfiguration<TestContext>(
                 authorizationToken: MockCommandCenter.AuthorizationToken,
-                explorer: new MultiWorldTesting.SingleAction.EpsilonGreedyExplorer<TestContext>(new TestSingleActionPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
+                explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction.EpsilonGreedyExplorer<TestContext>(new TestSingleActionPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
 
             dsConfig.Recorder = new TestLogger();
 
             int numChooseAction = 100;
-            var ds = new ClientDecisionService.SingleAction.DecisionService<TestContext>(dsConfig);
+            var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionService<TestContext>(dsConfig);
             for (int i = 0; i < numChooseAction; i++)
             {
                 ds.ChooseAction(new UniqueEventID { Key = i.ToString() }, new TestContext());
@@ -116,14 +116,14 @@ namespace ClientDecisionServiceTest
         {
             MockCommandCenter.UnsetRedirectionBlobLocation();
 
-            var dsConfig = new ClientDecisionService.SingleAction.DecisionServiceConfiguration<TestContext>(
+            var dsConfig = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionServiceConfiguration<TestContext>(
                 authorizationToken: MockCommandCenter.AuthorizationToken,
-                explorer: new MultiWorldTesting.SingleAction.EpsilonGreedyExplorer<TestContext>(new TestSingleActionPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
+                explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction.EpsilonGreedyExplorer<TestContext>(new TestSingleActionPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
 
             bool isExceptionExpected = false;
             try
             {
-                var ds = new ClientDecisionService.SingleAction.DecisionService<TestContext>(dsConfig);
+                var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionService<TestContext>(dsConfig);
             }
             catch (InvalidDataException)
             {
@@ -135,15 +135,15 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         public void TestMultiActionOfflineModeArgument()
         {
-            var dsConfig = new ClientDecisionService.MultiAction.DecisionServiceConfiguration<TestContext, DummyADFType>(
+            var dsConfig = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionServiceConfiguration<TestContext, DummyADFType>(
                 authorizationToken: "my token",
-                explorer: new MultiWorldTesting.MultiAction.EpsilonGreedyExplorer<TestContext>(new TestMultiActionPolicy(), epsilon: 0.2f, numActions: 2));
+                explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.EpsilonGreedyExplorer<TestContext>(new TestMultiActionPolicy(), epsilon: 0.2f, numActions: 2));
 
             dsConfig.OfflineMode = true;
 
             try
             {
-                var ds = new ClientDecisionService.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig);
+                var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig);
             }
             catch (ArgumentException ex)
             {
@@ -154,15 +154,15 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         public void TestMultiActionOfflineModeCustomLogger()
         {
-            var dsConfig = new ClientDecisionService.MultiAction.DecisionServiceConfiguration<TestContext, DummyADFType>(
+            var dsConfig = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionServiceConfiguration<TestContext, DummyADFType>(
                 authorizationToken: "my token",
-                explorer: new MultiWorldTesting.MultiAction.EpsilonGreedyExplorer<TestContext>(new TestMultiActionPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
+                explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.EpsilonGreedyExplorer<TestContext>(new TestMultiActionPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
 
             dsConfig.OfflineMode = true;
             dsConfig.Recorder = new TestLogger();
 
             int numChooseAction = 100;
-            var ds = new ClientDecisionService.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig);
+            var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig);
             for (int i = 0; i < numChooseAction; i++)
             {
                 ds.ChooseAction(new UniqueEventID { Key = i.ToString() }, new TestContext());
@@ -196,10 +196,10 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         public void TestMultiActionOnlineModeCustomLogger()
         {
-            var dsConfig = new ClientDecisionService.MultiAction.DecisionServiceConfiguration<TestContext, DummyADFType>
+            var dsConfig = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionServiceConfiguration<TestContext, DummyADFType>
             (
                 authorizationToken: MockCommandCenter.AuthorizationToken,
-                explorer: new MultiWorldTesting.MultiAction.EpsilonGreedyExplorer<TestContext>(new TestMultiActionPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions)
+                explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.EpsilonGreedyExplorer<TestContext>(new TestMultiActionPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions)
             );
 
             dsConfig.Recorder = new TestLogger();
@@ -207,7 +207,7 @@ namespace ClientDecisionServiceTest
             dsConfig.PollingForSettingsPeriod = TimeSpan.MinValue;
 
             int numChooseAction = 100;
-            var ds = new ClientDecisionService.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig);
+            var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig);
             for (int i = 0; i < numChooseAction; i++)
             {
                 ds.ChooseAction(new UniqueEventID { Key = i.ToString() }, new TestContext());
@@ -244,14 +244,14 @@ namespace ClientDecisionServiceTest
             MockCommandCenter.UnsetRedirectionBlobLocation();
 
             /*** This test requires real value of RedirectionBlobLocation set in DecisionServiceConstants.cs file ***/
-            var dsConfig = new ClientDecisionService.MultiAction.DecisionServiceConfiguration<TestContext, DummyADFType>(
+            var dsConfig = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionServiceConfiguration<TestContext, DummyADFType>(
                 authorizationToken: MockCommandCenter.AuthorizationToken,
-                explorer: new MultiWorldTesting.MultiAction.EpsilonGreedyExplorer<TestContext>(new TestMultiActionPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
+                explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.EpsilonGreedyExplorer<TestContext>(new TestMultiActionPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
 
             bool isExceptionExpected = false;
             try
             {
-                var ds = new ClientDecisionService.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig);
+                var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig);
             }
             catch (InvalidDataException)
             {

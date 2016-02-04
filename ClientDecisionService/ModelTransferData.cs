@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ClientDecisionService
+namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
     public class ModelTransferData
     {

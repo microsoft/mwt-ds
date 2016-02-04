@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace MultiWorldTesting
+namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
     /// <summary>
     /// Translated implemetation of C++ random generator in explore-cpp.

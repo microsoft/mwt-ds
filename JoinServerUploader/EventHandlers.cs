@@ -4,17 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.Research.DecisionService.Uploader
+namespace Microsoft.Research.MultiWorldTesting.JoinUploader
 {
     /// <summary>
-    /// Represents the method that will handle the PackageSent event of a <see cref="Microsoft.Research.DecisionService.Uploader"/> object.
+    /// Represents the method that will handle the PackageSent event of a <see cref="Microsoft.Research.MultiWorldTesting.JoinUploader"/> object.
     /// </summary>
     /// <param name="sender">The source of the event.</param>
     /// <param name="e">A <see cref="PackageEventArgs"/> object that contains the event data.</param>
     public delegate void PackageSentEventHandler(object sender, PackageEventArgs e);
 
     /// <summary>
-    /// Represents the method that will handle the PackageSendFailed event of a <see cref="Microsoft.Research.DecisionService.Uploader"/> object.
+    /// Represents the method that will handle the PackageSendFailed event of a <see cref="Microsoft.Research.MultiWorldTesting.JoinUploader"/> object.
     /// </summary>
     /// <param name="sender">The source of the event.</param>
     /// <param name="e">A <see cref="PackageEventArgs"/> object that contains the event data.</param>

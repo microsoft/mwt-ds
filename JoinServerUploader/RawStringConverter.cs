@@ -9,7 +9,7 @@ using System.Globalization;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace Microsoft.Research.DecisionService.Uploader
+namespace Microsoft.Research.MultiWorldTesting.JoinUploader
 {
     /// <summary>
     /// Custom JSON converter returning the underlying raw json (avoiding object allocation)
