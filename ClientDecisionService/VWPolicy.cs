@@ -44,7 +44,7 @@
         /// <param name="context">The context object.</param>
         /// <param name="numActionsVariable">Optional; Number of actions available which may be variable across decisions.</param>
         /// <returns>An unsigned integer representing the chosen action.</returns>
-        public uint ChooseAction(TContext context, uint numActionsVariable = uint.MaxValue)
+        public virtual uint ChooseAction(TContext context, uint numActionsVariable = uint.MaxValue)
         {
             if (vwPool == null)
             {
@@ -123,8 +123,8 @@
             }
         }
 
-        private VowpalWabbitThreadedPrediction<TContext> vwPool;
-        private Action<TContext, string> setModelIdCallback;
+        protected VowpalWabbitThreadedPrediction<TContext> vwPool;
+        protected Action<TContext, string> setModelIdCallback;
     }
 }
 
@@ -187,7 +187,7 @@ namespace ClientDecisionService.MultiAction
         /// <param name="context">The context object.</param>
         /// <param name="numActionsVariable">Optional; Number of actions available which may be variable across decisions.</param>
         /// <returns>List of predicted actions.</returns>
-        public uint[] ChooseAction(TContext context, uint numActionsVariable = uint.MaxValue)
+        public virtual uint[] ChooseAction(TContext context, uint numActionsVariable = uint.MaxValue)
         {
             if (vwPool == null)
             {
@@ -273,8 +273,8 @@ namespace ClientDecisionService.MultiAction
             }
         }
 
-        private VowpalWabbitThreadedPrediction<TContext, TActionDependentFeature> vwPool;
+        protected VowpalWabbitThreadedPrediction<TContext, TActionDependentFeature> vwPool;
+        protected Action<TContext, string> setModelIdCallback;
         private Func<TContext, IReadOnlyCollection<TActionDependentFeature>> getContextFeaturesFunc;
-        private Action<TContext, string> setModelIdCallback;
     }
 }
