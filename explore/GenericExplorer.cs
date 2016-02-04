@@ -15,7 +15,7 @@ namespace MultiWorldTesting.SingleAction
 	{
         private IScorer<TContext> defaultScorer;
         private bool explore;
-        private readonly uint numActions;
+        private readonly uint numActionsFixed;
 
 		/// <summary>
 		/// The constructor is the only public member, because this should be used with the MwtExplorer.
@@ -24,10 +24,10 @@ namespace MultiWorldTesting.SingleAction
 		/// <param name="numActions">The number of actions to randomize over.</param>
         public GenericExplorer(IScorer<TContext> defaultScorer, uint numActions)
 		{
-            VariableActionHelper.ValidateNumberOfActions(numActions);
+            VariableActionHelper.ValidateInitialNumberOfActions(numActions);
 
             this.defaultScorer = defaultScorer;
-            this.numActions = numActions;
+            this.numActionsFixed = numActions;
             this.explore = true;
         }
 
@@ -37,9 +37,7 @@ namespace MultiWorldTesting.SingleAction
         /// <param name="defaultScorer">A function which outputs the probability of each action.</param>
         public GenericExplorer(IScorer<TContext> defaultScorer) :
             this(defaultScorer, uint.MaxValue)
-        {
-            VariableActionHelper.ValidateContextType<TContext>();
-        }
+        { }
 
         public void UpdateScorer(IScorer<TContext> newScorer)
         {
@@ -51,9 +49,9 @@ namespace MultiWorldTesting.SingleAction
             this.explore = explore;
         }
 
-        public DecisionTuple ChooseAction(ulong saltedSeed, TContext context)
+        public DecisionTuple ChooseAction(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
         {
-            uint numActions = VariableActionHelper.GetNumberOfActions(context, this.numActions);
+            uint numActions = VariableActionHelper.GetNumberOfActions(this.numActionsFixed, numActionsVariable);
 
             var random = new PRG(saltedSeed);
 
@@ -123,7 +121,7 @@ namespace MultiWorldTesting.MultiAction
     {
         private IScorer<TContext> defaultScorer;
         private bool explore;
-        private readonly uint numActions;
+        private readonly uint numActionsFixed;
 
         /// <summary>
         /// The constructor is the only public member, because this should be used with the MwtExplorer.
@@ -132,10 +130,10 @@ namespace MultiWorldTesting.MultiAction
         /// <param name="numActions">The number of actions to randomize over.</param>
         public GenericExplorer(IScorer<TContext> defaultScorer, uint numActions)
         {
-            VariableActionHelper.ValidateNumberOfActions(numActions);
+            VariableActionHelper.ValidateInitialNumberOfActions(numActions);
 
             this.defaultScorer = defaultScorer;
-            this.numActions = numActions;
+            this.numActionsFixed = numActions;
             this.explore = true;
         }
 
@@ -157,9 +155,9 @@ namespace MultiWorldTesting.MultiAction
             this.explore = explore;
         }
 
-        public DecisionTuple ChooseAction(ulong saltedSeed, TContext context, Func<TContext, uint> getNumberOfActionsFunc)
+        public DecisionTuple ChooseAction(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
         {
-            uint numActions = VariableActionHelper.GetNumberOfActions(getNumberOfActionsFunc, context, this.numActions);
+            uint numActions = VariableActionHelper.GetNumberOfActions(this.numActionsFixed, numActionsVariable);
 
             var random = new PRG(saltedSeed);
 

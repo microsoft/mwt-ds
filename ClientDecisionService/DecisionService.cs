@@ -129,13 +129,14 @@
         /// </summary>
         /// <param name="uniqueKey">The unique key of the experimental unit.</param>
         /// <param name="context">The context for this interaction.</param>
+        /// <param name="numActionsVariable">Optional; Number of actions available which may be variable across decisions.</param>
         /// <returns>uint</returns>
         /// <remarks>
         /// This method will send logging data to the <see cref="IRecorder{TContext}"/> object specified at initialization.
         /// </remarks>
-        public uint ChooseAction(UniqueEventID uniqueKey, TContext context)
+        public uint ChooseAction(UniqueEventID uniqueKey, TContext context, uint numActionsVariable = uint.MaxValue)
         {
-            return mwt.ChooseAction(explorer, uniqueKey, context);
+            return mwt.ChooseAction(explorer, uniqueKey, context, numActionsVariable);
         }
 
         /// <summary>
@@ -341,7 +342,7 @@ namespace ClientDecisionService.MultiAction
                 }
             }
 
-            mwt = new MwtExplorer<TContext>(config.AuthorizationToken, this.recorder, config.GetNumberOfActionsFunc);
+            mwt = new MwtExplorer<TContext>(config.AuthorizationToken, this.recorder);
         }
 
         /// <summary>
@@ -380,13 +381,14 @@ namespace ClientDecisionService.MultiAction
         /// </summary>
         /// <param name="uniqueKey">The unique key of the experimental unit.</param>
         /// <param name="context">The context for this interaction.</param>
+        /// <param name="numActionsVariable">Optional; Number of actions available which may be variable across decisions.</param>
         /// <returns>An array containing the chosen actions.</returns>
         /// <remarks>
         /// This method will send logging data to the <see cref="IRecorder{TContext}"/> object specified at initialization.
         /// </remarks>
-        public uint[] ChooseAction(UniqueEventID uniqueKey, TContext context)
+        public uint[] ChooseAction(UniqueEventID uniqueKey, TContext context, uint numActionsVariable = uint.MaxValue)
         {
-            return mwt.ChooseAction(explorer, uniqueKey, context);
+            return mwt.ChooseAction(explorer, uniqueKey, context, numActionsVariable);
         }
 
         /// <summary>

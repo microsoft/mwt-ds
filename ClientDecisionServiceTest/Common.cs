@@ -129,7 +129,7 @@ namespace ClientDecisionServiceTest
 
     class TestSingleActionPolicy : MultiWorldTesting.SingleAction.IPolicy<TestContext>
     {
-        public uint ChooseAction(TestContext context)
+        public uint ChooseAction(TestContext context, uint numActionsVariable = uint.MaxValue)
         {
             // Always returns the same action regardless of context
             return Constants.NumberOfActions - 1;
@@ -138,7 +138,7 @@ namespace ClientDecisionServiceTest
 
     class TestMultiActionPolicy : MultiWorldTesting.MultiAction.IPolicy<TestContext>
     {
-        public uint[] ChooseAction(TestContext context)
+        public uint[] ChooseAction(TestContext context, uint numActionsVariable = uint.MaxValue)
         {
             // Always returns the same action regardless of context
             return Enumerable.Range(1, (int)Constants.NumberOfActions).Select(m => (uint)m).ToArray();
@@ -147,7 +147,7 @@ namespace ClientDecisionServiceTest
 
     public class TestRcv1ContextPolicy : MultiWorldTesting.SingleAction.IPolicy<TestRcv1Context>
     {
-        public uint ChooseAction(TestRcv1Context context)
+        public uint ChooseAction(TestRcv1Context context, uint numActionsVariable = uint.MaxValue)
         {
             return 1;
         }
@@ -155,7 +155,7 @@ namespace ClientDecisionServiceTest
 
     class TestADFPolicy : MultiWorldTesting.MultiAction.IPolicy<TestADFContext>
     {
-        public uint[] ChooseAction(TestADFContext context)
+        public uint[] ChooseAction(TestADFContext context, uint numActionsVariable = uint.MaxValue)
         {
             // Always returns the same action regardless of context
             return Enumerable.Range(1, (int)context.ActionDependentFeatures.Count).Select(m => (uint)m).ToArray();
@@ -164,7 +164,7 @@ namespace ClientDecisionServiceTest
 
     class TestADFWithFeaturesPolicy : MultiWorldTesting.MultiAction.IPolicy<TestADFContextWithFeatures>
     {
-        public uint[] ChooseAction(TestADFContextWithFeatures context)
+        public uint[] ChooseAction(TestADFContextWithFeatures context, uint numActionsVariable = uint.MaxValue)
         {
             // Always returns the same action regardless of context
             return Enumerable.Range(1, (int)context.ActionDependentFeatures.Count).Select(m => (uint)m).ToArray();

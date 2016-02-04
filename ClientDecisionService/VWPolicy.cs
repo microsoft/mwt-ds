@@ -42,8 +42,9 @@
         /// Scores the model against the specified context and returns the chosen action (1-based index).
         /// </summary>
         /// <param name="context">The context object.</param>
+        /// <param name="numActionsVariable">Optional; Number of actions available which may be variable across decisions.</param>
         /// <returns>An unsigned integer representing the chosen action.</returns>
-        public uint ChooseAction(TContext context)
+        public uint ChooseAction(TContext context, uint numActionsVariable = uint.MaxValue)
         {
             if (vwPool == null)
             {
@@ -184,8 +185,9 @@ namespace ClientDecisionService.MultiAction
         /// Scores the model against the specified context and returns a list of actions (1-based index).
         /// </summary>
         /// <param name="context">The context object.</param>
+        /// <param name="numActionsVariable">Optional; Number of actions available which may be variable across decisions.</param>
         /// <returns>List of predicted actions.</returns>
-        public uint[] ChooseAction(TContext context)
+        public uint[] ChooseAction(TContext context, uint numActionsVariable = uint.MaxValue)
         {
             if (vwPool == null)
             {

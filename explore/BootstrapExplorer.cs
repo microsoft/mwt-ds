@@ -17,7 +17,7 @@ namespace MultiWorldTesting.SingleAction
         private IPolicy<TContext>[] defaultPolicyFunctions;
         private bool explore;
         private readonly uint bags;
-	    private readonly uint numActions;
+	    private readonly uint numActionsFixed;
 
 		/// <summary>
 		/// The constructor is the only public member, because this should be used with the MwtExplorer.
@@ -26,7 +26,7 @@ namespace MultiWorldTesting.SingleAction
 		/// <param name="numActions">The number of actions to randomize over.</param>
         public BootstrapExplorer(IPolicy<TContext>[] defaultPolicies, uint numActions)
 		{
-            VariableActionHelper.ValidateNumberOfActions(numActions);
+            VariableActionHelper.ValidateInitialNumberOfActions(numActions);
 
             if (defaultPolicies == null || defaultPolicies.Length < 1)
 		    {
@@ -35,7 +35,7 @@ namespace MultiWorldTesting.SingleAction
 
             this.defaultPolicyFunctions = defaultPolicies;
             this.bags = (uint)this.defaultPolicyFunctions.Length;
-            this.numActions = numActions;
+            this.numActionsFixed = numActions;
             this.explore = true;
         }
 
@@ -45,9 +45,7 @@ namespace MultiWorldTesting.SingleAction
         /// <param name="defaultPolicies">A set of default policies to be uniform random over.</param>
         public BootstrapExplorer(IPolicy<TContext>[] defaultPolicies) :
             this(defaultPolicies, uint.MaxValue)
-        {
-            VariableActionHelper.ValidateContextType<TContext>();
-        }
+        { }
 
         public void UpdatePolicy(IPolicy<TContext>[] newPolicies)
         {
@@ -59,9 +57,9 @@ namespace MultiWorldTesting.SingleAction
             this.explore = explore;
         }
 
-        public DecisionTuple ChooseAction(ulong saltedSeed, TContext context)
+        public DecisionTuple ChooseAction(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
         {
-            uint numActions = VariableActionHelper.GetNumberOfActions(context, this.numActions);
+            uint numActions = VariableActionHelper.GetNumberOfActions(this.numActionsFixed, numActionsVariable);
 
             var random = new PRG(saltedSeed);
 
@@ -83,7 +81,7 @@ namespace MultiWorldTesting.SingleAction
                     // TODO: can VW predict for all bags on one call? (returning all actions at once)
                     // if we trigger into VW passing an index to invoke bootstrap scoring, and if VW model changes while we are doing so, 
                     // we could end up calling the wrong bag
-                    actionFromBag = this.defaultPolicyFunctions[currentBag].ChooseAction(context);
+                    actionFromBag = this.defaultPolicyFunctions[currentBag].ChooseAction(context, numActionsVariable);
 
                     if (actionFromBag == 0 || actionFromBag > numActions)
                     {
@@ -101,7 +99,7 @@ namespace MultiWorldTesting.SingleAction
             }
             else
             {
-                chosenAction = this.defaultPolicyFunctions[0].ChooseAction(context);
+                chosenAction = this.defaultPolicyFunctions[0].ChooseAction(context, numActionsVariable);
                 actionProbability = 1f;
             }
             return new DecisionTuple
@@ -130,7 +128,7 @@ namespace MultiWorldTesting.MultiAction
         private IPolicy<TContext>[] defaultPolicyFunctions;
         private bool explore;
         private readonly uint bags;
-        private readonly uint numActions;
+        private readonly uint numActionsFixed;
 
         /// <summary>
         /// The constructor is the only public member, because this should be used with the MwtExplorer.
@@ -139,7 +137,7 @@ namespace MultiWorldTesting.MultiAction
         /// <param name="numActions">The number of actions to randomize over.</param>
         public BootstrapExplorer(IPolicy<TContext>[] defaultPolicies, uint numActions)
         {
-            VariableActionHelper.ValidateNumberOfActions(numActions);
+            VariableActionHelper.ValidateInitialNumberOfActions(numActions);
 
             if (defaultPolicies == null || defaultPolicies.Length < 1)
             {
@@ -148,7 +146,7 @@ namespace MultiWorldTesting.MultiAction
 
             this.defaultPolicyFunctions = defaultPolicies;
             this.bags = (uint)this.defaultPolicyFunctions.Length;
-            this.numActions = numActions;
+            this.numActionsFixed = numActions;
             this.explore = true;
         }
 
@@ -170,9 +168,9 @@ namespace MultiWorldTesting.MultiAction
             this.explore = explore;
         }
 
-        public DecisionTuple ChooseAction(ulong saltedSeed, TContext context, Func<TContext, uint> getNumberOfActionsFunc)
+        public DecisionTuple ChooseAction(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
         {
-            uint numActions = VariableActionHelper.GetNumberOfActions(getNumberOfActionsFunc, context, this.numActions);
+            uint numActions = VariableActionHelper.GetNumberOfActions(this.numActionsFixed, numActionsVariable);
 
             var random = new PRG(saltedSeed);
 
@@ -196,7 +194,7 @@ namespace MultiWorldTesting.MultiAction
                     // TODO: can VW predict for all bags on one call? (returning all actions at once)
                     // if we trigger into VW passing an index to invoke bootstrap scoring, and if VW model changes while we are doing so, 
                     // we could end up calling the wrong bag
-                    actionsFromBag = this.defaultPolicyFunctions[currentBag].ChooseAction(context);
+                    actionsFromBag = this.defaultPolicyFunctions[currentBag].ChooseAction(context, numActions);
 
                     MultiActionHelper.ValidateActionList(actionsFromBag);
 
@@ -214,7 +212,7 @@ namespace MultiWorldTesting.MultiAction
             }
             else
             {
-                chosenActions = this.defaultPolicyFunctions[0].ChooseAction(context);
+                chosenActions = this.defaultPolicyFunctions[0].ChooseAction(context, numActions);
                 actionProbability = 1f;
             }
             return new DecisionTuple

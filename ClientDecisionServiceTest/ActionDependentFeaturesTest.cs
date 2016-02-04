@@ -19,8 +19,7 @@ namespace ClientDecisionServiceTest
 
             var dsConfig = new DecisionServiceConfiguration<TestADFContext, DummyADFType>(
                 authorizationToken: MockCommandCenter.AuthorizationToken,
-                explorer: new EpsilonGreedyExplorer<TestADFContext>(new TestADFPolicy(), epsilon: 0.5f),
-                getNumberOfActionsFunc: (Func<TestADFContext, uint>)(c => { return (uint)c.ActionDependentFeatures.Count; }))
+                explorer: new EpsilonGreedyExplorer<TestADFContext>(new TestADFPolicy(), epsilon: 0.5f))
             {
                 PollingForModelPeriod = TimeSpan.MinValue,
                 PollingForSettingsPeriod = TimeSpan.MinValue,
@@ -33,7 +32,8 @@ namespace ClientDecisionServiceTest
 
             for (int i = 1; i <= 100; i++)
             {
-                uint[] action = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestADFContext(i));
+                var adfContext = new TestADFContext(i);
+                uint[] action = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, adfContext, (uint)adfContext.ActionDependentFeatures.Count);
 
                 Assert.AreEqual(i, action.Length);
 
@@ -58,8 +58,7 @@ namespace ClientDecisionServiceTest
 
             var dsConfig = new DecisionServiceConfiguration<TestADFContextWithFeatures, TestADFFeatures>(
                 authorizationToken: MockCommandCenter.AuthorizationToken,
-                explorer: new EpsilonGreedyExplorer<TestADFContextWithFeatures>(new TestADFWithFeaturesPolicy(), epsilon: 0.5f),
-                getNumberOfActionsFunc: (Func<TestADFContextWithFeatures, uint>)(c => { return (uint)c.ActionDependentFeatures.Count; }))
+                explorer: new EpsilonGreedyExplorer<TestADFContextWithFeatures>(new TestADFWithFeaturesPolicy(), epsilon: 0.5f))
             {
                 LoggingServiceAddress = MockJoinServer.MockJoinServerAddress,
                 PollingForModelPeriod = TimeSpan.MinValue,
@@ -93,7 +92,7 @@ namespace ClientDecisionServiceTest
                 int numActions = rg.Next(5, 20);
                 var context = TestADFContextWithFeatures.CreateRandom(numActions, rg);
 
-                uint[] action = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, context);
+                uint[] action = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, context, (uint)context.ActionDependentFeatures.Count);
 
                 Assert.AreEqual(numActions, action.Length);
 
@@ -123,8 +122,7 @@ namespace ClientDecisionServiceTest
 
             var dsConfig = new DecisionServiceConfiguration<TestADFContextWithFeatures, TestADFFeatures>(
                 authorizationToken: MockCommandCenter.AuthorizationToken,
-                explorer: new EpsilonGreedyExplorer<TestADFContextWithFeatures>(new TestADFWithFeaturesPolicy(), epsilon: 0.5f),
-                getNumberOfActionsFunc: (Func<TestADFContextWithFeatures, uint>)(c => { return (uint)c.ActionDependentFeatures.Count; }))
+                explorer: new EpsilonGreedyExplorer<TestADFContextWithFeatures>(new TestADFWithFeaturesPolicy(), epsilon: 0.5f))
             {
                 LoggingServiceAddress = MockJoinServer.MockJoinServerAddress,
                 PollingForModelPeriod = TimeSpan.MinValue,
@@ -156,7 +154,7 @@ namespace ClientDecisionServiceTest
                 int numActions = rg.Next(5, 20);
                 var context = TestADFContextWithFeatures.CreateRandom(numActions, rg);
 
-                uint[] action = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, context);
+                uint[] action = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, context, (uint)context.ActionDependentFeatures.Count);
 
                 Assert.AreEqual(numActions, action.Length);
 

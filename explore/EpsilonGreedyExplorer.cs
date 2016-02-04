@@ -58,7 +58,7 @@ namespace MultiWorldTesting.SingleAction
         private IPolicy<TContext> defaultPolicy;
         private readonly float epsilon;
         private bool explore;
-        private readonly uint numActions;
+        private readonly uint numActionsFixed;
 
 		/// <summary>
 		/// The constructor is the only public member, because this should be used with the MwtExplorer.
@@ -68,7 +68,7 @@ namespace MultiWorldTesting.SingleAction
 		/// <param name="numActions">The number of actions to randomize over.</param>
         public EpsilonGreedyExplorer(IPolicy<TContext> defaultPolicy, float epsilon, uint numActions)
 		{
-            VariableActionHelper.ValidateNumberOfActions(numActions);
+            VariableActionHelper.ValidateInitialNumberOfActions(numActions);
 
             if (epsilon < 0 || epsilon > 1)
             {
@@ -76,7 +76,7 @@ namespace MultiWorldTesting.SingleAction
             }
             this.defaultPolicy = defaultPolicy;
             this.epsilon = epsilon;
-            this.numActions = numActions;
+            this.numActionsFixed = numActions;
             this.explore = true;
         }
 
@@ -87,9 +87,7 @@ namespace MultiWorldTesting.SingleAction
         /// <param name="epsilon">The probability of a random exploration.</param>
         public EpsilonGreedyExplorer(IPolicy<TContext> defaultPolicy, float epsilon) :
             this(defaultPolicy, epsilon, uint.MaxValue)
-        {
-            VariableActionHelper.ValidateContextType<TContext>();
-        }
+        { }
 
         public void UpdatePolicy(IPolicy<TContext> newPolicy)
         {
@@ -101,9 +99,9 @@ namespace MultiWorldTesting.SingleAction
             this.explore = explore;
         }
 
-        public DecisionTuple ChooseAction(ulong saltedSeed, TContext context)
+        public DecisionTuple ChooseAction(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
         {
-            uint numActions = VariableActionHelper.GetNumberOfActions(context, this.numActions);
+            uint numActions = VariableActionHelper.GetNumberOfActions(this.numActionsFixed, numActionsVariable);
 
             // Invoke the default policy function to get the action
             uint chosenAction = this.defaultPolicy.ChooseAction(context);
@@ -146,7 +144,7 @@ namespace MultiWorldTesting.MultiAction
         private IPolicy<TContext> defaultPolicy;
         private readonly float epsilon;
         private bool explore;
-        private readonly uint numActions;
+        private readonly uint numActionsFixed;
 
         /// <summary>
         /// The constructor is the only public member, because this should be used with the MwtExplorer.
@@ -156,7 +154,7 @@ namespace MultiWorldTesting.MultiAction
         /// <param name="numActions">The number of actions to randomize over.</param>
         public EpsilonGreedyExplorer(IPolicy<TContext> defaultPolicy, float epsilon, uint numActions)
         {
-            VariableActionHelper.ValidateNumberOfActions(numActions);
+            VariableActionHelper.ValidateInitialNumberOfActions(numActions);
 
             if (epsilon < 0 || epsilon > 1)
             {
@@ -164,7 +162,7 @@ namespace MultiWorldTesting.MultiAction
             }
             this.defaultPolicy = defaultPolicy;
             this.epsilon = epsilon;
-            this.numActions = numActions;
+            this.numActionsFixed = numActions;
             this.explore = true;
         }
 
@@ -187,9 +185,9 @@ namespace MultiWorldTesting.MultiAction
             this.explore = explore;
         }
 
-        public DecisionTuple ChooseAction(ulong saltedSeed, TContext context, Func<TContext, uint> getNumberOfActionsFunc)
+        public DecisionTuple ChooseAction(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
         {
-            uint numActions = VariableActionHelper.GetNumberOfActions(getNumberOfActionsFunc, context, this.numActions);
+            uint numActions = VariableActionHelper.GetNumberOfActions(this.numActionsFixed, numActionsVariable);
 
             // Invoke the default policy function to get the action
             uint[] chosenActions = this.defaultPolicy.ChooseAction(context);

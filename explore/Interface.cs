@@ -1,22 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace MultiWorldTesting
-{
-    /// <summary>
-    /// Represents a context interface with variable number of actions which is
-    /// enforced if exploration algorithm is initialized in variable number of actions mode.
-    /// </summary>
-    public interface IVariableActionContext
-    {
-        /// <summary>
-        /// Gets the number of actions for the current context.
-        /// </summary>
-        /// <returns>The number of actions available for the current context.</returns>
-        UInt32 GetNumberOfActions();
-    };
-}
-
 namespace MultiWorldTesting.SingleAction
 {
     /// <summary>
@@ -53,8 +37,9 @@ namespace MultiWorldTesting.SingleAction
         /// This implementation should be thread-safe if multithreading is needed.
 	    /// </summary>
 	    /// <param name="context">A user-defined context for the decision.</param>
-	    /// <returns>Index of the action to take (1-based)</returns>
-	    uint ChooseAction(TContext context);
+        /// <param name="numActionsVariable">Optional; Number of actions available which may be variable across decisions.</param>
+        /// <returns>Index of the action to take (1-based)</returns>
+        uint ChooseAction(TContext context, uint numActionsVariable = uint.MaxValue);
     };
 
     /// <summary>
@@ -68,8 +53,9 @@ namespace MultiWorldTesting.SingleAction
         /// This implementation should be thread-safe if multithreading is needed.
 	    /// </summary>
 	    /// <param name="context">A user-defined context for the decision.</param>
-	    /// <returns>Vector of scores indexed by action (1-based).</returns>
-	    List<float> ScoreActions(TContext context);
+        /// <param name="numActionsVariable">Optional; Number of actions available which may be variable across decisions.</param>
+        /// <returns>Vector of scores indexed by action (1-based).</returns>
+        List<float> ScoreActions(TContext context, uint numActionsVariable = uint.MaxValue);
     };
 
     public interface IExplorer<TContext>
@@ -80,11 +66,12 @@ namespace MultiWorldTesting.SingleAction
         /// </summary>
         /// <param name="saltedSeed">A PRG seed based on a unique id information provided by the user.</param>
         /// <param name="context">A user-defined context for the decision.</param>
+        /// <param name="numActionsVariable">Optional; Number of actions available which may be variable across decisions.</param>
         /// <returns>
         /// A <see cref="DecisionTuple"/> object including the action to take, the probability it was chosen, 
         /// and a flag indicating whether to record this decision.
         /// </returns>
-        DecisionTuple ChooseAction(ulong saltedSeed, TContext context);
+        DecisionTuple ChooseAction(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue);
 
         void EnableExplore(bool explore);
     };
@@ -146,8 +133,9 @@ namespace MultiWorldTesting.MultiAction
         /// This implementation should be thread-safe if multithreading is needed.
         /// </summary>
         /// <param name="context">A user-defined context for the decision.</param>
+        /// <param name="numActionsVariable">Optional; Number of actions available which may be variable across decisions.</param>
         /// <returns>Index array of the actions to take (1-based)</returns>
-        uint[] ChooseAction(TContext context);
+        uint[] ChooseAction(TContext context, uint numActionsVariable = uint.MaxValue);
     };
 
     /// <summary>
@@ -161,8 +149,9 @@ namespace MultiWorldTesting.MultiAction
         /// This implementation should be thread-safe if multithreading is needed.
         /// </summary>
         /// <param name="context">A user-defined context for the decision.</param>
+        /// <param name="numActionsVariable">Optional; Number of actions available which may be variable across decisions.</param>
         /// <returns>Vector of scores indexed by action (1-based).</returns>
-        List<float> ScoreActions(TContext context);
+        List<float> ScoreActions(TContext context, uint numActionsVariable = uint.MaxValue);
     };
 
     public interface IExplorer<TContext>
@@ -173,12 +162,12 @@ namespace MultiWorldTesting.MultiAction
         /// </summary>
         /// <param name="saltedSeed">A PRG seed based on a unique id information provided by the user.</param>
         /// <param name="context">A user-defined context for the decision.</param>
-        /// <param name="getNumberOfActionsFunc">The func delegate to retrieve number of actions in a given context.</param>
+        /// <param name="numActionsVariable">Optional; Number of actions available which may be variable across decisions.</param>
         /// <returns>
         /// A <see cref="DecisionTuple"/> object including the action to take, the probability it was chosen, 
         /// and a flag indicating whether to record this decision.
         /// </returns>
-        DecisionTuple ChooseAction(ulong saltedSeed, TContext context, Func<TContext, uint> getNumberOfActionsFunc);
+        DecisionTuple ChooseAction(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue);
 
         void EnableExplore(bool explore);
     };

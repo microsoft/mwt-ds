@@ -106,8 +106,7 @@ namespace ClientDecisionServiceTest
 
             var dsConfig = new ClientDecisionService.MultiAction.DecisionServiceConfiguration<TestContext, DummyADFType>(
                 authorizationToken: MockCommandCenter.AuthorizationToken,
-                explorer: new MultiWorldTesting.MultiAction.EpsilonGreedyExplorer<TestContext>(new TestMultiActionPolicy(), epsilon: 0.2f, numActions: 2),
-                getNumberOfActionsFunc: (Func<TestContext, uint>)(c => { return (uint)2; }));
+                explorer: new MultiWorldTesting.MultiAction.EpsilonGreedyExplorer<TestContext>(new TestMultiActionPolicy(), epsilon: 0.2f, numActions: 2));
 
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
             dsConfig.BlobOutputDir = @"c:\";
@@ -144,8 +143,7 @@ namespace ClientDecisionServiceTest
 
             var dsConfig = new ClientDecisionService.MultiAction.DecisionServiceConfiguration<TestContext, DummyADFType>(
                 authorizationToken: MockCommandCenter.AuthorizationToken,
-                explorer: new MultiWorldTesting.MultiAction.EpsilonGreedyExplorer<TestContext>(new TestMultiActionPolicy(), epsilon: 0.2f, numActions: 2),
-                getNumberOfActionsFunc: (Func<TestContext, uint>)(c => { return Constants.NumberOfActions; }));
+                explorer: new MultiWorldTesting.MultiAction.EpsilonGreedyExplorer<TestContext>(new TestMultiActionPolicy(), epsilon: 0.2f, numActions: 2));
 
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
             dsConfig.BlobOutputDir = settingsPath;

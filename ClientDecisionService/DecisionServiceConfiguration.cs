@@ -219,7 +219,7 @@ namespace ClientDecisionService.MultiAction
     /// </summary>
     public class DecisionServiceConfiguration<TContext, TActionDependentFeature> : BaseDecisionServiceConfiguration<TContext>
     {
-        public DecisionServiceConfiguration(string authorizationToken, IExplorer<TContext> explorer, Func<TContext, uint> getNumberOfActionsFunc)
+        public DecisionServiceConfiguration(string authorizationToken, IExplorer<TContext> explorer)
             : base(authorizationToken)
         {
             if (explorer == null)
@@ -227,13 +227,7 @@ namespace ClientDecisionService.MultiAction
                 throw new ArgumentNullException("explorer", "Exploration algorithm cannot be null");
             }
 
-            if (getNumberOfActionsFunc == null)
-            {
-                throw new ArgumentNullException("getNumberOfActionsFunc", "A method to retrieve number of actions from the context must be specified.");
-            }
-
             this.Explorer = explorer;
-            this.GetNumberOfActionsFunc = getNumberOfActionsFunc;
         }
 
         /// <summary>
@@ -261,11 +255,6 @@ namespace ClientDecisionService.MultiAction
         /// </summary>
         public Func<TContext, IReadOnlyCollection<TActionDependentFeature>> GetContextFeaturesFunc { get; set; }
 
-        /// <summary>
-        /// A callback to return the number of actions in the context.
-        /// </summary>
-        public Func<TContext, uint> GetNumberOfActionsFunc { get; set; }
-        
         #endregion
 
         private IRecorder<TContext> recorder;

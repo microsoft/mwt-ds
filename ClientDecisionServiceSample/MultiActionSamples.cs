@@ -20,8 +20,7 @@ namespace ClientDecisionServiceSample
             // Create configuration for the decision service
             var serviceConfig = new DecisionServiceConfiguration<ExpandedContext, ExpandedActionDependentFeatures>(
                 authorizationToken: "sample-code",
-                explorer: new EpsilonGreedyExplorer<ExpandedContext>(new ExpandedPolicy(), epsilon: 0.8f),
-                getNumberOfActionsFunc: ExpandedContext.GetNumberOfActionsFromAdfContext)
+                explorer: new EpsilonGreedyExplorer<ExpandedContext>(new ExpandedPolicy(), epsilon: 0.8f))
             {
                 PollingForModelPeriod = TimeSpan.MinValue,
                 PollingForSettingsPeriod = TimeSpan.MinValue,
@@ -48,7 +47,7 @@ namespace ClientDecisionServiceSample
                 DateTime timeStamp = DateTime.UtcNow;
                 string key = uniqueKey + Guid.NewGuid().ToString();
 
-                uint[] action = service.ChooseAction(new UniqueEventID { Key = key, Id = 1, TimeStamp = timeStamp }, ExpandedContext.CreateRandom(numActions, rg));
+                uint[] action = service.ChooseAction(new UniqueEventID { Key = key, Id = 1, TimeStamp = timeStamp }, ExpandedContext.CreateRandom(numActions, rg), (uint)numActions);
                 service.ReportReward(i / 100f, new UniqueEventID { Key = key, Id = 0, TimeStamp = timeStamp });
 
                 System.Threading.Thread.Sleep(1);
@@ -102,8 +101,7 @@ namespace ClientDecisionServiceSample
             // Create configuration for the decision service
             var serviceConfig = new DecisionServiceConfiguration<ADFContext, ADFFeatures>(
                 authorizationToken: "",
-                explorer: new EpsilonGreedyExplorer<ADFContext>(new ADFPolicy(), epsilon: 0.8f),
-                getNumberOfActionsFunc: GetNumberOfActionsFromAdfContext)
+                explorer: new EpsilonGreedyExplorer<ADFContext>(new ADFPolicy(), epsilon: 0.8f))
             {
                 PollingForModelPeriod = TimeSpan.MinValue,
                 PollingForSettingsPeriod = TimeSpan.MinValue
@@ -141,7 +139,7 @@ namespace ClientDecisionServiceSample
                 }
 
                 int numActions = rg.Next(5, 10);
-                uint[] action = service.ChooseAction(new UniqueEventID { Key = uniqueKey }, ADFContext.CreateRandom(numActions, rg));
+                uint[] action = service.ChooseAction(new UniqueEventID { Key = uniqueKey }, ADFContext.CreateRandom(numActions, rg), (uint)numActions);
                 service.ReportReward(i / 100f, new UniqueEventID { Key = uniqueKey });
             }
 

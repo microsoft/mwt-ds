@@ -18,7 +18,7 @@ namespace MultiWorldTesting.SingleAction
         private IScorer<TContext> defaultScorer;
         private bool explore;
 	    private readonly float lambda;
-        private readonly uint numActions;
+        private readonly uint numActionsFixed;
 
 		/// <summary>
 		/// The constructor is the only public member, because this should be used with the MwtExplorer.
@@ -28,11 +28,11 @@ namespace MultiWorldTesting.SingleAction
 		/// <param name="numActions">The number of actions to randomize over.</param>
         public SoftmaxExplorer(IScorer<TContext> defaultScorer, float lambda, uint numActions)
         {
-            VariableActionHelper.ValidateNumberOfActions(numActions);
+            VariableActionHelper.ValidateInitialNumberOfActions(numActions);
 
             this.defaultScorer = defaultScorer;
             this.lambda = lambda;
-            this.numActions = numActions;
+            this.numActionsFixed = numActions;
             this.explore = true;
         }
 
@@ -43,9 +43,7 @@ namespace MultiWorldTesting.SingleAction
         /// <param name="lambda">lambda = 0 implies uniform distribution. Large lambda is equivalent to a max.</param>
         public SoftmaxExplorer(IScorer<TContext> defaultScorer, float lambda) :
             this(defaultScorer, lambda, uint.MaxValue)
-        {
-            VariableActionHelper.ValidateContextType<TContext>();
-        }
+        { }
 
         public void UpdateScorer(IScorer<TContext> newScorer)
         {
@@ -57,9 +55,9 @@ namespace MultiWorldTesting.SingleAction
             this.explore = explore;
         }
 
-        public DecisionTuple ChooseAction(ulong saltedSeed, TContext context)
+        public DecisionTuple ChooseAction(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
         {
-            uint numActions = VariableActionHelper.GetNumberOfActions(context, this.numActions);
+            uint numActions = VariableActionHelper.GetNumberOfActions(this.numActionsFixed, numActionsVariable);
 
             var random = new PRG(saltedSeed);
 
@@ -147,7 +145,7 @@ namespace MultiWorldTesting.MultiAction
         private IScorer<TContext> defaultScorer;
         private bool explore;
         private readonly float lambda;
-        private readonly uint numActions;
+        private readonly uint numActionsFixed;
 
         /// <summary>
         /// The constructor is the only public member, because this should be used with the MwtExplorer.
@@ -157,11 +155,11 @@ namespace MultiWorldTesting.MultiAction
         /// <param name="numActions">The number of actions to randomize over.</param>
         public SoftmaxExplorer(IScorer<TContext> defaultScorer, float lambda, uint numActions)
         {
-            VariableActionHelper.ValidateNumberOfActions(numActions);
+            VariableActionHelper.ValidateInitialNumberOfActions(numActions);
 
             this.defaultScorer = defaultScorer;
             this.lambda = lambda;
-            this.numActions = numActions;
+            this.numActionsFixed = numActions;
             this.explore = true;
         }
 
@@ -184,9 +182,9 @@ namespace MultiWorldTesting.MultiAction
             this.explore = explore;
         }
 
-        public DecisionTuple ChooseAction(ulong saltedSeed, TContext context, Func<TContext, uint> getNumberOfActionsFunc)
+        public DecisionTuple ChooseAction(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
         {
-            uint numActions = VariableActionHelper.GetNumberOfActions(getNumberOfActionsFunc, context, this.numActions);
+            uint numActions = VariableActionHelper.GetNumberOfActions(this.numActionsFixed, numActionsVariable);
 
             var random = new PRG(saltedSeed);
 
