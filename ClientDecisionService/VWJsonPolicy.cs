@@ -66,6 +66,7 @@ namespace ClientDecisionService.MultiAction
         public VWJsonPolicy(Action<string, string> setModelIdCallback, Stream vwModelStream)
             : base(null, setModelIdCallback, vwModelStream)
         { }
+
         /// <summary>
         /// Scores the model against the specified context and returns a list of actions (1-based index).
         /// </summary>

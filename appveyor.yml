@@ -2,6 +2,15 @@ version: 1.0.{build}
 configuration: Release
 platform: x64
 build:
+  publish_nuget: true
+  publish_nuget_symbols: true
+  include_nuget_references: true
   verbosity: minimal
 test_script:
 - ps: vstest.console /Platform:x64 /inIsolation bin\x64\Release\ClientDecisionServiceTest.dll
+deploy:
+  provider: NuGet
+  api_key:
+    secure: HSRbZmk6LScmmLQzVfACyeWtT74mo7yz2nxaGb8GecS9GoTSGx0YLjtZnoHqML1Z
+  skip_symbols: false
+  artifact: /.*\.nupkg/
