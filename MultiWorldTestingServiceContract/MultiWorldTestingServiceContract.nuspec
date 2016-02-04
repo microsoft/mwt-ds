@@ -1,20 +1,17 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
+    <title>Multiworld Testing Service Contract</title>
     <id>$id$</id>
+    <tags>Multiworld Testing</tags>
     <version>$version$</version>
-    <title>$title$</title>
-    <authors>mwtdev</authors>
-    <owners>mwtdev</owners>
-    <projectUrl>http://msrweb/projects/MWT</projectUrl>
+    <authors>John Langford, Luong Hoang, Markus Cozowicz, Sarah Bird, Sid Sen (mwtdev@microsoft.com)</authors>
+    <owners>Microsoft Research</owners>
+    <projectUrl>http://aka.ms/mwt</projectUrl>
+    <licenseUrl>https://github.com/JohnLangford/vowpal_wabbit/blob/master/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <licenseUrl>http://cbt-userguide/NugetCanUseInLabs.html</licenseUrl>
-    <description>$description$</description>
-    <copyright>$copyright$</copyright>
-    <releaseNotes>
-        Created first version.
-    </releaseNotes>
-    <tags>"MS Internal Only"</tags>
+    <description>Binding contract between components of Multiworld Testing Service.</description>
+    <copyright>Copyright (C) 2015-2016 Microsoft Corporation</copyright>
   </metadata>
 </package>
 

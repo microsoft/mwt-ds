@@ -1,17 +1,17 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
+    <title>Multiworld Testing Decision Service Uploader</title>
     <id>$id$</id>
+    <tags>Multiworld Testing</tags>
     <version>$version$</version>
-    <title>Multi-World Testing Decision Service Uploader</title>
     <authors>John Langford, Luong Hoang, Markus Cozowicz, Sarah Bird, Sid Sen (mwtdev@microsoft.com)</authors>
-    <owners>Microsoft Research, New York City</owners>
-    <projectUrl>http://msrweb/projects/MWT</projectUrl>
+    <owners>Microsoft Research</owners>
+    <projectUrl>http://aka.ms/mwt</projectUrl>
+    <licenseUrl>https://github.com/JohnLangford/vowpal_wabbit/blob/master/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Helper library for uploading events to Multiworld Testing Join Server.</description>
-    <releaseNotes>MWT Decision Service C# API.</releaseNotes>
-    <copyright>Copyright (C) 2015 Microsoft Corporation</copyright>
-    <tags>"MS Internal Only"</tags>
+    <description>Library for uploading events to Multiworld Testing Join Server.</description>
+    <copyright>Copyright (C) 2015-2016 Microsoft Corporation</copyright>
   </metadata>
 </package>
 
