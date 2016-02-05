@@ -171,14 +171,6 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         public string Key { get; set; }
 
         /// <summary>
-        /// Workaround for ASA query: An ID field which is different for
-        /// events under same Key in order to use OrderBy. Otherwise
-        /// if the field in OrderBy is constant across events, ASA will
-        /// default to comparing records which does not work.
-        /// </summary>
-        public int Id { get; set; }
-
-        /// <summary>
         /// Gets or sets the time stamp of the event.
         /// </summary>
         public DateTime TimeStamp { get; set; }

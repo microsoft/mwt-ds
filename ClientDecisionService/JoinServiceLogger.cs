@@ -59,7 +59,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             this.eventUploader.Upload(new Observation
             {
                 Key = uniqueKey.Key,
-                Id = uniqueKey.Id,
                 TimeStamp = uniqueKey.TimeStamp,
                 Value = new { Reward = reward }
             });
@@ -70,7 +69,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             this.eventUploader.Upload(new Observation
             {
                 Key = uniqueKey.Key,
-                Id = uniqueKey.Id,
                 TimeStamp = uniqueKey.TimeStamp,
                 Value = outcome
             });

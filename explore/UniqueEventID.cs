@@ -17,8 +17,6 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         /// </remarks>
         public string Key { get; set; }
 
-        public int Id { get; set; }
-
         /// <summary>
         /// The time stamp of the event which, together with the key,
         /// uniquely identify an event. Events with same key

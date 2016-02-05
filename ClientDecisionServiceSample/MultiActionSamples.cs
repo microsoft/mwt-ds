@@ -47,8 +47,8 @@ namespace ClientDecisionServiceSample
                 DateTime timeStamp = DateTime.UtcNow;
                 string key = uniqueKey + Guid.NewGuid().ToString();
 
-                uint[] action = service.ChooseAction(new UniqueEventID { Key = key, Id = 1, TimeStamp = timeStamp }, ExpandedContext.CreateRandom(numActions, rg), (uint)numActions);
-                service.ReportReward(i / 100f, new UniqueEventID { Key = key, Id = 0, TimeStamp = timeStamp });
+                uint[] action = service.ChooseAction(new UniqueEventID { Key = key, TimeStamp = timeStamp }, ExpandedContext.CreateRandom(numActions, rg), (uint)numActions);
+                service.ReportReward(i / 100f, new UniqueEventID { Key = key, TimeStamp = timeStamp });
 
                 System.Threading.Thread.Sleep(1);
             }
