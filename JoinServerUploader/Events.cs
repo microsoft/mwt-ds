@@ -109,13 +109,13 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// <summary>
         /// The Id of the model used to make predictions/decisions, if any exists at decision time.
         /// </summary>
-        string ModelId { get; set; }
+        public string ModelId { get; set; }
 
         /// <summary>
         /// Indicates whether the decision was generated purely from exploration (vs. exploitation).
         /// This value is only relevant to Epsilon Greedy or Tau First algorithms.
         /// </summary>
-        bool? IsExplore { get; set; }
+        public bool? IsExplore { get; set; }
     }
 
     /// <summary>

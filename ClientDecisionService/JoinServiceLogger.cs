@@ -35,7 +35,9 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 TimeStamp = uniqueKey.TimeStamp,
                 Actions = actions,
                 Probability = probability,
-                Context = context
+                Context = context,
+                ModelId = modelId,
+                IsExplore = isExplore
             });
         }
 
@@ -48,7 +50,9 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 TimeStamp = uniqueKey.TimeStamp,
                 Action = action,
                 Probability = probability,
-                Context = context
+                Context = context,
+                ModelId = modelId,
+                IsExplore = isExplore
             });
         }
 
