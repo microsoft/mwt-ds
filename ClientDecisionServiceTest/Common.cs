@@ -129,45 +129,55 @@ namespace ClientDecisionServiceTest
 
     class TestSingleActionPolicy : Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction.IPolicy<TestContext>
     {
-        public uint ChooseAction(TestContext context, uint numActionsVariable = uint.MaxValue)
+        public Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction.PolicyDecisionTuple ChooseAction(TestContext context, uint numActionsVariable = uint.MaxValue)
         {
-            // Always returns the same action regardless of context
-            return Constants.NumberOfActions - 1;
+            return new Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction.PolicyDecisionTuple
+            {
+                // Always returns the same action regardless of context
+                Action = Constants.NumberOfActions - 1
+            };
         }
     }
 
     class TestMultiActionPolicy : Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.IPolicy<TestContext>
     {
-        public uint[] ChooseAction(TestContext context, uint numActionsVariable = uint.MaxValue)
+        public Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.PolicyDecisionTuple ChooseAction(TestContext context, uint numActionsVariable = uint.MaxValue)
         {
             // Always returns the same action regardless of context
-            return Enumerable.Range(1, (int)Constants.NumberOfActions).Select(m => (uint)m).ToArray();
+            return new Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.PolicyDecisionTuple
+            {
+                Actions = Enumerable.Range(1, (int)Constants.NumberOfActions).Select(m => (uint)m).ToArray()
+            };
         }
     }
 
     public class TestRcv1ContextPolicy : Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction.IPolicy<TestRcv1Context>
     {
-        public uint ChooseAction(TestRcv1Context context, uint numActionsVariable = uint.MaxValue)
+        public Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction.PolicyDecisionTuple ChooseAction(TestRcv1Context context, uint numActionsVariable = uint.MaxValue)
         {
-            return 1;
+            return new Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction.PolicyDecisionTuple { Action = 1 };
         }
     }
 
     class TestADFPolicy : Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.IPolicy<TestADFContext>
     {
-        public uint[] ChooseAction(TestADFContext context, uint numActionsVariable = uint.MaxValue)
+        public Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.PolicyDecisionTuple ChooseAction(TestADFContext context, uint numActionsVariable = uint.MaxValue)
         {
-            // Always returns the same action regardless of context
-            return Enumerable.Range(1, (int)context.ActionDependentFeatures.Count).Select(m => (uint)m).ToArray();
+            return new Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.PolicyDecisionTuple
+            {
+                Actions = Enumerable.Range(1, (int)context.ActionDependentFeatures.Count).Select(m => (uint)m).ToArray()
+            };
         }
     }
 
     class TestADFWithFeaturesPolicy : Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.IPolicy<TestADFContextWithFeatures>
     {
-        public uint[] ChooseAction(TestADFContextWithFeatures context, uint numActionsVariable = uint.MaxValue)
+        public Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.PolicyDecisionTuple ChooseAction(TestADFContextWithFeatures context, uint numActionsVariable = uint.MaxValue)
         {
-            // Always returns the same action regardless of context
-            return Enumerable.Range(1, (int)context.ActionDependentFeatures.Count).Select(m => (uint)m).ToArray();
+            return new Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.PolicyDecisionTuple
+            {
+                Actions = Enumerable.Range(1, (int)context.ActionDependentFeatures.Count).Select(m => (uint)m).ToArray()
+            };
         }
     }
 
@@ -197,12 +207,12 @@ namespace ClientDecisionServiceTest
             this.numOutcome = 0;
         }
 
-        public void Record(TestContext context, uint action, float probability, UniqueEventID uniqueKey)
+        public void Record(TestContext context, uint action, float probability, UniqueEventID uniqueKey, string modelId = null, bool? isExplore = null)
         {
             this.numRecord++;
         }
 
-        public void Record(TestContext context, uint[] actions, float probability, UniqueEventID uniqueKey)
+        public void Record(TestContext context, uint[] actions, float probability, UniqueEventID uniqueKey, string modelId = null, bool? isExplore = null)
         {
             this.numRecord++;
         }

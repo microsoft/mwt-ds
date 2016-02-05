@@ -1,5 +1,6 @@
 ﻿namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction
 {
+    using Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction;
     using System;
     using System.IO;
     using VW;
@@ -11,12 +12,10 @@
     /// </summary>
     public class VWJsonPolicy : VWPolicy<string>
     {
-        public VWJsonPolicy(Action<string, string> setModelIdCallback, string vwModelFile = null)
-            : base(setModelIdCallback, vwModelFile)
+        public VWJsonPolicy(string vwModelFile = null) : base(vwModelFile)
         { }
 
-        public VWJsonPolicy(Action<string, string> setModelIdCallback, Stream vwModelStream)
-            : base(setModelIdCallback, vwModelStream)
+        public VWJsonPolicy(Stream vwModelStream) : base(vwModelStream)
         { }
 
         /// <summary>
@@ -25,7 +24,7 @@
         /// <param name="contextJson">The context object in serialized JSON format.</param>
         /// <param name="numActionsVariable">Optional; Number of actions available which may be variable across decisions.</param>
         /// <returns>An unsigned integer representing the chosen action.</returns>
-        public override uint ChooseAction(string contextJson, uint numActionsVariable = uint.MaxValue)
+        public override PolicyDecisionTuple ChooseAction(string contextJson, uint numActionsVariable = uint.MaxValue)
         {
             if (vwPool == null)
             {
@@ -33,13 +32,15 @@
             }
             using (var vw = vwPool.GetOrCreate())
             {
-                this.setModelIdCallback(contextJson, vw.Value.Native.ID);
-
                 var vwJson = new VowpalWabbitJsonSerializer(vw.Value.Native);
                 vwJson.Parse(contextJson);
                 VowpalWabbitExample vwExample = vwJson.CreateExample();
 
-                return (uint)vw.Value.Native.Predict(vwExample, VowpalWabbitPredictionType.CostSensitive);
+                return new PolicyDecisionTuple 
+                { 
+                    Action = (uint)vw.Value.Native.Predict(vwExample, VowpalWabbitPredictionType.CostSensitive), 
+                    ModelId = vw.Value.Native.ID 
+                };
             }
         }
     }
@@ -47,6 +48,7 @@
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
 {
+    using Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction;
     using System;
     using System.IO;
     using System.Linq;
@@ -60,11 +62,11 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
     public class VWJsonPolicy : VWPolicy<string, string>
     {
         public VWJsonPolicy(Action<string, string> setModelIdCallback, string vwModelFile = null)
-            : base(null, setModelIdCallback, vwModelFile)
+            : base(null, vwModelFile)
         { }
 
         public VWJsonPolicy(Action<string, string> setModelIdCallback, Stream vwModelStream)
-            : base(null, setModelIdCallback, vwModelStream)
+            : base(null, vwModelStream)
         { }
 
         /// <summary>
@@ -73,7 +75,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
         /// <param name="contextJson">The context object in serialized JSON format.</param>
         /// <param name="numActionsVariable">Optional; Number of actions available which may be variable across decisions.</param>
         /// <returns>List of predicted actions.</returns>
-        public override uint[] ChooseAction(string contextJson, uint numActionsVariable = uint.MaxValue)
+        public override PolicyDecisionTuple ChooseAction(string contextJson, uint numActionsVariable = uint.MaxValue)
         {
             if (vwPool == null)
             {
@@ -81,9 +83,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
             }
             using (var vw = vwPool.GetOrCreate())
             {
-                // Callback to store model Id in the Context
-                this.setModelIdCallback(contextJson, vw.Value.Native.ID);
-
                 var vwJson = new VowpalWabbitJsonSerializer(vw.Value.Native);
                 vwJson.Parse(contextJson);
                 VowpalWabbitExample vwExample = vwJson.CreateExample();
@@ -91,7 +90,11 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
                 int[] vwMultilabelPredictions = vw.Value.Native.Predict(vwExample, VowpalWabbitPredictionType.Multilabel);
 
                 // VW multi-label predictions are 0-based
-                return vwMultilabelPredictions.Select(a => (uint)(a + 1)).ToArray();
+                return new PolicyDecisionTuple
+                {
+                    Actions = vwMultilabelPredictions.Select(a => (uint)(a + 1)).ToArray(),
+                    ModelId = vw.Value.Native.ID
+                };
             }
         }
     }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Research.MultiWorldTesting.ExploreLibrary.Core;
+using System;
 using System.Collections.Generic;
 
 namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
@@ -21,8 +22,10 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
 	    /// <param name="context">A user-defined context for the decision.</param>
 	    /// <param name="action">Chosen by an exploration algorithm given context.</param>
 	    /// <param name="probability">The probability of the chosen action given context.</param>
-	    /// <param name="uniqueKey">A user-defined identifer for the decision.</param>
-        void Record(TContext context, uint action, float probability, UniqueEventID uniqueKey);
+        /// <param name="uniqueKey">A user-defined identifer for the decision.</param>
+        /// <param name="modelId">Optional; The Id of the model used to make predictions/decisions, if any exists at decision time.</param>
+        /// <param name="isExplore">Optional; Indicates whether the decision was generated purely from exploration (vs. exploitation).</param>
+        void Record(TContext context, uint action, float probability, UniqueEventID uniqueKey, string modelId = null, bool? isExplore = null);
     };
 
     /// <summary>
@@ -38,8 +41,8 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
 	    /// </summary>
 	    /// <param name="context">A user-defined context for the decision.</param>
         /// <param name="numActionsVariable">Optional; Number of actions available which may be variable across decisions.</param>
-        /// <returns>Index of the action to take (1-based)</returns>
-        uint ChooseAction(TContext context, uint numActionsVariable = uint.MaxValue);
+        /// <returns>A decision tuple containing the index of the action to take (1-based), and the Id of the model or policy used to make the decision.</returns>
+        PolicyDecisionTuple ChooseAction(TContext context, uint numActionsVariable = uint.MaxValue);
     };
 
     /// <summary>
@@ -118,7 +121,9 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction
         /// <param name="actions">Chosen by an exploration algorithm given context.</param>
         /// <param name="probability">The probability of the chosen action given context.</param>
         /// <param name="uniqueKey">A user-defined identifer for the decision.</param>
-        void Record(TContext context, uint[] actions, float probability, UniqueEventID uniqueKey);
+        /// <param name="modelId">Optional; The Id of the model used to make predictions/decisions, if any exists at decision time.</param>
+        /// <param name="isExplore">Optional; Indicates whether the decision was generated purely from exploration (vs. exploitation).</param>
+        void Record(TContext context, uint[] actions, float probability, UniqueEventID uniqueKey, string modelId = null, bool? isExplore = null);
     };
 
     /// <summary>
@@ -134,8 +139,8 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction
         /// </summary>
         /// <param name="context">A user-defined context for the decision.</param>
         /// <param name="numActionsVariable">Optional; Number of actions available which may be variable across decisions.</param>
-        /// <returns>Index array of the actions to take (1-based)</returns>
-        uint[] ChooseAction(TContext context, uint numActionsVariable = uint.MaxValue);
+        /// <returns>A decision tuple containing the index array of the actions to take (1-based), and the Id of the model or policy used to make the decision.</returns>
+        PolicyDecisionTuple ChooseAction(TContext context, uint numActionsVariable = uint.MaxValue);
     };
 
     /// <summary>

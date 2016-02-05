@@ -64,9 +64,12 @@ namespace ClientDecisionServiceSample
 
     class ADFPolicy : IPolicy<ADFContext>
     {
-        public uint[] ChooseAction(ADFContext context, uint numActionsVariable = uint.MaxValue)
+        public PolicyDecisionTuple ChooseAction(ADFContext context, uint numActionsVariable = uint.MaxValue)
         {
-            return Enumerable.Range(1, context.ActionDependentFeatures.Count).Select(a => (uint)a).ToArray();
+            return new PolicyDecisionTuple
+            {
+                Actions = Enumerable.Range(1, context.ActionDependentFeatures.Count).Select(a => (uint)a).ToArray()
+            };
         }
     }
 }

@@ -67,11 +67,12 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
             uint chosenBag = random.UniformInt(0, this.bags - 1);
 
             // Invoke the default policy function to get the action
-            uint chosenAction = 0;
+            var chosenDecision = new PolicyDecisionTuple();
             float actionProbability = 0f;
 
             if (this.explore)
             {
+                PolicyDecisionTuple decisionFromBag = null;
                 uint actionFromBag = 0;
                 uint[] actionsSelected = Enumerable.Repeat<uint>(0, (int)numActions).ToArray();
 
@@ -81,7 +82,8 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
                     // TODO: can VW predict for all bags on one call? (returning all actions at once)
                     // if we trigger into VW passing an index to invoke bootstrap scoring, and if VW model changes while we are doing so, 
                     // we could end up calling the wrong bag
-                    actionFromBag = this.defaultPolicyFunctions[currentBag].ChooseAction(context, numActionsVariable);
+                    decisionFromBag = this.defaultPolicyFunctions[currentBag].ChooseAction(context, numActionsVariable);
+                    actionFromBag = decisionFromBag.Action;
 
                     if (actionFromBag == 0 || actionFromBag > numActions)
                     {
@@ -90,23 +92,25 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
 
                     if (currentBag == chosenBag)
                     {
-                        chosenAction = actionFromBag;
+                        chosenDecision.Action = actionFromBag;
+                        chosenDecision.ModelId = decisionFromBag.ModelId;
                     }
                     //this won't work if actions aren't 0 to Count
                     actionsSelected[actionFromBag - 1]++; // action id is one-based
                 }
-                actionProbability = (float)actionsSelected[chosenAction - 1] / this.bags; // action id is one-based
+                actionProbability = (float)actionsSelected[chosenDecision.Action - 1] / this.bags; // action id is one-based
             }
             else
             {
-                chosenAction = this.defaultPolicyFunctions[0].ChooseAction(context, numActionsVariable);
+                chosenDecision = this.defaultPolicyFunctions[0].ChooseAction(context, numActionsVariable);
                 actionProbability = 1f;
             }
             return new DecisionTuple
             {
-                Action = chosenAction,
+                Action = chosenDecision.Action,
                 Probability = actionProbability,
-                ShouldRecord = true
+                ShouldRecord = true,
+                ModelId = chosenDecision.ModelId
             };
         }
     };
@@ -178,14 +182,14 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction
             uint chosenBag = random.UniformInt(0, this.bags - 1);
 
             // Invoke the default policy function to get the action
-            uint[] chosenActions = null;
+            var chosenDecision = new PolicyDecisionTuple();
             uint chosenTopAction = 0;
             float actionProbability = 0f;
 
             if (this.explore)
             {
                 uint topActionFromBag = 0;
-                uint[] actionsFromBag = new uint[numActions];
+                PolicyDecisionTuple decisionFromBag = null;
                 uint[] actionsSelected = Enumerable.Repeat<uint>(0, (int)numActions).ToArray();
 
                 // Invoke the default policy function to get the action
@@ -194,7 +198,8 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction
                     // TODO: can VW predict for all bags on one call? (returning all actions at once)
                     // if we trigger into VW passing an index to invoke bootstrap scoring, and if VW model changes while we are doing so, 
                     // we could end up calling the wrong bag
-                    actionsFromBag = this.defaultPolicyFunctions[currentBag].ChooseAction(context, numActions);
+                    decisionFromBag = this.defaultPolicyFunctions[currentBag].ChooseAction(context, numActions);
+                    uint[] actionsFromBag = decisionFromBag.Actions;
 
                     MultiActionHelper.ValidateActionList(actionsFromBag);
 
@@ -203,7 +208,8 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction
                     if (currentBag == chosenBag)
                     {
                         chosenTopAction = topActionFromBag;
-                        chosenActions = actionsFromBag;
+                        chosenDecision.Actions = actionsFromBag;
+                        chosenDecision.ModelId = decisionFromBag.ModelId;
                     }
                     //this won't work if actions aren't 0 to Count
                     actionsSelected[topActionFromBag - 1]++; // action id is one-based
@@ -212,14 +218,15 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction
             }
             else
             {
-                chosenActions = this.defaultPolicyFunctions[0].ChooseAction(context, numActions);
+                chosenDecision = this.defaultPolicyFunctions[0].ChooseAction(context, numActions);
                 actionProbability = 1f;
             }
             return new DecisionTuple
             {
-                Actions = chosenActions,
+                Actions = chosenDecision.Actions,
                 Probability = actionProbability,
-                ShouldRecord = true
+                ShouldRecord = true,
+                ModelId = chosenDecision.ModelId
             };
         }
     };

@@ -19,9 +19,8 @@
             string modelConnectionString, 
             string modelOutputDir,
             TimeSpan pollDelay,
-            Action<TContext, string> setModelIdCallback,
             Action notifyPolicyUpdate,
-            Action<Exception> modelPollFailureCallback) : base(setModelIdCallback)
+            Action<Exception> modelPollFailureCallback)
         {
             if (pollDelay != TimeSpan.MinValue)
             {
@@ -111,10 +110,9 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
             string modelOutputDir,
             TimeSpan pollDelay,
             Func<TContext, IReadOnlyCollection<TActionDependentFeature>> getContextFeaturesFunc,
-            Action<TContext, string> setModelIdCallback,
             Action notifyPolicyUpdate,
             Action<Exception> modelPollFailureCallback)
-            : base(getContextFeaturesFunc, setModelIdCallback)
+            : base(getContextFeaturesFunc)
         {
             if (pollDelay != TimeSpan.MinValue)
             {

@@ -49,7 +49,7 @@ namespace ClientDecisionServiceTest
                     byte[] modelContent = commandCenter.GetCBModelBlobContent(numExamples: 3 + modelIndex, numFeatures: numFeatures, numActions: numActions);
                     System.IO.File.WriteAllBytes(currentModelFile, modelContent);
 
-                    ds.UpdatePolicy(new VWPolicy<TestRcv1Context>(DummySetModelIdFunc, currentModelFile));
+                    ds.UpdatePolicy(new VWPolicy<TestRcv1Context>(currentModelFile));
 
                     actualModelFiles.Add(currentModelFile);
                 }
@@ -112,7 +112,7 @@ namespace ClientDecisionServiceTest
 
                     var modelStream = new MemoryStream(modelContent);
 
-                    ds.UpdatePolicy(new VWPolicy<TestRcv1Context>(DummySetModelIdFunc, modelStream));
+                    ds.UpdatePolicy(new VWPolicy<TestRcv1Context>(modelStream));
                 }
 
                 var context = TestRcv1Context.CreateRandom(numActions, numFeatures, rg);
@@ -147,8 +147,6 @@ namespace ClientDecisionServiceTest
         {
             joinServer.Stop();
         }
-
-        private void DummySetModelIdFunc(TestRcv1Context context, string modelId) { }
 
         private MockJoinServer joinServer;
         private MockCommandCenter commandCenter;

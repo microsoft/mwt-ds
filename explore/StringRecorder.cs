@@ -25,7 +25,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
         /// <param name="action">Chosen by an exploration algorithm given context.</param>
         /// <param name="probability">The probability of the chosen action given context.</param>
         /// <param name="uniqueKey">A user-defined identifer for the decision.</param>
-        public void Record(TContext context, uint action, float probability, UniqueEventID uniqueKey)
+        public void Record(TContext context, uint action, float probability, UniqueEventID uniqueKey, string modelId = null, bool? isExplore = null)
         {
             recordingBuilder.Append(action.ToString(CultureInfo.InvariantCulture));
             recordingBuilder.Append(' ');

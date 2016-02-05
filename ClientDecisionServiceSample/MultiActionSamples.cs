@@ -38,7 +38,7 @@ namespace ClientDecisionServiceSample
 
             var rg = new Random(uniqueKey.GetHashCode());
 
-            var vwPolicy = new VWPolicy<ExpandedContext, ExpandedActionDependentFeatures>(ExpandedContext.GetFeaturesFromContext, setModelIdCallback: (context, modelId) => { });
+            var vwPolicy = new VWPolicy<ExpandedContext, ExpandedActionDependentFeatures>(ExpandedContext.GetFeaturesFromContext);
 
             for (int i = 1; i < 20; i++)
             {
@@ -113,7 +113,7 @@ namespace ClientDecisionServiceSample
 
             var rg = new Random(uniqueKey.GetHashCode());
 
-            var vwPolicy = new VWPolicy<ADFContext, ADFFeatures>(GetFeaturesFromContext, SetModelId);
+            var vwPolicy = new VWPolicy<ADFContext, ADFFeatures>(GetFeaturesFromContext);
 
             for (int i = 1; i < 100; i++)
             {
@@ -121,11 +121,11 @@ namespace ClientDecisionServiceSample
                 {
                     string vwModelFile = TrainNewVWModelWithRandomData(numExamples: 5, numActions: 10);
 
-                    vwPolicy = new VWPolicy<ADFContext, ADFFeatures>(GetFeaturesFromContext, SetModelId, vwModelFile);
+                    vwPolicy = new VWPolicy<ADFContext, ADFFeatures>(GetFeaturesFromContext, vwModelFile);
 
                     // Alternatively, VWPolicy can also be loaded from an IO stream:
                     // var vwModelStream = new MemoryStream(File.ReadAllBytes(vwModelFile));
-                    // vwPolicy = new VWPolicy<ADFContext, ADFFeatures>(GetFeaturesFromContext, SetModelId, vwModelStream);
+                    // vwPolicy = new VWPolicy<ADFContext, ADFFeatures>(GetFeaturesFromContext, vwModelStream);
 
                     // Manually updates decision service with a new policy for consuming VW models.
                     service.UpdatePolicy(vwPolicy);
@@ -196,11 +196,6 @@ namespace ClientDecisionServiceSample
         private static IReadOnlyCollection<ADFFeatures> GetFeaturesFromContext(ADFContext context)
         {
             return context.ActionDependentFeatures;
-        }
-
-        private static void SetModelId(ADFContext context, string id)
-        {
-            context.ModelId = id;
         }
     }
 }

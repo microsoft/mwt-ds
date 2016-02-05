@@ -38,6 +38,7 @@
   <ItemGroup>
     <Compile Include="BootstrapExplorer.cs" />
     <Compile Include="EpsilonGreedyExplorer.cs" />
+    <Compile Include="PolicyDecision.cs" />
     <Compile Include="ExploreDecision.cs" />
     <Compile Include="Feature.cs" />
     <Compile Include="GenericExplorer.cs" />

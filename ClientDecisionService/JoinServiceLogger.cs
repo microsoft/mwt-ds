@@ -26,7 +26,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             this.eventUploader = new EventUploaderASA(eventHubConnectionString, eventHubInputName, batchConfig);
         }
 
-        public void Record(TContext context, uint[] actions, float probability, UniqueEventID uniqueKey)
+        public void Record(TContext context, uint[] actions, float probability, UniqueEventID uniqueKey, string modelId = null, bool? isExplore = null)
         {
             this.eventUploader.Upload(new MultiActionInteraction
             {
@@ -39,7 +39,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             });
         }
 
-        public void Record(TContext context, uint action, float probability, UniqueEventID uniqueKey)
+        public void Record(TContext context, uint action, float probability, UniqueEventID uniqueKey, string modelId = null, bool? isExplore = null)
         {
             this.eventUploader.Upload(new SingleActionInteraction
             {

@@ -224,11 +224,11 @@ namespace ClientDecisionServiceSample
         /// </summary>
         /// <param name="context">The user context.</param>
         /// <returns>The action to take.</returns>
-        public uint ChooseAction(SimpleContext context, uint numActionsVariable = uint.MaxValue)
+        public PolicyDecisionTuple ChooseAction(SimpleContext context, uint numActionsVariable = uint.MaxValue)
         {
             // Return a constant action for simple demonstration.
             // In advanced scenarios, users can examine the context and return a more appropriate action.
-            return (uint)1;
+            return new PolicyDecisionTuple { Action = 1 };
         }
     }
 
@@ -247,11 +247,14 @@ namespace ClientDecisionServiceSample
         /// </summary>
         /// <param name="context">The user context.</param>
         /// <returns>The action (or news topic) to take.</returns>
-        public uint ChooseAction(UserContext context, uint numActionsVariable = uint.MaxValue)
+        public PolicyDecisionTuple ChooseAction(UserContext context, uint numActionsVariable = uint.MaxValue)
         {
             // In this example, we are only picking among the first two topics.
             // This could simulate picking between the top 2 editorial picks.
-            return (uint)(Math.Round(context.Sum(f => f.Value) / context.Count + 1));
+            return new PolicyDecisionTuple
+            {
+                Action = (uint)(Math.Round(context.Sum(f => f.Value) / context.Count + 1))
+            };
         }
     }
 }

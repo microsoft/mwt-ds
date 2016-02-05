@@ -5,7 +5,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.Core
 {
     public static class EpsilonGreedy
     {
-        public static void Explore(ref uint outAction, ref float outProbability, ref bool outShouldLog,
+        public static void Explore(ref uint outAction, ref float outProbability, ref bool outShouldLog, ref bool outIsExplore,
             uint numActions, bool explore, float defaultEpsilon, ulong saltedSeed)
         {
             var random = new PRG(saltedSeed);
@@ -34,6 +34,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.Core
                     outProbability = baseProbability;
                 }
                 outAction = actionId;
+                outIsExplore = true;
             }
 
             outShouldLog = true;
@@ -104,7 +105,8 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
             uint numActions = VariableActionHelper.GetNumberOfActions(this.numActionsFixed, numActionsVariable);
 
             // Invoke the default policy function to get the action
-            uint chosenAction = this.defaultPolicy.ChooseAction(context);
+            PolicyDecisionTuple policyDecisionTuple = this.defaultPolicy.ChooseAction(context);
+            uint chosenAction = policyDecisionTuple.Action;
 
             if (chosenAction == 0 || chosenAction > numActions)
             {
@@ -113,15 +115,18 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
 
             float actionProbability = 0f;
             bool shouldRecord = false;
+            bool isExplore = false;
 
-            EpsilonGreedy.Explore(ref chosenAction, ref actionProbability, ref shouldRecord,
+            EpsilonGreedy.Explore(ref chosenAction, ref actionProbability, ref shouldRecord, ref isExplore,
                 numActions, this.explore, this.epsilon, saltedSeed);
 
             return new DecisionTuple 
             { 
                 Action = chosenAction, 
                 Probability = actionProbability,
-                ShouldRecord = shouldRecord 
+                ShouldRecord = shouldRecord,
+                ModelId = policyDecisionTuple.ModelId,
+                IsExplore = isExplore
             };
         }
     };
@@ -190,14 +195,17 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction
             uint numActions = VariableActionHelper.GetNumberOfActions(this.numActionsFixed, numActionsVariable);
 
             // Invoke the default policy function to get the action
-            uint[] chosenActions = this.defaultPolicy.ChooseAction(context);
+            PolicyDecisionTuple policyDecisionTuple = this.defaultPolicy.ChooseAction(context);
+            uint[] chosenActions = policyDecisionTuple.Actions;
+
             MultiActionHelper.ValidateActionList(chosenActions);
 
             uint topAction = chosenActions[0];
             float actionProbability = 0f;
             bool shouldRecord = false;
+            bool isExplore = false;
 
-            EpsilonGreedy.Explore(ref topAction, ref actionProbability, ref shouldRecord,
+            EpsilonGreedy.Explore(ref topAction, ref actionProbability, ref shouldRecord, ref isExplore,
                 numActions, this.explore, this.epsilon, saltedSeed);
 
             // Put chosen action at the top of the list, swapping out the current top.
@@ -207,7 +215,9 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction
             {
                 Actions = chosenActions,
                 Probability = actionProbability,
-                ShouldRecord = shouldRecord
+                ShouldRecord = shouldRecord,
+                ModelId = policyDecisionTuple.ModelId,
+                IsExplore = isExplore
             };
         }
     };

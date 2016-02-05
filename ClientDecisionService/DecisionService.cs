@@ -75,7 +75,6 @@
                             metadata.ModelBlobUri, metadata.ConnectionString,
                             config.BlobOutputDir,
                             this.modelBlobPollDelay,
-                            config.SetModelIdCallback,
                             this.InternalPolicyUpdated,
                             config.ModelPollFailureCallback);
                     }
@@ -327,7 +326,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
                             config.BlobOutputDir,
                             this.modelBlobPollDelay,
                             config.GetContextFeaturesFunc,
-                            config.SetModelIdCallback,
                             this.InternalPolicyUpdated,
                             config.ModelPollFailureCallback);
                     }

@@ -92,9 +92,12 @@ namespace ClientDecisionServiceSample
 
     class ExpandedPolicy : IPolicy<ExpandedContext>
     {
-        public uint[] ChooseAction(ExpandedContext context, uint numActionsVariable = uint.MaxValue)
+        public PolicyDecisionTuple ChooseAction(ExpandedContext context, uint numActionsVariable = uint.MaxValue)
         {
-            return context.Actions.Select((a, i) => (uint)i + 1).ToArray();
+            return new PolicyDecisionTuple
+            {
+                Actions = context.Actions.Select((a, i) => (uint)i + 1).ToArray()
+            };
         }
     }
 

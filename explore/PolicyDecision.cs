@@ -2,30 +2,14 @@
 namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.Core
 {
     /// <summary>
-    /// Exploration result 
+    /// Decision result from a policy. 
     /// </summary>
-    public class BaseDecisionTuple
+    public class BasePolicyDecisionTuple
     {
-        /// <summary>
-        /// Probability of choosing the action.
-        /// </summary>
-        public float Probability { get; set; }
-
-        /// <summary>
-        /// Whether to record/log the exploration result. 
-        /// </summary>
-        public bool ShouldRecord { get; set; }
-
         /// <summary>
         /// The Id of the model used to make predictions/decisions, if any exists at decision time.
         /// </summary>
         public string ModelId { get; set; }
-
-        /// <summary>
-        /// Indicates whether the decision was generated purely from exploration (vs. exploitation).
-        /// This value is only relevant to Epsilon Greedy or Tau First algorithms.
-        /// </summary>
-        public bool? IsExplore { get; set; }
     }
 }
 
@@ -34,9 +18,9 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
     using Microsoft.Research.MultiWorldTesting.ExploreLibrary.Core;
 
     /// <summary>
-    /// Exploration result 
+    /// Decision result from a policy.
     /// </summary>
-    public class DecisionTuple : BaseDecisionTuple
+    public class PolicyDecisionTuple : BasePolicyDecisionTuple
     {
         /// <summary>
         /// Action chosen by exploration.
@@ -50,9 +34,9 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction
     using Microsoft.Research.MultiWorldTesting.ExploreLibrary.Core;
 
     /// <summary>
-    /// Exploration result 
+    /// Decision result from a policy. 
     /// </summary>
-    public class DecisionTuple : BaseDecisionTuple
+    public class PolicyDecisionTuple : BasePolicyDecisionTuple
     {
         /// <summary>
         /// List of actions chosen by exploration.

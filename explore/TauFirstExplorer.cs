@@ -58,9 +58,11 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
 
             var random = new PRG(saltedSeed);
 
+            PolicyDecisionTuple policyDecisionTuple = null;
             uint chosenAction = 0;
             float actionProbability = 0f;
             bool shouldRecordDecision;
+            bool isExplore = false;
 
             if (this.tau > 0 && this.explore)
             {
@@ -69,11 +71,13 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
                 actionProbability = 1f / numActions;
                 chosenAction = actionId;
                 shouldRecordDecision = true;
+                isExplore = true;
             }
             else
             {
                 // Invoke the default policy function to get the action
-                chosenAction = this.defaultPolicy.ChooseAction(context, numActionsVariable);
+                policyDecisionTuple = this.defaultPolicy.ChooseAction(context, numActionsVariable);
+                chosenAction = policyDecisionTuple.Action;
 
                 if (chosenAction == 0 || chosenAction > numActions)
                 {
@@ -87,7 +91,9 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
             {
                 Action = chosenAction,
                 Probability = actionProbability,
-                ShouldRecord = shouldRecordDecision
+                ShouldRecord = shouldRecordDecision,
+                ModelId = policyDecisionTuple != null ? policyDecisionTuple.ModelId : null,
+                IsExplore = isExplore
             };
         }
     };
@@ -155,7 +161,9 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction
             float actionProbability = 0f;
             bool shouldRecordDecision;
 
-            uint[] chosenActions = this.defaultPolicy.ChooseAction(context, numActionsVariable);
+            
+            PolicyDecisionTuple policyDecisionTuple = this.defaultPolicy.ChooseAction(context, numActionsVariable);
+            uint[] chosenActions = policyDecisionTuple.Actions;
             MultiActionHelper.ValidateActionList(chosenActions);
 
             bool explore = false;
@@ -189,7 +197,9 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction
             {
                 Actions = chosenActions,
                 Probability = actionProbability,
-                ShouldRecord = shouldRecordDecision
+                ShouldRecord = shouldRecordDecision,
+                ModelId = policyDecisionTuple.ModelId,
+                IsExplore = explore
             };
         }
     };

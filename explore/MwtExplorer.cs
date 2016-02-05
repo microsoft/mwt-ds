@@ -39,7 +39,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
 
             if (decisionTuple.ShouldRecord)
             {
-                this.recorder.Record(context, decisionTuple.Action, decisionTuple.Probability, uniqueKey);
+                this.recorder.Record(context, decisionTuple.Action, decisionTuple.Probability, uniqueKey, decisionTuple.ModelId, decisionTuple.IsExplore);
             }
 
             return decisionTuple.Action;
