@@ -50,15 +50,6 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         string Key { get; set; }
 
         /// <summary>
-        /// Workaround for ASA query: An ID field which is different for
-        /// events under same Key in order to use OrderBy. Otherwise
-        /// if the field in OrderBy is constant across events, ASA will
-        /// default to comparing records which does not work.
-        /// </summary>
-        [JsonProperty(PropertyName = "id")]
-        int Id { get; set; }
-
-        /// <summary>
         /// The unique time stamp of this event.
         /// </summary>
         [JsonIgnore]
@@ -82,14 +73,6 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         public string Key { get; set; }
 
         /// <summary>
-        /// Workaround for ASA query: An ID field which is different for
-        /// events under same Key in order to use OrderBy. Otherwise
-        /// if the field in OrderBy is constant across events, ASA will
-        /// default to comparing records which does not work.
-        /// </summary>
-        public int Id { get; set; }
-
-        /// <summary>
         /// Gets or sets the time stamp of the event.
         /// </summary>
         public DateTime TimeStamp { get; set; }
@@ -109,12 +92,14 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// <summary>
         /// The Id of the model used to make predictions/decisions, if any exists at decision time.
         /// </summary>
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string ModelId { get; set; }
 
         /// <summary>
         /// Indicates whether the decision was generated purely from exploration (vs. exploitation).
         /// This value is only relevant to Epsilon Greedy or Tau First algorithms.
         /// </summary>
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public bool? IsExplore { get; set; }
     }
 

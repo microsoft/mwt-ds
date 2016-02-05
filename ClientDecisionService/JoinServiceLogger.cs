@@ -31,7 +31,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             this.eventUploader.Upload(new MultiActionInteraction
             {
                 Key = uniqueKey.Key,
-                Id = uniqueKey.Id,
                 TimeStamp = uniqueKey.TimeStamp,
                 Actions = actions,
                 Probability = probability,
@@ -46,7 +45,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             this.eventUploader.Upload(new SingleActionInteraction
             {
                 Key = uniqueKey.Key,
-                Id = uniqueKey.Id,
                 TimeStamp = uniqueKey.TimeStamp,
                 Action = action,
                 Probability = probability,

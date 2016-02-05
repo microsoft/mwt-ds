@@ -64,9 +64,12 @@ namespace ClientDecisionServiceTest
                         sb.AppendFormat(CultureInfo.InvariantCulture, "\"{0}\":", reader.Value);
                         break;
 
+                    case JsonToken.Boolean:
+                        sb.AppendFormat((bool)reader.Value ? "true" : "false");
+                        break;
+
                     case JsonToken.Bytes:
                     case JsonToken.Comment:
-                    case JsonToken.Boolean:
                     case JsonToken.Integer:
                     case JsonToken.Float:
                         sb.AppendFormat(CultureInfo.InvariantCulture, "{0}", reader.Value);
