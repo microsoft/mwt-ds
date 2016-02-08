@@ -33,14 +33,14 @@
             using (var vw = vwPool.GetOrCreate())
             {
                 var vwJson = new VowpalWabbitJsonSerializer(vw.Value.Native);
-                vwJson.Parse(contextJson);
-                VowpalWabbitExample vwExample = vwJson.CreateExample();
-
-                return new PolicyDecisionTuple 
-                { 
-                    Action = (uint)vw.Value.Native.Predict(vwExample, VowpalWabbitPredictionType.CostSensitive), 
-                    ModelId = vw.Value.Native.ID 
-                };
+                using (VowpalWabbitExampleCollection vwExample = vwJson.ParseAndCreate(contextJson))
+                {
+                    return new PolicyDecisionTuple
+                    {
+                        Action = (uint)vwExample.Predict(VowpalWabbitPredictionType.CostSensitive),
+                        ModelId = vw.Value.Native.ID
+                    };
+                }
             }
         }
     }
@@ -84,17 +84,17 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
             using (var vw = vwPool.GetOrCreate())
             {
                 var vwJson = new VowpalWabbitJsonSerializer(vw.Value.Native);
-                vwJson.Parse(contextJson);
-                VowpalWabbitExample vwExample = vwJson.CreateExample();
-
-                int[] vwMultilabelPredictions = vw.Value.Native.Predict(vwExample, VowpalWabbitPredictionType.Multilabel);
-
-                // VW multi-label predictions are 0-based
-                return new PolicyDecisionTuple
+                using (VowpalWabbitExampleCollection vwExample = vwJson.ParseAndCreate(contextJson))
                 {
-                    Actions = vwMultilabelPredictions.Select(a => (uint)(a + 1)).ToArray(),
-                    ModelId = vw.Value.Native.ID
-                };
+                    int[] vwMultilabelPredictions = vwExample.Predict(VowpalWabbitPredictionType.Multilabel);
+
+                    // VW multi-label predictions are 0-based
+                    return new PolicyDecisionTuple
+                    {
+                        Actions = vwMultilabelPredictions.Select(a => (uint)(a + 1)).ToArray(),
+                        ModelId = vw.Value.Native.ID
+                    };
+                }
             }
         }
     }
