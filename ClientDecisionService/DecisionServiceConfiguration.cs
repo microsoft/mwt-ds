@@ -23,6 +23,11 @@
         #region Optional Parameters
 
         /// <summary>
+        /// Whether the context provided is already serialized in JSON format.
+        /// </summary>
+        public bool UseJsonContext { get; set; }
+
+        /// <summary>
         /// Indicates whether to operate in offline mode where polling and join service logging are turned off.
         /// </summary>
         /// <remarks>
@@ -201,6 +206,13 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction
 
         #endregion
     }
+
+    public class DecisionServiceJsonConfiguration : DecisionServiceConfiguration<string>
+    {
+        public DecisionServiceJsonConfiguration(string authorizationToken, IExplorer<string> explorer)
+            : base(authorizationToken, explorer)
+        { }
+    }
 }
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
@@ -258,5 +270,12 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
         #endregion
 
         private IRecorder<TContext> recorder;
+    }
+
+    public class DecisionServiceJsonConfiguration : DecisionServiceConfiguration<string, string>
+    {
+        public DecisionServiceJsonConfiguration(string authorizationToken, IExplorer<string> explorer)
+            : base(authorizationToken, explorer)
+        { }
     }
 }

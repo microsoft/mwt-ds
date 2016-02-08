@@ -6,13 +6,101 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Newtonsoft.Json;
 
 namespace ClientDecisionServiceSample
 {
     public static class SingleActionSamples
     {
         /***** Copy & Paste your authorization token here *****/
-        static readonly string MwtServiceToken = "";
+        static readonly string MwtServiceToken = "073576e3-d55e-470b-a633-def307ca408a";
+
+        /// <summary>
+        /// Sample code simulating a news recommendation scenario. In this simple example, 
+        /// the rendering server has to pick 1 out of 10 news topics to show to users (e.g. as featured article).
+        /// In order to do so, it uses the <see cref="DecisionService{TContext}"/> API to optimize the decision
+        /// to make given certain simple context with a vector of features.
+        /// </summary>
+        public static void SampleCodeUsingASAWithJsonContext()
+        {
+            if (String.IsNullOrWhiteSpace(MwtServiceToken))
+            {
+                Console.WriteLine("Please specify a valid authorization token.");
+                return;
+            }
+
+            Trace.Listeners.Add(new ConsoleTraceListener());
+
+            uint numTopics = 10; // number of different topic choices to show
+            float epsilon = 0.2f; // randomize the topics to show for 20% of traffic
+            int numUsers = 100; // number of users for the news site
+            int numFeatures = 20; // number of features for each user
+
+            var defaultPolicy = new DefaultJsonPolicy();
+
+            var serviceConfig = new DecisionServiceJsonConfiguration(
+                authorizationToken: MwtServiceToken,
+                // Specify the exploration algorithm to use, here we will use Epsilon-Greedy.
+                // For more details about this and other algorithms, refer to the MWT onboarding whitepaper.
+                explorer: new EpsilonGreedyExplorer<string>(defaultPolicy, epsilon, numTopics))
+            {
+                PollingForModelPeriod = TimeSpan.MinValue,
+                PollingForSettingsPeriod = TimeSpan.MinValue,
+                JoinServerType = Microsoft.Research.MultiWorldTesting.ClientLibrary.JoinServerType.AzureStreamAnalytics,
+                EventHubConnectionString = "Endpoint=sb://mwtbus.servicebus.windows.net/;SharedAccessKeyName=shared-policy-scratch;SharedAccessKey=MqKvUJ/ZqBYC28izl0hgzdSmt9b3JvA2uUdncV4lRJA=",
+                EventHubInputName = "eh-scratch",
+                UseJsonContext = true // specify that context types are Json-formatted
+            };
+
+            // Optional: set the configuration for how often data is uploaded to the join server.
+            serviceConfig.JoinServiceBatchConfiguration = new BatchingConfiguration
+            {
+                MaxBufferSizeInBytes = 4 * 1024,
+                MaxDuration = TimeSpan.FromSeconds(5),
+                MaxEventCount = 1000,
+                MaxUploadQueueCapacity = 100,
+                UploadRetryPolicy = BatchUploadRetryPolicy.ExponentialRetry
+            };
+
+            // Create the main service object with above configurations.
+            var service = new DecisionServiceJson(serviceConfig);
+
+            var random = new Random();
+            for (int user = 0; user < numUsers; user++)
+            {
+                // Generate a random GUID id for each user.
+                var userId = Guid.NewGuid().ToString();
+
+                // Generate random feature vector for each user.
+                var features = Enumerable
+                    .Range(user, numFeatures)
+                    .Select(uid => new Feature { Id = (uint)uid, Value = (float)random.NextDouble() })
+                    .ToArray();
+
+                // Create the context object
+                var userContext = JsonConvert.SerializeObject(new SimpleContext(features));
+
+                // Perform exploration given user features.
+                uint topicId = service.ChooseAction(new UniqueEventID { Key = userId }, context: userContext);
+
+                // Display the news topic chosen by exploration process.
+                DisplayNewsTopic(topicId, user + 1);
+
+                // Report {0,1} reward as a simple float.
+                // In a real scenario, one could associated a reward of 1 if user
+                // clicks on the article and 0 otherwise.
+                float reward = 1 - (user % 2);
+                service.ReportReward(reward, new UniqueEventID { Key = userId });
+            }
+
+            Console.WriteLine("DO NOT CLOSE THE CONSOLE WINDOW AT THIS POINT IF YOU ARE FOLLOWING THE GETTING STARTED GUIDE.");
+
+            System.Threading.Thread.Sleep(TimeSpan.FromHours(24));
+
+            // There shouldn't be any data in the buffer at this point 
+            // but flush the service to ensure they are uploaded if otherwise.
+            service.Flush();
+        }
 
         /// <summary>
         /// Sample code simulating a news recommendation scenario. In this simple example, 

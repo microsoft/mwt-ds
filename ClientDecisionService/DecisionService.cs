@@ -246,6 +246,13 @@
         private readonly DecisionServicePolicy<TContext> policy;
         private readonly MwtExplorer<TContext> mwt;
     }
+
+    public class DecisionServiceJson : DecisionService<string>
+    {
+        public DecisionServiceJson(DecisionServiceJsonConfiguration config)
+            : base(config)
+        { }
+    }
 }
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
@@ -496,5 +503,12 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
         private readonly IRecorder<TContext> recorder;
         private readonly DecisionServicePolicy<TContext, TActionDependentFeature> policy;
         private readonly MwtExplorer<TContext> mwt;
+    }
+
+    public class DecisionServiceJson : DecisionService<string, string>
+    {
+        public DecisionServiceJson(DecisionServiceJsonConfiguration config)
+            : base(config)
+        { }
     }
 }

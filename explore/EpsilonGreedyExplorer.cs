@@ -105,7 +105,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
             uint numActions = VariableActionHelper.GetNumberOfActions(this.numActionsFixed, numActionsVariable);
 
             // Invoke the default policy function to get the action
-            PolicyDecisionTuple policyDecisionTuple = this.defaultPolicy.ChooseAction(context);
+            PolicyDecisionTuple policyDecisionTuple = this.defaultPolicy.ChooseAction(context, numActions);
             uint chosenAction = policyDecisionTuple.Action;
 
             if (chosenAction == 0 || chosenAction > numActions)
@@ -195,7 +195,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction
             uint numActions = VariableActionHelper.GetNumberOfActions(this.numActionsFixed, numActionsVariable);
 
             // Invoke the default policy function to get the action
-            PolicyDecisionTuple policyDecisionTuple = this.defaultPolicy.ChooseAction(context);
+            PolicyDecisionTuple policyDecisionTuple = this.defaultPolicy.ChooseAction(context, numActions);
             uint[] chosenActions = policyDecisionTuple.Actions;
 
             MultiActionHelper.ValidateActionList(chosenActions);

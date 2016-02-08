@@ -20,8 +20,17 @@
             string modelOutputDir,
             TimeSpan pollDelay,
             Action notifyPolicyUpdate,
-            Action<Exception> modelPollFailureCallback)
+            Action<Exception> modelPollFailureCallback,
+            bool useJsonContext = false)
+            : base(useJsonContext: useJsonContext)
         {
+            if (useJsonContext)
+            {
+                if (typeof(TContext) != typeof(string))
+                {
+                    throw new InvalidOperationException("Type of context must be set to string since contexts were marked as Json format.");
+                }
+            }
             if (pollDelay != TimeSpan.MinValue)
             {
                 this.blobUpdater = new AzureBlobUpdater("model", modelAddress,
@@ -85,7 +94,6 @@
 
         readonly Action notifyPolicyUpdate;
     }
-
 }
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
@@ -111,8 +119,9 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
             TimeSpan pollDelay,
             Func<TContext, IReadOnlyCollection<TActionDependentFeature>> getContextFeaturesFunc,
             Action notifyPolicyUpdate,
-            Action<Exception> modelPollFailureCallback)
-            : base(getContextFeaturesFunc)
+            Action<Exception> modelPollFailureCallback,
+            bool useJsonContext = false)
+            : base(getContextFeaturesFunc, useJsonContext: useJsonContext)
         {
             if (pollDelay != TimeSpan.MinValue)
             {

@@ -18,7 +18,19 @@ namespace ClientDecisionServiceSample
             // to optimize an action from a set of actions.
             //SingleActionSamples.SampleCodeUsingSimpleContext();
 
-            MultiActionSamples.SampleCodeUsingASAJoinServer();
+            // Sample code showing how to use ASA join server along with
+            // context objects which are json-formatted, where the objective
+            // is to choose one single action.
+            SingleActionSamples.SampleCodeUsingASAWithJsonContext();
+
+            // Sample code showing how to tell the client to upload data
+            // to the ASA join server.
+            //MultiActionSamples.SampleCodeUsingASAJoinServer();
+
+            // Sample code showing how to use ASA join server along with
+            // context objects which are json-formatted, where the objective
+            // is to choose a ranking over actions.
+            //MultiActionSamples.SampleCodeUsingASAWithJsonContext();
         }
     }
 }

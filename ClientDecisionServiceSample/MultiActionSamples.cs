@@ -10,11 +10,52 @@ using Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction;
 using Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction;
 using System.IO;
 using VW;
+using Newtonsoft.Json;
 
 namespace ClientDecisionServiceSample
 {
     public class MultiActionSamples
     {
+        public static void SampleCodeUsingASAWithJsonContext()
+        {
+            // Create configuration for the decision service
+            var serviceConfig = new DecisionServiceJsonConfiguration(
+                authorizationToken: "json-code",
+                explorer: new EpsilonGreedyExplorer<string>(new DefaultJsonPolicy(), epsilon: 0.8f))
+            {
+                PollingForModelPeriod = TimeSpan.MinValue,
+                PollingForSettingsPeriod = TimeSpan.MinValue,
+                JoinServerType = Microsoft.Research.MultiWorldTesting.ClientLibrary.JoinServerType.AzureStreamAnalytics,
+                EventHubConnectionString = "Endpoint=sb://mwtbus.servicebus.windows.net/;SharedAccessKeyName=shared-policy-scratch;SharedAccessKey=MqKvUJ/ZqBYC28izl0hgzdSmt9b3JvA2uUdncV4lRJA=",
+                EventHubInputName = "eh-scratch",
+                UseJsonContext = true // specify that context types are Json-formatted
+            };
+
+            var service = new DecisionServiceJson(serviceConfig);
+
+            string uniqueKey = "json-key-";
+
+            var rg = new Random(uniqueKey.GetHashCode());
+
+            var vwPolicy = new VWPolicy<ExpandedContext, ExpandedActionDependentFeatures>(ExpandedContext.GetFeaturesFromContext);
+
+            for (int i = 1; i < 20; i++)
+            {
+                int numActions = rg.Next(5, 10);
+
+                DateTime timeStamp = DateTime.UtcNow;
+                string key = uniqueKey + Guid.NewGuid().ToString();
+
+                var context = ExpandedContext.CreateRandom(numActions, rg);
+                string contextJson = JsonConvert.SerializeObject(context);
+                uint[] action = service.ChooseAction(new UniqueEventID { Key = key, TimeStamp = timeStamp }, contextJson, (uint)numActions);
+                service.ReportReward(i / 100f, new UniqueEventID { Key = key, TimeStamp = timeStamp });
+
+                System.Threading.Thread.Sleep(1);
+            }
+
+            service.Flush();
+        }
         public static void SampleCodeUsingASAJoinServer()
         {
             // Create configuration for the decision service

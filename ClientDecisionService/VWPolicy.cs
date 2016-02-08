@@ -5,6 +5,7 @@
     using System.Diagnostics;
     using System.IO;
     using VW;
+    using VW.Serializer;
 
     /// <summary>
     /// Represent an updatable <see cref="IPolicy<TContext>"/> object which can consume different VowpalWabbit 
@@ -17,21 +18,23 @@
         /// Constructor using an optional model file.
         /// </summary>
         /// <param name="vwModelFile">Optional; the VowpalWabbit model file to load from.</param>
-        public VWPolicy(string vwModelFile = null)
+        public VWPolicy(string vwModelFile = null, bool useJsonContext = false)
         {
             if (vwModelFile != null)
             {
                 this.ModelUpdate(vwModelFile);
             }
+            this.useJsonContext = useJsonContext;
         }
 
         /// <summary>
         /// Constructor using a memory stream.
         /// </summary>
         /// <param name="vwModelStream">The VW model memory stream.</param>
-        public VWPolicy(Stream vwModelStream)
+        public VWPolicy(Stream vwModelStream, bool useJsonContext = false)
         {
             this.ModelUpdate(vwModelStream);
+            this.useJsonContext = useJsonContext;
         }
 
         /// <summary>
@@ -48,11 +51,26 @@
             }
             using (var vw = vwPool.GetOrCreate())
             {
-                return new PolicyDecisionTuple
+                if (this.useJsonContext)
                 {
-                    Action = (uint)vw.Value.Predict(context, VowpalWabbitPredictionType.CostSensitive),
-                    ModelId = vw.Value.Native.ID
-                };
+                    var vwJson = new VowpalWabbitJsonSerializer(vw.Value.Native);
+                    using (VowpalWabbitExampleCollection vwExample = vwJson.ParseAndCreate(context as string))
+                    {
+                        return new PolicyDecisionTuple
+                        {
+                            Action = (uint)vwExample.Predict(VowpalWabbitPredictionType.CostSensitive),
+                            ModelId = vw.Value.Native.ID
+                        };
+                    }
+                }
+                else
+                {
+                    return new PolicyDecisionTuple
+                    {
+                        Action = (uint)vw.Value.Predict(context, VowpalWabbitPredictionType.CostSensitive),
+                        ModelId = vw.Value.Native.ID
+                    };
+                }
             }
         }
 
@@ -122,6 +140,7 @@
         }
 
         protected VowpalWabbitThreadedPrediction<TContext> vwPool;
+        private bool useJsonContext;
     }
 }
 
@@ -135,6 +154,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
     using System.Linq;
     using System.IO;
     using System.Collections.Generic;
+    using VW.Serializer;
 
     /// <summary>
     /// Represent an updatable <see cref="IPolicy<TContext>"/> object which can consume different VowpalWabbit 
@@ -150,9 +170,11 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
         /// <param name="vwModelFile">Optional; the VowpalWabbit model file to load from.</param>
         public VWPolicy(
             Func<TContext, IReadOnlyCollection<TActionDependentFeature>> getContextFeaturesFunc,
-            string vwModelFile = null)
+            string vwModelFile = null,
+            bool useJsonContext = false)
         {
             this.getContextFeaturesFunc = getContextFeaturesFunc;
+            this.useJsonContext = useJsonContext;
             if (vwModelFile != null)
             {
                 this.ModelUpdate(vwModelFile);
@@ -166,9 +188,11 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
         /// <param name="vwModelStream">The VW model memory stream.</param>
         public VWPolicy(
             Func<TContext, IReadOnlyCollection<TActionDependentFeature>> getContextFeaturesFunc,
-            Stream vwModelStream)
+            Stream vwModelStream,
+            bool useJsonContext = false)
         {
             this.getContextFeaturesFunc = getContextFeaturesFunc;
+            this.useJsonContext = useJsonContext;
             this.ModelUpdate(vwModelStream);
         }
 
@@ -186,17 +210,35 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
             }
             using (var vw = vwPool.GetOrCreate())
             {
-                IReadOnlyCollection<TActionDependentFeature> features = this.getContextFeaturesFunc(context);
-
-                // return indices
-                ActionDependentFeature<TActionDependentFeature>[] vwMultilabelPredictions = vw.Value.Predict(context, features);
-
-                // VW multi-label predictions are 0-based
-                return new PolicyDecisionTuple
+                if (this.useJsonContext)
                 {
-                    Actions = vwMultilabelPredictions.Select(p => (uint)(p.Index + 1)).ToArray(),
-                    ModelId = vw.Value.Native.ID
-                };
+                    var vwJson = new VowpalWabbitJsonSerializer(vw.Value.Native);
+                    using (VowpalWabbitExampleCollection vwExample = vwJson.ParseAndCreate(context as string))
+                    {
+                        int[] vwMultilabelPredictions = vwExample.Predict(VowpalWabbitPredictionType.Multilabel);
+
+                        // VW multi-label predictions are 0-based
+                        return new PolicyDecisionTuple
+                        {
+                            Actions = vwMultilabelPredictions.Select(a => (uint)(a + 1)).ToArray(),
+                            ModelId = vw.Value.Native.ID
+                        };
+                    }
+                }
+                else
+                {
+                    IReadOnlyCollection<TActionDependentFeature> features = this.getContextFeaturesFunc(context);
+
+                    // return indices
+                    ActionDependentFeature<TActionDependentFeature>[] vwMultilabelPredictions = vw.Value.Predict(context, features);
+
+                    // VW multi-label predictions are 0-based
+                    return new PolicyDecisionTuple
+                    {
+                        Actions = vwMultilabelPredictions.Select(p => (uint)(p.Index + 1)).ToArray(),
+                        ModelId = vw.Value.Native.ID
+                    };
+                }
             }
         }
 
@@ -267,5 +309,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
 
         protected VowpalWabbitThreadedPrediction<TContext, TActionDependentFeature> vwPool;
         private Func<TContext, IReadOnlyCollection<TActionDependentFeature>> getContextFeaturesFunc;
+        private bool useJsonContext;
     }
 }
