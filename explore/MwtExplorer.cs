@@ -99,7 +99,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction
 
             if (decisionTuple.ShouldRecord)
             {
-                this.recorder.Record(context, decisionTuple.Actions, decisionTuple.Probability, uniqueKey);
+                this.recorder.Record(context, decisionTuple.Actions, decisionTuple.Probability, uniqueKey, decisionTuple.ModelId, decisionTuple.IsExplore);
             }
 
             return decisionTuple.Actions;
