@@ -14,6 +14,10 @@ namespace ClientDecisionServiceSample
 {
     public class ExpandedContext
     {
+        [Feature]
+        [JsonIgnore]
+        public bool Dummy { get; set; }
+
         [JsonProperty]
         public float[] Features { get; set; }
 

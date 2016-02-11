@@ -63,13 +63,12 @@ namespace ClientDecisionServiceSample
                 authorizationToken: "sample-code",
                 explorer: new EpsilonGreedyExplorer<ExpandedContext>(new ExpandedPolicy(), epsilon: 0.8f))
             {
-                PollingForModelPeriod = TimeSpan.MinValue,
-                PollingForSettingsPeriod = TimeSpan.MinValue,
                 JoinServerType = Microsoft.Research.MultiWorldTesting.ClientLibrary.JoinServerType.AzureStreamAnalytics,
                 //EventHubConnectionString = "Endpoint=sb://mwtbus.servicebus.windows.net/;SharedAccessKeyName=MWTASA;SharedAccessKey=Gt6SZtMJvESLQM74pfZyaYwYbn7X5YHBqi1QntpooNc=",
                 //EventHubInputName = "Impressions"
                 EventHubConnectionString = "Endpoint=sb://mwtbus.servicebus.windows.net/;SharedAccessKeyName=shared-policy-scratch;SharedAccessKey=MqKvUJ/ZqBYC28izl0hgzdSmt9b3JvA2uUdncV4lRJA=",
-                EventHubInputName = "eh-scratch"
+                EventHubInputName = "eh-scratch",
+                GetContextFeaturesFunc = ExpandedContext.GetFeaturesFromContext
             };
 
             var service = new DecisionService<ExpandedContext, ExpandedActionDependentFeatures>(serviceConfig);
@@ -78,8 +77,6 @@ namespace ClientDecisionServiceSample
             string uniqueKey = "scratch-key-";
 
             var rg = new Random(uniqueKey.GetHashCode());
-
-            var vwPolicy = new VWPolicy<ExpandedContext, ExpandedActionDependentFeatures>(ExpandedContext.GetFeaturesFromContext);
 
             for (int i = 1; i < 20; i++)
             {
