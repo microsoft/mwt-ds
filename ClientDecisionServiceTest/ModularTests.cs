@@ -119,6 +119,7 @@ namespace ClientDecisionServiceTest
             var dsConfig = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionServiceConfiguration<TestContext>(
                 authorizationToken: MockCommandCenter.AuthorizationToken,
                 explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction.EpsilonGreedyExplorer<TestContext>(new TestSingleActionPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
+            dsConfig.JoinServerType = JoinServerType.CustomSolution;
 
             bool isExceptionExpected = false;
             try
@@ -247,6 +248,8 @@ namespace ClientDecisionServiceTest
             var dsConfig = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionServiceConfiguration<TestContext, DummyADFType>(
                 authorizationToken: MockCommandCenter.AuthorizationToken,
                 explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.EpsilonGreedyExplorer<TestContext>(new TestMultiActionPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
+
+            dsConfig.JoinServerType = JoinServerType.CustomSolution;
 
             bool isExceptionExpected = false;
             try

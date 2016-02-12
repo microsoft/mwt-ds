@@ -211,7 +211,9 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction
     {
         public DecisionServiceJsonConfiguration(string authorizationToken, IExplorer<string> explorer)
             : base(authorizationToken, explorer)
-        { }
+        {
+            UseJsonContext = true;
+        }
     }
 }
 
@@ -276,6 +278,8 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
     {
         public DecisionServiceJsonConfiguration(string authorizationToken, IExplorer<string> explorer)
             : base(authorizationToken, explorer)
-        { }
+        {
+            UseJsonContext = true;
+        }
     }
 }

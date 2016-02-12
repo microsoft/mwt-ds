@@ -118,13 +118,7 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// <returns>Serialized JSON string.</returns>
         private static string BuildJsonMessage(IEvent e)
         {
-            var jsonBuilder = new StringBuilder();
-            jsonBuilder.Append("{\"EventId\":\"" + e.Key + "\",");
-            jsonBuilder.Append("\"TimeStamp\":\"" + e.TimeStamp.ToString("o") + "\",");
-            jsonBuilder.Append("\"j\":");
-            jsonBuilder.Append(JsonConvert.SerializeObject(e));
-            jsonBuilder.Append("}");
-            return jsonBuilder.ToString();
+            return JsonConvert.SerializeObject(e);
         }
 
         /// <summary>

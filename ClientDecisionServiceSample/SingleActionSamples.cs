@@ -38,7 +38,7 @@ namespace ClientDecisionServiceSample
 
             var defaultPolicy = new DefaultJsonPolicy();
 
-            var serviceConfig = new DecisionServiceJsonConfiguration(
+            var serviceConfig = new DecisionServiceJsonConfiguration( // specify that context types are Json-formatted
                 authorizationToken: MwtServiceToken,
                 // Specify the exploration algorithm to use, here we will use Epsilon-Greedy.
                 // For more details about this and other algorithms, refer to the MWT onboarding whitepaper.
@@ -46,10 +46,8 @@ namespace ClientDecisionServiceSample
             {
                 PollingForModelPeriod = TimeSpan.MinValue,
                 PollingForSettingsPeriod = TimeSpan.MinValue,
-                JoinServerType = Microsoft.Research.MultiWorldTesting.ClientLibrary.JoinServerType.AzureStreamAnalytics,
                 EventHubConnectionString = "",
-                EventHubInputName = "",
-                UseJsonContext = true // specify that context types are Json-formatted
+                EventHubInputName = ""
             };
 
             // Optional: set the configuration for how often data is uploaded to the join server.

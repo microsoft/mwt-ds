@@ -8,7 +8,7 @@
         /// <summary>
         /// Custom Azure implementation.
         /// </summary>
-        CustomAzureSolution = 0,
+        CustomSolution = 0,
 
         /// <summary>
         /// Azure Stream Analytics implementation.

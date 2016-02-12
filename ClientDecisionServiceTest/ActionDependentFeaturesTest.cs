@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.Research.MultiWorldTesting.ClientLibrary;
 
 namespace ClientDecisionServiceTest
 {
@@ -23,6 +24,7 @@ namespace ClientDecisionServiceTest
             {
                 PollingForModelPeriod = TimeSpan.MinValue,
                 PollingForSettingsPeriod = TimeSpan.MinValue,
+                JoinServerType = JoinServerType.CustomSolution,
                 LoggingServiceAddress = MockJoinServer.MockJoinServerAddress
             };
 
@@ -60,6 +62,7 @@ namespace ClientDecisionServiceTest
                 authorizationToken: MockCommandCenter.AuthorizationToken,
                 explorer: new EpsilonGreedyExplorer<TestADFContextWithFeatures>(new TestADFWithFeaturesPolicy(), epsilon: 0.5f))
             {
+                JoinServerType = JoinServerType.CustomSolution,
                 LoggingServiceAddress = MockJoinServer.MockJoinServerAddress,
                 PollingForModelPeriod = TimeSpan.MinValue,
                 PollingForSettingsPeriod = TimeSpan.MinValue
@@ -124,6 +127,7 @@ namespace ClientDecisionServiceTest
                 authorizationToken: MockCommandCenter.AuthorizationToken,
                 explorer: new EpsilonGreedyExplorer<TestADFContextWithFeatures>(new TestADFWithFeaturesPolicy(), epsilon: 0.5f))
             {
+                JoinServerType = JoinServerType.CustomSolution,
                 LoggingServiceAddress = MockJoinServer.MockJoinServerAddress,
                 PollingForModelPeriod = TimeSpan.MinValue,
                 PollingForSettingsPeriod = TimeSpan.MinValue

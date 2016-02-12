@@ -25,6 +25,7 @@ namespace ClientDecisionServiceTest
                 authorizationToken: MockCommandCenter.AuthorizationToken,
                 explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction.EpsilonGreedyExplorer<TestContext>(new TestSingleActionPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
 
+            dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
 
             var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionService<TestContext>(dsConfig);
@@ -51,6 +52,7 @@ namespace ClientDecisionServiceTest
                 authorizationToken: MockCommandCenter.AuthorizationToken,
                 explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction.EpsilonGreedyExplorer<TestContext>(new TestSingleActionPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
 
+            dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
 
             var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionService<TestContext>(dsConfig);
@@ -78,6 +80,7 @@ namespace ClientDecisionServiceTest
                 authorizationToken: MockCommandCenter.AuthorizationToken,
                 explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction.EpsilonGreedyExplorer<TestContext>(new TestSingleActionPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
 
+            dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
 
             var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionService<TestContext>(dsConfig);
@@ -149,6 +152,7 @@ namespace ClientDecisionServiceTest
                 authorizationToken: MockCommandCenter.AuthorizationToken,
                 explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.EpsilonGreedyExplorer<TestContext>(new TestMultiActionPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
 
+            dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
 
             var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig);
@@ -175,6 +179,7 @@ namespace ClientDecisionServiceTest
                 authorizationToken: MockCommandCenter.AuthorizationToken,
                 explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.EpsilonGreedyExplorer<TestContext>(new TestMultiActionPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
 
+            dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
 
             var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig);
@@ -200,6 +205,7 @@ namespace ClientDecisionServiceTest
                 authorizationToken: MockCommandCenter.AuthorizationToken,
                 explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.EpsilonGreedyExplorer<TestContext>(new TestMultiActionPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
 
+            dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
             dsConfig.JoinServiceBatchConfiguration = new BatchingConfiguration();
             dsConfig.JoinServiceBatchConfiguration.MaxDuration = TimeSpan.FromMinutes(10); // allow enough time for queue to buffer events
@@ -260,6 +266,7 @@ namespace ClientDecisionServiceTest
                 MaxDegreeOfSerializationParallelism = Environment.ProcessorCount
             };
 
+            dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
 
             var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig);

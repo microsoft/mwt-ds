@@ -19,16 +19,14 @@ namespace ClientDecisionServiceSample
         public static void SampleCodeUsingASAWithJsonContext()
         {
             // Create configuration for the decision service
-            var serviceConfig = new DecisionServiceJsonConfiguration(
+            var serviceConfig = new DecisionServiceJsonConfiguration( // specify that context types are Json-formatted
                 authorizationToken: "json-code",
                 explorer: new EpsilonGreedyExplorer<string>(new DefaultJsonPolicy(), epsilon: 0.8f))
             {
                 PollingForModelPeriod = TimeSpan.MinValue,
                 PollingForSettingsPeriod = TimeSpan.MinValue,
-                JoinServerType = Microsoft.Research.MultiWorldTesting.ClientLibrary.JoinServerType.AzureStreamAnalytics,
                 EventHubConnectionString = "",
-                EventHubInputName = "",
-                UseJsonContext = true // specify that context types are Json-formatted
+                EventHubInputName = ""
             };
 
             var service = new DecisionServiceJson(serviceConfig);
@@ -36,8 +34,6 @@ namespace ClientDecisionServiceSample
             string uniqueKey = "json-key-";
 
             var rg = new Random(uniqueKey.GetHashCode());
-
-            var vwPolicy = new VWPolicy<ExpandedContext, ExpandedActionDependentFeatures>(ExpandedContext.GetFeaturesFromContext);
 
             for (int i = 1; i < 20; i++)
             {
@@ -63,9 +59,6 @@ namespace ClientDecisionServiceSample
                 authorizationToken: "sample-code",
                 explorer: new EpsilonGreedyExplorer<ExpandedContext>(new ExpandedPolicy(), epsilon: 0.8f))
             {
-                JoinServerType = Microsoft.Research.MultiWorldTesting.ClientLibrary.JoinServerType.AzureStreamAnalytics,
-                //EventHubConnectionString = "Endpoint=sb://mwtbus.servicebus.windows.net/;SharedAccessKeyName=MWTASA;SharedAccessKey=Gt6SZtMJvESLQM74pfZyaYwYbn7X5YHBqi1QntpooNc=",
-                //EventHubInputName = "Impressions"
                 EventHubConnectionString = "",
                 EventHubInputName = "",
                 GetContextFeaturesFunc = ExpandedContext.GetFeaturesFromContext

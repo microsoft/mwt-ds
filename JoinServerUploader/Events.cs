@@ -46,13 +46,13 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// <summary>
         /// The unique experimental unit key that this event belongs to.
         /// </summary>
-        [JsonIgnore]
+        [JsonProperty(PropertyName = "EventId")]
         string Key { get; set; }
 
         /// <summary>
         /// The unique time stamp of this event.
         /// </summary>
-        [JsonIgnore]
+        [JsonProperty]
         DateTime TimeStamp { get; set; }
     }
 

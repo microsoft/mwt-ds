@@ -25,6 +25,7 @@ namespace ClientDecisionServiceTest
                 authorizationToken: MockCommandCenter.AuthorizationToken,
                 explorer: new EpsilonGreedyExplorer<TestRcv1Context>(new TestRcv1ContextPolicy(), epsilon: 0.5f, numActions: (uint)numActions))
             {
+                JoinServerType = JoinServerType.CustomSolution,
                 LoggingServiceAddress = MockJoinServer.MockJoinServerAddress,
                 PollingForModelPeriod = TimeSpan.MinValue,
                 PollingForSettingsPeriod = TimeSpan.MinValue
@@ -88,6 +89,7 @@ namespace ClientDecisionServiceTest
                 authorizationToken: MockCommandCenter.AuthorizationToken,
                 explorer: new EpsilonGreedyExplorer<TestRcv1Context>(new TestRcv1ContextPolicy(), epsilon: 0.5f, numActions: (uint)numActions))
             {
+                JoinServerType = JoinServerType.CustomSolution,
                 LoggingServiceAddress = MockJoinServer.MockJoinServerAddress,
                 PollingForModelPeriod = TimeSpan.MinValue,
                 PollingForSettingsPeriod = TimeSpan.MinValue

@@ -29,13 +29,14 @@
                     var joinServerLogger = new JoinServiceLogger<TContext>();
                     switch (config.JoinServerType)
                     {
-                        case JoinServerType.CustomAzureSolution:
+                        case JoinServerType.CustomSolution:
                             joinServerLogger.InitializeWithCustomAzureJoinServer(
                                 config.AuthorizationToken,
                                 config.LoggingServiceAddress,
                                 config.JoinServiceBatchConfiguration);
                             break;
                         case JoinServerType.AzureStreamAnalytics:
+                        default:
                             joinServerLogger.InitializeWithAzureStreamAnalyticsJoinServer(
                                 config.EventHubConnectionString,
                                 config.EventHubInputName,
@@ -286,13 +287,14 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
                     var joinServerLogger = new JoinServiceLogger<TContext>();
                     switch (config.JoinServerType)
                     {
-                        case JoinServerType.CustomAzureSolution:
+                        case JoinServerType.CustomSolution:
                             joinServerLogger.InitializeWithCustomAzureJoinServer(
                                 config.AuthorizationToken,
                                 config.LoggingServiceAddress,
                                 config.JoinServiceBatchConfiguration);
                             break;
                         case JoinServerType.AzureStreamAnalytics:
+                        default:
                             joinServerLogger.InitializeWithAzureStreamAnalyticsJoinServer(
                                 config.EventHubConnectionString,
                                 config.EventHubInputName,

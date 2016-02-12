@@ -21,6 +21,7 @@ namespace ClientDecisionServiceTest
                 authorizationToken: MockCommandCenter.AuthorizationToken,
                 explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction.EpsilonGreedyExplorer<TestContext>(new TestSingleActionPolicy(), epsilon: 0.2f, numActions: 2));
 
+            dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
             dsConfig.BlobOutputDir = @"c:\";
             dsConfig.PollingForSettingsPeriod = TimeSpan.FromMilliseconds(500);
@@ -58,6 +59,7 @@ namespace ClientDecisionServiceTest
                 authorizationToken: MockCommandCenter.AuthorizationToken,
                 explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction.EpsilonGreedyExplorer<TestContext>(new TestSingleActionPolicy(), epsilon: 0.2f, numActions: 2));
 
+            dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
             dsConfig.BlobOutputDir = settingsPath;
             dsConfig.PollingForSettingsPeriod = TimeSpan.FromMilliseconds(500);
@@ -108,6 +110,7 @@ namespace ClientDecisionServiceTest
                 authorizationToken: MockCommandCenter.AuthorizationToken,
                 explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.EpsilonGreedyExplorer<TestContext>(new TestMultiActionPolicy(), epsilon: 0.2f, numActions: 2));
 
+            dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
             dsConfig.BlobOutputDir = @"c:\";
             dsConfig.PollingForSettingsPeriod = TimeSpan.FromMilliseconds(500);
@@ -145,6 +148,7 @@ namespace ClientDecisionServiceTest
                 authorizationToken: MockCommandCenter.AuthorizationToken,
                 explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.EpsilonGreedyExplorer<TestContext>(new TestMultiActionPolicy(), epsilon: 0.2f, numActions: 2));
 
+            dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
             dsConfig.BlobOutputDir = settingsPath;
             dsConfig.PollingForSettingsPeriod = TimeSpan.FromMilliseconds(500);
