@@ -28,9 +28,14 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            if (value != null)
+            var valueString = value as string;
+            if (valueString != null)
             {
-                writer.WriteRawValue((string)value);
+                writer.WriteRawValue(valueString);
+            }
+            else
+            {
+                serializer.Serialize(writer, value);
             }
         }
     }

@@ -87,6 +87,7 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// Gets or sets the context structure with relevant information for the current interaction.
         /// </summary>
         [JsonProperty(PropertyName = "c", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonConverter(typeof(RawStringConverter))]
         public object Context { get; set; }
 
         /// <summary>

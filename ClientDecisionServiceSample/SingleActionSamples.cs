@@ -13,7 +13,7 @@ namespace ClientDecisionServiceSample
     public static class SingleActionSamples
     {
         /***** Copy & Paste your authorization token here *****/
-        static readonly string MwtServiceToken = "073576e3-d55e-470b-a633-def307ca408a";
+        static readonly string MwtServiceToken = "";
 
         /// <summary>
         /// Sample code simulating a news recommendation scenario. In this simple example, 
@@ -33,7 +33,7 @@ namespace ClientDecisionServiceSample
 
             uint numTopics = 10; // number of different topic choices to show
             float epsilon = 0.2f; // randomize the topics to show for 20% of traffic
-            int numUsers = 100; // number of users for the news site
+            int numUsers = 10; // number of users for the news site
             int numFeatures = 20; // number of features for each user
 
             var defaultPolicy = new DefaultJsonPolicy();
@@ -47,8 +47,8 @@ namespace ClientDecisionServiceSample
                 PollingForModelPeriod = TimeSpan.MinValue,
                 PollingForSettingsPeriod = TimeSpan.MinValue,
                 JoinServerType = Microsoft.Research.MultiWorldTesting.ClientLibrary.JoinServerType.AzureStreamAnalytics,
-                EventHubConnectionString = "Endpoint=sb://mwtbus.servicebus.windows.net/;SharedAccessKeyName=shared-policy-scratch;SharedAccessKey=MqKvUJ/ZqBYC28izl0hgzdSmt9b3JvA2uUdncV4lRJA=",
-                EventHubInputName = "eh-scratch",
+                EventHubConnectionString = "",
+                EventHubInputName = "",
                 UseJsonContext = true // specify that context types are Json-formatted
             };
 
@@ -74,14 +74,16 @@ namespace ClientDecisionServiceSample
                 // Generate random feature vector for each user.
                 var features = Enumerable
                     .Range(user, numFeatures)
-                    .Select(uid => new Feature { Id = (uint)uid, Value = (float)random.NextDouble() })
+                    .Select(uid => (float)random.NextDouble())
                     .ToArray();
 
                 // Create the context object
                 var userContext = JsonConvert.SerializeObject(new SimpleContext(features));
 
+                var timestamp = DateTime.UtcNow;
+
                 // Perform exploration given user features.
-                uint topicId = service.ChooseAction(new UniqueEventID { Key = userId }, context: userContext);
+                uint topicId = service.ChooseAction(new UniqueEventID { Key = userId, TimeStamp = timestamp }, context: userContext);
 
                 // Display the news topic chosen by exploration process.
                 DisplayNewsTopic(topicId, user + 1);
@@ -90,12 +92,10 @@ namespace ClientDecisionServiceSample
                 // In a real scenario, one could associated a reward of 1 if user
                 // clicks on the article and 0 otherwise.
                 float reward = 1 - (user % 2);
-                service.ReportReward(reward, new UniqueEventID { Key = userId });
+                service.ReportReward(reward, new UniqueEventID { Key = userId, TimeStamp = timestamp });
+
+                System.Threading.Thread.Sleep(1);
             }
-
-            Console.WriteLine("DO NOT CLOSE THE CONSOLE WINDOW AT THIS POINT IF YOU ARE FOLLOWING THE GETTING STARTED GUIDE.");
-
-            System.Threading.Thread.Sleep(TimeSpan.FromHours(24));
 
             // There shouldn't be any data in the buffer at this point 
             // but flush the service to ensure they are uploaded if otherwise.
@@ -157,7 +157,7 @@ namespace ClientDecisionServiceSample
                 // Generate random feature vector for each user.
                 var features = Enumerable
                     .Range(user, numFeatures)
-                    .Select(uid => new Feature { Id = (uint)uid, Value = (float)random.NextDouble() })
+                    .Select(uid => (float)random.NextDouble())
                     .ToArray();
 
                 // Create the context object
@@ -175,10 +175,6 @@ namespace ClientDecisionServiceSample
                 float reward = 1 - (user % 2);
                 service.ReportReward(reward, new UniqueEventID { Key = userId });
             }
-
-            Console.WriteLine("DO NOT CLOSE THE CONSOLE WINDOW AT THIS POINT IF YOU ARE FOLLOWING THE GETTING STARTED GUIDE.");
-
-            System.Threading.Thread.Sleep(TimeSpan.FromHours(24));
 
             // There shouldn't be any data in the buffer at this point 
             // but flush the service to ensure they are uploaded if otherwise.

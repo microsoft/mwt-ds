@@ -26,8 +26,8 @@ namespace ClientDecisionServiceSample
                 PollingForModelPeriod = TimeSpan.MinValue,
                 PollingForSettingsPeriod = TimeSpan.MinValue,
                 JoinServerType = Microsoft.Research.MultiWorldTesting.ClientLibrary.JoinServerType.AzureStreamAnalytics,
-                EventHubConnectionString = "Endpoint=sb://mwtbus.servicebus.windows.net/;SharedAccessKeyName=shared-policy-scratch;SharedAccessKey=MqKvUJ/ZqBYC28izl0hgzdSmt9b3JvA2uUdncV4lRJA=",
-                EventHubInputName = "eh-scratch",
+                EventHubConnectionString = "",
+                EventHubInputName = "",
                 UseJsonContext = true // specify that context types are Json-formatted
             };
 
@@ -66,8 +66,8 @@ namespace ClientDecisionServiceSample
                 JoinServerType = Microsoft.Research.MultiWorldTesting.ClientLibrary.JoinServerType.AzureStreamAnalytics,
                 //EventHubConnectionString = "Endpoint=sb://mwtbus.servicebus.windows.net/;SharedAccessKeyName=MWTASA;SharedAccessKey=Gt6SZtMJvESLQM74pfZyaYwYbn7X5YHBqi1QntpooNc=",
                 //EventHubInputName = "Impressions"
-                EventHubConnectionString = "Endpoint=sb://mwtbus.servicebus.windows.net/;SharedAccessKeyName=shared-policy-scratch;SharedAccessKey=MqKvUJ/ZqBYC28izl0hgzdSmt9b3JvA2uUdncV4lRJA=",
-                EventHubInputName = "eh-scratch",
+                EventHubConnectionString = "",
+                EventHubInputName = "",
                 GetContextFeaturesFunc = ExpandedContext.GetFeaturesFromContext
             };
 
