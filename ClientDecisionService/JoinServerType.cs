@@ -6,13 +6,13 @@
     public enum JoinServerType
     {
         /// <summary>
-        /// Custom Azure implementation.
-        /// </summary>
-        CustomSolution = 0,
-
-        /// <summary>
         /// Azure Stream Analytics implementation.
         /// </summary>
-        AzureStreamAnalytics
+        AzureStreamAnalytics = 0,
+
+        /// <summary>
+        /// Custom Azure implementation.
+        /// </summary>
+        CustomSolution
     }
 }
