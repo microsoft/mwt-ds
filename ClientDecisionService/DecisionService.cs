@@ -77,7 +77,8 @@
                             config.BlobOutputDir,
                             this.modelBlobPollDelay,
                             this.InternalPolicyUpdated,
-                            config.ModelPollFailureCallback);
+                            config.ModelPollFailureCallback,
+                            config.UseJsonContext);
                     }
                 }
             }
@@ -336,7 +337,8 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
                             this.modelBlobPollDelay,
                             config.GetContextFeaturesFunc,
                             this.InternalPolicyUpdated,
-                            config.ModelPollFailureCallback);
+                            config.ModelPollFailureCallback,
+                            config.UseJsonContext);
                     }
                 }
             }

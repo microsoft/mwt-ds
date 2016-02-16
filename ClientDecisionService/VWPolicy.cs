@@ -45,25 +45,32 @@
         /// <returns>An unsigned integer representing the chosen action.</returns>
         public virtual PolicyDecisionTuple ChooseAction(TContext context, uint numActionsVariable = uint.MaxValue)
         {
-            if (vwPool == null)
+            if (this.useJsonContext)
             {
-                throw new InvalidOperationException("A VW model must be supplied before the call to ChooseAction.");
-            }
-            using (var vw = vwPool.GetOrCreate())
-            {
-                if (this.useJsonContext)
+                if (vwJsonPool == null)
                 {
-                    var vwJson = new VowpalWabbitJsonSerializer(vw.Value.Native);
+                    throw new InvalidOperationException("A VW model must be supplied before the call to ChooseAction.");
+                }
+                using (var vw = vwJsonPool.GetOrCreate())
+                {
+                    var vwJson = new VowpalWabbitJsonSerializer(vw.Value);
                     using (VowpalWabbitExampleCollection vwExample = vwJson.ParseAndCreate(context as string))
                     {
                         return new PolicyDecisionTuple
                         {
                             Action = (uint)vwExample.Predict(VowpalWabbitPredictionType.CostSensitive),
-                            ModelId = vw.Value.Native.ID
+                            ModelId = vw.Value.ID
                         };
                     }
                 }
-                else
+            }
+            else
+            {
+                if (vwPool == null)
+                {
+                    throw new InvalidOperationException("A VW model must be supplied before the call to ChooseAction.");
+                }
+                using (var vw = vwPool.GetOrCreate())
                 {
                     return new PolicyDecisionTuple
                     {
@@ -72,6 +79,7 @@
                     };
                 }
             }
+            
         }
 
         /// <summary>
@@ -103,13 +111,27 @@
         {
             VowpalWabbitModel vwModel = loadModelFunc();
 
-            if (this.vwPool == null)
+            if (this.useJsonContext)
             {
-                this.vwPool = new VowpalWabbitThreadedPrediction<TContext>(vwModel);
+                if (this.vwJsonPool == null)
+                {
+                    this.vwJsonPool = new VowpalWabbitThreadedPrediction(vwModel);
+                }
+                else
+                {
+                    this.vwJsonPool.UpdateModel(vwModel);
+                }
             }
             else
             {
-                this.vwPool.UpdateModel(vwModel);
+                if (this.vwPool == null)
+                {
+                    this.vwPool = new VowpalWabbitThreadedPrediction<TContext>(vwModel);
+                }
+                else
+                {
+                    this.vwPool.UpdateModel(vwModel);
+                }
             }
             return true;
         }
@@ -136,10 +158,16 @@
                     this.vwPool.Dispose();
                     this.vwPool = null;
                 }
+                if (this.vwJsonPool != null)
+                {
+                    this.vwJsonPool.Dispose();
+                    this.vwJsonPool = null;
+                }
             }
         }
 
         protected VowpalWabbitThreadedPrediction<TContext> vwPool;
+        protected VowpalWabbitThreadedPrediction vwJsonPool;
         private bool useJsonContext;
     }
 }
@@ -204,15 +232,15 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
         /// <returns>List of predicted actions.</returns>
         public virtual PolicyDecisionTuple ChooseAction(TContext context, uint numActionsVariable = uint.MaxValue)
         {
-            if (vwPool == null)
+            if (this.useJsonContext)
             {
-                throw new InvalidOperationException("A VW model must be supplied before the call to ChooseAction.");
-            }
-            using (var vw = vwPool.GetOrCreate())
-            {
-                if (this.useJsonContext)
+                if (vwJsonPool == null)
                 {
-                    var vwJson = new VowpalWabbitJsonSerializer(vw.Value.Native);
+                    throw new InvalidOperationException("A VW model must be supplied before the call to ChooseAction.");
+                }
+                using (var vw = vwJsonPool.GetOrCreate())
+                {
+                    var vwJson = new VowpalWabbitJsonSerializer(vw.Value);
                     using (VowpalWabbitExampleCollection vwExample = vwJson.ParseAndCreate(context as string))
                     {
                         int[] vwMultilabelPredictions = vwExample.Predict(VowpalWabbitPredictionType.Multilabel);
@@ -221,11 +249,18 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
                         return new PolicyDecisionTuple
                         {
                             Actions = vwMultilabelPredictions.Select(a => (uint)(a + 1)).ToArray(),
-                            ModelId = vw.Value.Native.ID
+                            ModelId = vw.Value.ID
                         };
                     }
                 }
-                else
+            }
+            else
+            {
+                if (vwPool == null)
+                {
+                    throw new InvalidOperationException("A VW model must be supplied before the call to ChooseAction.");
+                }
+                using (var vw = vwPool.GetOrCreate())
                 {
                     IReadOnlyCollection<TActionDependentFeature> features = this.getContextFeaturesFunc(context);
 
@@ -240,6 +275,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
                     };
                 }
             }
+            
         }
 
         /// <summary>
@@ -271,14 +307,29 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
         {
             VowpalWabbitModel vwModel = loadModelFunc();
 
-            if (this.vwPool == null)
+            if (this.useJsonContext)
             {
-                this.vwPool = new VowpalWabbitThreadedPrediction<TContext, TActionDependentFeature>(vwModel);
+                if (this.vwJsonPool == null)
+                {
+                    this.vwJsonPool = new VowpalWabbitThreadedPrediction(vwModel);
+                }
+                else
+                {
+                    this.vwJsonPool.UpdateModel(vwModel);
+                }
             }
             else
             {
-                this.vwPool.UpdateModel(vwModel);
+                if (this.vwPool == null)
+                {
+                    this.vwPool = new VowpalWabbitThreadedPrediction<TContext, TActionDependentFeature>(vwModel);
+                }
+                else
+                {
+                    this.vwPool.UpdateModel(vwModel);
+                }
             }
+            
             return true;
         }
 
@@ -304,10 +355,16 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
                     this.vwPool.Dispose();
                     this.vwPool = null;
                 }
+                if (this.vwJsonPool != null)
+                {
+                    this.vwJsonPool.Dispose();
+                    this.vwJsonPool = null;
+                }
             }
         }
 
         protected VowpalWabbitThreadedPrediction<TContext, TActionDependentFeature> vwPool;
+        protected VowpalWabbitThreadedPrediction vwJsonPool;
         private Func<TContext, IReadOnlyCollection<TActionDependentFeature>> getContextFeaturesFunc;
         private bool useJsonContext;
     }
