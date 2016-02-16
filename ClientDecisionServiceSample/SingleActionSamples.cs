@@ -44,8 +44,6 @@ namespace ClientDecisionServiceSample
                 // For more details about this and other algorithms, refer to the MWT onboarding whitepaper.
                 explorer: new EpsilonGreedyExplorer<string>(defaultPolicy, epsilon, numTopics))
             {
-                PollingForModelPeriod = TimeSpan.MinValue,
-                PollingForSettingsPeriod = TimeSpan.MinValue,
                 EventHubConnectionString = "",
                 EventHubInputName = ""
             };
