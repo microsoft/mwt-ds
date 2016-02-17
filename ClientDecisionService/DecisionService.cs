@@ -14,6 +14,19 @@
     /// </summary>
     public class DecisionService<TContext> : IDisposable
     {
+        private readonly TimeSpan settingsBlobPollDelay;
+        private readonly TimeSpan modelBlobPollDelay;
+
+        private readonly IExplorer<TContext> explorer;
+        private readonly IRecorder<TContext> recorder;
+        private readonly DecisionServicePolicy<TContext> policy;
+        private readonly MwtExplorer<TContext> mwt;
+
+        private readonly string updateTaskId = "settings";
+
+        public IRecorder<TContext> Recorder { get { return recorder; } }
+        public IPolicy<TContext> Policy { get { return policy; } }
+
         /// <summary>
         /// Construct a <see cref="DecisionService{TContext}"/> object with the specified <see cref="DecisionServiceConfiguration{TContext}"/> configuration.
         /// </summary>
@@ -60,8 +73,8 @@
 
                     if (this.settingsBlobPollDelay != TimeSpan.MinValue)
                     {
-                        this.blobUpdater = new AzureBlobUpdater(
-                            "settings",
+                        AzureBlobUpdater.RegisterTask(
+                            this.updateTaskId,
                             metadata.SettingsBlobUri,
                             metadata.ConnectionString,
                             config.BlobOutputDir,
@@ -80,6 +93,7 @@
                             config.ModelPollFailureCallback,
                             config.UseJsonContext);
                     }
+                    AzureBlobUpdater.Start();
                 }
             }
             else
@@ -154,10 +168,7 @@
         /// </summary>
         public void Flush()
         {
-            if (blobUpdater != null)
-            {
-                blobUpdater.StopPolling();
-            }
+            AzureBlobUpdater.Stop();
 
             if (policy != null)
             {
@@ -234,19 +245,6 @@
                 throw new NotSupportedException("This type of explorer does not currently support updating policy functions.");
             }
         }
-
-        public IRecorder<TContext> Recorder { get { return recorder; } }
-        public IPolicy<TContext> Policy { get { return policy; } }
-
-        private readonly TimeSpan settingsBlobPollDelay;
-        private readonly TimeSpan modelBlobPollDelay;
-
-        AzureBlobUpdater blobUpdater;
-
-        private readonly IExplorer<TContext> explorer;
-        private readonly IRecorder<TContext> recorder;
-        private readonly DecisionServicePolicy<TContext> policy;
-        private readonly MwtExplorer<TContext> mwt;
     }
 
     public class DecisionServiceJson : DecisionService<string>
@@ -273,6 +271,19 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
     /// </summary>
     public class DecisionService<TContext, TActionDependentFeature> : IDisposable
     {
+        private readonly TimeSpan settingsBlobPollDelay;
+        private readonly TimeSpan modelBlobPollDelay;
+
+        private readonly IExplorer<TContext> explorer;
+        private readonly IRecorder<TContext> recorder;
+        private readonly DecisionServicePolicy<TContext, TActionDependentFeature> policy;
+        private readonly MwtExplorer<TContext> mwt;
+
+        private readonly string updateTaskId = "settings";
+
+        public IRecorder<TContext> Recorder { get { return recorder; } }
+        public IPolicy<TContext> Policy { get { return policy; } }
+
         /// <summary>
         /// Construct a <see cref="DecisionService{TContext, TActionDependentFeature}"/> object with the specified <see cref="DecisionServiceConfiguration{TContext, TActionDependentFeature}"/> configuration.
         /// </summary>
@@ -319,8 +330,8 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
 
                     if (this.settingsBlobPollDelay != TimeSpan.MinValue)
                     {
-                        this.blobUpdater = new AzureBlobUpdater(
-                            "settings",
+                        AzureBlobUpdater.RegisterTask(
+                            this.updateTaskId,
                             metadata.SettingsBlobUri,
                             metadata.ConnectionString,
                             config.BlobOutputDir,
@@ -340,6 +351,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
                             config.ModelPollFailureCallback,
                             config.UseJsonContext);
                     }
+                    AzureBlobUpdater.Start();
                 }
             }
             else
@@ -414,10 +426,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
         /// </summary>
         public void Flush()
         {
-            if (blobUpdater != null)
-            {
-                blobUpdater.StopPolling();
-            }
+            AzureBlobUpdater.Stop();
 
             if (policy != null)
             {
@@ -494,19 +503,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
                 throw new NotSupportedException("This type of explorer does not currently support updating policy functions.");
             }
         }
-
-        public IRecorder<TContext> Recorder { get { return recorder; } }
-        public IPolicy<TContext> Policy { get { return policy; } }
-
-        private readonly TimeSpan settingsBlobPollDelay;
-        private readonly TimeSpan modelBlobPollDelay;
-
-        AzureBlobUpdater blobUpdater;
-
-        private readonly IExplorer<TContext> explorer;
-        private readonly IRecorder<TContext> recorder;
-        private readonly DecisionServicePolicy<TContext, TActionDependentFeature> policy;
-        private readonly MwtExplorer<TContext> mwt;
     }
 
     public class DecisionServiceJson : DecisionService<string, string>

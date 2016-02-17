@@ -93,6 +93,8 @@ namespace ClientDecisionServiceSample
                 System.Threading.Thread.Sleep(1);
             }
 
+            System.Threading.Thread.Sleep(TimeSpan.FromMinutes(10));
+
             // There shouldn't be any data in the buffer at this point 
             // but flush the service to ensure they are uploaded if otherwise.
             service.Flush();

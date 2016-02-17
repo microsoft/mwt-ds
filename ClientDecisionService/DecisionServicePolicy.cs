@@ -14,6 +14,9 @@
     /// <typeparam name="TContext">The type of the context.</typeparam>
     internal class DecisionServicePolicy<TContext> : VWPolicy<TContext>
     {
+        readonly Action notifyPolicyUpdate;
+        readonly string updateTaskId = "model";
+
         public DecisionServicePolicy(
             string modelAddress,
             string modelConnectionString, 
@@ -33,7 +36,7 @@
             }
             if (pollDelay != TimeSpan.MinValue)
             {
-                this.blobUpdater = new AzureBlobUpdater("model", modelAddress,
+                AzureBlobUpdater.RegisterTask(this.updateTaskId, modelAddress,
                    modelConnectionString, modelOutputDir, pollDelay,
                    this.UpdateFromFile, modelPollFailureCallback);
             }
@@ -46,10 +49,7 @@
         /// </summary>
         public void StopPolling()
         {
-            if (this.blobUpdater != null)
-            {
-                this.blobUpdater.StopPolling();
-            }
+            AzureBlobUpdater.CancelTask(this.updateTaskId);
         }
 
         /// <summary>
@@ -63,11 +63,6 @@
             if (disposing)
             {
                 // free managed resources
-                if (this.blobUpdater != null)
-                {
-                    this.blobUpdater.Dispose();
-                    this.blobUpdater = null;
-                }
             }
         }
 
@@ -89,10 +84,6 @@
                 Trace.TraceInformation("Attempt to update model failed.");
             }
         }
-
-        AzureBlobUpdater blobUpdater;
-
-        readonly Action notifyPolicyUpdate;
     }
 }
 
@@ -112,6 +103,9 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
     /// <typeparam name="TContext">The type of the context.</typeparam>
     internal class DecisionServicePolicy<TContext, TActionDependentFeature> : VWPolicy<TContext, TActionDependentFeature>
     {
+        readonly Action notifyPolicyUpdate;
+        readonly string updateTaskId = "model";
+
         public DecisionServicePolicy(
             string modelAddress,
             string modelConnectionString,
@@ -125,7 +119,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
         {
             if (pollDelay != TimeSpan.MinValue)
             {
-                this.blobUpdater = new AzureBlobUpdater("model", modelAddress,
+                AzureBlobUpdater.RegisterTask(this.updateTaskId, modelAddress,
                    modelConnectionString, modelOutputDir, pollDelay,
                    this.UpdateFromFile, modelPollFailureCallback);
             }
@@ -138,10 +132,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
         /// </summary>
         public void StopPolling()
         {
-            if (this.blobUpdater != null)
-            {
-                this.blobUpdater.StopPolling();
-            }
+            AzureBlobUpdater.CancelTask(this.updateTaskId);
         }
 
         /// <summary>
@@ -155,11 +146,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
             if (disposing)
             {
                 // free managed resources
-                if (this.blobUpdater != null)
-                {
-                    this.blobUpdater.Dispose();
-                    this.blobUpdater = null;
-                }
             }
         }
 
@@ -181,10 +167,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
                 Trace.TraceInformation("Attempt to update model failed.");
             }
         }
-
-        AzureBlobUpdater blobUpdater;
-
-        readonly Action notifyPolicyUpdate;
     }
 
 }
