@@ -65,9 +65,11 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                     }
 
                     string blobFileName = Path.Combine(this.updateMetadata.BlobOutputDir, this.updateMetadata.BlobName + "-" + blob.Name);
-
-                    FileMode createMode = File.Exists(blobFileName) ? FileMode.Truncate : FileMode.CreateNew;
-                    blob.DownloadToFile(blobFileName, createMode);
+                    using (var ms = new MemoryStream())
+                    {
+                        blob.DownloadToStream(ms);
+                        File.WriteAllBytes(blobFileName, ms.ToArray());
+                    }
 
                     Trace.TraceInformation("Retrieved new blob for {0}", this.updateMetadata.BlobName);
 
