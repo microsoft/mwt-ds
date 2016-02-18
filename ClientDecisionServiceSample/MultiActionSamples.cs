@@ -29,28 +29,27 @@ namespace ClientDecisionServiceSample
                 EventHubInputName = ""
             };
 
-            var service = new DecisionServiceJson(serviceConfig);
-
-            string uniqueKey = "json-key-";
-
-            var rg = new Random(uniqueKey.GetHashCode());
-
-            for (int i = 1; i < 20; i++)
+            using (var service = new DecisionServiceJson(serviceConfig))
             {
-                int numActions = rg.Next(5, 10);
+                string uniqueKey = "json-key-";
 
-                DateTime timeStamp = DateTime.UtcNow;
-                string key = uniqueKey + Guid.NewGuid().ToString();
+                var rg = new Random(uniqueKey.GetHashCode());
 
-                var context = ExpandedContext.CreateRandom(numActions, rg);
-                string contextJson = JsonConvert.SerializeObject(context);
-                uint[] action = service.ChooseAction(new UniqueEventID { Key = key, TimeStamp = timeStamp }, contextJson, (uint)numActions);
-                service.ReportReward(i / 100f, new UniqueEventID { Key = key, TimeStamp = timeStamp });
+                for (int i = 1; i < 20; i++)
+                {
+                    int numActions = rg.Next(5, 10);
 
-                System.Threading.Thread.Sleep(1);
+                    DateTime timeStamp = DateTime.UtcNow;
+                    string key = uniqueKey + Guid.NewGuid().ToString();
+
+                    var context = ExpandedContext.CreateRandom(numActions, rg);
+                    string contextJson = JsonConvert.SerializeObject(context);
+                    uint[] action = service.ChooseAction(new UniqueEventID { Key = key, TimeStamp = timeStamp }, contextJson, (uint)numActions);
+                    service.ReportReward(i / 100f, new UniqueEventID { Key = key, TimeStamp = timeStamp });
+
+                    System.Threading.Thread.Sleep(1);
+                }
             }
-
-            service.Flush();
         }
         public static void SampleCodeUsingASAJoinServer()
         {
@@ -64,27 +63,26 @@ namespace ClientDecisionServiceSample
                 GetContextFeaturesFunc = ExpandedContext.GetFeaturesFromContext
             };
 
-            var service = new DecisionService<ExpandedContext, ExpandedActionDependentFeatures>(serviceConfig);
-
-            //string uniqueKey = "sample-asa-client-";
-            string uniqueKey = "scratch-key-";
-
-            var rg = new Random(uniqueKey.GetHashCode());
-
-            for (int i = 1; i < 20; i++)
+            using (var service = new DecisionService<ExpandedContext, ExpandedActionDependentFeatures>(serviceConfig))
             {
-                int numActions = rg.Next(5, 10);
+                //string uniqueKey = "sample-asa-client-";
+                string uniqueKey = "scratch-key-";
 
-                DateTime timeStamp = DateTime.UtcNow;
-                string key = uniqueKey + Guid.NewGuid().ToString();
+                var rg = new Random(uniqueKey.GetHashCode());
 
-                uint[] action = service.ChooseAction(new UniqueEventID { Key = key, TimeStamp = timeStamp }, ExpandedContext.CreateRandom(numActions, rg), (uint)numActions);
-                service.ReportReward(i / 100f, new UniqueEventID { Key = key, TimeStamp = timeStamp });
+                for (int i = 1; i < 20; i++)
+                {
+                    int numActions = rg.Next(5, 10);
 
-                System.Threading.Thread.Sleep(1);
+                    DateTime timeStamp = DateTime.UtcNow;
+                    string key = uniqueKey + Guid.NewGuid().ToString();
+
+                    uint[] action = service.ChooseAction(new UniqueEventID { Key = key, TimeStamp = timeStamp }, ExpandedContext.CreateRandom(numActions, rg), (uint)numActions);
+                    service.ReportReward(i / 100f, new UniqueEventID { Key = key, TimeStamp = timeStamp });
+
+                    System.Threading.Thread.Sleep(1);
+                }
             }
-
-            service.Flush();
         }
         public static void SampleCodeUsingEventHubUploader()
         {
@@ -138,43 +136,42 @@ namespace ClientDecisionServiceSample
                 PollingForSettingsPeriod = TimeSpan.MinValue
             };
 
-            var service = new DecisionService<ADFContext, ADFFeatures>(serviceConfig);
-
-            string uniqueKey = "eventid";
-
-            var rg = new Random(uniqueKey.GetHashCode());
-
-            var vwPolicy = new VWPolicy<ADFContext, ADFFeatures>(GetFeaturesFromContext);
-
-            for (int i = 1; i < 100; i++)
+            using (var service = new DecisionService<ADFContext, ADFFeatures>(serviceConfig))
             {
-                if (i == 30)
+                string uniqueKey = "eventid";
+
+                var rg = new Random(uniqueKey.GetHashCode());
+
+                var vwPolicy = new VWPolicy<ADFContext, ADFFeatures>(GetFeaturesFromContext);
+
+                for (int i = 1; i < 100; i++)
                 {
-                    string vwModelFile = TrainNewVWModelWithRandomData(numExamples: 5, numActions: 10);
+                    if (i == 30)
+                    {
+                        string vwModelFile = TrainNewVWModelWithRandomData(numExamples: 5, numActions: 10);
 
-                    vwPolicy = new VWPolicy<ADFContext, ADFFeatures>(GetFeaturesFromContext, vwModelFile);
+                        vwPolicy = new VWPolicy<ADFContext, ADFFeatures>(GetFeaturesFromContext, vwModelFile);
 
-                    // Alternatively, VWPolicy can also be loaded from an IO stream:
-                    // var vwModelStream = new MemoryStream(File.ReadAllBytes(vwModelFile));
-                    // vwPolicy = new VWPolicy<ADFContext, ADFFeatures>(GetFeaturesFromContext, vwModelStream);
+                        // Alternatively, VWPolicy can also be loaded from an IO stream:
+                        // var vwModelStream = new MemoryStream(File.ReadAllBytes(vwModelFile));
+                        // vwPolicy = new VWPolicy<ADFContext, ADFFeatures>(GetFeaturesFromContext, vwModelStream);
 
-                    // Manually updates decision service with a new policy for consuming VW models.
-                    service.UpdatePolicy(vwPolicy);
+                        // Manually updates decision service with a new policy for consuming VW models.
+                        service.UpdatePolicy(vwPolicy);
+                    }
+                    if (i == 60)
+                    {
+                        string vwModelFile = TrainNewVWModelWithRandomData(numExamples: 6, numActions: 8);
+
+                        // Evolves the existing VWPolicy with a new model
+                        vwPolicy.ModelUpdate(vwModelFile);
+                    }
+
+                    int numActions = rg.Next(5, 10);
+                    uint[] action = service.ChooseAction(new UniqueEventID { Key = uniqueKey }, ADFContext.CreateRandom(numActions, rg), (uint)numActions);
+                    service.ReportReward(i / 100f, new UniqueEventID { Key = uniqueKey });
                 }
-                if (i == 60)
-                {
-                    string vwModelFile = TrainNewVWModelWithRandomData(numExamples: 6, numActions: 8);
-
-                    // Evolves the existing VWPolicy with a new model
-                    vwPolicy.ModelUpdate(vwModelFile);
-                }
-
-                int numActions = rg.Next(5, 10);
-                uint[] action = service.ChooseAction(new UniqueEventID { Key = uniqueKey }, ADFContext.CreateRandom(numActions, rg), (uint)numActions);
-                service.ReportReward(i / 100f, new UniqueEventID { Key = uniqueKey });
             }
-
-            service.Flush();
         }
 
         /// <summary>

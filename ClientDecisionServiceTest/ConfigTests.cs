@@ -38,9 +38,10 @@ namespace ClientDecisionServiceTest
                 }
             };
 
-            var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionService<TestContext>(dsConfig);
-
-            cancelTokenSource.Token.WaitHandle.WaitOne(5000);
+            using (var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionService<TestContext>(dsConfig))
+            {
+                cancelTokenSource.Token.WaitHandle.WaitOne(5000);
+            }
 
             Assert.AreEqual(true, exceptionIsExpected);
         }
@@ -64,37 +65,37 @@ namespace ClientDecisionServiceTest
             dsConfig.BlobOutputDir = settingsPath;
             dsConfig.PollingForSettingsPeriod = TimeSpan.FromMilliseconds(500);
 
-            var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionService<TestContext>(dsConfig);
-
-            string settingsFile = Path.Combine(settingsPath, "settings-" + commandCenter.LocalAzureSettingsBlobName);
-
-            int sleepCount = 20;
-            while (true && sleepCount > 0)
+            using (var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionService<TestContext>(dsConfig))
             {
-                Thread.Sleep(100);
-                sleepCount--;
 
-                if (File.Exists(settingsFile))
+                string settingsFile = Path.Combine(settingsPath, "settings-" + commandCenter.LocalAzureSettingsBlobName);
+
+                int sleepCount = 20;
+                while (true && sleepCount > 0)
                 {
-                    break;
+                    Thread.Sleep(100);
+                    sleepCount--;
+
+                    if (File.Exists(settingsFile))
+                    {
+                        break;
+                    }
+                }
+
+                Assert.AreNotEqual(0, sleepCount);
+
+                while (true)
+                {
+                    try
+                    {
+                        byte[] settingsBytes = File.ReadAllBytes(settingsFile);
+
+                        Assert.IsTrue(Enumerable.SequenceEqual(settingsBytes, commandCenter.GetSettingsBlobContent()));
+                        break;
+                    }
+                    catch (IOException) { }
                 }
             }
-
-            Assert.AreNotEqual(0, sleepCount);
-
-            while (true)
-            {
-                try
-                {
-                    byte[] settingsBytes = File.ReadAllBytes(settingsFile);
-
-                    Assert.IsTrue(Enumerable.SequenceEqual(settingsBytes, commandCenter.GetSettingsBlobContent()));
-                    break;
-                }
-                catch (IOException) { }
-            }
-
-            ds.Flush();
 
             Directory.Delete(settingsPath, true);
         }
@@ -127,9 +128,10 @@ namespace ClientDecisionServiceTest
                 }
             };
 
-            var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig);
-
-            cancelTokenSource.Token.WaitHandle.WaitOne(5000);
+            using (var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig))
+            {
+                cancelTokenSource.Token.WaitHandle.WaitOne(5000);
+            }
 
             Assert.AreEqual(true, exceptionIsExpected);
         }
@@ -153,38 +155,36 @@ namespace ClientDecisionServiceTest
             dsConfig.BlobOutputDir = settingsPath;
             dsConfig.PollingForSettingsPeriod = TimeSpan.FromMilliseconds(500);
 
-            var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig);
-
-            string settingsFile = Path.Combine(settingsPath, "settings-" + commandCenter.LocalAzureSettingsBlobName);
-
-            int sleepCount = 20;
-            while (true && sleepCount > 0)
+            using (var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig))
             {
-                Thread.Sleep(100);
-                sleepCount--;
+                string settingsFile = Path.Combine(settingsPath, "settings-" + commandCenter.LocalAzureSettingsBlobName);
 
-                if (File.Exists(settingsFile))
+                int sleepCount = 20;
+                while (true && sleepCount > 0)
                 {
-                    break;
+                    Thread.Sleep(100);
+                    sleepCount--;
+
+                    if (File.Exists(settingsFile))
+                    {
+                        break;
+                    }
+                }
+
+                Assert.AreNotEqual(0, sleepCount);
+
+                while (true)
+                {
+                    try
+                    {
+                        byte[] settingsBytes = File.ReadAllBytes(settingsFile);
+
+                        Assert.IsTrue(Enumerable.SequenceEqual(settingsBytes, commandCenter.GetSettingsBlobContent()));
+                        break;
+                    }
+                    catch (IOException) { }
                 }
             }
-
-            Assert.AreNotEqual(0, sleepCount);
-
-            while (true)
-            {
-                try
-                {
-                    byte[] settingsBytes = File.ReadAllBytes(settingsFile);
-
-                    Assert.IsTrue(Enumerable.SequenceEqual(settingsBytes, commandCenter.GetSettingsBlobContent()));
-                    break;
-                }
-                catch (IOException) { }
-            }
-
-            ds.Flush();
-
             Directory.Delete(settingsPath, true);
         }
 

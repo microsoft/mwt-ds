@@ -78,6 +78,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 this.Cancel(taskId);
             }
             this.taskToMetadata.Clear();
+            TaskManager.Stop();
         }
     }
 }

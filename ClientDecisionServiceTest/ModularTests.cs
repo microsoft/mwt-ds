@@ -20,7 +20,8 @@ namespace ClientDecisionServiceTest
 
             try
             {
-                var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionService<TestContext>(dsConfig);
+                using (var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionService<TestContext>(dsConfig))
+                { }
             }
             catch (ArgumentException ex)
             {
@@ -39,31 +40,31 @@ namespace ClientDecisionServiceTest
             dsConfig.Recorder = new TestLogger();
 
             int numChooseAction = 100;
-            var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionService<TestContext>(dsConfig); 
-            for (int i = 0; i < numChooseAction; i++)
+            using (var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionService<TestContext>(dsConfig))
             {
-                ds.ChooseAction(new UniqueEventID { Key = i.ToString() }, new TestContext());
+                for (int i = 0; i < numChooseAction; i++)
+                {
+                    ds.ChooseAction(new UniqueEventID { Key = i.ToString() }, new TestContext());
+                }
+
+                Assert.AreEqual(numChooseAction, ((TestLogger)dsConfig.Recorder).NumRecord);
+
+                int numReward = 200;
+                for (int i = 0; i < numReward; i++)
+                {
+                    ds.ReportReward(i, new UniqueEventID { Key = i.ToString() });
+                }
+
+                Assert.AreEqual(numReward, ((TestLogger)dsConfig.Recorder).NumReward);
+
+                int numOutcome = 300;
+                for (int i = 0; i < numOutcome; i++)
+                {
+                    ds.ReportOutcome(i.ToString(), new UniqueEventID { Key = i.ToString() });
+                }
+
+                Assert.AreEqual(numOutcome, ((TestLogger)dsConfig.Recorder).NumOutcome);
             }
-
-            Assert.AreEqual(numChooseAction, ((TestLogger)dsConfig.Recorder).NumRecord);
-
-            int numReward = 200;
-            for (int i = 0; i < numReward; i++)
-            {
-                ds.ReportReward(i, new UniqueEventID { Key = i.ToString() });
-            }
-
-            Assert.AreEqual(numReward, ((TestLogger)dsConfig.Recorder).NumReward);
-
-            int numOutcome = 300;
-            for (int i = 0; i < numOutcome; i++)
-            {
-                ds.ReportOutcome(i.ToString(), new UniqueEventID { Key = i.ToString() });
-            }
-
-            Assert.AreEqual(numOutcome, ((TestLogger)dsConfig.Recorder).NumOutcome);
-
-            ds.Flush();
 
             Assert.AreEqual(0, ((TestLogger)dsConfig.Recorder).NumRecord);
             Assert.AreEqual(0, ((TestLogger)dsConfig.Recorder).NumReward);
@@ -80,31 +81,31 @@ namespace ClientDecisionServiceTest
             dsConfig.Recorder = new TestLogger();
 
             int numChooseAction = 100;
-            var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionService<TestContext>(dsConfig);
-            for (int i = 0; i < numChooseAction; i++)
+            using (var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionService<TestContext>(dsConfig))
             {
-                ds.ChooseAction(new UniqueEventID { Key = i.ToString() }, new TestContext());
+                for (int i = 0; i < numChooseAction; i++)
+                {
+                    ds.ChooseAction(new UniqueEventID { Key = i.ToString() }, new TestContext());
+                }
+
+                Assert.AreEqual(numChooseAction, ((TestLogger)dsConfig.Recorder).NumRecord);
+
+                int numReward = 200;
+                for (int i = 0; i < numReward; i++)
+                {
+                    ds.ReportReward(i, new UniqueEventID { Key = i.ToString() });
+                }
+
+                Assert.AreEqual(numReward, ((TestLogger)dsConfig.Recorder).NumReward);
+
+                int numOutcome = 300;
+                for (int i = 0; i < numOutcome; i++)
+                {
+                    ds.ReportOutcome(i.ToString(), new UniqueEventID { Key = i.ToString() });
+                }
+
+                Assert.AreEqual(numOutcome, ((TestLogger)dsConfig.Recorder).NumOutcome);
             }
-
-            Assert.AreEqual(numChooseAction, ((TestLogger)dsConfig.Recorder).NumRecord);
-
-            int numReward = 200;
-            for (int i = 0; i < numReward; i++)
-            {
-                ds.ReportReward(i, new UniqueEventID { Key = i.ToString() });
-            }
-
-            Assert.AreEqual(numReward, ((TestLogger)dsConfig.Recorder).NumReward);
-
-            int numOutcome = 300;
-            for (int i = 0; i < numOutcome; i++)
-            {
-                ds.ReportOutcome(i.ToString(), new UniqueEventID { Key = i.ToString() });
-            }
-
-            Assert.AreEqual(numOutcome, ((TestLogger)dsConfig.Recorder).NumOutcome);
-
-            ds.Flush();
 
             Assert.AreEqual(0, ((TestLogger)dsConfig.Recorder).NumRecord);
             Assert.AreEqual(0, ((TestLogger)dsConfig.Recorder).NumReward);
@@ -124,7 +125,8 @@ namespace ClientDecisionServiceTest
             bool isExceptionExpected = false;
             try
             {
-                var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionService<TestContext>(dsConfig);
+                using (var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionService<TestContext>(dsConfig))
+                { }
             }
             catch (InvalidDataException)
             {
@@ -144,7 +146,8 @@ namespace ClientDecisionServiceTest
 
             try
             {
-                var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig);
+                using (var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig))
+                { }
             }
             catch (ArgumentException ex)
             {
@@ -163,32 +166,31 @@ namespace ClientDecisionServiceTest
             dsConfig.Recorder = new TestLogger();
 
             int numChooseAction = 100;
-            var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig);
-            for (int i = 0; i < numChooseAction; i++)
+            using (var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig))
             {
-                ds.ChooseAction(new UniqueEventID { Key = i.ToString() }, new TestContext());
+                for (int i = 0; i < numChooseAction; i++)
+                {
+                    ds.ChooseAction(new UniqueEventID { Key = i.ToString() }, new TestContext());
+                }
+
+                Assert.AreEqual(numChooseAction, ((TestLogger)dsConfig.Recorder).NumRecord);
+
+                int numReward = 200;
+                for (int i = 0; i < numReward; i++)
+                {
+                    ds.ReportReward(i, new UniqueEventID { Key = i.ToString() });
+                }
+
+                Assert.AreEqual(numReward, ((TestLogger)dsConfig.Recorder).NumReward);
+
+                int numOutcome = 300;
+                for (int i = 0; i < numOutcome; i++)
+                {
+                    ds.ReportOutcome(i.ToString(), new UniqueEventID { Key = i.ToString() });
+                }
+
+                Assert.AreEqual(numOutcome, ((TestLogger)dsConfig.Recorder).NumOutcome);
             }
-
-            Assert.AreEqual(numChooseAction, ((TestLogger)dsConfig.Recorder).NumRecord);
-
-            int numReward = 200;
-            for (int i = 0; i < numReward; i++)
-            {
-                ds.ReportReward(i, new UniqueEventID { Key = i.ToString() });
-            }
-
-            Assert.AreEqual(numReward, ((TestLogger)dsConfig.Recorder).NumReward);
-
-            int numOutcome = 300;
-            for (int i = 0; i < numOutcome; i++)
-            {
-                ds.ReportOutcome(i.ToString(), new UniqueEventID { Key = i.ToString() });
-            }
-
-            Assert.AreEqual(numOutcome, ((TestLogger)dsConfig.Recorder).NumOutcome);
-
-            ds.Flush();
-
             Assert.AreEqual(0, ((TestLogger)dsConfig.Recorder).NumRecord);
             Assert.AreEqual(0, ((TestLogger)dsConfig.Recorder).NumReward);
             Assert.AreEqual(0, ((TestLogger)dsConfig.Recorder).NumOutcome);
@@ -208,32 +210,31 @@ namespace ClientDecisionServiceTest
             dsConfig.PollingForSettingsPeriod = TimeSpan.MinValue;
 
             int numChooseAction = 100;
-            var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig);
-            for (int i = 0; i < numChooseAction; i++)
+            using (var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig))
             {
-                ds.ChooseAction(new UniqueEventID { Key = i.ToString() }, new TestContext());
+                for (int i = 0; i < numChooseAction; i++)
+                {
+                    ds.ChooseAction(new UniqueEventID { Key = i.ToString() }, new TestContext());
+                }
+
+                Assert.AreEqual(numChooseAction, ((TestLogger)dsConfig.Recorder).NumRecord);
+
+                int numReward = 200;
+                for (int i = 0; i < numReward; i++)
+                {
+                    ds.ReportReward(i, new UniqueEventID { Key = i.ToString() });
+                }
+
+                Assert.AreEqual(numReward, ((TestLogger)dsConfig.Recorder).NumReward);
+
+                int numOutcome = 300;
+                for (int i = 0; i < numOutcome; i++)
+                {
+                    ds.ReportOutcome(i.ToString(), new UniqueEventID { Key = i.ToString() });
+                }
+
+                Assert.AreEqual(numOutcome, ((TestLogger)dsConfig.Recorder).NumOutcome);
             }
-
-            Assert.AreEqual(numChooseAction, ((TestLogger)dsConfig.Recorder).NumRecord);
-
-            int numReward = 200;
-            for (int i = 0; i < numReward; i++)
-            {
-                ds.ReportReward(i, new UniqueEventID { Key = i.ToString() });
-            }
-
-            Assert.AreEqual(numReward, ((TestLogger)dsConfig.Recorder).NumReward);
-
-            int numOutcome = 300;
-            for (int i = 0; i < numOutcome; i++)
-            {
-                ds.ReportOutcome(i.ToString(), new UniqueEventID { Key = i.ToString() });
-            }
-
-            Assert.AreEqual(numOutcome, ((TestLogger)dsConfig.Recorder).NumOutcome);
-
-            ds.Flush();
-
             Assert.AreEqual(0, ((TestLogger)dsConfig.Recorder).NumRecord);
             Assert.AreEqual(0, ((TestLogger)dsConfig.Recorder).NumReward);
             Assert.AreEqual(0, ((TestLogger)dsConfig.Recorder).NumOutcome);
@@ -254,7 +255,8 @@ namespace ClientDecisionServiceTest
             bool isExceptionExpected = false;
             try
             {
-                var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig);
+                using (var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig))
+                { }
             }
             catch (InvalidDataException)
             {

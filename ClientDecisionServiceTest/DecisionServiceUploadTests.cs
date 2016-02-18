@@ -28,17 +28,16 @@ namespace ClientDecisionServiceTest
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
 
-            var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionService<TestContext>(dsConfig);
-
-            uint chosenAction = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
-
-            ds.Flush();
-
-            Assert.AreEqual(1, joinServer.RequestCount);
-            Assert.AreEqual(1, joinServer.EventBatchList.Count);
-            Assert.AreEqual(1, joinServer.EventBatchList[0].ExperimentalUnitFragments.Count);
-            Assert.AreEqual(uniqueKey, joinServer.EventBatchList[0].ExperimentalUnitFragments[0].Id);
-            Assert.IsTrue(joinServer.EventBatchList[0].ExperimentalUnitFragments[0].Value.ToLower().Contains("\"a\":" + chosenAction + ","));
+            using (var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionService<TestContext>(dsConfig))
+            {
+                uint chosenAction = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
+                ds.Flush();
+                Assert.AreEqual(1, joinServer.RequestCount);
+                Assert.AreEqual(1, joinServer.EventBatchList.Count);
+                Assert.AreEqual(1, joinServer.EventBatchList[0].ExperimentalUnitFragments.Count);
+                Assert.AreEqual(uniqueKey, joinServer.EventBatchList[0].ExperimentalUnitFragments[0].Id);
+                Assert.IsTrue(joinServer.EventBatchList[0].ExperimentalUnitFragments[0].Value.ToLower().Contains("\"a\":" + chosenAction + ","));
+            }
         }
 
         [TestMethod]
@@ -83,19 +82,16 @@ namespace ClientDecisionServiceTest
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
 
-            var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionService<TestContext>(dsConfig);
-
             int numEvents = 1000;
-
             var chosenActions = new ConcurrentBag<uint>();
-
-            Parallel.For(0, numEvents, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, (i) =>
+            using (var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionService<TestContext>(dsConfig))
             {
-                chosenActions.Add(ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext()));
-                ds.ReportOutcome(new { value = createObservation(i) }, new UniqueEventID { Key = uniqueKey });
-            });
-
-            ds.Flush();
+                Parallel.For(0, numEvents, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, (i) =>
+                {
+                    chosenActions.Add(ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext()));
+                    ds.ReportOutcome(new { value = createObservation(i) }, new UniqueEventID { Key = uniqueKey });
+                });
+            }
 
             List<PartialDecisionServiceMessage> batchList = this.joinServer.EventBatchList;
             int numActualEvents = batchList.Sum(b => b.ExperimentalUnitFragments.Count);
@@ -155,17 +151,16 @@ namespace ClientDecisionServiceTest
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
 
-            var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig);
-
-            uint[] chosenActions = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
-
-            ds.Flush();
-
-            Assert.AreEqual(1, joinServer.RequestCount);
-            Assert.AreEqual(1, joinServer.EventBatchList.Count);
-            Assert.AreEqual(1, joinServer.EventBatchList[0].ExperimentalUnitFragments.Count);
-            Assert.AreEqual(uniqueKey, joinServer.EventBatchList[0].ExperimentalUnitFragments[0].Id);
-            Assert.IsTrue(joinServer.EventBatchList[0].ExperimentalUnitFragments[0].Value.ToLower().Contains("\"a\":[" + string.Join(",", chosenActions) + "],"));
+            using (var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig))
+            {
+                uint[] chosenActions = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
+                ds.Flush();
+                Assert.AreEqual(1, joinServer.RequestCount);
+                Assert.AreEqual(1, joinServer.EventBatchList.Count);
+                Assert.AreEqual(1, joinServer.EventBatchList[0].ExperimentalUnitFragments.Count);
+                Assert.AreEqual(uniqueKey, joinServer.EventBatchList[0].ExperimentalUnitFragments[0].Id);
+                Assert.IsTrue(joinServer.EventBatchList[0].ExperimentalUnitFragments[0].Value.ToLower().Contains("\"a\":[" + string.Join(",", chosenActions) + "],"));
+            }
         }
 
         [TestMethod]
@@ -182,15 +177,13 @@ namespace ClientDecisionServiceTest
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
 
-            var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig);
-
-            uint[] chosenAction1 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
-            uint[] chosenAction2 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
-            ds.ReportReward(1.0f, new UniqueEventID { Key = uniqueKey });
-            ds.ReportOutcome(new { value = "test outcome" }, new UniqueEventID { Key = uniqueKey });
-
-            ds.Flush();
-
+            using (var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig))
+            {
+                uint[] chosenAction1 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
+                uint[] chosenAction2 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
+                ds.ReportReward(1.0f, new UniqueEventID { Key = uniqueKey });
+                ds.ReportOutcome(new { value = "test outcome" }, new UniqueEventID { Key = uniqueKey });
+            }
             Assert.AreEqual(4, joinServer.EventBatchList.Sum(batch => batch.ExperimentalUnitFragments.Count));
         }
 
@@ -223,13 +216,13 @@ namespace ClientDecisionServiceTest
                 ProbabilityOfDrop = .5f
             };
 
-            var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig);
-            for (int i = 0; i < numEvents; i++)
+            using (var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig))
             {
-                uint[] chosenAction1 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
+                for (int i = 0; i < numEvents; i++)
+                {
+                    uint[] chosenAction1 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
+                }
             }
-            ds.Flush();
-
             // Some events must have been dropped so the total count cannot be same as original
             Assert.IsTrue(joinServer.EventBatchList.Sum(batch => batch.ExperimentalUnitFragments.Count) < numEvents);
 
@@ -269,20 +262,16 @@ namespace ClientDecisionServiceTest
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
 
-            var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig);
-
             int numEvents = 1000;
-
             var chosenActions = new ConcurrentBag<uint[]>();
-
-            Parallel.For(0, numEvents, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, (i) =>
+            using (var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig))
             {
-                chosenActions.Add(ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext()));
-                ds.ReportOutcome(new { value = createObservation(i) }, new UniqueEventID { Key = uniqueKey });
-            });
-
-            ds.Flush();
-
+                Parallel.For(0, numEvents, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, (i) =>
+                {
+                    chosenActions.Add(ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext()));
+                    ds.ReportOutcome(new { value = createObservation(i) }, new UniqueEventID { Key = uniqueKey });
+                });
+            }
             List<PartialDecisionServiceMessage> batchList = this.joinServer.EventBatchList;
             int numActualEvents = batchList.Sum(b => b.ExperimentalUnitFragments.Count);
             Assert.AreEqual(numEvents * 2, numActualEvents);

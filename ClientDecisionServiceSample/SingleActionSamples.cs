@@ -59,45 +59,42 @@ namespace ClientDecisionServiceSample
             };
 
             // Create the main service object with above configurations.
-            var service = new DecisionServiceJson(serviceConfig);
-
-            var random = new Random();
-            for (int user = 0; user < numUsers; user++)
+            using (var service = new DecisionServiceJson(serviceConfig))
             {
-                // Generate a random GUID id for each user.
-                var userId = Guid.NewGuid().ToString();
+                var random = new Random();
+                for (int user = 0; user < numUsers; user++)
+                {
+                    // Generate a random GUID id for each user.
+                    var userId = Guid.NewGuid().ToString();
 
-                // Generate random feature vector for each user.
-                var features = Enumerable
-                    .Range(user, numFeatures)
-                    .Select(uid => (float)random.NextDouble())
-                    .ToArray();
+                    // Generate random feature vector for each user.
+                    var features = Enumerable
+                        .Range(user, numFeatures)
+                        .Select(uid => (float)random.NextDouble())
+                        .ToArray();
 
-                // Create the context object
-                var userContext = JsonConvert.SerializeObject(new SimpleContext(features));
+                    // Create the context object
+                    var userContext = JsonConvert.SerializeObject(new SimpleContext(features));
 
-                var timestamp = DateTime.UtcNow;
+                    var timestamp = DateTime.UtcNow;
 
-                // Perform exploration given user features.
-                uint topicId = service.ChooseAction(new UniqueEventID { Key = userId, TimeStamp = timestamp }, context: userContext);
+                    // Perform exploration given user features.
+                    uint topicId = service.ChooseAction(new UniqueEventID { Key = userId, TimeStamp = timestamp }, context: userContext);
 
-                // Display the news topic chosen by exploration process.
-                DisplayNewsTopic(topicId, user + 1);
+                    // Display the news topic chosen by exploration process.
+                    DisplayNewsTopic(topicId, user + 1);
 
-                // Report {0,1} reward as a simple float.
-                // In a real scenario, one could associated a reward of 1 if user
-                // clicks on the article and 0 otherwise.
-                float reward = 1 - (user % 2);
-                service.ReportReward(reward, new UniqueEventID { Key = userId, TimeStamp = timestamp });
+                    // Report {0,1} reward as a simple float.
+                    // In a real scenario, one could associated a reward of 1 if user
+                    // clicks on the article and 0 otherwise.
+                    float reward = 1 - (user % 2);
+                    service.ReportReward(reward, new UniqueEventID { Key = userId, TimeStamp = timestamp });
 
-                System.Threading.Thread.Sleep(1);
+                    System.Threading.Thread.Sleep(1);
+                }
+
+                System.Threading.Thread.Sleep(TimeSpan.FromMinutes(10));
             }
-
-            System.Threading.Thread.Sleep(TimeSpan.FromMinutes(10));
-
-            // There shouldn't be any data in the buffer at this point 
-            // but flush the service to ensure they are uploaded if otherwise.
-            service.Flush();
         }
 
         /// <summary>
@@ -144,39 +141,36 @@ namespace ClientDecisionServiceSample
             };
 
             // Create the main service object with above configurations.
-            var service = new DecisionService<SimpleContext>(serviceConfig);
-
-            var random = new Random();
-            for (int user = 0; user < numUsers; user++)
+            using (var service = new DecisionService<SimpleContext>(serviceConfig))
             {
-                // Generate a random GUID id for each user.
-                var userId = Guid.NewGuid().ToString();
+                var random = new Random();
+                for (int user = 0; user < numUsers; user++)
+                {
+                    // Generate a random GUID id for each user.
+                    var userId = Guid.NewGuid().ToString();
 
-                // Generate random feature vector for each user.
-                var features = Enumerable
-                    .Range(user, numFeatures)
-                    .Select(uid => (float)random.NextDouble())
-                    .ToArray();
+                    // Generate random feature vector for each user.
+                    var features = Enumerable
+                        .Range(user, numFeatures)
+                        .Select(uid => (float)random.NextDouble())
+                        .ToArray();
 
-                // Create the context object
-                var userContext = new SimpleContext(features);
+                    // Create the context object
+                    var userContext = new SimpleContext(features);
 
-                // Perform exploration given user features.
-                uint topicId = service.ChooseAction(new UniqueEventID { Key = userId }, context: userContext);
+                    // Perform exploration given user features.
+                    uint topicId = service.ChooseAction(new UniqueEventID { Key = userId }, context: userContext);
 
-                // Display the news topic chosen by exploration process.
-                DisplayNewsTopic(topicId, user + 1);
+                    // Display the news topic chosen by exploration process.
+                    DisplayNewsTopic(topicId, user + 1);
 
-                // Report {0,1} reward as a simple float.
-                // In a real scenario, one could associated a reward of 1 if user
-                // clicks on the article and 0 otherwise.
-                float reward = 1 - (user % 2);
-                service.ReportReward(reward, new UniqueEventID { Key = userId });
+                    // Report {0,1} reward as a simple float.
+                    // In a real scenario, one could associated a reward of 1 if user
+                    // clicks on the article and 0 otherwise.
+                    float reward = 1 - (user % 2);
+                    service.ReportReward(reward, new UniqueEventID { Key = userId });
+                }
             }
-
-            // There shouldn't be any data in the buffer at this point 
-            // but flush the service to ensure they are uploaded if otherwise.
-            service.Flush();
         }
 
         /// <summary>
@@ -222,41 +216,38 @@ namespace ClientDecisionServiceSample
             };
 
             // Create the main service object with above configurations.
-            var service = new DecisionService<UserContext>(serviceConfig);
-
-            var random = new Random();
-            for (int user = 0; user < numUsers; user++)
+            using (var service = new DecisionService<UserContext>(serviceConfig))
             {
-                // Generate a random GUID id for each user.
-                var userId = Guid.NewGuid().ToString();
-
-                // Generate random feature vector for each user.
-                var userContext = new UserContext();
-                for (int f = 1; f <= 10; f++)
+                var random = new Random();
+                for (int user = 0; user < numUsers; user++)
                 {
-                    userContext.Add(f.ToString(), (float)random.NextDouble());
+                    // Generate a random GUID id for each user.
+                    var userId = Guid.NewGuid().ToString();
+
+                    // Generate random feature vector for each user.
+                    var userContext = new UserContext();
+                    for (int f = 1; f <= 10; f++)
+                    {
+                        userContext.Add(f.ToString(), (float)random.NextDouble());
+                    }
+
+                    // Perform exploration given user features.
+                    uint topicId = service.ChooseAction(new UniqueEventID { Key = userId }, context: userContext);
+
+                    // Display the news topic chosen by exploration process.
+                    DisplayNewsTopic(topicId, user + 1);
+
+                    // Report {0,1} reward as a simple float.
+                    // In a real scenario, one could associated a reward of 1 if user
+                    // clicks on the article and 0 otherwise.
+                    float reward = 1 - (user % 2);
+                    service.ReportReward(reward, new UniqueEventID { Key = userId });
                 }
 
-                // Perform exploration given user features.
-                uint topicId = service.ChooseAction(new UniqueEventID { Key = userId }, context: userContext);
+                Console.WriteLine("DO NOT CLOSE THE CONSOLE WINDOW AT THIS POINT IF YOU ARE FOLLOWING THE GETTING STARTED GUIDE.");
 
-                // Display the news topic chosen by exploration process.
-                DisplayNewsTopic(topicId, user + 1);
-
-                // Report {0,1} reward as a simple float.
-                // In a real scenario, one could associated a reward of 1 if user
-                // clicks on the article and 0 otherwise.
-                float reward = 1 - (user % 2);
-                service.ReportReward(reward, new UniqueEventID { Key = userId });
+                System.Threading.Thread.Sleep(TimeSpan.FromHours(24));
             }
-
-            Console.WriteLine("DO NOT CLOSE THE CONSOLE WINDOW AT THIS POINT IF YOU ARE FOLLOWING THE GETTING STARTED GUIDE.");
-
-            System.Threading.Thread.Sleep(TimeSpan.FromHours(24));
-
-            // There shouldn't be any data in the buffer at this point 
-            // but flush the service to ensure they are uploaded if otherwise.
-            service.Flush();
         }
 
         /// <summary>

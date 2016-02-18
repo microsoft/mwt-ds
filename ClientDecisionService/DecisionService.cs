@@ -443,7 +443,10 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
             }
         }
 
-        public void Dispose() { }
+        public void Dispose() 
+        {
+            this.Flush();
+        }
 
         private ApplicationTransferMetadata GetBlobLocations(string token, string redirectionBlobLocation)
         {

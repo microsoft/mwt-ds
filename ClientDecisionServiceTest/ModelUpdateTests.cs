@@ -31,43 +31,42 @@ namespace ClientDecisionServiceTest
                 PollingForSettingsPeriod = TimeSpan.MinValue
             };
 
-            var ds = new DecisionService<TestRcv1Context>(dsConfig);
-
-            string uniqueKey = "eventid";
-
-            string modelFile = "test_vw_adf{0}.model";
             var actualModelFiles = new List<string>();
-
-            for (int i = 1; i <= 100; i++)
+            using (var ds = new DecisionService<TestRcv1Context>(dsConfig))
             {
-                Random rg = new Random(i);
+                string uniqueKey = "eventid";
 
-                if (i % 50 == 1)
+                string modelFile = "test_vw_adf{0}.model";
+
+                for (int i = 1; i <= 100; i++)
                 {
-                    int modelIndex = i / 50;
-                    string currentModelFile = string.Format(modelFile, modelIndex);
+                    Random rg = new Random(i);
 
-                    byte[] modelContent = commandCenter.GetCBModelBlobContent(numExamples: 3 + modelIndex, numFeatures: numFeatures, numActions: numActions);
-                    System.IO.File.WriteAllBytes(currentModelFile, modelContent);
+                    if (i % 50 == 1)
+                    {
+                        int modelIndex = i / 50;
+                        string currentModelFile = string.Format(modelFile, modelIndex);
 
-                    ds.UpdatePolicy(new VWPolicy<TestRcv1Context>(currentModelFile));
+                        byte[] modelContent = commandCenter.GetCBModelBlobContent(numExamples: 3 + modelIndex, numFeatures: numFeatures, numActions: numActions);
+                        System.IO.File.WriteAllBytes(currentModelFile, modelContent);
 
-                    actualModelFiles.Add(currentModelFile);
+                        ds.UpdatePolicy(new VWPolicy<TestRcv1Context>(currentModelFile));
+
+                        actualModelFiles.Add(currentModelFile);
+                    }
+
+                    var context = TestRcv1Context.CreateRandom(numActions, numFeatures, rand: rg);
+
+                    DateTime timeStamp = DateTime.UtcNow;
+
+                    uint action = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, context);
+
+                    // verify the actions are in the expected range
+                    Assert.IsTrue(action >= 1 && action <= numActions);
+
+                    ds.ReportReward(i / 100f, new UniqueEventID { Key = uniqueKey });
                 }
-
-                var context = TestRcv1Context.CreateRandom(numActions, numFeatures, rand: rg);
-
-                DateTime timeStamp = DateTime.UtcNow;
-
-                uint action = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, context);
-
-                // verify the actions are in the expected range
-                Assert.IsTrue(action >= 1 && action <= numActions);
-
-                ds.ReportReward(i / 100f, new UniqueEventID { Key = uniqueKey });
             }
-
-            ds.Flush();
 
             Assert.AreEqual(200, joinServer.EventBatchList.Sum(b => b.ExperimentalUnitFragments.Count));
 
@@ -95,41 +94,40 @@ namespace ClientDecisionServiceTest
                 PollingForSettingsPeriod = TimeSpan.MinValue
             };
 
-            var ds = new DecisionService<TestRcv1Context>(dsConfig);
-
-            string uniqueKey = "eventid";
-
-            string modelFile = "test_vw_adf{0}.model";
-
-            for (int i = 1; i <= 100; i++)
+            using (var ds = new DecisionService<TestRcv1Context>(dsConfig))
             {
-                Random rg = new Random(i);
+                string uniqueKey = "eventid";
 
-                if (i % 50 == 1)
+                string modelFile = "test_vw_adf{0}.model";
+
+                for (int i = 1; i <= 100; i++)
                 {
-                    int modelIndex = i / 50;
-                    string currentModelFile = string.Format(modelFile, modelIndex);
+                    Random rg = new Random(i);
 
-                    byte[] modelContent = commandCenter.GetCBModelBlobContent(numExamples: 3 + modelIndex, numFeatures: numFeatures, numActions: numActions);
+                    if (i % 50 == 1)
+                    {
+                        int modelIndex = i / 50;
+                        string currentModelFile = string.Format(modelFile, modelIndex);
 
-                    var modelStream = new MemoryStream(modelContent);
+                        byte[] modelContent = commandCenter.GetCBModelBlobContent(numExamples: 3 + modelIndex, numFeatures: numFeatures, numActions: numActions);
 
-                    ds.UpdatePolicy(new VWPolicy<TestRcv1Context>(modelStream));
+                        var modelStream = new MemoryStream(modelContent);
+
+                        ds.UpdatePolicy(new VWPolicy<TestRcv1Context>(modelStream));
+                    }
+
+                    var context = TestRcv1Context.CreateRandom(numActions, numFeatures, rg);
+
+                    DateTime timeStamp = DateTime.UtcNow;
+
+                    uint action = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, context);
+
+                    // verify the actions are in the expected range
+                    Assert.IsTrue(action >= 1 && action <= numActions);
+
+                    ds.ReportReward(i / 100f, new UniqueEventID { Key = uniqueKey });
                 }
-
-                var context = TestRcv1Context.CreateRandom(numActions, numFeatures, rg);
-
-                DateTime timeStamp = DateTime.UtcNow;
-
-                uint action = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, context);
-
-                // verify the actions are in the expected range
-                Assert.IsTrue(action >= 1 && action <= numActions);
-
-                ds.ReportReward(i / 100f, new UniqueEventID { Key = uniqueKey });
             }
-
-            ds.Flush();
 
             Assert.AreEqual(200, joinServer.EventBatchList.Sum(b => b.ExperimentalUnitFragments.Count));
         }

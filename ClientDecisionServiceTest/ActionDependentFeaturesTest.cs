@@ -28,28 +28,26 @@ namespace ClientDecisionServiceTest
                 LoggingServiceAddress = MockJoinServer.MockJoinServerAddress
             };
 
-            var ds = new DecisionService<TestADFContext, DummyADFType>(dsConfig);
-
-            string uniqueKey = "eventid";
-
-            for (int i = 1; i <= 100; i++)
+            using (var ds = new DecisionService<TestADFContext, DummyADFType>(dsConfig))
             {
-                var adfContext = new TestADFContext(i);
-                uint[] action = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, adfContext, (uint)adfContext.ActionDependentFeatures.Count);
+                string uniqueKey = "eventid";
 
-                Assert.AreEqual(i, action.Length);
+                for (int i = 1; i <= 100; i++)
+                {
+                    var adfContext = new TestADFContext(i);
+                    uint[] action = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, adfContext, (uint)adfContext.ActionDependentFeatures.Count);
 
-                // verify all unique actions in the list
-                Assert.AreEqual(action.Length, action.Distinct().Count());
+                    Assert.AreEqual(i, action.Length);
 
-                // verify the actions are in the expected range
-                Assert.AreEqual((i * (i + 1)) / 2, action.Sum(a => a));
+                    // verify all unique actions in the list
+                    Assert.AreEqual(action.Length, action.Distinct().Count());
 
-                ds.ReportReward(i / 100f, new UniqueEventID { Key = uniqueKey });
+                    // verify the actions are in the expected range
+                    Assert.AreEqual((i * (i + 1)) / 2, action.Sum(a => a));
+
+                    ds.ReportReward(i / 100f, new UniqueEventID { Key = uniqueKey });
+                }
             }
-
-            ds.Flush();
-
             Assert.AreEqual(200, joinServer.EventBatchList.Sum(b => b.ExperimentalUnitFragments.Count));
         }
 
@@ -68,48 +66,46 @@ namespace ClientDecisionServiceTest
                 PollingForSettingsPeriod = TimeSpan.MinValue
             };
 
-            var ds = new DecisionService<TestADFContextWithFeatures, TestADFFeatures>(dsConfig);
-
-            string uniqueKey = "eventid";
-
-            string modelFile = "test_vw_adf{0}.model";
             var actualModelFiles = new List<string>();
-
-            for (int i = 1; i <= 100; i++)
+            using (var ds = new DecisionService<TestADFContextWithFeatures, TestADFFeatures>(dsConfig))
             {
-                Random rg = new Random(i);
+                string uniqueKey = "eventid";
 
-                if (i % 50 == 1)
+                string modelFile = "test_vw_adf{0}.model";
+
+                for (int i = 1; i <= 100; i++)
                 {
-                    int modelIndex = i / 50;
-                    string currentModelFile = string.Format(modelFile, modelIndex);
+                    Random rg = new Random(i);
 
-                    byte[] modelContent = commandCenter.GetCBADFModelBlobContent(numExamples: 3 + modelIndex, numFeatureVectors: 4 + modelIndex);
-                    System.IO.File.WriteAllBytes(currentModelFile, modelContent);
+                    if (i % 50 == 1)
+                    {
+                        int modelIndex = i / 50;
+                        string currentModelFile = string.Format(modelFile, modelIndex);
 
-                    ds.UpdatePolicy(new VWPolicy<TestADFContextWithFeatures, TestADFFeatures>(GetFeaturesFromContext, currentModelFile));
+                        byte[] modelContent = commandCenter.GetCBADFModelBlobContent(numExamples: 3 + modelIndex, numFeatureVectors: 4 + modelIndex);
+                        System.IO.File.WriteAllBytes(currentModelFile, modelContent);
 
-                    actualModelFiles.Add(currentModelFile);
+                        ds.UpdatePolicy(new VWPolicy<TestADFContextWithFeatures, TestADFFeatures>(GetFeaturesFromContext, currentModelFile));
+
+                        actualModelFiles.Add(currentModelFile);
+                    }
+
+                    int numActions = rg.Next(5, 20);
+                    var context = TestADFContextWithFeatures.CreateRandom(numActions, rg);
+
+                    uint[] action = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, context, (uint)context.ActionDependentFeatures.Count);
+
+                    Assert.AreEqual(numActions, action.Length);
+
+                    // verify all unique actions in the list
+                    Assert.AreEqual(action.Length, action.Distinct().Count());
+
+                    // verify the actions are in the expected range
+                    Assert.AreEqual((numActions * (numActions + 1)) / 2, action.Sum(a => a));
+
+                    ds.ReportReward(i / 100f, new UniqueEventID { Key = uniqueKey });
                 }
-
-                int numActions = rg.Next(5, 20);
-                var context = TestADFContextWithFeatures.CreateRandom(numActions, rg);
-
-                uint[] action = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, context, (uint)context.ActionDependentFeatures.Count);
-
-                Assert.AreEqual(numActions, action.Length);
-
-                // verify all unique actions in the list
-                Assert.AreEqual(action.Length, action.Distinct().Count());
-
-                // verify the actions are in the expected range
-                Assert.AreEqual((numActions * (numActions + 1)) / 2, action.Sum(a => a));
-
-                ds.ReportReward(i / 100f, new UniqueEventID { Key = uniqueKey });
             }
-
-            ds.Flush();
-
             Assert.AreEqual(200, joinServer.EventBatchList.Sum(b => b.ExperimentalUnitFragments.Count));
 
             foreach (string actualModelFile in actualModelFiles)
@@ -133,46 +129,46 @@ namespace ClientDecisionServiceTest
                 PollingForSettingsPeriod = TimeSpan.MinValue
             };
 
-            var ds = new DecisionService<TestADFContextWithFeatures, TestADFFeatures>(dsConfig);
-
-            string uniqueKey = "eventid";
-
-            string modelFile = "test_vw_adf{0}.model";
-
-            for (int i = 1; i <= 100; i++)
+            using (var ds = new DecisionService<TestADFContextWithFeatures, TestADFFeatures>(dsConfig))
             {
-                Random rg = new Random(i);
+                string uniqueKey = "eventid";
 
-                if (i % 50 == 1)
+                string modelFile = "test_vw_adf{0}.model";
+
+                for (int i = 1; i <= 100; i++)
                 {
-                    int modelIndex = i / 50;
-                    string currentModelFile = string.Format(modelFile, modelIndex);
+                    Random rg = new Random(i);
 
-                    byte[] modelContent = commandCenter.GetCBADFModelBlobContent(numExamples: 3 + modelIndex, numFeatureVectors: 4 + modelIndex);
+                    if (i % 50 == 1)
+                    {
+                        int modelIndex = i / 50;
+                        string currentModelFile = string.Format(modelFile, modelIndex);
 
-                    var modelStream = new MemoryStream(modelContent);
+                        byte[] modelContent = commandCenter.GetCBADFModelBlobContent(numExamples: 3 + modelIndex, numFeatureVectors: 4 + modelIndex);
 
-                    ds.UpdatePolicy(new VWPolicy<TestADFContextWithFeatures, TestADFFeatures>(GetFeaturesFromContext, modelStream));
+                        var modelStream = new MemoryStream(modelContent);
+
+                        ds.UpdatePolicy(new VWPolicy<TestADFContextWithFeatures, TestADFFeatures>(GetFeaturesFromContext, modelStream));
+                    }
+
+                    int numActions = rg.Next(5, 20);
+                    var context = TestADFContextWithFeatures.CreateRandom(numActions, rg);
+
+                    uint[] action = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, context, (uint)context.ActionDependentFeatures.Count);
+
+                    Assert.AreEqual(numActions, action.Length);
+
+                    // verify all unique actions in the list
+                    Assert.AreEqual(action.Length, action.Distinct().Count());
+
+                    // verify the actions are in the expected range
+                    Assert.AreEqual((numActions * (numActions + 1)) / 2, action.Sum(a => a));
+
+                    ds.ReportReward(i / 100f, new UniqueEventID { Key = uniqueKey });
                 }
 
-                int numActions = rg.Next(5, 20);
-                var context = TestADFContextWithFeatures.CreateRandom(numActions, rg);
-
-                uint[] action = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, context, (uint)context.ActionDependentFeatures.Count);
-
-                Assert.AreEqual(numActions, action.Length);
-
-                // verify all unique actions in the list
-                Assert.AreEqual(action.Length, action.Distinct().Count());
-
-                // verify the actions are in the expected range
-                Assert.AreEqual((numActions * (numActions + 1)) / 2, action.Sum(a => a));
-
-                ds.ReportReward(i / 100f, new UniqueEventID { Key = uniqueKey });
+                ds.Flush();
             }
-
-            ds.Flush();
-
             Assert.AreEqual(200, joinServer.EventBatchList.Sum(b => b.ExperimentalUnitFragments.Count));
         }
 
