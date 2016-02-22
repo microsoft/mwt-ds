@@ -1,0 +1,11 @@
+<configuration>
+    <system.runtime.caching>
+        <memoryCache>
+            <namedCaches>
+                <add name="DecisionServiceCache" 
+                     cacheMemoryLimitMegabytes="512"
+                     pollingInterval="00:01:00" />
+            </namedCaches>
+        </memoryCache>
+    </system.runtime.caching>
+</configuration>

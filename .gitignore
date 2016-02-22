@@ -17,6 +17,7 @@
 *.sdf
 *.user
 *.so
+*.nupkg
 
 # doxygen output folders
 html

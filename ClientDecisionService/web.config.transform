@@ -1,0 +1,23 @@
+<configuration>
+    <!-- IIS 6.0 -->
+    <system.web>
+        <httpModules>
+            <add name="DecisionServiceHttpModule" type="Microsoft.Research.MultiWorldTesting.ClientLibrary.DecisionServiceHttpModule" />
+        </httpModules>
+    </system.web>
+    <!-- IIS 7.0 -->
+    <system.webServer>
+        <modules>
+            <add name="DecisionServiceHttpModule" type="Microsoft.Research.MultiWorldTesting.ClientLibrary.DecisionServiceHttpModule" />
+        </modules>
+    </system.webServer>
+    <system.runtime.caching>
+        <memoryCache>
+            <namedCaches>
+                <add name="DecisionServiceCache" 
+                     cacheMemoryLimitMegabytes="512" 
+                     pollingInterval="00:01:00" />
+            </namedCaches>
+        </memoryCache>
+    </system.runtime.caching>
+</configuration>

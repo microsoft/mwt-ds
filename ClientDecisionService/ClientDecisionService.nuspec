@@ -14,5 +14,8 @@
     <copyright>Copyright (C) 2015-2016 Microsoft Corporation</copyright>
     <dependencies />
   </metadata>
+  <files>
+    <file src="*.config.transform" target="content"/>
+  </files>
 </package>
 
