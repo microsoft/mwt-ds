@@ -6,9 +6,32 @@
 
 namespace Microsoft.Research.MultiWorldTesting.Contract
 {
+    public enum DecisionType
+    {
+        SingleAction = 0,
+        MultiActions
+    }
+
+    public enum TrainFrequency
+    {
+        Low = 0,
+        High
+    }
+
     public class ApplicationTransferMetadata
     {
         public string ApplicationID { get; set; }
+        public string SubscriptionId { get; set; }
+
+        public DecisionType DecisionType { get; set; }
+
+        public int? NumActions { get; set; }
+
+        public TrainFrequency TrainFrequency { get; set; }
+
+        public string EventHubConnectionString { get; set; }
+
+        public string EventHubInputName { get; set; }
 
         public string ConnectionString { get; set; }
 
