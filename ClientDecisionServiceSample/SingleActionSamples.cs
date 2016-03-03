@@ -10,10 +10,18 @@ using Newtonsoft.Json;
 
 namespace ClientDecisionServiceSample
 {
+    /// <summary>
+    /// Sample code for using the Decision Service when the decision type
+    /// involves a single action.
+    /// </summary>
     public static class SingleActionSamples
     {
         /***** Copy & Paste your authorization token here *****/
         static readonly string MwtServiceToken = "";
+
+        /***** Copy & Paste your EventHub configurations here *****/
+        static readonly string EventHubConnectionString = "";
+        static readonly string EventHubInputName = "";
 
         /// <summary>
         /// Sample code simulating a news recommendation scenario. In this simple example, 
@@ -44,8 +52,8 @@ namespace ClientDecisionServiceSample
                 // For more details about this and other algorithms, refer to the MWT onboarding whitepaper.
                 explorer: new EpsilonGreedyExplorer<string>(defaultPolicy, epsilon, numTopics))
             {
-                EventHubConnectionString = "",
-                EventHubInputName = ""
+                EventHubConnectionString = SingleActionSamples.EventHubConnectionString,
+                EventHubInputName = SingleActionSamples.EventHubInputName
             };
 
             // Optional: set the configuration for how often data is uploaded to the join server.

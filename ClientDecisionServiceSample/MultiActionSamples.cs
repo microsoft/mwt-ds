@@ -14,8 +14,16 @@ using Newtonsoft.Json;
 
 namespace ClientDecisionServiceSample
 {
+    /// <summary>
+    /// Sample code for using the Decision Service when the decision type
+    /// involves multiple actions.
+    /// </summary>
     public class MultiActionSamples
     {
+        /***** Copy & Paste your EventHub configurations here *****/
+        static readonly string EventHubConnectionString = "";
+        static readonly string EventHubInputName = "";
+
         public static void SampleCodeUsingASAWithJsonContext()
         {
             // Create configuration for the decision service
@@ -25,8 +33,8 @@ namespace ClientDecisionServiceSample
             {
                 PollingForModelPeriod = TimeSpan.MinValue,
                 PollingForSettingsPeriod = TimeSpan.MinValue,
-                EventHubConnectionString = "",
-                EventHubInputName = ""
+                EventHubConnectionString = MultiActionSamples.EventHubConnectionString,
+                EventHubInputName = MultiActionSamples.EventHubInputName
             };
 
             using (var service = new DecisionServiceJson(serviceConfig))
@@ -58,8 +66,8 @@ namespace ClientDecisionServiceSample
                 authorizationToken: "sample-code",
                 explorer: new EpsilonGreedyExplorer<ExpandedContext>(new ExpandedPolicy(), epsilon: 0.8f))
             {
-                EventHubConnectionString = "",
-                EventHubInputName = "",
+                EventHubConnectionString = MultiActionSamples.EventHubConnectionString,
+                EventHubInputName = MultiActionSamples.EventHubInputName,
                 GetContextFeaturesFunc = ExpandedContext.GetFeaturesFromContext
             };
 
