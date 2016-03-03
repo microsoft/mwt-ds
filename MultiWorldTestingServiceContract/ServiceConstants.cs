@@ -20,6 +20,6 @@ namespace Microsoft.Research.MultiWorldTesting.Contract
         public static readonly string ConnectionStringAuthenticationScheme = "AzureStorage";
 
         public static readonly string IncompleteContainerPrefix = "incomplete";
-        public static readonly string JoinedBlobContainerPrefix = "complete";
+        public static readonly string JoinedBlobContainerPrefix = "joined-examples";
     }
 }
