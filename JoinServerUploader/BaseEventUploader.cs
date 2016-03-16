@@ -42,7 +42,7 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
             this.batchConfig = batchConfig ?? new BatchingConfiguration();
 
             this.eventSource = new TransformBlock<IEvent, TTransformedEvent>(
-                ev => TransformEvent(ev),
+                ev => TransformEventInternal(ev),
                 new ExecutionDataflowBlockOptions
                 {
                     MaxDegreeOfParallelism = this.batchConfig.MaxDegreeOfSerializationParallelism,
@@ -52,21 +52,61 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
 
             this.eventProcessor = new ActionBlock<IList<TTransformedEvent>>
             (
-                (Func<IList<TTransformedEvent>, Task>)this.UploadTransformedEvents, 
+                (Func<IList<TTransformedEvent>, Task>)this.UploadTransformedEventsInternal, 
                 new ExecutionDataflowBlockOptions 
                 {
-                    MaxDegreeOfParallelism = Environment.ProcessorCount * 4,
+                    MaxDegreeOfParallelism = 16, // with the heavy number of cores out there, the memory can otherwise easily overflow
                     BoundedCapacity = this.batchConfig.MaxUploadQueueCapacity,
                 }
             );
 
             this.eventUnsubscriber = this.eventSource.AsObservable()
                 .Window(this.batchConfig.MaxDuration)
-                .Select(w => w.Buffer(this.batchConfig.MaxEventCount, this.batchConfig.MaxBufferSizeInBytes, this.MeasureTransformedEvent))
+                .Select(w => w.Buffer(this.batchConfig.MaxEventCount, this.batchConfig.MaxBufferSizeInBytes, this.MeasureTransformedEventInternal))
                 .SelectMany(buffer => buffer)
                 .Subscribe(this.eventProcessor.AsObserver());
 
             this.random = new Random(0);
+        }
+
+        private TTransformedEvent TransformEventInternal(IEvent sourceEvent)
+        {
+            try
+            {
+                return this.TransformEvent(sourceEvent);
+            }
+            catch (Exception e)
+            {
+                this.batchConfig.ErrorHandler(e);
+                throw e;
+            }
+        }
+
+        private int MeasureTransformedEventInternal(TTransformedEvent transformedEvent)
+        {
+            try
+            {
+                return this.MeasureTransformedEvent(transformedEvent);
+            }
+            catch (Exception e)
+            {
+                this.batchConfig.ErrorHandler(e);
+                throw e;
+            }
+        }
+
+        private async Task UploadTransformedEventsInternal(IList<TTransformedEvent> transformedEvents)
+        {
+            try
+            {
+                await this.UploadTransformedEvents(transformedEvents);
+                this.batchConfig.SuccessHandler(transformedEvents.Count);
+            }
+            catch (Exception e)
+            {
+                this.batchConfig.ErrorHandler(e);
+                throw e;
+            }
         }
 
         /// <summary>

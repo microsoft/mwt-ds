@@ -48,7 +48,16 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
             {
                 TransportType = TransportType.Amqp
             };
-            this.client = EventHubClient.CreateFromConnectionString(builder.ToString(), this.eventHubInputName);
+            
+            if (this.batchConfig.ReUseTcpConnection)
+            {
+                this.client = EventHubClient.CreateFromConnectionString(builder.ToString(), this.eventHubInputName);
+            }
+            else
+            {
+                var factory = MessagingFactory.CreateFromConnectionString(builder.ToString());
+                this.client = factory.CreateEventHubClient(this.eventHubInputName);
+            }
         }
 
         /// <summary>
@@ -77,9 +86,9 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// </summary>
         /// <param name="transformedEvents">The list of events to upload.</param>
         /// <returns>A Task object.</returns>
-        public override async Task UploadTransformedEvents(IList<IEvent> transformedEvents)
+        public override Task UploadTransformedEvents(IList<IEvent> transformedEvents)
         {
-            await Task.WhenAll(transformedEvents.Select(e => this.UploadToEventHubAsync(e)));
+            return Task.WhenAll(transformedEvents.Select(e => this.UploadToEventHubAsync(e)));
         }
 
         /// <summary>
@@ -87,16 +96,9 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// </summary>
         /// <param name="events">The event to upload.</param>
         /// <returns>A Task object.</returns>
-        private async Task UploadToEventHubAsync(IEvent events)
+        private Task UploadToEventHubAsync(IEvent events)
         {
-            try
-            {
-                await this.client.SendAsync(BuildEventHubData(events));
-            }
-            catch (Exception exp)
-            {
-                Console.WriteLine("Error on send: " + exp.Message);
-            }
+            return this.client.SendAsync(BuildEventHubData(events));
         }
 
         /// <summary>
@@ -106,7 +108,7 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         {
             if (disposing)
             {
-                client.Close();
+                this.client.Close();
             }
             base.Dispose(disposing);
         }

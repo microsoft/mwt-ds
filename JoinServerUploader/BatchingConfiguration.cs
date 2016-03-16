@@ -18,11 +18,17 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         {
             this.MaxBufferSizeInBytes = 4 * 1024 * 1024;
             this.MaxDuration = TimeSpan.FromMinutes(1);
-            this.MaxEventCount = 10000;
-            this.MaxUploadQueueCapacity = 1024;
+            this.MaxEventCount = 4*1024;
+            // the number of events buffered is MaxEventCount * MaxUploadQueueCapacity * MaxDegreeOfSerializationParallelism
+            this.MaxUploadQueueCapacity = 4;
             this.UploadRetryPolicy = BatchUploadRetryPolicy.ExponentialRetry;
             this.MaxDegreeOfSerializationParallelism = Environment.ProcessorCount;
             this.DroppingPolicy = new DroppingPolicy();
+            this.ReUseTcpConnection = true;
+            this.ErrorHandler = exp => { };
+#if DEBUG
+            this.SuccessHandler = count => { };
+#endif
         }
 
         /// <summary>
@@ -64,6 +70,25 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// Gets or sets the data dropping policy which controls which events are sent to the upload queue.
         /// </summary>
         public DroppingPolicy DroppingPolicy { get; set; }
+
+        /// <summary>
+        /// If set to true, the TCP connection for the specified event hub will be re-used.
+        /// Otherwise MessageFactory will be used to create separate connections.
+        /// </summary>
+        /// <remarks>Defaults to true.</remarks>
+        public bool ReUseTcpConnection { get; set; }
+
+        /// <summary>
+        /// Invoked if an error happened during the upload pipeline.
+        /// </summary>
+        public Action<Exception> ErrorHandler { get; set; }
+
+#if DEBUG
+        /// <summary>
+        /// Invoked after the batch was successfully uploaded.
+        /// </summary>
+        public Action<int> SuccessHandler { get; set; }
+#endif
     }
 
     /// <summary>
