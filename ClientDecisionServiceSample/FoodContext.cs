@@ -9,7 +9,6 @@ namespace ClientDecisionServiceSample
 {
     public class FoodContext
     {
-        [JsonIgnore]
         public string UserLocation { get; set; }
 
         [JsonIgnore]

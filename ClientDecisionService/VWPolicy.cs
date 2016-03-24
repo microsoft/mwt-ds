@@ -311,7 +311,12 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
         /// <returns>true if the update was successful; otherwise, false.</returns>
         public bool ModelUpdate(string modelFile)
         {
-            return ModelUpdate(() => { return new VowpalWabbitModel(new VowpalWabbitSettings(string.Format("--quiet -t -i {0}", modelFile), maxExampleCacheSize: 1024)); });
+            return ModelUpdate(() => { return new VowpalWabbitModel(
+                new VowpalWabbitSettings(
+                    string.Format("--quiet -t -i {0}", modelFile),
+                    featureDiscovery: this.featureDiscovery,
+                    maxExampleCacheSize: 1024)); 
+            });
         }
 
         /// <summary>
@@ -321,7 +326,13 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
         /// <returns>true if the update was successful; otherwise, false.</returns>
         public bool ModelUpdate(Stream modelStream)
         {
-            return ModelUpdate(() => new VowpalWabbitModel(new VowpalWabbitSettings("--quiet -t", modelStream: modelStream, maxExampleCacheSize: 1024)));
+            return ModelUpdate(() => new VowpalWabbitModel(
+                new VowpalWabbitSettings(
+                    "--quiet -t",
+                    featureDiscovery: this.featureDiscovery,
+                    modelStream: modelStream,
+                    maxExampleCacheSize: 1024))
+            );
         }
 
         /// <summary>
