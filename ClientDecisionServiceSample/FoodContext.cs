@@ -1,4 +1,5 @@
-﻿using Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction;
+﻿using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
+using Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -45,6 +46,19 @@ namespace ClientDecisionServiceSample
             {
                 Actions = context.Actions.Select((a, i) => (uint)i + 1).ToArray()
             };
+        }
+    }
+
+    class FoodRecorder : IRecorder<FoodContext>
+    {
+        Dictionary<string, float> keyToProb = new Dictionary<string, float>();
+        public void Record(FoodContext context, uint[] actions, float probability, UniqueEventID uniqueKey, string modelId = null, bool? isExplore = null)
+        {
+            keyToProb.Add(uniqueKey.Key, probability);
+        }
+        public float GetProb(string key)
+        {
+            return keyToProb[key];
         }
     }
 }

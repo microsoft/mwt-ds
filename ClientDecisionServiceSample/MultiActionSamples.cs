@@ -11,6 +11,7 @@ using Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction;
 using System.IO;
 using VW;
 using Newtonsoft.Json;
+using VW.Labels;
 
 namespace ClientDecisionServiceSample
 {
@@ -363,6 +364,87 @@ namespace ClientDecisionServiceSample
                     uint[] action = service.ChooseAction(new UniqueEventID { Key = uniqueKey }, ADFContext.CreateRandom(numActions, rg), (uint)numActions);
                     service.ReportReward(i / 100f, new UniqueEventID { Key = uniqueKey });
                 }
+            }
+        }
+
+        public static void TrainNewVWModelWithMultiActionJsonDirectData()
+        {
+            int numLocations = 2; // user location
+            string[] locations = new string[] { "Washington", "NewYork" };
+            int numActions = 3; // food item
+            int numExamplesPerActions = 10000;
+            var rand = new Random();
+            var recorder = new FoodRecorder();
+
+            var serviceConfig = new DecisionServiceConfiguration<FoodContext, FoodFeature>(
+                authorizationToken: AuthorizationToken,
+                explorer: new EpsilonGreedyExplorer<FoodContext>(new FoodPolicy(), epsilon: 0.2f))
+            {
+                OfflineMode = true,
+                Recorder = recorder,
+                GetContextFeaturesFunc = FoodContext.GetFeaturesFromContext,
+                FeatureDiscovery = VowpalWabbitFeatureDiscovery.Json
+            };
+
+            using (var service = new DecisionService<FoodContext, FoodFeature>(serviceConfig))
+            //using (var vw = new VowpalWabbit(new VowpalWabbitSettings("--cb_adf --rank_all --cb_type dr")))
+            using (var vw = new VowpalWabbit<FoodContext>(
+                new VowpalWabbitSettings(
+                    "--cb_adf --rank_all --cb_type dr", 
+                    featureDiscovery: VowpalWabbitFeatureDiscovery.Json)))
+            {
+                for (int iL = 0; iL < numLocations; iL++)
+                {
+                    for (int iE = 0; iE < numExamplesPerActions; iE++)
+                    {
+                        DateTime timeStamp = DateTime.UtcNow;
+
+                        var context = new FoodContext { Actions = new int[] { 1, 2, 3 }, UserLocation = locations[iL] };
+                        string key = "fooditem " + Guid.NewGuid().ToString();
+
+                        uint[] chosenActions = service.ChooseAction(new UniqueEventID { Key = key, TimeStamp = timeStamp}, context, (uint)numActions);
+                        uint action = chosenActions[0];
+
+                        float cost = 0;
+                        if ((iL == 0 && action == 3) || (iL == 1 && action == 2))
+                        {
+                            cost = -10;
+                        }
+                        var label = new ContextualBanditLabel 
+                        {
+                            Action = action,
+                            Cost = cost,
+                            Probability = recorder.GetProb(key)
+                        };
+                        vw.Learn(context, label);
+                    }
+                }
+
+                var predictActions = new List<List<int>>();
+                for (int iL = 0; iL < numLocations; iL++)
+                {
+                    predictActions.Add(new List<int>());
+                    for (int iE = 0; iE < numExamplesPerActions; iE++)
+                    {
+                        DateTime timeStamp = DateTime.UtcNow;
+
+                        var context = new FoodContext { Actions = new int[] { 1, 2, 3 }, UserLocation = locations[iL] };
+                        int[] predicts = vw.Predict(context, VowpalWabbitPredictionType.Multilabel);
+                        predictActions[iL].Add(predicts[0]);
+                    }
+                }
+                var sb = new StringBuilder();
+                sb.Append(string.Join(",", locations));
+                for (int i = 0; i < predictActions[0].Count; i++)
+                {
+                    for (int l = 0; l < predictActions.Count; l++)
+                    {
+                        sb.Append(predictActions[l][i]);
+                        sb.Append(",");
+                    }
+                    sb.Append("\n");
+                }
+                File.WriteAllText(@"c:\users\lhoang\downloads\testvmoboffline.csv", sb.ToString());
             }
         }
 

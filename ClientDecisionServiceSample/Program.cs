@@ -27,7 +27,8 @@ namespace ClientDecisionServiceSample
 
             // Sample code showing how to tell the client to upload data
             // to the ASA join server.
-            MultiActionSamples.SampleCodeUsingASAJoinServer();
+            //MultiActionSamples.SampleCodeUsingASAJoinServer();
+            MultiActionSamples.TrainNewVWModelWithMultiActionJsonDirectData();
 
             // Sample code showing how to use ASA join server along with
             // context objects which are json-formatted, where the objective
