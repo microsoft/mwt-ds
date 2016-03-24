@@ -373,7 +373,6 @@ namespace ClientDecisionServiceSample
             string[] locations = new string[] { "Washington", "NewYork" };
             int numActions = 3; // food item
             int numExamplesPerActions = 10000;
-            var rand = new Random();
             var recorder = new FoodRecorder();
 
             var serviceConfig = new DecisionServiceConfiguration<FoodContext, FoodFeature>(
@@ -393,6 +392,7 @@ namespace ClientDecisionServiceSample
                     "--cb_adf --rank_all --cb_type dr", 
                     featureDiscovery: VowpalWabbitFeatureDiscovery.Json)))
             {
+                // Learn 
                 for (int iL = 0; iL < numLocations; iL++)
                 {
                     for (int iE = 0; iE < numExamplesPerActions; iE++)
@@ -406,13 +406,15 @@ namespace ClientDecisionServiceSample
                         uint action = chosenActions[0];
 
                         float cost = 0;
+                        // For location 1, action 3 is best
+                        // For location 2, action 2 is best
                         if ((iL == 0 && action == 3) || (iL == 1 && action == 2))
                         {
                             cost = -10;
                         }
                         var label = new ContextualBanditLabel 
                         {
-                            Action = action,
+                            Action = action - 1,
                             Cost = cost,
                             Probability = recorder.GetProb(key)
                         };
@@ -420,6 +422,7 @@ namespace ClientDecisionServiceSample
                     }
                 }
 
+                // Predict
                 var predictActions = new List<List<int>>();
                 for (int iL = 0; iL < numLocations; iL++)
                 {
@@ -430,7 +433,7 @@ namespace ClientDecisionServiceSample
 
                         var context = new FoodContext { Actions = new int[] { 1, 2, 3 }, UserLocation = locations[iL] };
                         int[] predicts = vw.Predict(context, VowpalWabbitPredictionType.Multilabel);
-                        predictActions[iL].Add(predicts[0]);
+                        predictActions[iL].Add(predicts[0] + 1);
                     }
                 }
                 var sb = new StringBuilder();
