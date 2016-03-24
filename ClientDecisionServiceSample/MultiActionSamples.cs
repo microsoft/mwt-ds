@@ -21,11 +21,11 @@ namespace ClientDecisionServiceSample
     public class MultiActionSamples
     {
         /***** Copy & Paste your auth token here *****/
-        static readonly string AuthorizationToken = "f3adf463-4552-4d19-98c5-3b185d7336b7";
+        static readonly string AuthorizationToken = "";
 
         /***** Copy & Paste your EventHub configurations here *****/
-        static readonly string EventHubConnectionString = "Endpoint=sb://lhtest73serviceBus.servicebus.windows.net/;SharedAccessKeyName=SendOnlyKey;SharedAccessKey=DG4TcCs+XnDN83VZcT2e5NfVeSFvTuiYUiWtXhxnJ2s=";
-        static readonly string EventHubInputName = "lhtest73ingress";
+        static readonly string EventHubConnectionString = "";
+        static readonly string EventHubInputName = "";
 
         public static void SampleCodeUsingASAWithJsonContext()
         {
