@@ -12,9 +12,9 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
 	/// computationally expensive.
 	/// </remarks>
 	/// <typeparam name="TContext">The Context type.</typeparam>
-	public class BootstrapExplorer<TContext> : IExplorer<TContext>, IConsumePolicies<TContext>
+	public class BootstrapExplorer<TContext> : IExplorer<TContext, TAction, TExplorerState, TPolicyState>, IConsumePolicies<TContext, TPolicyAction, TPolicyState>
 	{
-        private IPolicy<TContext>[] defaultPolicyFunctions;
+        private IPolicy<TContext, TPolicyAction, TPolicyState>[] defaultPolicyFunctions;
         private bool explore;
         private readonly uint bags;
 	    private readonly uint numActionsFixed;
@@ -24,7 +24,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
 		/// </summary>
 		/// <param name="defaultPolicies">A set of default policies to be uniform random over.</param>
 		/// <param name="numActions">The number of actions to randomize over.</param>
-        public BootstrapExplorer(IPolicy<TContext>[] defaultPolicies, uint numActions)
+        public BootstrapExplorer(IPolicy<TContext, TPolicyAction, TPolicyState>[] defaultPolicies, uint numActions)
 		{
             VariableActionHelper.ValidateInitialNumberOfActions(numActions);
 

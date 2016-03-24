@@ -1,6 +1,25 @@
 ﻿
 namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.Core
 {
+    /*
+    public class EpsilonGreedyLog
+    {
+        public float Probability { get; set; }
+    }
+
+    public class EpsilonGreedySlateLog
+    {
+        public float Epsilon { get; set; }
+
+        public int[] PredictedActions { get; set; }
+    }
+
+    public class VowpalWabbitLog
+    {
+        public string ModelID { get; set; }
+    }
+     * */
+
     /// <summary>
     /// Exploration result 
     /// </summary>

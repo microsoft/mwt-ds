@@ -1,8 +1,16 @@
-﻿using System;
+﻿using Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 
-namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
+namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
+    public class GenericExplorerState
+    {
+        [JsonProperty(PropertyName = "p")]
+        public float Probability { get; set; }
+    }
+
     /// <summary>
 	/// The generic exploration class.
 	/// </summary>
@@ -11,10 +19,8 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
 	/// distribution over actions desired, and it will draw from that.
 	/// </remarks>
 	/// <typeparam name="TContext">The Context type.</typeparam>
-    public class GenericExplorer<TContext> : IExplorer<TContext>, IConsumeScorer<TContext>
+    public class GenericExplorer<TContext, TPolicyState> : BaseExplorer<TContext, uint, GenericExplorerState, float[], TPolicyState>
 	{
-        private IScorer<TContext> defaultScorer;
-        private bool explore;
         private readonly uint numActionsFixed;
 
 		/// <summary>
@@ -22,41 +28,23 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
 		/// </summary>
 		/// <param name="defaultScorer">A function which outputs the probability of each action.</param>
 		/// <param name="numActions">The number of actions to randomize over.</param>
-        public GenericExplorer(IScorer<TContext> defaultScorer, uint numActions)
+        public GenericExplorer(IPolicy<float[], TContext, TPolicy> defaultScorer, uint numActions = uint.MaxValue) : base(defaultScorer)
 		{
             VariableActionHelper.ValidateInitialNumberOfActions(numActions);
 
-            this.defaultScorer = defaultScorer;
             this.numActionsFixed = numActions;
-            this.explore = true;
         }
 
-        /// <summary>
-        /// Initializes a generic explorer with variable number of actions.
-        /// </summary>
-        /// <param name="defaultScorer">A function which outputs the probability of each action.</param>
-        public GenericExplorer(IScorer<TContext> defaultScorer) :
-            this(defaultScorer, uint.MaxValue)
-        { }
-
-        public void UpdateScorer(IScorer<TContext> newScorer)
-        {
-            this.defaultScorer = newScorer;
-        }
-
-        public void EnableExplore(bool explore)
-        {
-            this.explore = explore;
-        }
-
-        public DecisionTuple ChooseAction(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
+        public Decision<uint, GenericExplorerState, TPolicyState> ChooseAction(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
         {
             uint numActions = VariableActionHelper.GetNumberOfActions(this.numActionsFixed, numActionsVariable);
 
             var random = new PRG(saltedSeed);
 
             // Invoke the default scorer function
-            List<float> weights = this.defaultScorer.ScoreActions(context);
+            PolicyDecision<float[], TPolicyState> policyDecision = this.defaultPolicy.ChooseAction(context);
+            float[] weights = policyDecision.Action;
+
             uint numWeights = (uint)weights.Count;
             if (numWeights != numActions)
             {
@@ -97,18 +85,12 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
             }
 
             // action id is one-based
-            return new DecisionTuple
-            {
-                Action = actionIndex + 1,
-                Probability = actionProbability,
-                ShouldRecord = true
-            };
+            return Decision.Create(actionIndex + 1,
+                new GenericExplorerState { Probability = actionProbability },
+                policyDecision);
         }
-    };
-}
+    }
 
-namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction
-{
     /// <summary>
     /// The generic exploration class.
     /// </summary>
@@ -117,90 +99,48 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction
     /// distribution over actions desired, and it will draw from that.
     /// </remarks>
     /// <typeparam name="TContext">The Context type.</typeparam>
-    public class GenericExplorer<TContext> : IExplorer<TContext>, IConsumeScorer<TContext>
+    public class GenericExplorerSampleWithoutReplacement<TContext, TPolicyState> : BaseExplorer<TContext, uint, GenericExplorerState, float[], TPolicyState>
+        : IExplorer<TContext, TAction, GenericExplorerState, TPolicyState>, IConsumePolicy<TContext, TAction, TPolicyState>
     {
-        private IScorer<TContext> defaultScorer;
-        private bool explore;
-        private readonly uint numActionsFixed;
+        protected readonly GenericExplorer<TContext, TPolicyState> explorer;
 
         /// <summary>
         /// The constructor is the only public member, because this should be used with the MwtExplorer.
         /// </summary>
         /// <param name="defaultScorer">A function which outputs the probability of each action.</param>
         /// <param name="numActions">The number of actions to randomize over.</param>
-        public GenericExplorer(IScorer<TContext> defaultScorer, uint numActions)
+        public GenericExplorerSampleWithoutReplacement(IPolicy<TContext, float[], TPolicyState> defaultScorer, uint numActions = uint.MaxValue)
+             : base(defaultScorer, numActions)
         {
-            VariableActionHelper.ValidateInitialNumberOfActions(numActions);
-
-            this.defaultScorer = defaultScorer;
-            this.numActionsFixed = numActions;
-            this.explore = true;
+            this.explorer = new GenericExplorer<TContext, TPolicyState>(defaultScorer, numActions);
         }
 
-        /// <summary>
-        /// Initializes a generic explorer with variable number of actions.
-        /// </summary>
-        /// <param name="defaultScorer">A function which outputs the probability of each action.</param>
-        public GenericExplorer(IScorer<TContext> defaultScorer) :
-            this(defaultScorer, uint.MaxValue)
-        { }
-
-        public void UpdateScorer(IScorer<TContext> newScorer)
+        public void UpdatePolicy(IPolicy<TContext, float[], TPolicyState> newPolicy)
         {
-            this.defaultScorer = newScorer;
+            base.UpdatePolicy(newPolicy);
+            this.explorer.UpdatePolicy(newPolicy);
         }
 
         public void EnableExplore(bool explore)
         {
-            this.explore = explore;
+            base.EnableExplore(explore);
+            this.explorer.EnableExplore(explore);
         }
 
-        public DecisionTuple ChooseAction(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
+        protected override Decision<uint[], GenericExplorerState, TPolicyState> ChooseActionInternal(ulong saltedSeed, TContext context)
         {
-            uint numActions = VariableActionHelper.GetNumberOfActions(this.numActionsFixed, numActionsVariable);
+            var decision = this.explorer.ChooseAction(saltedSeed, context, numActionsVariable);
 
-            var random = new PRG(saltedSeed);
-
-            // Invoke the default scorer function
-            List<float> weights = this.defaultScorer.ScoreActions(context);
-            uint numWeights = (uint)weights.Count;
-            if (numWeights != numActions)
-            {
-                throw new ArgumentException("The number of weights returned by the scorer must equal number of actions");
-            }
-
-            // Create a discrete_distribution based on the returned weights. This class handles the
-            // case where the sum of the weights is < or > 1, by normalizing agains the sum.
-            float total = 0f;
-            for (int i = 0; i < numWeights; i++)
-            {
-                if (weights[i] < 0)
-                {
-                    throw new ArgumentException("Scores must be non-negative.");
-                }
-                total += weights[i];
-            }
-            if (total == 0)
-            {
-                throw new ArgumentException("At least one score must be positive.");
-            }
-
-            // normalize weights & reset actions
-            for (int i = 0; i < numWeights; i++)
-            {
-                weights[i] = weights[i] / total;
-            }
+            // Note: this assume update of the weights array.
+            float[] weights = decision.PolicyDecision.Action;
 
             float actionProbability = 0f;
             uint[] chosenActions = MultiActionHelper.SampleWithoutReplacement(weights, numActions, random, ref actionProbability);
 
             // action id is one-based
-            return new DecisionTuple
-            {
-                Actions = chosenActions,
-                Probability = actionProbability,
-                ShouldRecord = true
-            };
+            return Decision.Create(chosenActions,
+                new GenericExplorerState { Probability = actionProbability },
+                policyDecision.PolicyState);
         }
     };
 }
