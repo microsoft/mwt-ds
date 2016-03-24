@@ -140,7 +140,6 @@
         private VowpalWabbitFeatureDiscovery featureDiscovery;
     }
 
-
     public class VWJsonPolicy : IPolicy<string>, IDisposable
     {
         public VWJsonPolicy(string vwModelFile = null)
@@ -284,11 +283,11 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
         /// <returns>List of predicted actions.</returns>
         public virtual PolicyDecisionTuple ChooseAction(TContext context, uint numActionsVariable = uint.MaxValue)
         {
-            if (vwPool == null)
+            if (vwMultiPool == null)
             {
                 throw new InvalidOperationException("A VW model must be supplied before the call to ChooseAction.");
             }
-            using (var vw = vwPool.GetOrCreate())
+            using (var vw = vwMultiPool.GetOrCreate())
             {
                 IReadOnlyCollection<TActionDependentFeature> features = this.getContextFeaturesFunc(context);
 
@@ -344,13 +343,13 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
         {
             VowpalWabbitModel vwModel = loadModelFunc();
 
-            if (this.vwPool == null)
+            if (this.vwMultiPool == null)
             {
-                this.vwPool = new VowpalWabbitThreadedPrediction<TContext, TActionDependentFeature>(vwModel);
+                this.vwMultiPool = new VowpalWabbitThreadedPrediction<TContext, TActionDependentFeature>(vwModel);
             }
             else
             {
-                this.vwPool.UpdateModel(vwModel);
+                this.vwMultiPool.UpdateModel(vwModel);
             }
             
             return true;
@@ -373,6 +372,112 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
         {
             if (disposing)
             {
+                if (this.vwMultiPool != null)
+                {
+                    this.vwMultiPool.Dispose();
+                    this.vwMultiPool = null;
+                }
+                if (this.vwSinglePool != null)
+                {
+                    this.vwSinglePool.Dispose();
+                    this.vwSinglePool = null;
+                }
+            }
+        }
+
+        protected VowpalWabbitThreadedPrediction<TContext> vwSinglePool;
+        protected VowpalWabbitThreadedPrediction<TContext, TActionDependentFeature> vwMultiPool;
+        private Func<TContext, IReadOnlyCollection<TActionDependentFeature>> getContextFeaturesFunc;
+        private VowpalWabbitFeatureDiscovery featureDiscovery;
+    }
+
+    public class VWJsonDirectPolicy<TContext> : IPolicy<TContext>, IDisposable
+    {
+        public VWJsonDirectPolicy(
+            string vwModelFile = null)
+        {
+            if (vwModelFile != null)
+            {
+                this.ModelUpdate(vwModelFile);
+            }
+        }
+
+        public VWJsonDirectPolicy(
+            Stream vwModelStream,
+            VowpalWabbitFeatureDiscovery featureDiscovery = VowpalWabbitFeatureDiscovery.Default)
+        {
+            this.ModelUpdate(vwModelStream);
+        }
+
+        public virtual PolicyDecisionTuple ChooseAction(TContext context, uint numActionsVariable = uint.MaxValue)
+        {
+            if (vwPool == null)
+            {
+                throw new InvalidOperationException("A VW model must be supplied before the call to ChooseAction.");
+            }
+            using (var vw = vwPool.GetOrCreate())
+            {
+                // return indices
+                int[] vwMultilabelPredictions = vw.Value.Predict(context, VowpalWabbitPredictionType.Multilabel);
+                Console.Write(".");
+                // VW multi-label predictions are 0-based
+                return new PolicyDecisionTuple
+                {
+                    Actions = vwMultilabelPredictions.Select(p => (uint)(p + 1)).ToArray(),
+                    ModelId = vw.Value.Native.ID
+                };
+            }
+        }
+
+        public bool ModelUpdate(string modelFile)
+        {
+            return ModelUpdate(() =>
+            {
+                return new VowpalWabbitModel(
+                    new VowpalWabbitSettings(
+                    string.Format("--quiet -t -i {0}", modelFile),
+                    featureDiscovery: VowpalWabbitFeatureDiscovery.Json,
+                    maxExampleCacheSize: 1024));
+            });
+        }
+
+        public bool ModelUpdate(Stream modelStream)
+        {
+            return ModelUpdate(() => new VowpalWabbitModel(
+                new VowpalWabbitSettings(
+                    "--quiet -t",
+                    featureDiscovery: VowpalWabbitFeatureDiscovery.Json,
+                    modelStream: modelStream,
+                    maxExampleCacheSize: 1024))
+            );
+        }
+
+        public bool ModelUpdate(Func<VowpalWabbitModel> loadModelFunc)
+        {
+            VowpalWabbitModel vwModel = loadModelFunc();
+
+            if (this.vwPool == null)
+            {
+                this.vwPool = new VowpalWabbitThreadedPrediction<TContext>(vwModel);
+            }
+            else
+            {
+                this.vwPool.UpdateModel(vwModel);
+            }
+
+            return true;
+        }
+
+        public void Dispose()
+        {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
                 if (this.vwPool != null)
                 {
                     this.vwPool.Dispose();
@@ -381,9 +486,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
             }
         }
 
-        protected VowpalWabbitThreadedPrediction<TContext, TActionDependentFeature> vwPool;
-        private Func<TContext, IReadOnlyCollection<TActionDependentFeature>> getContextFeaturesFunc;
-        private VowpalWabbitFeatureDiscovery featureDiscovery;
+        protected VowpalWabbitThreadedPrediction<TContext> vwPool;
     }
 
     public class VWJsonPolicy<TActionDependentFeature> : IPolicy<string>, IDisposable

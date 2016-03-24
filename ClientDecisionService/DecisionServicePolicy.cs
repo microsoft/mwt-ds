@@ -215,6 +215,57 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
         }
     }
 
+    internal class DecisionServiceJsonDirectPolicy<TContext> : VWJsonDirectPolicy<TContext>
+    {
+        readonly Action notifyPolicyUpdate;
+        readonly string updateTaskId = "model";
+
+        public DecisionServiceJsonDirectPolicy(
+            string modelAddress,
+            string modelConnectionString,
+            string modelOutputDir,
+            TimeSpan pollDelay,
+            Action notifyPolicyUpdate,
+            Action<Exception> modelPollFailureCallback)
+        {
+            if (pollDelay != TimeSpan.MinValue)
+            {
+                AzureBlobUpdater.RegisterTask(this.updateTaskId, modelAddress,
+                   modelConnectionString, modelOutputDir, pollDelay,
+                   this.UpdateFromFile, modelPollFailureCallback);
+            }
+
+            this.notifyPolicyUpdate = notifyPolicyUpdate;
+        }
+
+        public void StopPolling()
+        {
+            AzureBlobUpdater.CancelTask(this.updateTaskId);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            if (disposing)
+            {
+                // free managed resources
+            }
+        }
+
+        internal void UpdateFromFile(string modelFile)
+        {
+            if (base.ModelUpdate(modelFile) && this.notifyPolicyUpdate != null)
+            {
+                this.notifyPolicyUpdate();
+            }
+            else
+            {
+                Trace.TraceInformation("Attempt to update model failed.");
+            }
+        }
+    }
+
     internal class DecisionServiceJsonPolicy<TActionDependentFeature> : VWJsonPolicy<TActionDependentFeature>
     {
         readonly Action notifyPolicyUpdate;

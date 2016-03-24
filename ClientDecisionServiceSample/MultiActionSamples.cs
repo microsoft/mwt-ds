@@ -100,6 +100,7 @@ namespace ClientDecisionServiceSample
                 }
             }
         }
+
         public static void SampleCodeUsingEventHubUploader()
         {
             var uploader = new EventUploaderASA("", "");
@@ -139,6 +140,181 @@ namespace ClientDecisionServiceSample
             uploader.Upload(events.ToList());
 
             Console.WriteLine(sw.Elapsed);
+        }
+
+        public static void SampleCodeUsingJsonDirectContext()
+        {
+            // Create configuration for the decision service
+            var serviceConfig = new DecisionServiceConfiguration<FoodContext, FoodFeature>(
+                authorizationToken: AuthorizationToken,
+                explorer: new EpsilonGreedyExplorer<FoodContext>(new FoodPolicy(), epsilon: 0.2f))
+            {
+                EventHubConnectionString = EventHubConnectionString,
+                EventHubInputName = EventHubInputName,
+                GetContextFeaturesFunc = FoodContext.GetFeaturesFromContext,
+                FeatureDiscovery = VowpalWabbitFeatureDiscovery.Json
+            };
+
+            using (var service = new DecisionService<FoodContext, FoodFeature>(serviceConfig))
+            {
+                System.Threading.Thread.Sleep(10000);
+
+                //string uniqueKey = "sample-asa-client-";
+                string uniqueKey = "scratch-key-gal";
+
+                var rg = new Random(uniqueKey.GetHashCode());
+
+                int numActions = 3; // ["Hamburger deal 1", "Hamburger deal 2" (better), "Salad deal"]
+
+                var csv = new StringBuilder();
+
+                int counterCorrect = 0;
+                int counterTotal = 0;
+
+                var header = "Location,Action,Reward";
+                csv.AppendLine(header);
+                // number of iterations
+                for (int i = 0; i < 10000; i++)
+                {
+                    string[] locations = { "HealthyTown", "LessHealthyTown" };
+                    // number of locations
+                    foreach (string location in locations)
+                    {
+                        DateTime timeStamp = DateTime.UtcNow;
+                        string key = uniqueKey + Guid.NewGuid().ToString();
+
+                        FoodContext currentContext = new FoodContext();
+                        currentContext.UserLocation = location;
+                        currentContext.Actions = Enumerable.Range(1, numActions).ToArray();
+
+                        uint[] action = service.ChooseAction(new UniqueEventID { Key = key, TimeStamp = timeStamp }, currentContext, (uint)numActions);
+
+                        counterTotal += 1;
+
+                        // We expect healthy town to get salad and unhealthy town to get the second burger (action 2)
+                        if (location.Equals("HealthyTown") && action[0] == 3)
+                            counterCorrect += 1;
+                        else if (location.Equals("LessHealthyTown") && action[0] == 2)
+                            counterCorrect += 1;
+
+                        var csvLocation = location;
+                        var csvAction = action[0].ToString();
+
+
+                        double currentRand = rg.NextDouble();
+                        // for healthy town, buy burger 1 with probability 0.1, burger 2 with probability 0.15, salad with probability 0.6
+                        if (location.Equals("HealthyTown"))
+                        {
+                            switch (action[0])
+                            {
+                                case 1:
+                                    //if (currentRand < 0.1)
+                                    //{
+                                    //    service.ReportReward(10, new UniqueEventID { Key = key, TimeStamp = timeStamp });
+                                    //    var newLine = string.Format("{0},{1},{2}", csvLocation, csvAction, "1");
+                                    //    csv.AppendLine(newLine);
+                                    //}
+                                    //else
+                                    {
+                                        service.ReportReward(0, new UniqueEventID { Key = key, TimeStamp = timeStamp });
+                                        var newLine = string.Format("{0},{1},{2}", csvLocation, csvAction, "0");
+                                        csv.AppendLine(newLine);
+                                    }
+                                    break;
+                                case 2:
+                                    //if (currentRand < 0.15)
+                                    //{
+                                    //    service.ReportReward(10, new UniqueEventID { Key = key, TimeStamp = timeStamp });
+                                    //    var newLine = string.Format("{0},{1},{2}", csvLocation, csvAction, "1");
+                                    //    csv.AppendLine(newLine);
+                                    //}
+                                    //else
+                                    {
+                                        service.ReportReward(0, new UniqueEventID { Key = key, TimeStamp = timeStamp });
+                                        var newLine = string.Format("{0},{1},{2}", csvLocation, csvAction, "0");
+                                        csv.AppendLine(newLine);
+                                    }
+                                    break;
+                                case 3:
+                                    //if (currentRand < 0.6)
+                                    {
+                                        service.ReportReward(10, new UniqueEventID { Key = key, TimeStamp = timeStamp });
+                                        var newLine = string.Format("{0},{1},{2}", csvLocation, csvAction, "1");
+                                        csv.AppendLine(newLine);
+                                    }
+                                    //else
+                                    //{
+                                    //    service.ReportReward(0, new UniqueEventID { Key = key, TimeStamp = timeStamp });
+                                    //    var newLine = string.Format("{0},{1},{2}", csvLocation, csvAction, "0");
+                                    //    csv.AppendLine(newLine);
+                                    //}
+                                    break;
+                                default:
+                                    Console.WriteLine("ERROR");
+                                    break;
+                            }
+                        }
+                        // for unhealthy town, buy burger 1 with probability 0.4, burger 2 with probability 0.6, salad with probability 0.2
+                        else
+                        {
+                            switch (action[0])
+                            {
+                                case 1:
+                                    //if (currentRand < 0.4)
+                                    //{
+                                    //    service.ReportReward(10, new UniqueEventID { Key = key, TimeStamp = timeStamp });
+                                    //    var newLine = string.Format("{0},{1},{2}", csvLocation, csvAction, "1");
+                                    //    csv.AppendLine(newLine);
+                                    //}
+                                    //else
+                                    {
+                                        service.ReportReward(0, new UniqueEventID { Key = key, TimeStamp = timeStamp });
+                                        var newLine = string.Format("{0},{1},{2}", csvLocation, csvAction, "0");
+                                        csv.AppendLine(newLine);
+                                    }
+                                    break;
+                                case 2:
+                                    //if (currentRand < 0.6)
+                                    {
+                                        service.ReportReward(10, new UniqueEventID { Key = key, TimeStamp = timeStamp });
+                                        var newLine = string.Format("{0},{1},{2}", csvLocation, csvAction, "1");
+                                        csv.AppendLine(newLine);
+                                    }
+                                    //else
+                                    //{
+                                    //    service.ReportReward(0, new UniqueEventID { Key = key, TimeStamp = timeStamp });
+                                    //    var newLine = string.Format("{0},{1},{2}", csvLocation, csvAction, "0");
+                                    //    csv.AppendLine(newLine);
+                                    //}
+                                    break;
+                                case 3:
+                                    //if (currentRand < 0.2)
+                                    //{
+                                    //    service.ReportReward(10, new UniqueEventID { Key = key, TimeStamp = timeStamp });
+                                    //    var newLine = string.Format("{0},{1},{2}", csvLocation, csvAction, "1");
+                                    //    csv.AppendLine(newLine);
+                                    //}
+                                    //else
+                                    {
+                                        service.ReportReward(0, new UniqueEventID { Key = key, TimeStamp = timeStamp });
+                                        var newLine = string.Format("{0},{1},{2}", csvLocation, csvAction, "0");
+                                        csv.AppendLine(newLine);
+                                    }
+                                    break;
+                                default:
+                                    Console.WriteLine("ERROR");
+                                    break;
+                            }
+                        }
+                        System.Threading.Thread.Sleep(1);
+                    }
+
+                }
+                Console.WriteLine("Percent correct:" + (((float)counterCorrect) / counterTotal).ToString());
+
+                File.WriteAllText("C:\\Users\\lhoang\\downloads\\scriptData.csv", csv.ToString());
+                Console.ReadLine();
+            }
         }
 
         public static void SampleCodeUsingActionDependentFeatures()

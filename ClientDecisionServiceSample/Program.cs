@@ -14,6 +14,8 @@ namespace ClientDecisionServiceSample
     {
         static void Main(string[] args)
         {
+            Trace.Listeners.Add(new ConsoleTraceListener());
+
             // Sample code showing how to use the simple interface of the client library
             // to optimize an action from a set of actions.
             //SingleActionSamples.SampleCodeUsingSimpleContext();

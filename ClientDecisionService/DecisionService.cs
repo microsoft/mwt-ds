@@ -318,6 +318,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
         private readonly IRecorder<TContext> recorder;
         private readonly DecisionServicePolicy<TContext, TActionDependentFeature> policy;
         private readonly DecisionServiceJsonPolicy<TActionDependentFeature> jsonPolicy;
+        private readonly DecisionServiceJsonDirectPolicy<TContext> jsonDirectPolicy;
         private readonly MwtExplorer<TContext> mwt;
 
         private readonly string updateTaskId = "settings";
@@ -392,14 +393,27 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
                         }
                         else
                         {
-                            this.policy = new DecisionServicePolicy<TContext, TActionDependentFeature>(
-                                metadata.ModelBlobUri, metadata.ConnectionString,
-                                config.BlobOutputDir,
-                                this.modelBlobPollDelay,
-                                config.GetContextFeaturesFunc,
-                                this.InternalPolicyUpdated,
-                                config.ModelPollFailureCallback,
-                                config.FeatureDiscovery);
+                            if (config.FeatureDiscovery == VW.VowpalWabbitFeatureDiscovery.Json)
+                            {
+                                this.jsonDirectPolicy = new DecisionServiceJsonDirectPolicy<TContext>(
+                                    metadata.ModelBlobUri, metadata.ConnectionString,
+                                    config.BlobOutputDir,
+                                    this.modelBlobPollDelay,
+                                    this.InternalPolicyUpdated,
+                                    config.ModelPollFailureCallback);
+                            }
+                            else
+                            {
+                                this.policy = new DecisionServicePolicy<TContext, TActionDependentFeature>(
+                                    metadata.ModelBlobUri, metadata.ConnectionString,
+                                    config.BlobOutputDir,
+                                    this.modelBlobPollDelay,
+                                    config.GetContextFeaturesFunc,
+                                    this.InternalPolicyUpdated,
+                                    config.ModelPollFailureCallback,
+                                    config.FeatureDiscovery);
+                            }
+                            
                         }
                         
                     }
@@ -490,6 +504,11 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
                 jsonPolicy.StopPolling();
             }
 
+            if (jsonDirectPolicy != null)
+            {
+                jsonDirectPolicy.StopPolling();
+            }
+
             ILogger<TContext> logger = this.recorder as ILogger<TContext>;
             if (logger != null)
             {
@@ -553,6 +572,10 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
             if (jsonPolicy != null)
             {
                 UpdateInternalPolicy(jsonPolicy);
+            }
+            if (jsonDirectPolicy != null)
+            {
+                UpdateInternalPolicy(jsonDirectPolicy);
             }
         }
 
