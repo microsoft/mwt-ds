@@ -5,7 +5,8 @@
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Globalization;
-
+    using VW;
+    
     /// <summary>
     /// Represent an updatable <see cref="IPolicy<TContext>"/> object which can consume different VowpalWabbit 
     /// models to predict actions from an object of specified <see cref="TContext"/> type. This type 
@@ -24,16 +25,9 @@
             TimeSpan pollDelay,
             Action notifyPolicyUpdate,
             Action<Exception> modelPollFailureCallback,
-            bool useJsonContext = false)
-            : base(useJsonContext: useJsonContext)
+            VowpalWabbitFeatureDiscovery featureDiscovery = VowpalWabbitFeatureDiscovery.Default)
+            : base(featureDiscovery: featureDiscovery)
         {
-            if (useJsonContext)
-            {
-                if (typeof(TContext) != typeof(string))
-                {
-                    throw new InvalidOperationException("Type of context must be set to string since contexts were marked as Json format.");
-                }
-            }
             if (pollDelay != TimeSpan.MinValue)
             {
                 AzureBlobUpdater.RegisterTask(this.updateTaskId, modelAddress,
@@ -73,6 +67,57 @@
         /// <remarks>
         /// Triggered when a new model blob is found.
         /// </remarks>
+        internal void UpdateFromFile(string modelFile)
+        {
+            if (base.ModelUpdate(modelFile) && this.notifyPolicyUpdate != null)
+            {
+                this.notifyPolicyUpdate();
+            }
+            else
+            {
+                Trace.TraceInformation("Attempt to update model failed.");
+            }
+        }
+    }
+
+    internal class DecisionServiceJsonPolicy : VWJsonPolicy
+    {
+        readonly Action notifyPolicyUpdate;
+        readonly string updateTaskId = "model";
+
+        public DecisionServiceJsonPolicy(
+            string modelAddress,
+            string modelConnectionString,
+            string modelOutputDir,
+            TimeSpan pollDelay,
+            Action notifyPolicyUpdate,
+            Action<Exception> modelPollFailureCallback)
+        {
+            if (pollDelay != TimeSpan.MinValue)
+            {
+                AzureBlobUpdater.RegisterTask(this.updateTaskId, modelAddress,
+                   modelConnectionString, modelOutputDir, pollDelay,
+                   this.UpdateFromFile, modelPollFailureCallback);
+            }
+
+            this.notifyPolicyUpdate = notifyPolicyUpdate;
+        }
+
+        public void StopPolling()
+        {
+            AzureBlobUpdater.CancelTask(this.updateTaskId);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            if (disposing)
+            {
+                // free managed resources
+            }
+        }
+
         internal void UpdateFromFile(string modelFile)
         {
             if (base.ModelUpdate(modelFile) && this.notifyPolicyUpdate != null)
@@ -94,6 +139,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Globalization;
+    using VW;
 
     /// <summary>
     /// Represent an updatable <see cref="IPolicy<TContext>"/> object which can consume different VowpalWabbit 
@@ -114,8 +160,8 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
             Func<TContext, IReadOnlyCollection<TActionDependentFeature>> getContextFeaturesFunc,
             Action notifyPolicyUpdate,
             Action<Exception> modelPollFailureCallback,
-            bool useJsonContext = false)
-            : base(getContextFeaturesFunc, useJsonContext: useJsonContext)
+            VowpalWabbitFeatureDiscovery featureDiscovery = VowpalWabbitFeatureDiscovery.Default)
+            : base(getContextFeaturesFunc, featureDiscovery: featureDiscovery)
         {
             if (pollDelay != TimeSpan.MinValue)
             {
@@ -169,4 +215,56 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
         }
     }
 
+    internal class DecisionServiceJsonPolicy<TActionDependentFeature> : VWJsonPolicy<TActionDependentFeature>
+    {
+        readonly Action notifyPolicyUpdate;
+        readonly string updateTaskId = "model";
+
+        public DecisionServiceJsonPolicy(
+            string modelAddress,
+            string modelConnectionString,
+            string modelOutputDir,
+            TimeSpan pollDelay,
+            Func<string, IReadOnlyCollection<TActionDependentFeature>> getContextFeaturesFunc,
+            Action notifyPolicyUpdate,
+            Action<Exception> modelPollFailureCallback)
+            : base(getContextFeaturesFunc)
+        {
+            if (pollDelay != TimeSpan.MinValue)
+            {
+                AzureBlobUpdater.RegisterTask(this.updateTaskId, modelAddress,
+                   modelConnectionString, modelOutputDir, pollDelay,
+                   this.UpdateFromFile, modelPollFailureCallback);
+            }
+
+            this.notifyPolicyUpdate = notifyPolicyUpdate;
+        }
+
+        public void StopPolling()
+        {
+            AzureBlobUpdater.CancelTask(this.updateTaskId);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            if (disposing)
+            {
+                // free managed resources
+            }
+        }
+
+        internal void UpdateFromFile(string modelFile)
+        {
+            if (base.ModelUpdate(modelFile) && this.notifyPolicyUpdate != null)
+            {
+                this.notifyPolicyUpdate();
+            }
+            else
+            {
+                Trace.TraceInformation("Attempt to update model failed.");
+            }
+        }
+    }
 }

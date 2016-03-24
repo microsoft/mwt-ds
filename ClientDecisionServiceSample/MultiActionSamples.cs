@@ -20,21 +20,24 @@ namespace ClientDecisionServiceSample
     /// </summary>
     public class MultiActionSamples
     {
+        /***** Copy & Paste your auth token here *****/
+        static readonly string AuthorizationToken = "f3adf463-4552-4d19-98c5-3b185d7336b7";
+
         /***** Copy & Paste your EventHub configurations here *****/
-        static readonly string EventHubConnectionString = "";
-        static readonly string EventHubInputName = "";
+        static readonly string EventHubConnectionString = "Endpoint=sb://lhtest73serviceBus.servicebus.windows.net/;SharedAccessKeyName=SendOnlyKey;SharedAccessKey=DG4TcCs+XnDN83VZcT2e5NfVeSFvTuiYUiWtXhxnJ2s=";
+        static readonly string EventHubInputName = "lhtest73ingress";
 
         public static void SampleCodeUsingASAWithJsonContext()
         {
             // Create configuration for the decision service
             var serviceConfig = new DecisionServiceJsonConfiguration( // specify that context types are Json-formatted
-                authorizationToken: "json-code",
+                authorizationToken: AuthorizationToken,
                 explorer: new EpsilonGreedyExplorer<string>(new DefaultJsonPolicy(), epsilon: 0.8f))
             {
                 PollingForModelPeriod = TimeSpan.MinValue,
                 PollingForSettingsPeriod = TimeSpan.MinValue,
                 EventHubConnectionString = MultiActionSamples.EventHubConnectionString,
-                EventHubInputName = MultiActionSamples.EventHubInputName
+                EventHubInputName = MultiActionSamples.EventHubInputName,
             };
 
             using (var service = new DecisionServiceJson(serviceConfig))
@@ -43,15 +46,18 @@ namespace ClientDecisionServiceSample
 
                 var rg = new Random(uniqueKey.GetHashCode());
 
+                int numActions = 3;
+                string baseLocation = "Washington-";
+
                 for (int i = 1; i < 20; i++)
                 {
-                    int numActions = rg.Next(5, 10);
 
                     DateTime timeStamp = DateTime.UtcNow;
                     string key = uniqueKey + Guid.NewGuid().ToString();
 
-                    var context = ExpandedContext.CreateRandom(numActions, rg);
-                    string contextJson = JsonConvert.SerializeObject(context);
+                    var context = new FoodContext { Actions = new int[] { 1, 2, 3 }, UserLocation = baseLocation + rg.Next(100) };
+                    var contextJson = JsonConvert.SerializeObject(context);
+
                     uint[] action = service.ChooseAction(new UniqueEventID { Key = key, TimeStamp = timeStamp }, contextJson, (uint)numActions);
                     service.ReportReward(i / 100f, new UniqueEventID { Key = key, TimeStamp = timeStamp });
 
@@ -62,30 +68,32 @@ namespace ClientDecisionServiceSample
         public static void SampleCodeUsingASAJoinServer()
         {
             // Create configuration for the decision service
-            var serviceConfig = new DecisionServiceConfiguration<ExpandedContext, ExpandedActionDependentFeatures>(
-                authorizationToken: "sample-code",
-                explorer: new EpsilonGreedyExplorer<ExpandedContext>(new ExpandedPolicy(), epsilon: 0.8f))
+            var serviceConfig = new DecisionServiceConfiguration<FoodContext, FoodFeature>(
+                authorizationToken: AuthorizationToken,
+                explorer: new EpsilonGreedyExplorer<FoodContext>(new FoodPolicy(), epsilon: 0.8f))
             {
                 EventHubConnectionString = MultiActionSamples.EventHubConnectionString,
                 EventHubInputName = MultiActionSamples.EventHubInputName,
-                GetContextFeaturesFunc = ExpandedContext.GetFeaturesFromContext
+                GetContextFeaturesFunc = FoodContext.GetFeaturesFromContext,
+                FeatureDiscovery = VowpalWabbitFeatureDiscovery.Json
             };
 
-            using (var service = new DecisionService<ExpandedContext, ExpandedActionDependentFeatures>(serviceConfig))
+            using (var service = new DecisionService<FoodContext, FoodFeature>(serviceConfig))
             {
                 //string uniqueKey = "sample-asa-client-";
                 string uniqueKey = "scratch-key-";
+                string baseLocation = "Washington-";
+                int numActions = 3;
 
                 var rg = new Random(uniqueKey.GetHashCode());
 
                 for (int i = 1; i < 20; i++)
                 {
-                    int numActions = rg.Next(5, 10);
-
                     DateTime timeStamp = DateTime.UtcNow;
                     string key = uniqueKey + Guid.NewGuid().ToString();
 
-                    uint[] action = service.ChooseAction(new UniqueEventID { Key = key, TimeStamp = timeStamp }, ExpandedContext.CreateRandom(numActions, rg), (uint)numActions);
+                    var context = new FoodContext { Actions = new int[] { 1, 2, 3 }, UserLocation = baseLocation + rg.Next(100) };
+                    uint[] action = service.ChooseAction(new UniqueEventID { Key = key, TimeStamp = timeStamp }, context, (uint)numActions);
                     service.ReportReward(i / 100f, new UniqueEventID { Key = key, TimeStamp = timeStamp });
 
                     System.Threading.Thread.Sleep(1);

@@ -2,6 +2,7 @@
 {
     using System;
     using Microsoft.Research.MultiWorldTesting.JoinUploader;
+    using VW;
 
     public class BaseDecisionServiceConfiguration<TContext>
     {
@@ -26,6 +27,11 @@
         /// Whether the context provided is already serialized in JSON format.
         /// </summary>
         public bool UseJsonContext { get; set; }
+
+        /// <summary>
+        /// Specify method of feature discovery on the context type.
+        /// </summary>
+        public VowpalWabbitFeatureDiscovery FeatureDiscovery { get; set; }
 
         /// <summary>
         /// Indicates whether to operate in offline mode where polling and join service logging are turned off.
@@ -268,6 +274,11 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
         /// A callback to return the action-dependent features in the context.
         /// </summary>
         public Func<TContext, IReadOnlyCollection<TActionDependentFeature>> GetContextFeaturesFunc { get; set; }
+
+        /// <summary>
+        /// A callback to return the action-dependent features in the context. The context must be in JSON format.
+        /// </summary>
+        public Func<string, IReadOnlyCollection<TActionDependentFeature>> GetJsonContextFeaturesFunc { get; set; }
 
         #endregion
 

@@ -18,13 +18,13 @@ namespace ClientDecisionServiceSample
         [JsonIgnore]
         public bool Dummy { get; set; }
 
-        [JsonProperty]
+        [JsonIgnore]
         public float[] Features { get; set; }
 
-        [JsonProperty]
+        [JsonIgnore]
         public int[] Actions { get; set; }
 
-        [JsonIgnore]
+        [JsonProperty(PropertyName="_multi")]
         public ExpandedActionDependentFeatures[] ActionDependentFeatures
         {
             get
@@ -32,12 +32,6 @@ namespace ClientDecisionServiceSample
                 ExpandedActionDependentFeatures[] adfFeatures = this.Actions
                     .Select(i => new ExpandedActionDependentFeatures(this.Features, i * this.Features.Length))
                     .ToArray();
-
-                adfFeatures[0].Label = new ContextualBanditLabel
-                {
-                    Cost = 0.5f,
-                    Probability = 0.5f
-                };
 
                 return adfFeatures;
             }
@@ -80,7 +74,6 @@ namespace ClientDecisionServiceSample
             this.offset = offset;
         }
 
-        [Feature]
         public IEnumerable<float> ExpandedFeatures
         {
             get
@@ -89,8 +82,6 @@ namespace ClientDecisionServiceSample
                     .Concat(this.features);
             }
         }
-
-        public ILabel Label { get; set; }
     }
 
 
