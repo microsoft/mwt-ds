@@ -370,7 +370,7 @@ namespace ClientDecisionServiceSample
         public static void TrainNewVWModelWithMultiActionJsonDirectData()
         {
             int numLocations = 2; // user location
-            string[] locations = new string[] { "Washington", "NewYork" };
+            string[] locations = new string[] { "HealthyTown", "LessHealthyTown" };
 
             int numActions = 3; // food item
             int numExamplesPerActions = 10000;
@@ -413,11 +413,23 @@ namespace ClientDecisionServiceSample
                     recorder.Record(null, null, 1.0f / numActions, new UniqueEventID { Key = key, TimeStamp = timeStamp });
 
                     float cost = 0;
-                    // For location 1, action 3 is best
-                    // For location 2, action 2 is best
-                    if ((iL == 0 && action == 3) || (iL == 1 && action == 2))
+
+                    var draw = rand.NextDouble();
+                    if (context.UserLocation == "HealthyTown")
                     {
-                        cost = -10;
+                        // for healthy town, buy burger 1 with probability 0.1, burger 2 with probability 0.15, salad with probability 0.6
+                        if ((action == 1 && draw < 0.1) || (action == 2 && draw < 0.15) || (action == 3 && draw < 0.6))
+                        {
+                            cost = -10;
+                        }
+                    }
+                    else
+                    {
+                        // for unhealthy town, buy burger 1 with probability 0.4, burger 2 with probability 0.6, salad with probability 0.2
+                        if ((action == 1 && draw < 0.4) || (action == 2 && draw < 0.6) || (action == 3 && draw < 0.2))
+                        {
+                            cost = -10;
+                        }
                     }
                     var label = new ContextualBanditLabel 
                     {
