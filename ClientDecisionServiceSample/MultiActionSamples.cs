@@ -371,6 +371,7 @@ namespace ClientDecisionServiceSample
         {
             int numLocations = 2; // user location
             string[] locations = new string[] { "Washington", "NewYork" };
+
             int numActions = 3; // food item
             int numExamplesPerActions = 10000;
             var recorder = new FoodRecorder();
@@ -390,80 +391,78 @@ namespace ClientDecisionServiceSample
             //using (var vw = new VowpalWabbit(new VowpalWabbitSettings("--cb_adf --rank_all --cb_type dr")))
             using (var vw = new VowpalWabbit<FoodContext>(
                 new VowpalWabbitSettings(
-                    "--cb_adf --rank_all --cb_type dr", 
+                    "--cb_adf --rank_all --cb_type dr -q ::", 
                     featureDiscovery: VowpalWabbitFeatureDiscovery.Json,
                     enableStringExampleGeneration: true,
                     enableStringFloatCompact: true)))
             {
                 // Learn 
-                for (int iL = 0; iL < numLocations; iL++)
+                var rand = new Random(0);
+                for (int iE = 0; iE < numExamplesPerActions * numLocations; iE++)
                 {
-                    for (int iE = 0; iE < numExamplesPerActions; iE++)
+                    DateTime timeStamp = DateTime.UtcNow;
+
+                    int iL = rand.Next(0, numLocations);
+
+                    var context = new FoodContext { Actions = new int[] { 1, 2, 3 }, UserLocation = locations[iL] };
+                    string key = "fooditem " + Guid.NewGuid().ToString();
+
+                    //uint[] chosenActions = service.ChooseAction(new UniqueEventID { Key = key, TimeStamp = timeStamp}, context, (uint)numActions);
+                    //uint action = chosenActions[0];
+                    uint action = (uint)(iE % numActions + 1);
+                    recorder.Record(null, null, 1.0f / numActions, new UniqueEventID { Key = key, TimeStamp = timeStamp });
+
+                    float cost = 0;
+                    // For location 1, action 3 is best
+                    // For location 2, action 2 is best
+                    if ((iL == 0 && action == 3) || (iL == 1 && action == 2))
                     {
-                        DateTime timeStamp = DateTime.UtcNow;
-
-                        var context = new FoodContext { Actions = new int[] { 1, 2, 3 }, UserLocation = locations[iL] };
-                        string key = "fooditem " + Guid.NewGuid().ToString();
-
-                        //uint[] chosenActions = service.ChooseAction(new UniqueEventID { Key = key, TimeStamp = timeStamp}, context, (uint)numActions);
-                        //uint action = chosenActions[0];
-                        uint action = (uint)(iE % numActions + 1);
-                        recorder.Record(null, null, 1.0f / numActions, new UniqueEventID { Key = key, TimeStamp = timeStamp });
-
-                        float cost = 0;
-                        // For location 1, action 3 is best
-                        // For location 2, action 2 is best
-                        if ((iL == 0 && action == 3) || (iL == 1 && action == 2))
-                        {
-                            cost = -10;
-                        }
-                        var label = new ContextualBanditLabel 
-                        {
-                            Action = action - 1,
-                            Cost = cost,
-                            Probability = recorder.GetProb(key)
-                        };
-                        vw.Learn(context, label);
-
-                        stringExamplesTrain.Append(vw.Serializer.Create(vw.Native).SerializeToString(context, label, (int)label.Action));
-                        stringExamplesTrain.Append("\r\n");
+                        cost = -10;
                     }
-                }
+                    var label = new ContextualBanditLabel 
+                    {
+                        Action = action - 1,
+                        Cost = cost,
+                        Probability = recorder.GetProb(key)
+                    };
+                    vw.Learn(context, label);
 
+                    stringExamplesTrain.Append(vw.Serializer.Create(vw.Native).SerializeToString(context, label, (int)label.Action));
+                    stringExamplesTrain.Append("\r\n");
+                }
+                // write training data in string format
                 File.WriteAllText(@"c:\users\lhoang\downloads\food_train.vw", stringExamplesTrain.ToString());
 
                 // Predict
                 var stringExamplesTest = new StringBuilder();
-                var predictActions = new List<List<int>>();
-                for (int iL = 0; iL < numLocations; iL++)
+                var stringExamplesPred = new StringBuilder();
+                stringExamplesPred.Append(string.Join(",", locations));
+                stringExamplesPred.Append("\r\n");
+
+                for (int iE = 0; iE < numExamplesPerActions; iE++)
                 {
-                    predictActions.Add(new List<int>());
-                    for (int iE = 0; iE < numExamplesPerActions; iE++)
+                    foreach (string location in locations)
                     {
                         DateTime timeStamp = DateTime.UtcNow;
 
-                        var context = new FoodContext { Actions = new int[] { 1, 2, 3 }, UserLocation = locations[iL] };
+                        var context = new FoodContext { Actions = new int[] { 1, 2, 3 }, UserLocation = location };
                         int[] predicts = vw.Predict(context, VowpalWabbitPredictionType.Multilabel);
-                        predictActions[iL].Add(predicts[0] + 1);
+                        stringExamplesPred.Append(predicts[0] + 1);
+
+                        if (location == locations[0])
+                        {
+                            stringExamplesPred.Append(",");
+                        }
 
                         stringExamplesTest.Append(vw.Serializer.Create(vw.Native).SerializeToString(context));
                         stringExamplesTest.Append("\r\n");
                     }
+                    stringExamplesPred.Append("\n");
                 }
+                // write testing data in string format
                 File.WriteAllText(@"c:\users\lhoang\downloads\food_test.vw", stringExamplesTest.ToString());
-
-                var sb = new StringBuilder();
-                sb.Append(string.Join(",", locations));
-                for (int i = 0; i < predictActions[0].Count; i++)
-                {
-                    for (int l = 0; l < predictActions.Count; l++)
-                    {
-                        sb.Append(predictActions[l][i]);
-                        sb.Append(",");
-                    }
-                    sb.Append("\n");
-                }
-                File.WriteAllText(@"c:\users\lhoang\downloads\testvmoboffline.csv", sb.ToString());
+                // write model predictions
+                File.WriteAllText(@"c:\users\lhoang\downloads\food_csharp.pred", stringExamplesPred.ToString());
             }
         }
 
