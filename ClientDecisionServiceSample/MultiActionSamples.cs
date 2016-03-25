@@ -376,18 +376,18 @@ namespace ClientDecisionServiceSample
             int numExamplesPerActions = 10000;
             var recorder = new FoodRecorder();
 
-            var serviceConfig = new DecisionServiceConfiguration<FoodContext, FoodFeature>(
-                authorizationToken: AuthorizationToken,
-                explorer: new EpsilonGreedyExplorer<FoodContext>(new FoodPolicy(), epsilon: 0.2f))
-            {
-                OfflineMode = true,
-                Recorder = recorder,
-                GetContextFeaturesFunc = FoodContext.GetFeaturesFromContext,
-                FeatureDiscovery = VowpalWabbitFeatureDiscovery.Json
-            };
+            //var serviceConfig = new DecisionServiceConfiguration<FoodContext, FoodFeature>(
+            //    authorizationToken: AuthorizationToken,
+            //    explorer: new EpsilonGreedyExplorer<FoodContext>(new FoodPolicy(), epsilon: 0.2f))
+            //{
+            //    OfflineMode = true,
+            //    Recorder = recorder,
+            //    GetContextFeaturesFunc = FoodContext.GetFeaturesFromContext,
+            //    FeatureDiscovery = VowpalWabbitFeatureDiscovery.Json
+            //};
 
             var stringExamplesTrain = new StringBuilder();
-            using (var service = new DecisionService<FoodContext, FoodFeature>(serviceConfig))
+            //using (var service = new DecisionService<FoodContext, FoodFeature>(serviceConfig))
             //using (var vw = new VowpalWabbit(new VowpalWabbitSettings("--cb_adf --rank_all --cb_type dr")))
             using (var vw = new VowpalWabbit<FoodContext>(
                 new VowpalWabbitSettings(
