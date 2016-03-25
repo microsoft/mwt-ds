@@ -20,10 +20,9 @@ namespace ClientDecisionServiceSample
         {
             get
             {
-                FoodFeature[] adfFeatures = this.Actions
-                    .Select(i => new FoodFeature { Score = 1 })
+                return this.Actions
+                    .Select( (a, i) => new FoodFeature(this.Actions.Length, i))
                     .ToArray();
-                return adfFeatures;
             }
         }
 
@@ -35,7 +34,13 @@ namespace ClientDecisionServiceSample
 
     public class FoodFeature
     {
-        public float Score { get; set; }
+        public float[] Scores { get; set; }
+
+        internal FoodFeature(int numActions, int index)
+        {
+            Scores = Enumerable.Repeat(0f, numActions).ToArray();
+            Scores[index] = 1;
+        }
     }
 
     class FoodPolicy : IPolicy<FoodContext>
@@ -61,4 +66,50 @@ namespace ClientDecisionServiceSample
             return keyToProb[key];
         }
     }
+
+    //public class FoodContext
+    //{
+    //    public string UserLocation { get; set; }
+
+    //    [JsonIgnore]
+    //    public int[] Actions { get; set; }
+
+    //    [JsonProperty(PropertyName = "_multi")]
+    //    public FoodFeature[] ActionDependentFeatures
+    //    {
+    //        get
+    //        {
+    //            FoodFeature[] adfFeatures = this.Actions
+    //                .Select(i => new FoodFeature(score: 1, offset: i))
+    //                .ToArray();
+    //            return adfFeatures;
+    //        }
+    //    }
+
+    //    public static IReadOnlyCollection<FoodFeature> GetFeaturesFromContext(FoodContext context)
+    //    {
+    //        return context.ActionDependentFeatures;
+    //    }
+    //}
+
+    //public class FoodFeature
+    //{
+    //    private float score;
+    //    private int offset;
+
+    //    internal FoodFeature(float score, int offset)
+    //    {
+    //        this.score = score;
+    //        this.offset = offset;
+    //    }
+
+    //    public IEnumerable<float> ExpandedFeatures
+    //    {
+    //        get
+    //        {
+    //            return Enumerable.Repeat(0f, this.offset)
+    //                .Concat(new float[] { this.score });
+    //        }
+    //    }
+    //}
 }

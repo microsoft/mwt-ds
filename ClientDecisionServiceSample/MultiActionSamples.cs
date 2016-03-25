@@ -385,12 +385,15 @@ namespace ClientDecisionServiceSample
                 FeatureDiscovery = VowpalWabbitFeatureDiscovery.Json
             };
 
+            var stringExamplesTrain = new StringBuilder();
             using (var service = new DecisionService<FoodContext, FoodFeature>(serviceConfig))
             //using (var vw = new VowpalWabbit(new VowpalWabbitSettings("--cb_adf --rank_all --cb_type dr")))
             using (var vw = new VowpalWabbit<FoodContext>(
                 new VowpalWabbitSettings(
                     "--cb_adf --rank_all --cb_type dr", 
-                    featureDiscovery: VowpalWabbitFeatureDiscovery.Json)))
+                    featureDiscovery: VowpalWabbitFeatureDiscovery.Json,
+                    enableStringExampleGeneration: true,
+                    enableStringFloatCompact: true)))
             {
                 // Learn 
                 for (int iL = 0; iL < numLocations; iL++)
@@ -402,8 +405,10 @@ namespace ClientDecisionServiceSample
                         var context = new FoodContext { Actions = new int[] { 1, 2, 3 }, UserLocation = locations[iL] };
                         string key = "fooditem " + Guid.NewGuid().ToString();
 
-                        uint[] chosenActions = service.ChooseAction(new UniqueEventID { Key = key, TimeStamp = timeStamp}, context, (uint)numActions);
-                        uint action = chosenActions[0];
+                        //uint[] chosenActions = service.ChooseAction(new UniqueEventID { Key = key, TimeStamp = timeStamp}, context, (uint)numActions);
+                        //uint action = chosenActions[0];
+                        uint action = (uint)(iE % numActions + 1);
+                        recorder.Record(null, null, 1.0f / numActions, new UniqueEventID { Key = key, TimeStamp = timeStamp });
 
                         float cost = 0;
                         // For location 1, action 3 is best
@@ -419,10 +424,16 @@ namespace ClientDecisionServiceSample
                             Probability = recorder.GetProb(key)
                         };
                         vw.Learn(context, label);
+
+                        stringExamplesTrain.Append(vw.Serializer.Create(vw.Native).SerializeToString(context, label, (int)label.Action));
+                        stringExamplesTrain.Append("\r\n");
                     }
                 }
 
+                File.WriteAllText(@"c:\users\lhoang\downloads\food_train.vw", stringExamplesTrain.ToString());
+
                 // Predict
+                var stringExamplesTest = new StringBuilder();
                 var predictActions = new List<List<int>>();
                 for (int iL = 0; iL < numLocations; iL++)
                 {
@@ -434,8 +445,13 @@ namespace ClientDecisionServiceSample
                         var context = new FoodContext { Actions = new int[] { 1, 2, 3 }, UserLocation = locations[iL] };
                         int[] predicts = vw.Predict(context, VowpalWabbitPredictionType.Multilabel);
                         predictActions[iL].Add(predicts[0] + 1);
+
+                        stringExamplesTest.Append(vw.Serializer.Create(vw.Native).SerializeToString(context));
+                        stringExamplesTest.Append("\r\n");
                     }
                 }
+                File.WriteAllText(@"c:\users\lhoang\downloads\food_test.vw", stringExamplesTest.ToString());
+
                 var sb = new StringBuilder();
                 sb.Append(string.Join(",", locations));
                 for (int i = 0; i < predictActions[0].Count; i++)
