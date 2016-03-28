@@ -23,11 +23,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             {
                 Decision<uint[], TMapperState> policyDecision = this.policy.MapContext(context, numActionsVariable);
 
-                return new Decision<uint, Decision<uint[], TMapperState>>
-                {
-                    Value = policyDecision.Value[0],
-                    MapperState = policyDecision
-                };
+                return Decision.Create(policyDecision.Value[0], policyDecision);
             }
         }
 

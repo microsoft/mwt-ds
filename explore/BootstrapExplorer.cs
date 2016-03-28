@@ -12,7 +12,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 	/// computationally expensive.
 	/// </remarks>
 	/// <typeparam name="TContext">The Context type.</typeparam>
-	public abstract class BaseBootstrapExplorer<TContext, TValue, TMapperState> : IExplorer<TContext, TValue, GenericExplorerState, TValue, TMapperState>, IConsumePolicies<TContext, TValue, TMapperState>
+	public abstract class BaseBootstrapExplorer<TContext, TValue, TMapperState> : IExplorer<TContext, TValue, GenericExplorerState, TValue, TMapperState>, IConsumeContextMappers<TContext, TValue, TMapperState>
 	{
         private IContextMapper<TContext, TValue, TMapperState>[] defaultPolicyFunctions;
         private bool explore;

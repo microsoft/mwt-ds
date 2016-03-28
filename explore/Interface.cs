@@ -74,7 +74,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         void UpdatePolicy(IContextMapper<TContext, TValue, TMapperState> newPolicy);
     }
 
-    public interface IConsumePolicies<TContext, TValue, TMapperState>
+    public interface IConsumeContextMappers<TContext, TValue, TMapperState>
     {
         void UpdatePolicy(IContextMapper<TContext, TValue, TMapperState>[] newPolicies);
     }

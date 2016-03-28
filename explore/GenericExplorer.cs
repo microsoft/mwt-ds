@@ -96,10 +96,10 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
     /// distribution over actions desired, and it will draw from that.
     /// </remarks>
     /// <typeparam name="TContext">The Context type.</typeparam>
-    public class GenericExplorerSampleWithoutReplacement<TContext, TMapperState> 
+    public sealed class GenericExplorerSampleWithoutReplacement<TContext, TMapperState> 
         : BaseExplorer<TContext, uint[], GenericExplorerState, float[], TMapperState>
     {
-        protected readonly GenericExplorer<TContext, TMapperState> explorer;
+        private readonly GenericExplorer<TContext, TMapperState> explorer;
 
         /// <summary>
         /// The constructor is the only public member, because this should be used with the MwtExplorer.

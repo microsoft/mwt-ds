@@ -12,20 +12,21 @@
     /// <summary>
     /// Encapsulates logic for recorder with async server communications & policy update.
     /// </summary>
-    public class DecisionService<TContext> : IDisposable
+    public class DecisionService<TContext, TValue, TExplorerState, TMapperValue, TMapperState> : IDisposable
     {
         private readonly TimeSpan settingsBlobPollDelay;
         private readonly TimeSpan modelBlobPollDelay;
 
-        private readonly IExplorer<TContext> explorer;
-        private readonly IRecorder<TContext> recorder;
+        private readonly IExplorer<TContext, TValue, TExplorerState, TMapperValue, TMapperState> explorer;
+        private readonly IRecorder<TContext, TValue, TExplorerState, TMapperValue, TMapperState> recorder;
         private readonly DecisionServicePolicy<TContext> policy;
-        private readonly MwtExplorer<TContext> mwt;
+        private readonly MwtExplorer<TContext, TValue, TExplorerState, TMapperValue, TMapperState> mwt;
 
         private readonly string updateTaskId = "settings";
 
-        public IRecorder<TContext> Recorder { get { return recorder; } }
-        public IPolicy<TContext> Policy { get { return policy; } }
+        public IRecorder<TContext, TValue, TExplorerState, TMapperValue, TMapperState> Recorder { get { return recorder; } }
+
+        public IContextMapper<TContext, TMapperValue, TMapperState> Policy { get { return policy; } }
 
         /// <summary>
         /// Construct a <see cref="DecisionService{TContext}"/> object with the specified <see cref="DecisionServiceConfiguration{TContext}"/> configuration.
@@ -234,9 +235,9 @@
             UpdateInternalPolicy(policy);
         }
 
-        private void UpdateInternalPolicy(IPolicy<TContext> newPolicy)
+        private void UpdateInternalPolicy(IContextMapper<TContext, TMapperValue, TMapperState> newPolicy)
         {
-            IConsumePolicy<TContext> consumePolicy = explorer as IConsumePolicy<TContext>;
+            IConsumeContextMapper<TContext, TMapperValue, TMapperState> consumePolicy = explorer as IConsumeContextMapper<TContext, TMapperValue, TMapperState>;
             if (consumePolicy != null)
             {
                 consumePolicy.UpdatePolicy(newPolicy);
@@ -258,6 +259,7 @@
     }
 }
 
+/*
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
 {
     using Microsoft.Research.MultiWorldTesting.Contract;
@@ -518,3 +520,4 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
         { }
     }
 }
+*/

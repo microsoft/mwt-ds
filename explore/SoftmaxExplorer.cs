@@ -94,10 +94,74 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             actionIndex++;
 
             // action id is one-based
-            return Decision.Create(actionIndex, 
-                new GenericExplorerState { Probability = actionProbability }, 
+            return Decision.Create(actionIndex,
+                new GenericExplorerState { Probability = actionProbability },
                 policyDecision,
                 true);
+        }
+    }
+
+    public sealed class SoftmaxSampleWithoutReplacementExplorer<TContext, TMapperState>
+        : BaseExplorer<TContext, uint[], GenericExplorerState, float[], TMapperState>
+    {
+        private readonly SoftmaxExplorer<TContext, TMapperState> explorer;
+
+		/// <summary>
+		/// The constructor is the only public member, because this should be used with the MwtExplorer.
+		/// </summary>
+		/// <param name="defaultScorer">A function which outputs a score for each action.</param>
+		/// <param name="lambda">lambda = 0 implies uniform distribution. Large lambda is equivalent to a max.</param>
+		/// <param name="numActions">The number of actions to randomize over.</param>
+        public SoftmaxSampleWithoutReplacementExplorer(IScorer<TContext, TMapperState> defaultScorer, float lambda, uint numActions = uint.MaxValue)
+            : base(defaultScorer, numActions)
+        {
+            this.explorer = new SoftmaxExplorer<TContext, TMapperState>(defaultScorer, lambda, numActions);
+        }
+
+        public override void UpdatePolicy(IContextMapper<TContext, float[], TMapperState> newPolicy)
+        {
+            base.UpdatePolicy(newPolicy);
+            this.explorer.UpdatePolicy(newPolicy);
+        }
+
+        public override void EnableExplore(bool explore)
+        {
+            base.EnableExplore(explore);
+            this.explorer.EnableExplore(explore);
+        }
+
+        protected override Decision<uint[], GenericExplorerState, float[], TMapperState> MapContextInternal(ulong saltedSeed, TContext context, uint numActionsVariable)
+        {
+            var decision = this.explorer.MapContext(saltedSeed, context, numActionsVariable);
+            var scores = decision.MapperDecision.Value;
+
+            uint[] chosenActions;
+            float actionProbability = decision.ExplorerState.Probability;
+
+            if (this.explore)
+            {
+                var random = new PRG(saltedSeed);
+                chosenActions = MultiActionHelper.SampleWithoutReplacement(scores, numActionsVariable, random, ref actionProbability);
+            }
+            else
+            {
+                // avoid linq to optimize perf
+                chosenActions = new uint[numActionsVariable];
+                for (int i = 1; i <= numActionsVariable; i++)
+                {
+                    chosenActions[i] = (uint)i;
+                }
+
+                // swap max-score action with the first one
+                uint firstAction = chosenActions[0];
+                chosenActions[0] = chosenActions[decision.Value];
+                chosenActions[decision.Value] = firstAction;
+            }
+
+            return Decision.Create(chosenActions,
+                decision.ExplorerState,
+                decision.MapperDecision,
+                decision.ShouldRecord);
         }
     }
 }

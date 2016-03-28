@@ -43,14 +43,21 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                 numActionsVariable);
         }
 
-        public static EpsilonGreedyExplorer<TContext, TMapperState> CreateEpsilonGreedyExplorer(float epsilon, uint numActionsVariable = uint.MaxValue)
+        public static EpsilonGreedyExplorer<TContext, TMapperState> CreateEpsilonGreedyExplorer<TContext, TMapperState>(IPolicy<TContext, TMapperState> defaultPolicy, float epsilon, uint numActionsVariable = uint.MaxValue)
         {
-            return new EpsilonGreedyExplorer<TContext, TMapperState>(epsilon, numActionsVariable);
+            return new EpsilonGreedyExplorer<TContext, TMapperState>(defaultPolicy, epsilon, numActionsVariable);
         }
 
-        public static TauFirstExplorer<TContext, TMapperState> CreateTauFirstExplorer(uint tau, uint numActionsVariable = uint.MaxValue)
+        public static TauFirstExplorer<TContext, TMapperState> CreateTauFirstExplorer<TContext, TMapperState>(IPolicy<TContext, TMapperState> defaultPolicy, uint tau, uint numActionsVariable = uint.MaxValue)
         {
-            return new TauFirstExplorer<TContext, TMapperState>(tau, numActionsVariable);
+            return new TauFirstExplorer<TContext, TMapperState>(defaultPolicy, tau, numActionsVariable);
         }
+
+        public static SoftmaxExplorer<TContext, TMapperState> CreateSoftmaxExplorer<TContext, TMapperState>(IScorer<TContext, TMapperState> defaultScorer, float lambda, uint numActionsVariable = uint.MaxValue)
+        {
+            return new SoftmaxExplorer<TContext, TMapperState>(defaultScorer, lambda, numActionsVariable);
+        }
+
+        // TODO: add more factory methods
     }
 }
