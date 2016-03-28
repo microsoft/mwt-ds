@@ -12,21 +12,18 @@
     /// <summary>
     /// Encapsulates logic for recorder with async server communications & policy update.
     /// </summary>
-    public class DecisionService<TContext, TValue, TExplorerState, TMapperValue, TMapperState> : IDisposable
+    public class DecisionService<TContext> : IDisposable
     {
         private readonly TimeSpan settingsBlobPollDelay;
         private readonly TimeSpan modelBlobPollDelay;
 
-        private readonly IExplorer<TContext, TValue, TExplorerState, TMapperValue, TMapperState> explorer;
-        private readonly IRecorder<TContext, TValue, TExplorerState, TMapperValue, TMapperState> recorder;
+        private readonly IExplorer<TContext> explorer;
+        private readonly IRecorder<TContext> recorder;
         private readonly DecisionServicePolicy<TContext> policy;
-        private readonly MwtExplorer<TContext, TValue, TExplorerState, TMapperValue, TMapperState> mwt;
+        private readonly DecisionServiceJsonPolicy jsonPolicy;
+        private readonly MwtExplorer<TContext> mwt;
 
         private readonly string updateTaskId = "settings";
-
-        public IRecorder<TContext, TValue, TExplorerState, TMapperValue, TMapperState> Recorder { get { return recorder; } }
-
-        public IContextMapper<TContext, TMapperValue, TMapperState> Policy { get { return policy; } }
 
         /// <summary>
         /// Construct a <see cref="DecisionService{TContext}"/> object with the specified <see cref="DecisionServiceConfiguration{TContext}"/> configuration.
@@ -86,13 +83,25 @@
 
                     if (this.modelBlobPollDelay != TimeSpan.MinValue)
                     {
-                        this.policy = new DecisionServicePolicy<TContext>(
-                            metadata.ModelBlobUri, metadata.ConnectionString,
-                            config.BlobOutputDir,
-                            this.modelBlobPollDelay,
-                            this.InternalPolicyUpdated,
-                            config.ModelPollFailureCallback,
-                            config.UseJsonContext);
+                        if (config.UseJsonContext)
+                        {
+                            this.jsonPolicy = new DecisionServiceJsonPolicy(
+                                metadata.ModelBlobUri, metadata.ConnectionString,
+                                config.BlobOutputDir,
+                                this.modelBlobPollDelay,
+                                this.InternalPolicyUpdated,
+                                config.ModelPollFailureCallback);
+                        }
+                        else
+                        {
+                            this.policy = new DecisionServicePolicy<TContext>(
+                                metadata.ModelBlobUri, metadata.ConnectionString,
+                                config.BlobOutputDir,
+                                this.modelBlobPollDelay,
+                                this.InternalPolicyUpdated,
+                                config.ModelPollFailureCallback,
+                                config.FeatureDiscovery);
+                        }
                     }
                     AzureBlobUpdater.Start();
                 }
@@ -176,6 +185,11 @@
                 policy.StopPolling();
             }
 
+            if (jsonPolicy != null)
+            {
+                jsonPolicy.StopPolling();
+            }
+
             ILogger<TContext> logger = this.recorder as ILogger<TContext>;
             if (logger != null)
             {
@@ -232,12 +246,34 @@
 
         private void InternalPolicyUpdated()
         {
-            UpdateInternalPolicy(policy);
+            if (policy != null)
+            {
+                UpdateInternalPolicy(policy);
+            }
+            if (jsonPolicy != null)
+            {
+                UpdateInternalPolicy(jsonPolicy);
+            }
         }
 
-        private void UpdateInternalPolicy(IContextMapper<TContext, TMapperValue, TMapperState> newPolicy)
+        private void UpdateInternalPolicy(IPolicy<TContext> newPolicy)
         {
-            IConsumeContextMapper<TContext, TMapperValue, TMapperState> consumePolicy = explorer as IConsumeContextMapper<TContext, TMapperValue, TMapperState>;
+            IConsumePolicy<TContext> consumePolicy = explorer as IConsumePolicy<TContext>;
+            if (consumePolicy != null)
+            {
+                consumePolicy.UpdatePolicy(newPolicy);
+                Trace.TraceInformation("Model update succeeded.");
+            }
+            else
+            {
+                // TODO: how to handle updating policies for Bootstrap explorers?
+                throw new NotSupportedException("This type of explorer does not currently support updating policy functions.");
+            }
+        }
+
+        private void UpdateInternalPolicy(IPolicy<string> newPolicy)
+        {
+            IConsumePolicy<string> consumePolicy = explorer as IConsumePolicy<string>;
             if (consumePolicy != null)
             {
                 consumePolicy.UpdatePolicy(newPolicy);
@@ -259,7 +295,6 @@
     }
 }
 
-/*
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
 {
     using Microsoft.Research.MultiWorldTesting.Contract;
@@ -282,12 +317,11 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
         private readonly IExplorer<TContext> explorer;
         private readonly IRecorder<TContext> recorder;
         private readonly DecisionServicePolicy<TContext, TActionDependentFeature> policy;
+        private readonly DecisionServiceJsonPolicy<TActionDependentFeature> jsonPolicy;
+        private readonly DecisionServiceJsonDirectPolicy<TContext> jsonDirectPolicy;
         private readonly MwtExplorer<TContext> mwt;
 
         private readonly string updateTaskId = "settings";
-
-        public IRecorder<TContext> Recorder { get { return recorder; } }
-        public IPolicy<TContext> Policy { get { return policy; } }
 
         /// <summary>
         /// Construct a <see cref="DecisionService{TContext, TActionDependentFeature}"/> object with the specified <see cref="DecisionServiceConfiguration{TContext, TActionDependentFeature}"/> configuration.
@@ -347,14 +381,41 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
 
                     if (this.modelBlobPollDelay != TimeSpan.MinValue)
                     {
-                        this.policy = new DecisionServicePolicy<TContext, TActionDependentFeature>(
-                            metadata.ModelBlobUri, metadata.ConnectionString,
-                            config.BlobOutputDir,
-                            this.modelBlobPollDelay,
-                            config.GetContextFeaturesFunc,
-                            this.InternalPolicyUpdated,
-                            config.ModelPollFailureCallback,
-                            config.UseJsonContext);
+                        if (config.UseJsonContext)
+                        {
+                            this.jsonPolicy = new DecisionServiceJsonPolicy<TActionDependentFeature>(
+                                metadata.ModelBlobUri, metadata.ConnectionString,
+                                config.BlobOutputDir,
+                                this.modelBlobPollDelay,
+                                config.GetJsonContextFeaturesFunc,
+                                this.InternalPolicyUpdated,
+                                config.ModelPollFailureCallback);
+                        }
+                        else
+                        {
+                            if (config.FeatureDiscovery == VW.VowpalWabbitFeatureDiscovery.Json)
+                            {
+                                this.jsonDirectPolicy = new DecisionServiceJsonDirectPolicy<TContext>(
+                                    metadata.ModelBlobUri, metadata.ConnectionString,
+                                    config.BlobOutputDir,
+                                    this.modelBlobPollDelay,
+                                    this.InternalPolicyUpdated,
+                                    config.ModelPollFailureCallback);
+                            }
+                            else
+                            {
+                                this.policy = new DecisionServicePolicy<TContext, TActionDependentFeature>(
+                                    metadata.ModelBlobUri, metadata.ConnectionString,
+                                    config.BlobOutputDir,
+                                    this.modelBlobPollDelay,
+                                    config.GetContextFeaturesFunc,
+                                    this.InternalPolicyUpdated,
+                                    config.ModelPollFailureCallback,
+                                    config.FeatureDiscovery);
+                            }
+                            
+                        }
+                        
                     }
                     AzureBlobUpdater.Start();
                 }
@@ -438,6 +499,16 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
                 policy.StopPolling();
             }
 
+            if (jsonPolicy != null)
+            {
+                jsonPolicy.StopPolling();
+            }
+
+            if (jsonDirectPolicy != null)
+            {
+                jsonDirectPolicy.StopPolling();
+            }
+
             ILogger<TContext> logger = this.recorder as ILogger<TContext>;
             if (logger != null)
             {
@@ -494,12 +565,38 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
 
         private void InternalPolicyUpdated()
         {
-            UpdateInternalPolicy(policy);
+            if (policy != null)
+            {
+                UpdateInternalPolicy(policy);
+            }
+            if (jsonPolicy != null)
+            {
+                UpdateInternalPolicy(jsonPolicy);
+            }
+            if (jsonDirectPolicy != null)
+            {
+                UpdateInternalPolicy(jsonDirectPolicy);
+            }
         }
 
         private void UpdateInternalPolicy(IPolicy<TContext> newPolicy)
         {
             IConsumePolicy<TContext> consumePolicy = explorer as IConsumePolicy<TContext>;
+            if (consumePolicy != null)
+            {
+                consumePolicy.UpdatePolicy(newPolicy);
+                Trace.TraceInformation("Model update succeeded.");
+            }
+            else
+            {
+                // TODO: how to handle updating policies for Bootstrap explorers?
+                throw new NotSupportedException("This type of explorer does not currently support updating policy functions.");
+            }
+        }
+
+        private void UpdateInternalPolicy(IPolicy<string> newPolicy)
+        {
+            IConsumePolicy<string> consumePolicy = explorer as IConsumePolicy<string>;
             if (consumePolicy != null)
             {
                 consumePolicy.UpdatePolicy(newPolicy);
@@ -520,4 +617,3 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
         { }
     }
 }
-*/

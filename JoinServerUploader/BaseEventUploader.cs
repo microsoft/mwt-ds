@@ -100,7 +100,9 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
             try
             {
                 await this.UploadTransformedEvents(transformedEvents);
+#if DEBUG
                 this.batchConfig.SuccessHandler(transformedEvents.Count);
+#endif
             }
             catch (Exception e)
             {
