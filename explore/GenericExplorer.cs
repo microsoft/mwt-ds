@@ -1,5 +1,4 @@
-﻿using Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 
@@ -26,17 +25,17 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 		/// </summary>
 		/// <param name="defaultScorer">A function which outputs the probability of each action.</param>
 		/// <param name="numActions">The number of actions to randomize over.</param>
-        public GenericExplorer(IPolicy<TContext, float[], TPolicyState> defaultScorer, uint numActions = uint.MaxValue)
+        public GenericExplorer(IContextMapper<TContext, float[], TPolicyState> defaultScorer, uint numActions = uint.MaxValue)
             : base(defaultScorer, numActions)
 		{
         }
 
-        protected override Decision<uint, GenericExplorerState, TPolicyState> ChooseActionInternal(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
+        protected override Decision<uint, GenericExplorerState, float[], TPolicyState> MapContextInternal(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
         {
             var random = new PRG(saltedSeed);
 
             // Invoke the default scorer function
-            PolicyDecision<float[], TPolicyState> policyDecision = this.defaultPolicy.ChooseAction(context);
+            PolicyDecision<float[], TPolicyState> policyDecision = this.defaultPolicy.MapContext(context);
             float[] weights = policyDecision.Action;
 
             uint numWeights = (uint)weights.Length;
@@ -84,7 +83,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             return Decision.Create(
                 actionIndex,
                 new GenericExplorerState { Probability = actionProbability },
-                PolicyDecision.Create(actionIndex, policyDecision.PolicyState),
+                policyDecision,
                 true);
         }
     }
@@ -107,13 +106,13 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         /// </summary>
         /// <param name="defaultScorer">A function which outputs the probability of each action.</param>
         /// <param name="numActions">The number of actions to randomize over.</param>
-        public GenericExplorerSampleWithoutReplacement(IPolicy<TContext, float[], TPolicyState> defaultScorer, uint numActions = uint.MaxValue)
+        public GenericExplorerSampleWithoutReplacement(IScorer<TContext, TPolicyState> defaultScorer, uint numActions = uint.MaxValue)
              : base(defaultScorer, numActions)
         {
             this.explorer = new GenericExplorer<TContext, TPolicyState>(defaultScorer, numActions);
         }
 
-        public override void UpdatePolicy(IPolicy<TContext, float[], TPolicyState> newPolicy)
+        public override void UpdatePolicy(IContextMapper<TContext, float[], TPolicyState> newPolicy)
         {
             base.UpdatePolicy(newPolicy);
             this.explorer.UpdatePolicy(newPolicy);
@@ -125,20 +124,23 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.explorer.EnableExplore(explore);
         }
 
-        protected override Decision<uint[], GenericExplorerState, TPolicyState> ChooseActionInternal(ulong saltedSeed, TContext context, uint numActionsVariable)
+        protected override Decision<uint[], GenericExplorerState, float[], TPolicyState> MapContextInternal(ulong saltedSeed, TContext context, uint numActionsVariable)
         {
-            var decision = this.explorer.ChooseAction(saltedSeed, context, numActionsVariable);
+            var random = new PRG(saltedSeed);
+
+            var decision = this.explorer.MapContext(saltedSeed, context, numActionsVariable);
 
             // Note: this assume update of the weights array.
             float[] weights = decision.PolicyDecision.Action;
 
             float actionProbability = 0f;
-            uint[] chosenActions = MultiActionHelper.SampleWithoutReplacement(weights, numActions, random, ref actionProbability);
+            uint[] chosenActions = MultiActionHelper.SampleWithoutReplacement(weights, numActionsVariable, random, ref actionProbability);
 
             // action id is one-based
             return Decision.Create(chosenActions,
                 new GenericExplorerState { Probability = actionProbability },
-                policyDecision.PolicyState);
+                decision.PolicyDecision,
+                true);
         }
     }
 }

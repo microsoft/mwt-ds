@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction
+namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
     internal static class MultiActionHelper
     {
@@ -40,7 +40,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction
             }
         }
 
-        internal static uint[] SampleWithoutReplacement(List<float> probabilities, uint size, PRG randomGenerator, ref float topActionProbability)
+        internal static uint[] SampleWithoutReplacement(float[] probabilities, uint size, PRG randomGenerator, ref float topActionProbability)
         {
             for (int i = 0; i < size; i++)
             {

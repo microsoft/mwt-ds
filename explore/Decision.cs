@@ -9,9 +9,10 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
     public static class Decision
     {
-        public static Decision<TAction, TExplorerState, TPolicyState> Create<TAction, TExplorerState, TPolicyState>(TAction action, TExplorerState explorerState, PolicyDecision<TAction, TPolicyState> policyDecision, bool shouldRecord)
+        public static Decision<TAction, TExplorerState, TPolicyAction, TPolicyState> Create<TAction, TExplorerState, TPolicyAction, TPolicyState>(
+            TAction action, TExplorerState explorerState, PolicyDecision<TPolicyAction, TPolicyState> policyDecision, bool shouldRecord)
         {
-            return new Decision<TAction, TExplorerState, TPolicyState>
+            return new Decision<TAction, TExplorerState, TPolicyAction, TPolicyState>
             {
                 Action = action,
                 ExplorerState = explorerState,
@@ -22,7 +23,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
     }
 
     [JsonConverter(typeof(DecisionJsonConverter))]
-    public sealed class Decision<TAction, TExplorerState, TPolicyState>
+    public sealed class Decision<TAction, TExplorerState, TPolicyAction, TPolicyState>
     {
         public bool ShouldRecord { get; set; }
 
@@ -36,6 +37,6 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         public TExplorerState ExplorerState { get; set; }
 
         // only logging TPolicyState
-        public PolicyDecision<TAction, TPolicyState> PolicyDecision { get; set; }
+        public PolicyDecision<TPolicyAction, TPolicyState> PolicyDecision { get; set; }
     }
 }

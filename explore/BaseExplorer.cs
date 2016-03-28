@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
     public abstract class BaseExplorer<TContext, TAction, TExplorerState, TPolicyAction, TPolicyState>
-        : IExplorer<TContext, TAction, TExplorerState, TPolicyState>, IConsumePolicy<TContext, TPolicyAction, TPolicyState>
+        : IExplorer<TContext, TAction, TExplorerState, TPolicyAction, TPolicyState>, IConsumePolicy<TContext, TPolicyAction, TPolicyState>
     {
-        protected IPolicy<TContext, TPolicyAction, TPolicyState> defaultPolicy;
+        protected IContextMapper<TContext, TPolicyAction, TPolicyState> defaultPolicy;
         protected bool explore;
         protected readonly uint numActionsFixed;
 
-        protected BaseExplorer(IPolicy<TContext, TPolicyAction, TPolicyState> defaultPolicy, uint numActions = uint.MaxValue)
+        protected BaseExplorer(IContextMapper<TContext, TPolicyAction, TPolicyState> defaultPolicy, uint numActions = uint.MaxValue)
         {
             if (defaultPolicy == null)
                 throw new ArgumentNullException("defaultPolicy");
@@ -25,7 +25,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.numActionsFixed = numActions;
         }
 
-        public virtual void UpdatePolicy(IPolicy<TContext, TPolicyAction, TPolicyState> newPolicy)
+        public virtual void UpdatePolicy(IContextMapper<TContext, TPolicyAction, TPolicyState> newPolicy)
         {
             this.defaultPolicy = newPolicy;
         }
@@ -35,7 +35,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.explore = explore;
         }
 
-        public Decision<TAction, TExplorerState, TPolicyState> ChooseAction(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
+        public Decision<TAction, TExplorerState, TPolicyAction, TPolicyState> MapContext(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
         {
             uint numActions = (numActionsFixed == uint.MaxValue) ? numActionsVariable : numActionsFixed;
 
@@ -45,9 +45,9 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                 throw new ArgumentException("Number of actions must be at least 1.");
             }
 
-            return this.ChooseActionInternal(saltedSeed, context, numActions);
+            return this.MapContextInternal(saltedSeed, context, numActions);
         }
 
-        protected abstract Decision<TAction, TExplorerState, TPolicyState> ChooseActionInternal(ulong saltedSeed, TContext context, uint numActionsVariable);
+        protected abstract Decision<TAction, TExplorerState, TPolicyAction, TPolicyState> MapContextInternal(ulong saltedSeed, TContext context, uint numActionsVariable);
     }
 }

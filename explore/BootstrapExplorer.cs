@@ -12,9 +12,9 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 	/// computationally expensive.
 	/// </remarks>
 	/// <typeparam name="TContext">The Context type.</typeparam>
-	public abstract class BaseBootstrapExplorer<TContext, TAction, TPolicyState> : IExplorer<TContext, TAction, GenericExplorerState, TPolicyState>, IConsumePolicies<TContext, TAction, TPolicyState>
+	public abstract class BaseBootstrapExplorer<TContext, TAction, TPolicyState> : IExplorer<TContext, TAction, GenericExplorerState, TAction, TPolicyState>, IConsumePolicies<TContext, TAction, TPolicyState>
 	{
-        private IPolicy<TContext, TAction, TPolicyState>[] defaultPolicyFunctions;
+        private IContextMapper<TContext, TAction, TPolicyState>[] defaultPolicyFunctions;
         private bool explore;
         private readonly uint bags;
 	    private readonly uint numActionsFixed;
@@ -24,9 +24,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 		/// </summary>
 		/// <param name="defaultPolicies">A set of default policies to be uniform random over.</param>
 		/// <param name="numActions">The number of actions to randomize over.</param>
-        protected BaseBootstrapExplorer(
-            IPolicy<TContext, TAction, TPolicyState>[] defaultPolicies, 
-            uint numActions = uint.MaxValue)
+        protected BaseBootstrapExplorer(IContextMapper<TContext, TAction, TPolicyState>[] defaultPolicies, uint numActions = uint.MaxValue)
 		{
             VariableActionHelper.ValidateInitialNumberOfActions(numActions);
 
@@ -41,7 +39,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.explore = true;
         }
 
-        public void UpdatePolicy(IPolicy<TContext, TAction, TPolicyState>[] newPolicies)
+        public void UpdatePolicy(IContextMapper<TContext, TAction, TPolicyState>[] newPolicies)
         {
             this.defaultPolicyFunctions = newPolicies;
         }
@@ -51,7 +49,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.explore = explore;
         }
 
-        public Decision<TAction, GenericExplorerState, TPolicyState> ChooseAction(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
+        public Decision<TAction, GenericExplorerState, TAction, TPolicyState> MapContext(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
         {
             uint numActions = VariableActionHelper.GetNumberOfActions(this.numActionsFixed, numActionsVariable);
 
@@ -61,14 +59,13 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             uint chosenBag = random.UniformInt(0, this.bags - 1);
 
             // Invoke the default policy function to get the action
-            PolicyDecision<TAction, TPolicyState> chosenDecision;
+            PolicyDecision<TAction, TPolicyState> chosenDecision = null; // TODO
             float actionProbability = 0f;
 
             if (this.explore)
             {
                 PolicyDecision<TAction, TPolicyState> decisionFromBag = null;
                 uint actionFromBag = 0;
-                uint chosenTopAction = 0;
                 uint[] actionsSelected = Enumerable.Repeat<uint>(0, (int)numActions).ToArray();
 
                 // Invoke the default policy function to get the action
@@ -77,7 +74,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                     // TODO: can VW predict for all bags on one call? (returning all actions at once)
                     // if we trigger into VW passing an index to invoke bootstrap scoring, and if VW model changes while we are doing so, 
                     // we could end up calling the wrong bag
-                    decisionFromBag = this.defaultPolicyFunctions[currentBag].ChooseAction(context, numActionsVariable);
+                    decisionFromBag = this.defaultPolicyFunctions[currentBag].MapContext(context, numActionsVariable);
                     actionFromBag = this.GetTopAction(decisionFromBag.Action);
 
                     if (actionFromBag == 0 || actionFromBag > numActions)
@@ -97,11 +94,16 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             }
             else
             {
-                chosenDecision = this.defaultPolicyFunctions[0].ChooseAction(context, numActionsVariable);
+                chosenDecision = this.defaultPolicyFunctions[0].MapContext(context, numActionsVariable);
                 actionProbability = 1f;
             }
 
-            return chosenDecision;
+            GenericExplorerState explorerState = new GenericExplorerState
+            {
+                Probability = actionProbability
+            };
+
+            return Decision.Create(chosenDecision.Action, explorerState, chosenDecision, true);
         }
 
         protected abstract uint GetTopAction(TAction action);
@@ -109,7 +111,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 
     public class BootstrapExplorer<TContext, TPolicyState> : BaseBootstrapExplorer<TContext, uint, TPolicyState>
     {
-        public BootstrapExplorer(IPolicy<TContext, uint, TPolicyState>[] defaultPolicies, 
+        public BootstrapExplorer(IContextMapper<TContext, uint, TPolicyState>[] defaultPolicies, 
             uint numActions = uint.MaxValue)
             : base(defaultPolicies, numActions)
         {
@@ -123,7 +125,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 
     public class BootstrapTopSlotExplorer<TContext, TPolicyState> : BaseBootstrapExplorer<TContext, uint[], TPolicyState>
     {
-        public BootstrapTopSlotExplorer(IPolicy<TContext, uint[], TPolicyState>[] defaultPolicies,
+        public BootstrapTopSlotExplorer(IContextMapper<TContext, uint[], TPolicyState>[] defaultPolicies,
             uint numActions = uint.MaxValue)
             : base(defaultPolicies, numActions)
         {

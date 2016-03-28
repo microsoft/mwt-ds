@@ -23,18 +23,18 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 		/// <param name="defaultScorer">A function which outputs a score for each action.</param>
 		/// <param name="lambda">lambda = 0 implies uniform distribution. Large lambda is equivalent to a max.</param>
 		/// <param name="numActions">The number of actions to randomize over.</param>
-        public SoftmaxExplorer(IPolicy<TContext, float[], TPolicyState> defaultScorer, float lambda, uint numActions = uint.MaxValue)
+        public SoftmaxExplorer(IScorer<TContext, TPolicyState> defaultScorer, float lambda, uint numActions = uint.MaxValue)
             : base(defaultScorer, numActions)
         {
             this.lambda = lambda;
         }
 
-        protected override Decision<uint, GenericExplorerState, TPolicyState> ChooseActionInternal(ulong saltedSeed, TContext context, uint numActionsVariable)
+        protected override Decision<uint, GenericExplorerState, float[], TPolicyState> MapContextInternal(ulong saltedSeed, TContext context, uint numActionsVariable)
         {
             var random = new PRG(saltedSeed);
 
             // Invoke the default scorer function
-            PolicyDecision<float[], TPolicyState> policyDecision= this.defaultPolicy.ChooseAction(context);
+            PolicyDecision<float[], TPolicyState> policyDecision= this.defaultPolicy.MapContext(context);
             float[] scores = policyDecision.Action;
             uint numScores = (uint)scores.Length;
             if (numScores != numActionsVariable)
@@ -91,10 +91,12 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                 actionProbability = 1f; // Set to 1 since we always pick the highest one.
             }
 
+            actionIndex++;
+
             // action id is one-based
-            return Decision.Create(actionIndex + 1, 
+            return Decision.Create(actionIndex, 
                 new GenericExplorerState { Probability = actionProbability }, 
-                policyDecision.PolicyState,
+                policyDecision,
                 true);
         }
     }

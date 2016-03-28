@@ -1,5 +1,4 @@
-﻿using Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,47 +8,52 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
     public static class TopSlotExplorer
     {
-        // TODO: factory methods.
         private static TopSlotExplorer<TContext, TExplorer, TExplorerState, TPolicyState> 
-            Create2<TContext, TExplorer, TExplorerState, TPolicyState>(IPolicy<TContext, uint[], TPolicyState> defaultPolicy,
-            Func<IPolicy<TContext, uint, PolicyDecision<uint[], TPolicyState>>, TExplorer> singleExplorerFactory, 
+            Create<TContext, TExplorer, TExplorerState, TPolicyState>(IRanker<TContext, TPolicyState> defaultPolicy,
+            Func<IPolicy<TContext, PolicyDecision<uint[], TPolicyState>>, TExplorer> singleExplorerFactory, 
             uint numActions)
-                where TExplorer : IExplorer<TContext, uint, TExplorerState, PolicyDecision<uint[], TPolicyState>>, 
+                where TExplorer : IExplorer<TContext, uint, TExplorerState, uint, PolicyDecision<uint[], TPolicyState>>, 
             IConsumePolicy<TContext, uint, PolicyDecision<uint[], TPolicyState>>
         {
             return new TopSlotExplorer<TContext, TExplorer, TExplorerState, TPolicyState>(defaultPolicy, singleExplorerFactory, numActions);
         }
 
-        public static TopSlotExplorer<TContext, EpsilonGreedyExplorer<TContext, PolicyDecision<uint[], TPolicyState>>, EpsilonGreedyState, TPolicyState> 
-            Create<TContext, TPolicyState>(
-                IPolicy<TContext, uint[], TPolicyState> defaultPolicy, 
-            float epsilon, 
-            uint numActionsVariable = uint.MaxValue)
+        public static TopSlotExplorer<TContext, EpsilonGreedyExplorer<TContext, PolicyDecision<uint[], TPolicyState>>, EpsilonGreedyState, TPolicyState>
+            CreateEpsilonGreedyExplorer<TContext, TPolicyState>(IRanker<TContext, TPolicyState> defaultPolicy, float epsilon, uint numActionsVariable = uint.MaxValue)
         {
-            return Create2<TContext, EpsilonGreedyExplorer<TContext, PolicyDecision<uint[], TPolicyState> >, EpsilonGreedyState, TPolicyState>(
+            return Create<TContext, EpsilonGreedyExplorer<TContext, PolicyDecision<uint[], TPolicyState>>, EpsilonGreedyState, TPolicyState>(
                 defaultPolicy,
                 policy => new EpsilonGreedyExplorer<TContext, PolicyDecision<uint[], TPolicyState>>(policy, epsilon, numActionsVariable), 
+                numActionsVariable);
+        }
+
+        public static TopSlotExplorer<TContext, TauFirstExplorer<TContext, PolicyDecision<uint[], TPolicyState>>, TauFirstState, TPolicyState>
+            CreateTauFirstExplorer<TContext, TPolicyState>(IRanker<TContext, TPolicyState> defaultPolicy, uint tau, uint numActionsVariable = uint.MaxValue)
+        {
+            return Create<TContext, TauFirstExplorer<TContext, PolicyDecision<uint[], TPolicyState>>, TauFirstState, TPolicyState>(
+                defaultPolicy,
+                policy => new TauFirstExplorer<TContext, PolicyDecision<uint[], TPolicyState>>(policy, tau, numActionsVariable),
                 numActionsVariable);
         }
     }
 
     public class TopSlotExplorer<TContext, TExplorer, TExplorerState, TPolicyState> 
         : BaseExplorer<TContext, uint[], TExplorerState, uint[], TPolicyState>
-        where TExplorer : IExplorer<TContext, uint, TExplorerState, PolicyDecision<uint[], TPolicyState>>, 
+        where TExplorer : IExplorer<TContext, uint, TExplorerState, uint, PolicyDecision<uint[], TPolicyState>>, 
             IConsumePolicy<TContext, uint, PolicyDecision<uint[], TPolicyState>>
     {
-        private class TopSlotPolicy : IPolicy<TContext, uint, PolicyDecision<uint[], TPolicyState>>
+        private class TopSlotPolicy : IPolicy<TContext, PolicyDecision<uint[], TPolicyState>>
         {
-            private readonly IPolicy<TContext, uint[], TPolicyState> policy;
+            private readonly IContextMapper<TContext, uint[], TPolicyState> policy;
 
-            internal TopSlotPolicy(IPolicy<TContext, uint[], TPolicyState> policy)
+            internal TopSlotPolicy(IContextMapper<TContext, uint[], TPolicyState> policy)
             {
                 this.policy = policy;
             }
         
-            public PolicyDecision<uint,PolicyDecision<uint[], TPolicyState>> ChooseAction(TContext context, uint numActionsVariable)
+            public PolicyDecision<uint,PolicyDecision<uint[], TPolicyState>> MapContext(TContext context, uint numActionsVariable)
             {
-                PolicyDecision<uint[], TPolicyState> policyDecision = this.policy.ChooseAction(context, numActionsVariable);
+                PolicyDecision<uint[], TPolicyState> policyDecision = this.policy.MapContext(context, numActionsVariable);
 
                 return new PolicyDecision<uint, PolicyDecision<uint[], TPolicyState>>
                 {
@@ -61,23 +65,23 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 
         private readonly TExplorer singleExplorer;
 
-        public TopSlotExplorer(IPolicy<TContext, uint[], TPolicyState> defaultPolicy, 
-            Func<IPolicy<TContext, uint, PolicyDecision<uint[], TPolicyState>>, TExplorer> singleExplorerFactory, 
+        public TopSlotExplorer(IRanker<TContext, TPolicyState> defaultPolicy, 
+            Func<IPolicy<TContext, PolicyDecision<uint[], TPolicyState>>, TExplorer> singleExplorerFactory, 
             uint numActions = uint.MaxValue)
             : base(defaultPolicy, numActions)
         {
             this.singleExplorer = singleExplorerFactory(new TopSlotPolicy(defaultPolicy));
         }
 
-        public virtual void UpdatePolicy(IPolicy<TContext, uint[], TPolicyState> newPolicy)
+        public override void UpdatePolicy(IContextMapper<TContext, uint[], TPolicyState> newPolicy)
         {
             base.UpdatePolicy(newPolicy);
             singleExplorer.UpdatePolicy(new TopSlotPolicy(newPolicy));
         }
 
-        protected override Decision<uint[], TExplorerState, TPolicyState> ChooseActionInternal(ulong saltedSeed, TContext context, uint numActionsVariable)
+        protected override Decision<uint[], TExplorerState, uint[], TPolicyState> MapContextInternal(ulong saltedSeed, TContext context, uint numActionsVariable)
         {
-            var decision = this.singleExplorer.ChooseAction(saltedSeed, context, numActionsVariable);
+            var decision = this.singleExplorer.MapContext(saltedSeed, context, numActionsVariable);
 
             var topAction = decision.Action;
             if (decision.PolicyDecision == null)

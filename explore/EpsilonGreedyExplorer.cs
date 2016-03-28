@@ -70,7 +70,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         /// <param name="defaultPolicy">A default function which outputs an action given a context.</param>
         /// <param name="epsilon">The probability of a random exploration.</param>
         /// <param name="numActions">The number of actions to randomize over.</param>
-        public EpsilonGreedyExplorer(IPolicy<TContext, uint, TPolicyState> defaultPolicy, float epsilon, uint numActions = uint.MaxValue)
+        public EpsilonGreedyExplorer(IPolicy<TContext, TPolicyState> defaultPolicy, float epsilon, uint numActions = uint.MaxValue)
             : base(defaultPolicy, numActions)
         {
             if (epsilon < 0 || epsilon > 1)
@@ -80,10 +80,10 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.epsilon = epsilon;
         }
 
-        protected override Decision<uint, EpsilonGreedyState, TPolicyState> ChooseActionInternal(ulong saltedSeed, TContext context, uint numActionsVariable)
+        protected override Decision<uint, EpsilonGreedyState, uint, TPolicyState> MapContextInternal(ulong saltedSeed, TContext context, uint numActionsVariable)
         {
             // Invoke the default policy function to get the action
-            PolicyDecision<uint, TPolicyState> policyDecisionTuple = this.defaultPolicy.ChooseAction(context, numActionsVariable);
+            PolicyDecision<uint, TPolicyState> policyDecisionTuple = this.defaultPolicy.MapContext(context, numActionsVariable);
             uint chosenAction = policyDecisionTuple.Action;
 
             if (chosenAction == 0 || chosenAction > numActionsVariable)
@@ -105,7 +105,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                 Probability = actionProbability
             };
 
-            return Decision.Create(chosenAction, explorerState, policyDecisionTuple.PolicyState, true);
+            return Decision.Create(chosenAction, explorerState, policyDecisionTuple, true);
         }
     }
 }

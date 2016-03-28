@@ -8,7 +8,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
 	/// A sample recorder class that converts the exploration tuple into string format.
 	/// </summary>
 	/// <typeparam name="TContext">The Context type.</typeparam>
-    public class StringRecorder<TContext, TAction, TExplorerState, TPolicyState> : IRecorder<TContext, TAction, TExplorerState, TPolicyState>
+    public class StringRecorder<TContext, TAction, TExplorerState, TPolicAction, TPolicyState> : IRecorder<TContext, TAction, TExplorerState, TPolicAction, TPolicyState>
         where TContext : IStringContext
 	{
         private StringBuilder recordingBuilder;
@@ -26,7 +26,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
         /// <param name="action">Chosen by an exploration algorithm given context.</param>
         /// <param name="probability">The probability of the chosen action given context.</param>
         /// <param name="uniqueKey">A user-defined identifer for the decision.</param>
-        public void Record(TContext context, Decision<TAction, TExplorerState, TPolicyState> decision, UniqueEventID uniqueKey)
+        public void Record(TContext context, Decision<TAction, TExplorerState, TPolicAction, TPolicyState> decision, UniqueEventID uniqueKey)
         {
             recordingBuilder.Append(Convert.ToString(decision.Action, CultureInfo.InvariantCulture));
             recordingBuilder.Append(' ');

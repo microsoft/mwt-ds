@@ -1,5 +1,4 @@
-﻿using Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,16 +29,16 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         /// <param name="defaultPolicy">A default function which outputs an action given a context.</param>
         /// <param name="epsilon">The probability of a random exploration.</param>
         /// <param name="numActions">The number of actions to randomize over.</param>
-        public EpsilonGreedySlateExplorer(IPolicy<TContext, uint[], TPolicyState> defaultPolicy, float epsilon, uint numActions = uint.MaxValue)
+        public EpsilonGreedySlateExplorer(IRanker<TContext, TPolicyState> defaultPolicy, float epsilon, uint numActions = uint.MaxValue)
             : base(defaultPolicy, numActions)
         {
             this.defaultEpsilon = epsilon;
         }
 
-        protected override Decision<uint[], EpsilonGreedySlateState, TPolicyState> ChooseActionInternal(ulong saltedSeed, TContext context, uint numActionsVariable)
+        protected override Decision<uint[], EpsilonGreedySlateState, uint[], TPolicyState> MapContextInternal(ulong saltedSeed, TContext context, uint numActionsVariable)
         {
             // Invoke the default policy function to get the action
-            PolicyDecision<uint[], TPolicyState> policyDecisionTuple = this.defaultPolicy.ChooseAction(context, numActionsVariable);
+            PolicyDecision<uint[], TPolicyState> policyDecisionTuple = this.defaultPolicy.MapContext(context, numActionsVariable);
 
             MultiActionHelper.ValidateActionList(policyDecisionTuple.Action);
 

@@ -31,13 +31,13 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 		/// <param name="defaultPolicy">A default policy after randomization finishes.</param>
 		/// <param name="tau">The number of events to be uniform over.</param>
 		/// <param name="numActions">The number of actions to randomize over.</param>
-        public TauFirstExplorer(IPolicy<TContext, uint, TPolicyState> defaultPolicy, uint tau, uint numActions = uint.MaxValue)
+        public TauFirstExplorer(IPolicy<TContext, TPolicyState> defaultPolicy, uint tau, uint numActions = uint.MaxValue)
             : base(defaultPolicy, numActions)
         {
             this.tau = tau;
         }
 
-        protected override Decision<uint, TauFirstState, TPolicyState> ChooseActionInternal(ulong saltedSeed, TContext context, uint numActionsVariable)
+        protected override Decision<uint, TauFirstState, uint, TPolicyState> MapContextInternal(ulong saltedSeed, TContext context, uint numActionsVariable)
         {
             var random = new PRG(saltedSeed);
 
@@ -62,7 +62,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                 else
                 {
                     // Invoke the default policy function to get the action
-                    policyDecision = this.defaultPolicy.ChooseAction(context, numActionsVariable);
+                    policyDecision = this.defaultPolicy.MapContext(context, numActionsVariable);
                     chosenAction = policyDecision.Action;
 
                     if (chosenAction == 0 || chosenAction > numActionsVariable)
@@ -82,7 +82,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                 Tau = tau
             };
 
-            return Decision.Create(chosenAction, explorerState, policyDecision == null ? default(TPolicyState) : policyDecision.PolicyState, true);
+            return Decision.Create(chosenAction, explorerState, policyDecision, shouldRecordDecision);
         }
     }
 }
