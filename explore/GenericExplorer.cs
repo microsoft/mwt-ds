@@ -18,25 +18,25 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 	/// distribution over actions desired, and it will draw from that.
 	/// </remarks>
 	/// <typeparam name="TContext">The Context type.</typeparam>
-    public class GenericExplorer<TContext, TPolicyState> : BaseExplorer<TContext, uint, GenericExplorerState, float[], TPolicyState>
+    public class GenericExplorer<TContext, TMapperState> : BaseExplorer<TContext, uint, GenericExplorerState, float[], TMapperState>
 	{
 		/// <summary>
 		/// The constructor is the only public member, because this should be used with the MwtExplorer.
 		/// </summary>
 		/// <param name="defaultScorer">A function which outputs the probability of each action.</param>
 		/// <param name="numActions">The number of actions to randomize over.</param>
-        public GenericExplorer(IContextMapper<TContext, float[], TPolicyState> defaultScorer, uint numActions = uint.MaxValue)
+        public GenericExplorer(IContextMapper<TContext, float[], TMapperState> defaultScorer, uint numActions = uint.MaxValue)
             : base(defaultScorer, numActions)
 		{
         }
 
-        protected override Decision<uint, GenericExplorerState, float[], TPolicyState> MapContextInternal(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
+        protected override Decision<uint, GenericExplorerState, float[], TMapperState> MapContextInternal(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
         {
             var random = new PRG(saltedSeed);
 
             // Invoke the default scorer function
-            PolicyDecision<float[], TPolicyState> policyDecision = this.defaultPolicy.MapContext(context);
-            float[] weights = policyDecision.Action;
+            Decision<float[], TMapperState> policyDecision = this.defaultPolicy.MapContext(context);
+            float[] weights = policyDecision.Value;
 
             uint numWeights = (uint)weights.Length;
             if (numWeights != numActionsVariable)
@@ -96,23 +96,23 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
     /// distribution over actions desired, and it will draw from that.
     /// </remarks>
     /// <typeparam name="TContext">The Context type.</typeparam>
-    public class GenericExplorerSampleWithoutReplacement<TContext, TPolicyState> 
-        : BaseExplorer<TContext, uint[], GenericExplorerState, float[], TPolicyState>
+    public class GenericExplorerSampleWithoutReplacement<TContext, TMapperState> 
+        : BaseExplorer<TContext, uint[], GenericExplorerState, float[], TMapperState>
     {
-        protected readonly GenericExplorer<TContext, TPolicyState> explorer;
+        protected readonly GenericExplorer<TContext, TMapperState> explorer;
 
         /// <summary>
         /// The constructor is the only public member, because this should be used with the MwtExplorer.
         /// </summary>
         /// <param name="defaultScorer">A function which outputs the probability of each action.</param>
         /// <param name="numActions">The number of actions to randomize over.</param>
-        public GenericExplorerSampleWithoutReplacement(IScorer<TContext, TPolicyState> defaultScorer, uint numActions = uint.MaxValue)
+        public GenericExplorerSampleWithoutReplacement(IScorer<TContext, TMapperState> defaultScorer, uint numActions = uint.MaxValue)
              : base(defaultScorer, numActions)
         {
-            this.explorer = new GenericExplorer<TContext, TPolicyState>(defaultScorer, numActions);
+            this.explorer = new GenericExplorer<TContext, TMapperState>(defaultScorer, numActions);
         }
 
-        public override void UpdatePolicy(IContextMapper<TContext, float[], TPolicyState> newPolicy)
+        public override void UpdatePolicy(IContextMapper<TContext, float[], TMapperState> newPolicy)
         {
             base.UpdatePolicy(newPolicy);
             this.explorer.UpdatePolicy(newPolicy);
@@ -124,14 +124,14 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.explorer.EnableExplore(explore);
         }
 
-        protected override Decision<uint[], GenericExplorerState, float[], TPolicyState> MapContextInternal(ulong saltedSeed, TContext context, uint numActionsVariable)
+        protected override Decision<uint[], GenericExplorerState, float[], TMapperState> MapContextInternal(ulong saltedSeed, TContext context, uint numActionsVariable)
         {
             var random = new PRG(saltedSeed);
 
             var decision = this.explorer.MapContext(saltedSeed, context, numActionsVariable);
 
             // Note: this assume update of the weights array.
-            float[] weights = decision.PolicyDecision.Action;
+            float[] weights = decision.MapperDecision.Value;
 
             float actionProbability = 0f;
             uint[] chosenActions = MultiActionHelper.SampleWithoutReplacement(weights, numActionsVariable, random, ref actionProbability);
@@ -139,7 +139,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             // action id is one-based
             return Decision.Create(chosenActions,
                 new GenericExplorerState { Probability = actionProbability },
-                decision.PolicyDecision,
+                decision.MapperDecision,
                 true);
         }
     }

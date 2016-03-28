@@ -13,7 +13,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 	/// you to do that.
 	/// </remarks>
 	/// <typeparam name="TContext">The Context type.</typeparam>
-    public sealed class SoftmaxExplorer<TContext, TPolicyState> : BaseExplorer<TContext, uint, GenericExplorerState, float[], TPolicyState>
+    public sealed class SoftmaxExplorer<TContext, TMapperState> : BaseExplorer<TContext, uint, GenericExplorerState, float[], TMapperState>
 	{
 	    private readonly float lambda;
 
@@ -23,19 +23,19 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 		/// <param name="defaultScorer">A function which outputs a score for each action.</param>
 		/// <param name="lambda">lambda = 0 implies uniform distribution. Large lambda is equivalent to a max.</param>
 		/// <param name="numActions">The number of actions to randomize over.</param>
-        public SoftmaxExplorer(IScorer<TContext, TPolicyState> defaultScorer, float lambda, uint numActions = uint.MaxValue)
+        public SoftmaxExplorer(IScorer<TContext, TMapperState> defaultScorer, float lambda, uint numActions = uint.MaxValue)
             : base(defaultScorer, numActions)
         {
             this.lambda = lambda;
         }
 
-        protected override Decision<uint, GenericExplorerState, float[], TPolicyState> MapContextInternal(ulong saltedSeed, TContext context, uint numActionsVariable)
+        protected override Decision<uint, GenericExplorerState, float[], TMapperState> MapContextInternal(ulong saltedSeed, TContext context, uint numActionsVariable)
         {
             var random = new PRG(saltedSeed);
 
             // Invoke the default scorer function
-            PolicyDecision<float[], TPolicyState> policyDecision= this.defaultPolicy.MapContext(context);
-            float[] scores = policyDecision.Action;
+            Decision<float[], TMapperState> policyDecision= this.defaultPolicy.MapContext(context);
+            float[] scores = policyDecision.Value;
             uint numScores = (uint)scores.Length;
             if (numScores != numActionsVariable)
             {

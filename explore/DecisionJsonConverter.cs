@@ -7,6 +7,10 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
+    /// <summary>
+    /// If no <see cref="JsonPropertyAttribute"/> is specified, the C# type name is used
+    /// as property name.
+    /// </summary>
     public class DecisionJsonConverter : JsonConverter
     {
         public override bool CanConvert(Type objectType)

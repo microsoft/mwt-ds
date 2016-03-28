@@ -22,7 +22,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             // avoid serialization of action
-            var property = value.GetType().GetProperty("PolicyState");
+            var property = value.GetType().GetProperty("MapperState");
             serializer.Serialize(writer, property.GetValue(value));
         }
     }

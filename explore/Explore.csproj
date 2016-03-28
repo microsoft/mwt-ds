@@ -41,6 +41,7 @@
     <Compile Include="DecisionJsonConverter.cs" />
     <Compile Include="EpsilonGreedyExplorer.cs" />
     <Compile Include="EpsilonGreedySlateExplorer.cs" />
+    <Compile Include="Explorer.cs" />
     <Compile Include="PolicyDecision.cs" />
     <Compile Include="Feature.cs" />
     <Compile Include="GenericExplorer.cs" />

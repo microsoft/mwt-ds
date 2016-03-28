@@ -8,7 +8,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
 	/// A sample recorder class that converts the exploration tuple into string format.
 	/// </summary>
 	/// <typeparam name="TContext">The Context type.</typeparam>
-    public class StringRecorder<TContext, TAction, TExplorerState, TPolicAction, TPolicyState> : IRecorder<TContext, TAction, TExplorerState, TPolicAction, TPolicyState>
+    public class StringRecorder<TContext, TValue, TExplorerState, TPolicAction, TMapperState> : IRecorder<TContext, TValue, TExplorerState, TPolicAction, TMapperState>
         where TContext : IStringContext
 	{
         private StringBuilder recordingBuilder;
@@ -26,16 +26,16 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
         /// <param name="action">Chosen by an exploration algorithm given context.</param>
         /// <param name="probability">The probability of the chosen action given context.</param>
         /// <param name="uniqueKey">A user-defined identifer for the decision.</param>
-        public void Record(TContext context, Decision<TAction, TExplorerState, TPolicAction, TPolicyState> decision, UniqueEventID uniqueKey)
+        public void Record(TContext context, Decision<TValue, TExplorerState, TPolicAction, TMapperState> decision, UniqueEventID uniqueKey)
         {
-            recordingBuilder.Append(Convert.ToString(decision.Action, CultureInfo.InvariantCulture));
+            recordingBuilder.Append(Convert.ToString(decision.Value, CultureInfo.InvariantCulture));
             recordingBuilder.Append(' ');
             recordingBuilder.Append(uniqueKey.Key);
             recordingBuilder.Append(' ');
 
             recordingBuilder.Append(Convert.ToString(decision.ExplorerState, CultureInfo.InvariantCulture));
             recordingBuilder.Append(' ');
-            recordingBuilder.Append(Convert.ToString(decision.PolicyDecision.PolicyState, CultureInfo.InvariantCulture));
+            recordingBuilder.Append(Convert.ToString(decision.MapperDecision.MapperState, CultureInfo.InvariantCulture));
 
             recordingBuilder.Append(" | ");
             recordingBuilder.Append(((IStringContext)context).ToString());

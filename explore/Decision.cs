@@ -9,34 +9,56 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
     public static class Decision
     {
-        public static Decision<TAction, TExplorerState, TPolicyAction, TPolicyState> Create<TAction, TExplorerState, TPolicyAction, TPolicyState>(
-            TAction action, TExplorerState explorerState, PolicyDecision<TPolicyAction, TPolicyState> policyDecision, bool shouldRecord)
+        public static Decision<TValue, TExplorerState, TMapperValue, TMapperState> Create<TValue, TExplorerState, TMapperValue, TMapperState>(
+            TValue action, TExplorerState explorerState, Decision<TMapperValue, TMapperState> policyDecision, bool shouldRecord)
         {
-            return new Decision<TAction, TExplorerState, TPolicyAction, TPolicyState>
+            return new Decision<TValue, TExplorerState, TMapperValue, TMapperState>
             {
-                Action = action,
+                Value = action,
                 ExplorerState = explorerState,
-                PolicyDecision = policyDecision,
+                MapperDecision = policyDecision,
                 ShouldRecord = shouldRecord
+            };
+        }
+
+        public static Decision<TValue, TMapperState> Create<TValue, TMapperState>(TValue action, TMapperState policyState)
+        {
+            return new Decision<TValue, TMapperState>
+            {
+                Value = action,
+                MapperState = policyState
             };
         }
     }
 
     [JsonConverter(typeof(DecisionJsonConverter))]
-    public sealed class Decision<TAction, TExplorerState, TPolicyAction, TPolicyState>
+    public sealed class Decision<TValue, TExplorerState, TMapperValue, TMapperState>
     {
         public bool ShouldRecord { get; set; }
 
         // int, int[]
         // choose action (shown)
         [JsonProperty("a")]
-        public TAction Action { get; set; }
+        public TValue Value { get; set; }
 
         // probability | predicted ranking, epsilon
         // "EpsilonGreedyLog":{ ... } 
         public TExplorerState ExplorerState { get; set; }
 
-        // only logging TPolicyState
-        public PolicyDecision<TPolicyAction, TPolicyState> PolicyDecision { get; set; }
+        // only logging TMapperState
+        public Decision<TMapperValue, TMapperState> MapperDecision { get; set; }
+    }
+
+    /// <summary>
+    /// Decision result from a policy. 
+    /// </summary>
+    [JsonConverter(typeof(PolicyDecisionJsonConverter))]
+    public sealed class Decision<TValue, TState>
+    {
+        // int, int[]
+        // choose action (shown)
+        public TValue Value { get; set; }
+
+        public TState MapperState { get; set; }
     }
 }

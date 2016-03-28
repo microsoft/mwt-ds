@@ -12,7 +12,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
     /// application passes an IRecorder object to the @MwtExplorer constructor. See 
     /// @StringRecorder for a sample IRecorder object.
     /// </remarks>
-    public interface IRecorder<TContext, TAction, TExplorerState, TPolicyAction, TPolicyState>
+    public interface IRecorder<TContext, TValue, TExplorerState, TMapperValue, TMapperState>
     {
         /// <summary>
         /// Records the exploration data associated with a given decision.
@@ -24,10 +24,10 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         /// <param name="uniqueKey">A user-defined identifer for the decision.</param>
         /// <param name="modelId">Optional; The Id of the model used to make predictions/decisions, if any exists at decision time.</param>
         /// <param name="isExplore">Optional; Indicates whether the decision was generated purely from exploration (vs. exploitation).</param>
-        void Record(TContext context, Decision<TAction, TExplorerState, TPolicyAction, TPolicyState> decision, UniqueEventID uniqueKey); // string modelId = null, bool? isExplore = null
+        void Record(TContext context, Decision<TValue, TExplorerState, TMapperValue, TMapperState> decision, UniqueEventID uniqueKey); 
     }
 
-    public interface IExplorer<TContext, TAction, TExplorerState, TPolicyAction, TPolicyState>
+    public interface IExplorer<TContext, TValue, TExplorerState, TMapperValue, TMapperState>
     {
         /// <summary>
         /// Determines the action to take and the probability with which it was chosen, for a
@@ -40,12 +40,12 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         /// A <see cref="DecisionTuple"/> object including the action to take, the probability it was chosen, 
         /// and a flag indicating whether to record this decision.
         /// </returns>
-        Decision<TAction, TExplorerState, TPolicyAction, TPolicyState> MapContext(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue);
+        Decision<TValue, TExplorerState, TMapperValue, TMapperState> MapContext(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue);
 
         void EnableExplore(bool explore);
     }
 
-    public interface IContextMapper<TContext, TAction, TPolicyState>
+    public interface IContextMapper<TContext, TValue, TMapperState>
     {
         /// <summary>
         /// Determines the action to take for a given context.
@@ -54,29 +54,29 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         /// <param name="context">A user-defined context for the decision.</param>
         /// <param name="numActionsVariable">Optional; Number of actions available which may be variable across decisions.</param>
         /// <returns>A decision tuple containing the index of the action to take (1-based), and the Id of the model or policy used to make the decision.</returns>
-        PolicyDecision<TAction, TPolicyState> MapContext(TContext context, uint numActionsVariable = uint.MaxValue);
+        Decision<TValue, TMapperState> MapContext(TContext context, uint numActionsVariable = uint.MaxValue);
     }
 
-    public interface IPolicy<TContext, TPolicyState> : IContextMapper<TContext, uint, TPolicyState>
+    public interface IPolicy<TContext, TMapperState> : IContextMapper<TContext, uint, TMapperState>
     {
     }
 
-    public interface IRanker<TContext, TPolicyState> : IContextMapper<TContext, uint[], TPolicyState>
+    public interface IRanker<TContext, TMapperState> : IContextMapper<TContext, uint[], TMapperState>
     {
     }
 
-    public interface IScorer<TContext, TPolicyState> : IContextMapper<TContext, float[], TPolicyState>
+    public interface IScorer<TContext, TMapperState> : IContextMapper<TContext, float[], TMapperState>
     {
     }
 
-    public interface IConsumePolicy<TContext, TAction, TPolicyState>
+    public interface IConsumeContextMapper<TContext, TValue, TMapperState>
     {
-        void UpdatePolicy(IContextMapper<TContext, TAction, TPolicyState> newPolicy);
+        void UpdatePolicy(IContextMapper<TContext, TValue, TMapperState> newPolicy);
     }
 
-    public interface IConsumePolicies<TContext, TAction, TPolicyState>
+    public interface IConsumePolicies<TContext, TValue, TMapperState>
     {
-        void UpdatePolicy(IContextMapper<TContext, TAction, TPolicyState>[] newPolicies);
+        void UpdatePolicy(IContextMapper<TContext, TValue, TMapperState>[] newPolicies);
     }
 
     public interface IStringContext

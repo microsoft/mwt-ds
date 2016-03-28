@@ -12,9 +12,9 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 	/// computationally expensive.
 	/// </remarks>
 	/// <typeparam name="TContext">The Context type.</typeparam>
-	public abstract class BaseBootstrapExplorer<TContext, TAction, TPolicyState> : IExplorer<TContext, TAction, GenericExplorerState, TAction, TPolicyState>, IConsumePolicies<TContext, TAction, TPolicyState>
+	public abstract class BaseBootstrapExplorer<TContext, TValue, TMapperState> : IExplorer<TContext, TValue, GenericExplorerState, TValue, TMapperState>, IConsumePolicies<TContext, TValue, TMapperState>
 	{
-        private IContextMapper<TContext, TAction, TPolicyState>[] defaultPolicyFunctions;
+        private IContextMapper<TContext, TValue, TMapperState>[] defaultPolicyFunctions;
         private bool explore;
         private readonly uint bags;
 	    private readonly uint numActionsFixed;
@@ -24,7 +24,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 		/// </summary>
 		/// <param name="defaultPolicies">A set of default policies to be uniform random over.</param>
 		/// <param name="numActions">The number of actions to randomize over.</param>
-        protected BaseBootstrapExplorer(IContextMapper<TContext, TAction, TPolicyState>[] defaultPolicies, uint numActions = uint.MaxValue)
+        protected BaseBootstrapExplorer(IContextMapper<TContext, TValue, TMapperState>[] defaultPolicies, uint numActions = uint.MaxValue)
 		{
             VariableActionHelper.ValidateInitialNumberOfActions(numActions);
 
@@ -39,7 +39,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.explore = true;
         }
 
-        public void UpdatePolicy(IContextMapper<TContext, TAction, TPolicyState>[] newPolicies)
+        public void UpdatePolicy(IContextMapper<TContext, TValue, TMapperState>[] newPolicies)
         {
             this.defaultPolicyFunctions = newPolicies;
         }
@@ -49,7 +49,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.explore = explore;
         }
 
-        public Decision<TAction, GenericExplorerState, TAction, TPolicyState> MapContext(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
+        public Decision<TValue, GenericExplorerState, TValue, TMapperState> MapContext(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
         {
             uint numActions = VariableActionHelper.GetNumberOfActions(this.numActionsFixed, numActionsVariable);
 
@@ -59,12 +59,12 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             uint chosenBag = random.UniformInt(0, this.bags - 1);
 
             // Invoke the default policy function to get the action
-            PolicyDecision<TAction, TPolicyState> chosenDecision = null; // TODO
+            Decision<TValue, TMapperState> chosenDecision = null; // TODO
             float actionProbability = 0f;
 
             if (this.explore)
             {
-                PolicyDecision<TAction, TPolicyState> decisionFromBag = null;
+                Decision<TValue, TMapperState> decisionFromBag = null;
                 uint actionFromBag = 0;
                 uint[] actionsSelected = Enumerable.Repeat<uint>(0, (int)numActions).ToArray();
 
@@ -75,7 +75,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                     // if we trigger into VW passing an index to invoke bootstrap scoring, and if VW model changes while we are doing so, 
                     // we could end up calling the wrong bag
                     decisionFromBag = this.defaultPolicyFunctions[currentBag].MapContext(context, numActionsVariable);
-                    actionFromBag = this.GetTopAction(decisionFromBag.Action);
+                    actionFromBag = this.GetTopAction(decisionFromBag.Value);
 
                     if (actionFromBag == 0 || actionFromBag > numActions)
                     {
@@ -90,7 +90,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                     //this won't work if actions aren't 0 to Count
                     actionsSelected[actionFromBag - 1]++; // action id is one-based
                 }
-                actionProbability = (float)actionsSelected[this.GetTopAction(chosenDecision.Action) - 1] / this.bags; // action id is one-based
+                actionProbability = (float)actionsSelected[this.GetTopAction(chosenDecision.Value) - 1] / this.bags; // action id is one-based
             }
             else
             {
@@ -103,15 +103,15 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                 Probability = actionProbability
             };
 
-            return Decision.Create(chosenDecision.Action, explorerState, chosenDecision, true);
+            return Decision.Create(chosenDecision.Value, explorerState, chosenDecision, true);
         }
 
-        protected abstract uint GetTopAction(TAction action);
+        protected abstract uint GetTopAction(TValue action);
     }
 
-    public class BootstrapExplorer<TContext, TPolicyState> : BaseBootstrapExplorer<TContext, uint, TPolicyState>
+    public class BootstrapExplorer<TContext, TMapperState> : BaseBootstrapExplorer<TContext, uint, TMapperState>
     {
-        public BootstrapExplorer(IContextMapper<TContext, uint, TPolicyState>[] defaultPolicies, 
+        public BootstrapExplorer(IContextMapper<TContext, uint, TMapperState>[] defaultPolicies, 
             uint numActions = uint.MaxValue)
             : base(defaultPolicies, numActions)
         {
@@ -123,9 +123,9 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         }
     }
 
-    public class BootstrapTopSlotExplorer<TContext, TPolicyState> : BaseBootstrapExplorer<TContext, uint[], TPolicyState>
+    public class BootstrapTopSlotExplorer<TContext, TMapperState> : BaseBootstrapExplorer<TContext, uint[], TMapperState>
     {
-        public BootstrapTopSlotExplorer(IContextMapper<TContext, uint[], TPolicyState>[] defaultPolicies,
+        public BootstrapTopSlotExplorer(IContextMapper<TContext, uint[], TMapperState>[] defaultPolicies,
             uint numActions = uint.MaxValue)
             : base(defaultPolicies, numActions)
         {

@@ -19,7 +19,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         public bool IsExplore { get; set; }
     }
 
-    public sealed class EpsilonGreedySlateExplorer<TContext, TPolicyState> : BaseExplorer<TContext, uint[], EpsilonGreedySlateState, uint[], TPolicyState>
+    public sealed class EpsilonGreedySlateExplorer<TContext, TMapperState> : BaseExplorer<TContext, uint[], EpsilonGreedySlateState, uint[], TMapperState>
     {        
         private readonly float defaultEpsilon;
 
@@ -29,25 +29,24 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         /// <param name="defaultPolicy">A default function which outputs an action given a context.</param>
         /// <param name="epsilon">The probability of a random exploration.</param>
         /// <param name="numActions">The number of actions to randomize over.</param>
-        public EpsilonGreedySlateExplorer(IRanker<TContext, TPolicyState> defaultPolicy, float epsilon, uint numActions = uint.MaxValue)
+        public EpsilonGreedySlateExplorer(IRanker<TContext, TMapperState> defaultPolicy, float epsilon, uint numActions = uint.MaxValue)
             : base(defaultPolicy, numActions)
         {
             this.defaultEpsilon = epsilon;
         }
 
-        protected override Decision<uint[], EpsilonGreedySlateState, uint[], TPolicyState> MapContextInternal(ulong saltedSeed, TContext context, uint numActionsVariable)
+        protected override Decision<uint[], EpsilonGreedySlateState, uint[], TMapperState> MapContextInternal(ulong saltedSeed, TContext context, uint numActionsVariable)
         {
             // Invoke the default policy function to get the action
-            PolicyDecision<uint[], TPolicyState> policyDecisionTuple = this.defaultPolicy.MapContext(context, numActionsVariable);
+            Decision<uint[], TMapperState> policyDecisionTuple = this.defaultPolicy.MapContext(context, numActionsVariable);
 
-            MultiActionHelper.ValidateActionList(policyDecisionTuple.Action);
+            MultiActionHelper.ValidateActionList(policyDecisionTuple.Value);
 
             var random = new PRG(saltedSeed);
             float epsilon = explore ? this.defaultEpsilon : 0f;
 
             uint[] chosenAction;
 
-            float baseProbability = epsilon / numActionsVariable; // uniform probability
             bool isExplore;
 
             if (random.UniformUnitInterval() < 1f - epsilon)
@@ -67,7 +66,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             }
             else
             {
-                chosenAction = policyDecisionTuple.Action;
+                chosenAction = policyDecisionTuple.Value;
                 isExplore = false;
             }
 
@@ -75,7 +74,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             { 
                 Epsilon = this.defaultEpsilon, 
                 IsExplore = isExplore,
-                Ranking = policyDecisionTuple.Action
+                Ranking = policyDecisionTuple.Value
             };
 
             return Decision.Create(chosenAction, explorerState, policyDecisionTuple, true);
