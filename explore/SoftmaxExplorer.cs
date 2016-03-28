@@ -13,7 +13,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 	/// you to do that.
 	/// </remarks>
 	/// <typeparam name="TContext">The Context type.</typeparam>
-    public sealed class SoftmaxExplorer<TContext, TPolicyState> : BaseExplorer<TContext, uint, GenericExplorerState, uint, TPolicyState>
+    public sealed class SoftmaxExplorer<TContext, TPolicyState> : BaseExplorer<TContext, uint, GenericExplorerState, float[], TPolicyState>
 	{
 	    private readonly float lambda;
 
@@ -23,21 +23,21 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 		/// <param name="defaultScorer">A function which outputs a score for each action.</param>
 		/// <param name="lambda">lambda = 0 implies uniform distribution. Large lambda is equivalent to a max.</param>
 		/// <param name="numActions">The number of actions to randomize over.</param>
-        public SoftmaxExplorer(IPolicy<TContext, uint, TPolicyState> defaultScorer, float lambda, uint numActions = uint.MaxValue)
+        public SoftmaxExplorer(IPolicy<TContext, float[], TPolicyState> defaultScorer, float lambda, uint numActions = uint.MaxValue)
             : base(defaultScorer, numActions)
         {
             this.lambda = lambda;
         }
 
-        protected override Decision<uint, GenericExplorerState, TPolicyState> ChooseActionInternal(ulong saltedSeed, TContext context)
+        protected override Decision<uint, GenericExplorerState, TPolicyState> ChooseActionInternal(ulong saltedSeed, TContext context, uint numActionsVariable)
         {
             var random = new PRG(saltedSeed);
 
             // Invoke the default scorer function
-            PolicyDecision<float[], TPolicyState> policyDecision= this.defaultPolicy.ScoreActions(context);
+            PolicyDecision<float[], TPolicyState> policyDecision= this.defaultPolicy.ChooseAction(context);
             float[] scores = policyDecision.Action;
-            uint numScores = (uint)scores.Count;
-            if (scores.Count != numActions)
+            uint numScores = (uint)scores.Length;
+            if (numScores != numActionsVariable)
             {
                 throw new ArgumentException("The number of scores returned by the scorer must equal number of actions");
             }
@@ -94,7 +94,8 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             // action id is one-based
             return Decision.Create(actionIndex + 1, 
                 new GenericExplorerState { Probability = actionProbability }, 
-                policyDecision.PolicyState);
+                policyDecision.PolicyState,
+                true);
         }
     }
 }

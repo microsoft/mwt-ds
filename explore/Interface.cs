@@ -58,7 +58,6 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         PolicyDecision<TAction, TPolicyState> ChooseAction(TContext context, uint numActionsVariable = uint.MaxValue);
     };
 
-
     public interface IConsumePolicy<TContext, TAction, TPolicyState>
     {
         void UpdatePolicy(IPolicy<TContext, TAction, TPolicyState> newPolicy);
@@ -67,6 +66,11 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
     public interface IConsumePolicies<TContext, TAction, TPolicyState>
     {
         void UpdatePolicy(IPolicy<TContext, TAction, TPolicyState>[] newPolicies);
+    };
+
+    public interface IStringContext
+    {
+        string ToString();
     };
 }
 

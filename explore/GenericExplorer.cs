@@ -21,32 +21,26 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 	/// <typeparam name="TContext">The Context type.</typeparam>
     public class GenericExplorer<TContext, TPolicyState> : BaseExplorer<TContext, uint, GenericExplorerState, float[], TPolicyState>
 	{
-        private readonly uint numActionsFixed;
-
 		/// <summary>
 		/// The constructor is the only public member, because this should be used with the MwtExplorer.
 		/// </summary>
 		/// <param name="defaultScorer">A function which outputs the probability of each action.</param>
 		/// <param name="numActions">The number of actions to randomize over.</param>
-        public GenericExplorer(IPolicy<float[], TContext, TPolicy> defaultScorer, uint numActions = uint.MaxValue) : base(defaultScorer)
+        public GenericExplorer(IPolicy<TContext, float[], TPolicyState> defaultScorer, uint numActions = uint.MaxValue)
+            : base(defaultScorer, numActions)
 		{
-            VariableActionHelper.ValidateInitialNumberOfActions(numActions);
-
-            this.numActionsFixed = numActions;
         }
 
-        public Decision<uint, GenericExplorerState, TPolicyState> ChooseAction(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
+        protected override Decision<uint, GenericExplorerState, TPolicyState> ChooseActionInternal(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
         {
-            uint numActions = VariableActionHelper.GetNumberOfActions(this.numActionsFixed, numActionsVariable);
-
             var random = new PRG(saltedSeed);
 
             // Invoke the default scorer function
             PolicyDecision<float[], TPolicyState> policyDecision = this.defaultPolicy.ChooseAction(context);
             float[] weights = policyDecision.Action;
 
-            uint numWeights = (uint)weights.Count;
-            if (numWeights != numActions)
+            uint numWeights = (uint)weights.Length;
+            if (numWeights != numActionsVariable)
             {
                 throw new ArgumentException("The number of weights returned by the scorer must equal number of actions");
             }
@@ -84,10 +78,14 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                 }
             }
 
+            actionIndex++;
+
             // action id is one-based
-            return Decision.Create(actionIndex + 1,
+            return Decision.Create(
+                actionIndex,
                 new GenericExplorerState { Probability = actionProbability },
-                policyDecision);
+                PolicyDecision.Create(actionIndex, policyDecision.PolicyState),
+                true);
         }
     }
 
@@ -99,8 +97,8 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
     /// distribution over actions desired, and it will draw from that.
     /// </remarks>
     /// <typeparam name="TContext">The Context type.</typeparam>
-    public class GenericExplorerSampleWithoutReplacement<TContext, TPolicyState> : BaseExplorer<TContext, uint, GenericExplorerState, float[], TPolicyState>
-        : IExplorer<TContext, TAction, GenericExplorerState, TPolicyState>, IConsumePolicy<TContext, TAction, TPolicyState>
+    public class GenericExplorerSampleWithoutReplacement<TContext, TPolicyState> 
+        : BaseExplorer<TContext, uint[], GenericExplorerState, float[], TPolicyState>
     {
         protected readonly GenericExplorer<TContext, TPolicyState> explorer;
 
@@ -115,19 +113,19 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.explorer = new GenericExplorer<TContext, TPolicyState>(defaultScorer, numActions);
         }
 
-        public void UpdatePolicy(IPolicy<TContext, float[], TPolicyState> newPolicy)
+        public override void UpdatePolicy(IPolicy<TContext, float[], TPolicyState> newPolicy)
         {
             base.UpdatePolicy(newPolicy);
             this.explorer.UpdatePolicy(newPolicy);
         }
 
-        public void EnableExplore(bool explore)
+        public override void EnableExplore(bool explore)
         {
             base.EnableExplore(explore);
             this.explorer.EnableExplore(explore);
         }
 
-        protected override Decision<uint[], GenericExplorerState, TPolicyState> ChooseActionInternal(ulong saltedSeed, TContext context)
+        protected override Decision<uint[], GenericExplorerState, TPolicyState> ChooseActionInternal(ulong saltedSeed, TContext context, uint numActionsVariable)
         {
             var decision = this.explorer.ChooseAction(saltedSeed, context, numActionsVariable);
 
@@ -142,5 +140,5 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                 new GenericExplorerState { Probability = actionProbability },
                 policyDecision.PolicyState);
         }
-    };
+    }
 }

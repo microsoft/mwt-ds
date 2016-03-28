@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
 using System.Text;
 
 namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
@@ -7,7 +8,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
 	/// A sample recorder class that converts the exploration tuple into string format.
 	/// </summary>
 	/// <typeparam name="TContext">The Context type.</typeparam>
-	public class StringRecorder<TContext> : IRecorder<TContext>
+    public class StringRecorder<TContext, TAction, TExplorerState, TPolicyState> : IRecorder<TContext, TAction, TExplorerState, TPolicyState>
         where TContext : IStringContext
 	{
         private StringBuilder recordingBuilder;
@@ -25,14 +26,16 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
         /// <param name="action">Chosen by an exploration algorithm given context.</param>
         /// <param name="probability">The probability of the chosen action given context.</param>
         /// <param name="uniqueKey">A user-defined identifer for the decision.</param>
-        public void Record(TContext context, uint action, float probability, UniqueEventID uniqueKey, string modelId = null, bool? isExplore = null)
+        public void Record(TContext context, Decision<TAction, TExplorerState, TPolicyState> decision, UniqueEventID uniqueKey)
         {
-            recordingBuilder.Append(action.ToString(CultureInfo.InvariantCulture));
+            recordingBuilder.Append(Convert.ToString(decision.Action, CultureInfo.InvariantCulture));
             recordingBuilder.Append(' ');
             recordingBuilder.Append(uniqueKey.Key);
             recordingBuilder.Append(' ');
 
-            recordingBuilder.Append(probability.ToString("0.00000", CultureInfo.InvariantCulture));
+            recordingBuilder.Append(Convert.ToString(decision.ExplorerState, CultureInfo.InvariantCulture));
+            recordingBuilder.Append(' ');
+            recordingBuilder.Append(Convert.ToString(decision.PolicyDecision.PolicyState, CultureInfo.InvariantCulture));
 
             recordingBuilder.Append(" | ");
             recordingBuilder.Append(((IStringContext)context).ToString());
@@ -57,5 +60,5 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
 
             return recording;
 		}
-	};
+    };
 }

@@ -11,23 +11,32 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
     {
         // TODO: factory methods.
         private static TopSlotExplorer<TContext, TExplorer, TExplorerState, TPolicyState> 
-            Create<TContext, TExplorer, TExplorerState, TPolicyState>(IPolicy<TContext, uint[], TPolicyState> defaultPolicy, 
-            Func<IPolicy<TContext, uint, TPolicyState> defaultPolicy, IExplorer<TContext, uint, TExplorerState, PolicyDecision<uint[], TPolicyState>>> singleExplorerFactory, 
+            Create2<TContext, TExplorer, TExplorerState, TPolicyState>(IPolicy<TContext, uint[], TPolicyState> defaultPolicy,
+            Func<IPolicy<TContext, uint, PolicyDecision<uint[], TPolicyState>>, TExplorer> singleExplorerFactory, 
             uint numActions)
-                where TExplorer : IExplorer<TContext, uint, TExplorerState, PolicyDecision<uint[], TPolicyState>>, IConsumePolicy<TContext, uint, PolicyDecision<uint[], TPolicyState>>
+                where TExplorer : IExplorer<TContext, uint, TExplorerState, PolicyDecision<uint[], TPolicyState>>, 
+            IConsumePolicy<TContext, uint, PolicyDecision<uint[], TPolicyState>>
         {
             return new TopSlotExplorer<TContext, TExplorer, TExplorerState, TPolicyState>(defaultPolicy, singleExplorerFactory, numActions);
         }
 
-        public static TopSlotExplorer<TContext, TExplorer, EpsilonGreedyState, TPolicyState> Create<TContext, TExplorer, TPolicyState>(IPolicy<TContext, uint[], TPolicyState> defaultPolicy, float epsilon, uint numActionsVariable = uint.MaxValue)
+        public static TopSlotExplorer<TContext, EpsilonGreedyExplorer<TContext, PolicyDecision<uint[], TPolicyState>>, EpsilonGreedyState, TPolicyState> 
+            Create<TContext, TPolicyState>(
+                IPolicy<TContext, uint[], TPolicyState> defaultPolicy, 
+            float epsilon, 
+            uint numActionsVariable = uint.MaxValue)
         {
-            return Create(defaultPolicy, policy => new EpsilonGreedyExplorer(policy, epsilon, numActionsVariable));
+            return Create2<TContext, EpsilonGreedyExplorer<TContext, PolicyDecision<uint[], TPolicyState> >, EpsilonGreedyState, TPolicyState>(
+                defaultPolicy,
+                policy => new EpsilonGreedyExplorer<TContext, PolicyDecision<uint[], TPolicyState>>(policy, epsilon, numActionsVariable), 
+                numActionsVariable);
         }
     }
 
     public class TopSlotExplorer<TContext, TExplorer, TExplorerState, TPolicyState> 
         : BaseExplorer<TContext, uint[], TExplorerState, uint[], TPolicyState>
-        where TExplorer : IExplorer<TContext, uint, TExplorerState, PolicyDecision<uint[], TPolicyState>>, IConsumePolicy<TContext, uint, PolicyDecision<uint[], TPolicyState>>
+        where TExplorer : IExplorer<TContext, uint, TExplorerState, PolicyDecision<uint[], TPolicyState>>, 
+            IConsumePolicy<TContext, uint, PolicyDecision<uint[], TPolicyState>>
     {
         private class TopSlotPolicy : IPolicy<TContext, uint, PolicyDecision<uint[], TPolicyState>>
         {
@@ -52,26 +61,26 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 
         private readonly TExplorer singleExplorer;
 
-        public class TopSlotExplorer(IPolicy<TContext, uint[], TPolicyState> defaultPolicy, 
-            Func<IPolicy<TContext, uint, TPolicyState> defaultPolicy, IExplorer<TContext, uint, TExplorerState, PolicyDecision<uint[], TPolicyState>>> singleExplorerFactory, 
+        public TopSlotExplorer(IPolicy<TContext, uint[], TPolicyState> defaultPolicy, 
+            Func<IPolicy<TContext, uint, PolicyDecision<uint[], TPolicyState>>, TExplorer> singleExplorerFactory, 
             uint numActions = uint.MaxValue)
             : base(defaultPolicy, numActions)
         {
             this.singleExplorer = singleExplorerFactory(new TopSlotPolicy(defaultPolicy));
         }
 
-        public virtual void UpdatePolicy(IPolicy<TContext, TPolicyAction, TPolicyState> newPolicy)
+        public virtual void UpdatePolicy(IPolicy<TContext, uint[], TPolicyState> newPolicy)
         {
             base.UpdatePolicy(newPolicy);
             singleExplorer.UpdatePolicy(new TopSlotPolicy(newPolicy));
         }
 
-        protected override Decision<uint, TExplorerState, TPolicyState> ChooseActionInternal(ulong saltedSeed, TContext context, uint numActionsVariable)
+        protected override Decision<uint[], TExplorerState, TPolicyState> ChooseActionInternal(ulong saltedSeed, TContext context, uint numActionsVariable)
         {
             var decision = this.singleExplorer.ChooseAction(saltedSeed, context, numActionsVariable);
 
             var topAction = decision.Action;
-            if (decision.PolicyState == null)
+            if (decision.PolicyDecision == null)
             {
                 // TODO: execute policy and get actions...
             }
@@ -80,7 +89,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 
             MultiActionHelper.PutActionToList(topAction, chosenActions);
 
-            return Decision.Create(chosenActions, decision.ExplorerState, decision.PolicyDecision.PolicyState);
+            return Decision.Create(chosenActions, decision.ExplorerState, decision.PolicyDecision.PolicyState, true);
         }
     }
 }

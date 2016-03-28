@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
+namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
     /// <summary>
 	/// The bootstrap exploration class.
@@ -12,9 +12,9 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
 	/// computationally expensive.
 	/// </remarks>
 	/// <typeparam name="TContext">The Context type.</typeparam>
-	public class BootstrapExplorer<TContext> : IExplorer<TContext, TAction, TExplorerState, TPolicyState>, IConsumePolicies<TContext, TPolicyAction, TPolicyState>
+	public abstract class BaseBootstrapExplorer<TContext, TAction, TPolicyState> : IExplorer<TContext, TAction, GenericExplorerState, TPolicyState>, IConsumePolicies<TContext, TAction, TPolicyState>
 	{
-        private IPolicy<TContext, TPolicyAction, TPolicyState>[] defaultPolicyFunctions;
+        private IPolicy<TContext, TAction, TPolicyState>[] defaultPolicyFunctions;
         private bool explore;
         private readonly uint bags;
 	    private readonly uint numActionsFixed;
@@ -24,7 +24,9 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
 		/// </summary>
 		/// <param name="defaultPolicies">A set of default policies to be uniform random over.</param>
 		/// <param name="numActions">The number of actions to randomize over.</param>
-        public BootstrapExplorer(IPolicy<TContext, TPolicyAction, TPolicyState>[] defaultPolicies, uint numActions)
+        protected BaseBootstrapExplorer(
+            IPolicy<TContext, TAction, TPolicyState>[] defaultPolicies, 
+            uint numActions = uint.MaxValue)
 		{
             VariableActionHelper.ValidateInitialNumberOfActions(numActions);
 
@@ -39,15 +41,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
             this.explore = true;
         }
 
-        /// <summary>
-        /// Initializes a bootstrap explorer with variable number of actions.
-        /// </summary>
-        /// <param name="defaultPolicies">A set of default policies to be uniform random over.</param>
-        public BootstrapExplorer(IPolicy<TContext>[] defaultPolicies) :
-            this(defaultPolicies, uint.MaxValue)
-        { }
-
-        public void UpdatePolicy(IPolicy<TContext>[] newPolicies)
+        public void UpdatePolicy(IPolicy<TContext, TAction, TPolicyState>[] newPolicies)
         {
             this.defaultPolicyFunctions = newPolicies;
         }
@@ -57,7 +51,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
             this.explore = explore;
         }
 
-        public DecisionTuple ChooseAction(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
+        public Decision<TAction, GenericExplorerState, TPolicyState> ChooseAction(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
         {
             uint numActions = VariableActionHelper.GetNumberOfActions(this.numActionsFixed, numActionsVariable);
 
@@ -67,13 +61,14 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
             uint chosenBag = random.UniformInt(0, this.bags - 1);
 
             // Invoke the default policy function to get the action
-            var chosenDecision = new PolicyDecisionTuple();
+            PolicyDecision<TAction, TPolicyState> chosenDecision;
             float actionProbability = 0f;
 
             if (this.explore)
             {
-                PolicyDecisionTuple decisionFromBag = null;
+                PolicyDecision<TAction, TPolicyState> decisionFromBag = null;
                 uint actionFromBag = 0;
+                uint chosenTopAction = 0;
                 uint[] actionsSelected = Enumerable.Repeat<uint>(0, (int)numActions).ToArray();
 
                 // Invoke the default policy function to get the action
@@ -83,7 +78,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
                     // if we trigger into VW passing an index to invoke bootstrap scoring, and if VW model changes while we are doing so, 
                     // we could end up calling the wrong bag
                     decisionFromBag = this.defaultPolicyFunctions[currentBag].ChooseAction(context, numActionsVariable);
-                    actionFromBag = decisionFromBag.Action;
+                    actionFromBag = this.GetTopAction(decisionFromBag.Action);
 
                     if (actionFromBag == 0 || actionFromBag > numActions)
                     {
@@ -92,142 +87,51 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction
 
                     if (currentBag == chosenBag)
                     {
-                        chosenDecision.Action = actionFromBag;
-                        chosenDecision.ModelId = decisionFromBag.ModelId;
+                        chosenDecision = decisionFromBag;
                     }
+
                     //this won't work if actions aren't 0 to Count
                     actionsSelected[actionFromBag - 1]++; // action id is one-based
                 }
-                actionProbability = (float)actionsSelected[chosenDecision.Action - 1] / this.bags; // action id is one-based
+                actionProbability = (float)actionsSelected[this.GetTopAction(chosenDecision.Action) - 1] / this.bags; // action id is one-based
             }
             else
             {
                 chosenDecision = this.defaultPolicyFunctions[0].ChooseAction(context, numActionsVariable);
                 actionProbability = 1f;
             }
-            return new DecisionTuple
-            {
-                Action = chosenDecision.Action,
-                Probability = actionProbability,
-                ShouldRecord = true,
-                ModelId = chosenDecision.ModelId
-            };
-        }
-    };
-}
 
-namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction
-{
-    /// <summary>
-    /// The bootstrap exploration class.
-    /// </summary>
-    /// <remarks>
-    /// The Bootstrap explorer randomizes over the actions chosen by a set of
-    /// default policies.  This performs well statistically but can be
-    /// computationally expensive.
-    /// </remarks>
-    /// <typeparam name="TContext">The Context type.</typeparam>
-    public class BootstrapExplorer<TContext> : IExplorer<TContext>, IConsumePolicies<TContext>
+            return chosenDecision;
+        }
+
+        protected abstract uint GetTopAction(TAction action);
+    }
+
+    public class BootstrapExplorer<TContext, TPolicyState> : BaseBootstrapExplorer<TContext, uint, TPolicyState>
     {
-        private IPolicy<TContext>[] defaultPolicyFunctions;
-        private bool explore;
-        private readonly uint bags;
-        private readonly uint numActionsFixed;
-
-        /// <summary>
-        /// The constructor is the only public member, because this should be used with the MwtExplorer.
-        /// </summary>
-        /// <param name="defaultPolicies">A set of default policies to be uniform random over.</param>
-        /// <param name="numActions">The number of actions to randomize over.</param>
-        public BootstrapExplorer(IPolicy<TContext>[] defaultPolicies, uint numActions)
+        public BootstrapExplorer(IPolicy<TContext, uint, TPolicyState>[] defaultPolicies, 
+            uint numActions = uint.MaxValue)
+            : base(defaultPolicies, numActions)
         {
-            VariableActionHelper.ValidateInitialNumberOfActions(numActions);
-
-            if (defaultPolicies == null || defaultPolicies.Length < 1)
-            {
-                throw new ArgumentException("Number of bags must be at least 1.");
-            }
-
-            this.defaultPolicyFunctions = defaultPolicies;
-            this.bags = (uint)this.defaultPolicyFunctions.Length;
-            this.numActionsFixed = numActions;
-            this.explore = true;
         }
 
-        /// <summary>
-        /// Initializes a bootstrap explorer with variable number of actions.
-        /// </summary>
-        /// <param name="defaultPolicies">A set of default policies to be uniform random over.</param>
-        public BootstrapExplorer(IPolicy<TContext>[] defaultPolicies) :
-            this(defaultPolicies, uint.MaxValue)
-        { }
-
-        public void UpdatePolicy(IPolicy<TContext>[] newPolicies)
+        protected override uint GetTopAction(uint action)
         {
-            this.defaultPolicyFunctions = newPolicies;
+            return action;
+        }
+    }
+
+    public class BootstrapTopSlotExplorer<TContext, TPolicyState> : BaseBootstrapExplorer<TContext, uint[], TPolicyState>
+    {
+        public BootstrapTopSlotExplorer(IPolicy<TContext, uint[], TPolicyState>[] defaultPolicies,
+            uint numActions = uint.MaxValue)
+            : base(defaultPolicies, numActions)
+        {
         }
 
-        public void EnableExplore(bool explore)
+        protected override uint GetTopAction(uint[] action)
         {
-            this.explore = explore;
+            return action[0];
         }
-
-        public DecisionTuple ChooseAction(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
-        {
-            uint numActions = VariableActionHelper.GetNumberOfActions(this.numActionsFixed, numActionsVariable);
-
-            var random = new PRG(saltedSeed);
-
-            // Select bag
-            uint chosenBag = random.UniformInt(0, this.bags - 1);
-
-            // Invoke the default policy function to get the action
-            var chosenDecision = new PolicyDecisionTuple();
-            uint chosenTopAction = 0;
-            float actionProbability = 0f;
-
-            if (this.explore)
-            {
-                uint topActionFromBag = 0;
-                PolicyDecisionTuple decisionFromBag = null;
-                uint[] actionsSelected = Enumerable.Repeat<uint>(0, (int)numActions).ToArray();
-
-                // Invoke the default policy function to get the action
-                for (int currentBag = 0; currentBag < this.bags; currentBag++)
-                {
-                    // TODO: can VW predict for all bags on one call? (returning all actions at once)
-                    // if we trigger into VW passing an index to invoke bootstrap scoring, and if VW model changes while we are doing so, 
-                    // we could end up calling the wrong bag
-                    decisionFromBag = this.defaultPolicyFunctions[currentBag].ChooseAction(context, numActions);
-                    uint[] actionsFromBag = decisionFromBag.Actions;
-
-                    MultiActionHelper.ValidateActionList(actionsFromBag);
-
-                    topActionFromBag = actionsFromBag[0];
-
-                    if (currentBag == chosenBag)
-                    {
-                        chosenTopAction = topActionFromBag;
-                        chosenDecision.Actions = actionsFromBag;
-                        chosenDecision.ModelId = decisionFromBag.ModelId;
-                    }
-                    //this won't work if actions aren't 0 to Count
-                    actionsSelected[topActionFromBag - 1]++; // action id is one-based
-                }
-                actionProbability = (float)actionsSelected[chosenTopAction - 1] / this.bags; // action id is one-based
-            }
-            else
-            {
-                chosenDecision = this.defaultPolicyFunctions[0].ChooseAction(context, numActions);
-                actionProbability = 1f;
-            }
-            return new DecisionTuple
-            {
-                Actions = chosenDecision.Actions,
-                Probability = actionProbability,
-                ShouldRecord = true,
-                ModelId = chosenDecision.ModelId
-            };
-        }
-    };
+    }
 }

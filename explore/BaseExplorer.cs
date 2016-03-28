@@ -35,7 +35,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.explore = explore;
         }
 
-        public Decision<TAction, TExplorerState, TPolicyState> ChooseActionInternal(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
+        public Decision<TAction, TExplorerState, TPolicyState> ChooseAction(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
         {
             uint numActions = (numActionsFixed == uint.MaxValue) ? numActionsVariable : numActionsFixed;
 
@@ -45,7 +45,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                 throw new ArgumentException("Number of actions must be at least 1.");
             }
 
-            return this.ChooseActionInternal(saltedSeed, context, uint numActions);
+            return this.ChooseActionInternal(saltedSeed, context, numActions);
         }
 
         protected abstract Decision<TAction, TExplorerState, TPolicyState> ChooseActionInternal(ulong saltedSeed, TContext context, uint numActionsVariable);

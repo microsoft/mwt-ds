@@ -9,13 +9,14 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
     public static class Decision
     {
-        public static Decision<TAction, TExplorerState, TPolicyState> Create(TAction action, TExplorerState explorerState, PolicyDecision<TAction, TPolicyState> policyDecision)
+        public static Decision<TAction, TExplorerState, TPolicyState> Create<TAction, TExplorerState, TPolicyState>(TAction action, TExplorerState explorerState, PolicyDecision<TAction, TPolicyState> policyDecision, bool shouldRecord)
         {
             return new Decision<TAction, TExplorerState, TPolicyState>
             {
                 Action = action,
                 ExplorerState = explorerState,
-                PolicyDecision = policyDecision
+                PolicyDecision = policyDecision,
+                ShouldRecord = shouldRecord
             };
         }
     }
@@ -23,9 +24,11 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
     [JsonConverter(typeof(DecisionJsonConverter))]
     public sealed class Decision<TAction, TExplorerState, TPolicyState>
     {
+        public bool ShouldRecord { get; set; }
+
         // int, int[]
         // choose action (shown)
-        [JsonProperty(PropertyName: "a")]
+        [JsonProperty("a")]
         public TAction Action { get; set; }
 
         // probability | predicted ranking, epsilon
