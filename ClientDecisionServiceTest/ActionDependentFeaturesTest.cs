@@ -1,7 +1,5 @@
-﻿using Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
-using Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction;
 using System;
 using System.Collections.Generic;
 using System.IO;

@@ -1,5 +1,4 @@
 ﻿using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
-using Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -85,14 +84,11 @@ namespace ClientDecisionServiceSample
     }
 
 
-    class ExpandedPolicy : IPolicy<ExpandedContext>
+    class ExpandedPolicy : IRanker<ExpandedContext>
     {
-        public PolicyDecisionTuple ChooseAction(ExpandedContext context, uint numActionsVariable = uint.MaxValue)
+        public Decision<uint[]> MapContext(ExpandedContext context, ref uint numActionsVariable)
         {
-            return new PolicyDecisionTuple
-            {
-                Actions = context.Actions.Select((a, i) => (uint)i + 1).ToArray()
-            };
+            return context.Actions.Select((a, i) => (uint)i + 1).ToArray();
         }
     }
 

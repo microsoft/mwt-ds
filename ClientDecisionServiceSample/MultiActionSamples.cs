@@ -6,8 +6,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction;
-using Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction;
 using System.IO;
 using VW;
 using Newtonsoft.Json;
@@ -329,7 +327,7 @@ namespace ClientDecisionServiceSample
                     //uint[] chosenActions = service.ChooseAction(new UniqueEventID { Key = key, TimeStamp = timeStamp}, context, (uint)numActions);
                     //uint action = chosenActions[0];
                     uint action = (uint)(iE % numActions + 1);
-                    recorder.Record(null, null, 1.0f / numActions, new UniqueEventID { Key = key, TimeStamp = timeStamp });
+                    recorder.Record(null, null, 1.0f / numActions, null, new UniqueEventID { Key = key, TimeStamp = timeStamp });
 
                     float cost = 0;
 

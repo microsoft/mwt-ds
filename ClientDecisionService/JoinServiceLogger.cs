@@ -5,7 +5,7 @@ using System;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    internal class JoinServiceLogger<TContext> : ILogger<TContext>, IDisposable
+    internal class JoinServiceLogger : IRecorder<object, object, object>, ILogger, IDisposable
     {
         public void InitializeWithCustomAzureJoinServer(
             string authorizationToken,
@@ -26,31 +26,16 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             this.eventUploader = new EventUploaderASA(eventHubConnectionString, eventHubInputName, batchConfig);
         }
 
-        public void Record(TContext context, uint[] actions, float probability, UniqueEventID uniqueKey, string modelId = null, bool? isExplore = null)
+        public void Record(object context, object value, object explorerState, object mapperState, UniqueEventID uniqueKey)
         {
-            this.eventUploader.Upload(new MultiActionInteraction
+            this.eventUploader.Upload(new Interaction
             {
                 Key = uniqueKey.Key,
                 TimeStamp = uniqueKey.TimeStamp,
-                Actions = actions,
-                Probability = probability,
-                Context = context,
-                ModelId = modelId,
-                IsExplore = isExplore
-            });
-        }
-
-        public void Record(TContext context, uint action, float probability, UniqueEventID uniqueKey, string modelId = null, bool? isExplore = null)
-        {
-            this.eventUploader.Upload(new SingleActionInteraction
-            {
-                Key = uniqueKey.Key,
-                TimeStamp = uniqueKey.TimeStamp,
-                Action = action,
-                Probability = probability,
-                Context = context,
-                ModelId = modelId,
-                IsExplore = isExplore
+                Context = context, 
+                Value = value,
+                ExplorerState = explorerState,
+                MapperState = mapperState
             });
         }
 

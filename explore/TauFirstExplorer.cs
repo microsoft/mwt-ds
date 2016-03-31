@@ -20,7 +20,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 	/// exploration events, and then uses the default policy. 
 	/// </remarks>
 	/// <typeparam name="TContext">The Context type.</typeparam>
-    public class TauFirstExplorer<TContext, TMapperState> : BaseExplorer<TContext, uint, TauFirstState, uint, TMapperState>
+    public class TauFirstExplorer<TContext> : BaseExplorer<TContext, uint, TauFirstState, uint>
 	{
         private uint tau;
         private readonly object lockObject = new object();
@@ -31,17 +31,17 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 		/// <param name="defaultPolicy">A default policy after randomization finishes.</param>
 		/// <param name="tau">The number of events to be uniform over.</param>
 		/// <param name="numActions">The number of actions to randomize over.</param>
-        public TauFirstExplorer(IPolicy<TContext, TMapperState> defaultPolicy, uint tau, uint numActions = uint.MaxValue)
+        public TauFirstExplorer(IContextMapper<TContext, uint> defaultPolicy, uint tau, uint numActions = uint.MaxValue)
             : base(defaultPolicy, numActions)
         {
             this.tau = tau;
         }
 
-        protected override Decision<uint, TauFirstState, uint, TMapperState> MapContextInternal(ulong saltedSeed, TContext context, uint numActionsVariable)
+        protected override Decision<uint, TauFirstState, uint> MapContextInternal(ulong saltedSeed, TContext context, uint numActionsVariable)
         {
             var random = new PRG(saltedSeed);
 
-            Decision<uint, TMapperState> policyDecision = null;
+            Decision<uint> policyDecision = null;
             uint chosenAction = 0;
             float actionProbability = 0f;
             bool shouldRecordDecision;
@@ -62,7 +62,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                 else
                 {
                     // Invoke the default policy function to get the action
-                    policyDecision = this.defaultPolicy.MapContext(context, numActionsVariable);
+                    policyDecision = this.contextMapper.MapContext(context, ref numActionsVariable);
                     chosenAction = policyDecision.Value;
 
                     if (chosenAction == 0 || chosenAction > numActionsVariable)

@@ -240,8 +240,9 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
                 }
                 else
                 {
+                    interaction.ProbabilityOfDrop = this.batchConfig.DroppingPolicy.ProbabilityOfDrop;
                     // if not dropped, modify probability by multiplying with 1 - P(drop)
-                    interaction.Probability *= (1 - this.batchConfig.DroppingPolicy.ProbabilityOfDrop);
+                    // interaction.Probability *= (1 - this.batchConfig.DroppingPolicy.ProbabilityOfDrop);
                 }
             }
             return false;

@@ -13,7 +13,7 @@
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
-    <NuGetPackageImportStamp>fc55a94e</NuGetPackageImportStamp>
+    <NuGetPackageImportStamp>29f95db0</NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject />
@@ -102,16 +102,16 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="VowpalWabbit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\VowpalWabbit.8.0.0.40\lib\net45\VowpalWabbit.dll</HintPath>
+      <HintPath>..\packages\VowpalWabbit.8.0.0.42\lib\net45\VowpalWabbit.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="VowpalWabbit.Common, Version=1.0.0.0, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\VowpalWabbit.8.0.0.40\lib\net45\VowpalWabbit.Common.dll</HintPath>
+      <HintPath>..\packages\VowpalWabbit.8.0.0.42\lib\net45\VowpalWabbit.Common.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="VowpalWabbitCore, Version=0.0.0.0, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\VowpalWabbit.8.0.0.40\lib\net45\VowpalWabbitCore.dll</HintPath>
+      <HintPath>..\packages\VowpalWabbit.8.0.0.42\lib\net45\VowpalWabbitCore.dll</HintPath>
+      <Private>True</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -119,12 +119,15 @@
     <Compile Include="AzureBlobUpdater.cs" />
     <Compile Include="AzureBlobUpdateTask.cs" />
     <Compile Include="DecisionService.cs" />
+    <Compile Include="DecisionServiceBaseClient.cs" />
     <Compile Include="DecisionServiceConfiguration.cs" />
     <Compile Include="DecisionServiceConstants.cs" />
     <Compile Include="DecisionServiceFactory.cs" />
     <Compile Include="DecisionServiceHttpModule.cs" />
     <Compile Include="DecisionServicePolicy.cs" />
-    <Compile Include="DefaultJsonPolicy.cs" />
+    <Compile Include="DecisionServicePolicyClient.cs" />
+    <Compile Include="DecisionServiceRankerClient.cs" />
+    <Compile Include="IUpdateableContextMapper.cs" />
     <Compile Include="JoinServerType.cs" />
     <Compile Include="JoinServiceLogger.cs" />
     <Compile Include="ILogger.cs" />
@@ -132,11 +135,16 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RawStringConverter.cs" />
     <Compile Include="DecisionServiceTransientErrorDetectionStrategy.cs" />
-    <Compile Include="VWPolicy.cs" />
+    <Compile Include="VW\VWJson.cs" />
+    <Compile Include="VW\VWPolicy.cs" />
+    <Compile Include="VW\VWBaseContextMapper.cs" />
+    <Compile Include="VW\VWState.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\explore\Explore.csproj">
@@ -159,12 +167,12 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
-    <Error Condition="!Exists('..\packages\VowpalWabbit.8.0.0.40\build\VowpalWabbit.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\VowpalWabbit.8.0.0.40\build\VowpalWabbit.targets'))" />
+    <Error Condition="!Exists('..\packages\VowpalWabbit.8.0.0.42\build\VowpalWabbit.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\VowpalWabbit.8.0.0.42\build\VowpalWabbit.targets'))" />
   </Target>
   <PropertyGroup>
     <PostBuildEvent>$(ProjectDir)\..\docgen.bat "$(ProjectDir)\..\"</PostBuildEvent>
   </PropertyGroup>
-  <Import Project="..\packages\VowpalWabbit.8.0.0.40\build\VowpalWabbit.targets" Condition="Exists('..\packages\VowpalWabbit.8.0.0.40\build\VowpalWabbit.targets')" />
+  <Import Project="..\packages\VowpalWabbit.8.0.0.42\build\VowpalWabbit.targets" Condition="Exists('..\packages\VowpalWabbit.8.0.0.42\build\VowpalWabbit.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

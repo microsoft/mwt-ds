@@ -6,28 +6,23 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
-    public abstract class BaseExplorer<TContext, TValue, TExplorerState, TPolicyValue, TMapperState>
-        : IExplorer<TContext, TValue, TExplorerState, TPolicyValue, TMapperState>, IConsumeContextMapper<TContext, TPolicyValue, TMapperState>
+    public abstract class BaseExplorer<TContext, TValue, TExplorerState, TMapperValue>
+        : IExplorer<TContext, TValue, TExplorerState, TMapperValue>, IDisposable
     {
-        protected IContextMapper<TContext, TPolicyValue, TMapperState> defaultPolicy;
+        protected IContextMapper<TContext, TMapperValue> contextMapper;
         protected bool explore;
         protected readonly uint numActionsFixed;
 
-        protected BaseExplorer(IContextMapper<TContext, TPolicyValue, TMapperState> defaultPolicy, uint numActions = uint.MaxValue)
+        protected BaseExplorer(IContextMapper<TContext, TMapperValue> defaultPolicy, uint numActions = uint.MaxValue)
         {
             if (defaultPolicy == null)
                 throw new ArgumentNullException("defaultPolicy");
 
             VariableActionHelper.ValidateInitialNumberOfActions(numActions);
 
-            this.defaultPolicy = defaultPolicy;
+            this.contextMapper = defaultPolicy;
             this.explore = true;
             this.numActionsFixed = numActions;
-        }
-
-        public virtual void UpdatePolicy(IContextMapper<TContext, TPolicyValue, TMapperState> newPolicy)
-        {
-            this.defaultPolicy = newPolicy;
         }
 
         public virtual void EnableExplore(bool explore)
@@ -35,7 +30,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.explore = explore;
         }
 
-        public Decision<TValue, TExplorerState, TPolicyValue, TMapperState> MapContext(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
+        public Decision<TValue, TExplorerState, TMapperValue> MapContext(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
         {
             uint numActions = (numActionsFixed == uint.MaxValue) ? numActionsVariable : numActionsFixed;
 
@@ -48,6 +43,28 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             return this.MapContextInternal(saltedSeed, context, numActions);
         }
 
-        protected abstract Decision<TValue, TExplorerState, TPolicyValue, TMapperState> MapContextInternal(ulong saltedSeed, TContext context, uint numActionsVariable);
+        protected abstract Decision<TValue, TExplorerState, TMapperValue> MapContextInternal(ulong saltedSeed, TContext context, uint numActionsVariable);
+
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        public void Dispose()
+        {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                var disposable = this.contextMapper as IDisposable;
+                if (disposable != null)
+                {
+                    disposable.Dispose();
+                    this.contextMapper = null;
+                }
+            }
+        }
     }
 }

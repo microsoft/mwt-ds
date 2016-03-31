@@ -8,9 +8,13 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
     internal sealed class AzureBlobUpdater : Registry
     {
         private Dictionary<string, AzureBlobUpdateMetadata> taskToMetadata;
-        private readonly static AzureBlobUpdater instance = new AzureBlobUpdater();
+        internal readonly static AzureBlobUpdater Instance;
 
-        internal static AzureBlobUpdater Instance { get { return instance; } }
+        static AzureBlobUpdater()
+        {
+            Instance = new AzureBlobUpdater();
+            TaskManager.Initialize(Instance);
+        }
 
         internal static void RegisterTask(
             string taskId, string blobAddress,
@@ -29,14 +33,9 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             AzureBlobUpdater.Instance.Cancel(taskId);
         }
 
-        internal static void Start()
-        {
-            TaskManager.Initialize(instance);
-        }
-
         internal static void Stop()
         {
-            instance.CancelAll();
+            Instance.CancelAll();
         }
 
         private AzureBlobUpdater()

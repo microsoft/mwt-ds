@@ -108,6 +108,7 @@
     <Compile Include="IEventUploader.cs" />
     <Compile Include="IHttpClient.cs" />
     <Compile Include="IHttpResponse.cs" />
+    <Compile Include="InteractionJsonConverter.cs" />
     <Compile Include="RawStringConverter.cs" />
     <Compile Include="DecisionServiceTransientErrorDetectionStrategy.cs" />
     <Compile Include="Constants.cs" />

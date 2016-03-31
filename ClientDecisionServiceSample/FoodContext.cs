@@ -1,5 +1,4 @@
 ﻿using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
-using Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -43,27 +42,25 @@ namespace ClientDecisionServiceSample
         }
     }
 
-    class FoodPolicy : IPolicy<FoodContext>
+    class FoodPolicy : IRanker<FoodContext>
     {
-        public PolicyDecisionTuple ChooseAction(FoodContext context, uint numActionsVariable = uint.MaxValue)
+        public Decision<uint[]> MapContext(FoodContext context, ref uint numActionsVariable)
         {
-            return new PolicyDecisionTuple
-            {
-                Actions = context.Actions.Select((a, i) => (uint)i + 1).ToArray()
-            };
+            return context.Actions.Select((a, i) => (uint)i + 1).ToArray();
         }
     }
 
-    class FoodRecorder : IRecorder<FoodContext>
+    class FoodRecorder : IRecorder<FoodContext, uint[], EpsilonGreedyState>
     {
         Dictionary<string, float> keyToProb = new Dictionary<string, float>();
-        public void Record(FoodContext context, uint[] actions, float probability, UniqueEventID uniqueKey, string modelId = null, bool? isExplore = null)
-        {
-            keyToProb.Add(uniqueKey.Key, probability);
-        }
         public float GetProb(string key)
         {
             return keyToProb[key];
+        }
+
+        public void Record(FoodContext context, uint[] value, EpsilonGreedyState explorerState, object mapperState, UniqueEventID uniqueKey)
+        {
+            keyToProb.Add(uniqueKey.Key, explorerState.Probability);
         }
     }
 

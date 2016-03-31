@@ -21,7 +21,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
     /// Epsilon greedy is also computationally cheap.
     /// </remarks>
     /// <typeparam name="TContext">The Context type.</typeparam>
-    public class EpsilonGreedyExplorer<TContext, TMapperState> : BaseExplorer<TContext, uint, EpsilonGreedyState, uint, TMapperState>
+    public class EpsilonGreedyExplorer<TContext> : BaseExplorer<TContext, uint, EpsilonGreedyState, uint>
     {
         private readonly float defaultEpsilon;
 
@@ -31,7 +31,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         /// <param name="defaultPolicy">A default function which outputs an action given a context.</param>
         /// <param name="epsilon">The probability of a random exploration.</param>
         /// <param name="numActions">The number of actions to randomize over.</param>
-        public EpsilonGreedyExplorer(IPolicy<TContext, TMapperState> defaultPolicy, float epsilon, uint numActions = uint.MaxValue)
+        public EpsilonGreedyExplorer(IContextMapper<TContext, uint> defaultPolicy, float epsilon, uint numActions = uint.MaxValue)
             : base(defaultPolicy, numActions)
         {
             if (epsilon < 0 || epsilon > 1)
@@ -41,10 +41,10 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.defaultEpsilon = epsilon;
         }
 
-        protected override Decision<uint, EpsilonGreedyState, uint, TMapperState> MapContextInternal(ulong saltedSeed, TContext context, uint numActionsVariable)
+        protected override Decision<uint, EpsilonGreedyState, uint> MapContextInternal(ulong saltedSeed, TContext context, uint numActionsVariable)
         {
             // Invoke the default policy function to get the action
-            Decision<uint, TMapperState> policyDecisionTuple = this.defaultPolicy.MapContext(context, numActionsVariable);
+            Decision<uint> policyDecisionTuple = this.contextMapper.MapContext(context, ref numActionsVariable);
             uint chosenAction = policyDecisionTuple.Value;
 
             if (chosenAction == 0 || chosenAction > numActionsVariable)

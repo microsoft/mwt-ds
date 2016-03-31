@@ -19,7 +19,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         public bool IsExplore { get; set; }
     }
 
-    public sealed class EpsilonGreedySlateExplorer<TContext, TMapperState> : BaseExplorer<TContext, uint[], EpsilonGreedySlateState, uint[], TMapperState>
+    public sealed class EpsilonGreedySlateExplorer<TContext> : BaseExplorer<TContext, uint[], EpsilonGreedySlateState, uint[]>
     {        
         private readonly float defaultEpsilon;
 
@@ -29,16 +29,16 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         /// <param name="defaultPolicy">A default function which outputs an action given a context.</param>
         /// <param name="epsilon">The probability of a random exploration.</param>
         /// <param name="numActions">The number of actions to randomize over.</param>
-        public EpsilonGreedySlateExplorer(IRanker<TContext, TMapperState> defaultPolicy, float epsilon, uint numActions = uint.MaxValue)
+        public EpsilonGreedySlateExplorer(IRanker<TContext> defaultPolicy, float epsilon, uint numActions = uint.MaxValue)
             : base(defaultPolicy, numActions)
         {
             this.defaultEpsilon = epsilon;
         }
 
-        protected override Decision<uint[], EpsilonGreedySlateState, uint[], TMapperState> MapContextInternal(ulong saltedSeed, TContext context, uint numActionsVariable)
+        protected override Decision<uint[], EpsilonGreedySlateState, uint[]> MapContextInternal(ulong saltedSeed, TContext context, uint numActionsVariable)
         {
             // Invoke the default policy function to get the action
-            Decision<uint[], TMapperState> policyDecisionTuple = this.defaultPolicy.MapContext(context, numActionsVariable);
+            Decision<uint[]> policyDecisionTuple = this.contextMapper.MapContext(context, ref numActionsVariable);
 
             MultiActionHelper.ValidateActionList(policyDecisionTuple.Value);
 

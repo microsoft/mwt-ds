@@ -127,61 +127,51 @@ namespace ClientDecisionServiceTest
 
     class TestOutcome { }
 
-    class TestSingleActionPolicy : Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction.IPolicy<TestContext>
+    class TestSingleActionPolicy : IPolicy<TestContext>
     {
-        public Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction.PolicyDecisionTuple ChooseAction(TestContext context, uint numActionsVariable = uint.MaxValue)
-        {
-            return new Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction.PolicyDecisionTuple
-            {
-                // Always returns the same action regardless of context
-                Action = Constants.NumberOfActions - 1
-            };
-        }
-    }
-
-    class TestMultiActionPolicy : Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.IPolicy<TestContext>
-    {
-        public Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.PolicyDecisionTuple ChooseAction(TestContext context, uint numActionsVariable = uint.MaxValue)
+        public Decision<uint> MapContext(TestContext context, ref uint numActionsVariable)
         {
             // Always returns the same action regardless of context
-            return new Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.PolicyDecisionTuple
-            {
-                Actions = Enumerable.Range(1, (int)Constants.NumberOfActions).Select(m => (uint)m).ToArray()
-            };
+            return Constants.NumberOfActions - 1;
         }
     }
 
-    public class TestRcv1ContextPolicy : Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction.IPolicy<TestRcv1Context>
+    class TestMultiActionPolicy : IRanker<TestContext>
     {
-        public Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction.PolicyDecisionTuple ChooseAction(TestRcv1Context context, uint numActionsVariable = uint.MaxValue)
+        public Decision<uint[]> MapContext(TestContext context, ref uint numActionsVariable)
         {
-            return new Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction.PolicyDecisionTuple { Action = 1 };
+            // Always returns the same action regardless of context
+            return Enumerable.Range(1, (int)Constants.NumberOfActions).Select(m => (uint)m).ToArray();
         }
     }
 
-    class TestADFPolicy : Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.IPolicy<TestADFContext>
+    public class TestRcv1ContextPolicy : IPolicy<TestRcv1Context>
     {
-        public Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.PolicyDecisionTuple ChooseAction(TestADFContext context, uint numActionsVariable = uint.MaxValue)
+        public Decision<uint> MapContext(TestRcv1Context context, ref uint numActionsVariable)
         {
-            return new Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.PolicyDecisionTuple
-            {
-                Actions = Enumerable.Range(1, (int)context.ActionDependentFeatures.Count).Select(m => (uint)m).ToArray()
-            };
+            return 1;
         }
     }
 
-    class TestADFWithFeaturesPolicy : Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.IPolicy<TestADFContextWithFeatures>
+    class TestADFPolicy : IRanker<TestADFContext>
     {
-        public Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.PolicyDecisionTuple ChooseAction(TestADFContextWithFeatures context, uint numActionsVariable = uint.MaxValue)
+        public Decision<uint[]> MapContext(TestADFContext context, ref uint numActionsVariable)
         {
-            return new Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.PolicyDecisionTuple
-            {
-                Actions = Enumerable.Range(1, (int)context.ActionDependentFeatures.Count).Select(m => (uint)m).ToArray()
-            };
+            // Always returns the same action regardless of context
+            return Enumerable.Range(1, (int)context.ActionDependentFeatures.Count).Select(m => (uint)m).ToArray();
         }
     }
 
-    class TestLogger : ILogger<TestContext>
+    class TestADFWithFeaturesPolicy : IRanker<TestADFContextWithFeatures>
+    {
+        public Decision<uint[]> MapContext(TestADFContextWithFeatures context, ref uint numActionsVariable)
+        {
+            // Always returns the same action regardless of context
+            return Enumerable.Range(1, (int)context.ActionDependentFeatures.Count).Select(m => (uint)m).ToArray();
+        }
+    }
+
+    class TestLogger : ILogger, IRecorder<TestContext, uint, EpsilonGreedyState>
     {
         public TestLogger()
         {
@@ -207,12 +197,7 @@ namespace ClientDecisionServiceTest
             this.numOutcome = 0;
         }
 
-        public void Record(TestContext context, uint action, float probability, UniqueEventID uniqueKey, string modelId = null, bool? isExplore = null)
-        {
-            this.numRecord++;
-        }
-
-        public void Record(TestContext context, uint[] actions, float probability, UniqueEventID uniqueKey, string modelId = null, bool? isExplore = null)
+        public void Record(TestContext context, uint value, EpsilonGreedyState explorerState, object mapperState, UniqueEventID uniqueKey)
         {
             this.numRecord++;
         }
@@ -235,6 +220,7 @@ namespace ClientDecisionServiceTest
         int numRecord;
         int numReward;
         int numOutcome;
+
     }
 
     public class PartialExperimentalUnitFragment

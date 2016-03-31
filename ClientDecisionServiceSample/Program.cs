@@ -1,5 +1,4 @@
 ﻿using Microsoft.Research.MultiWorldTesting.ClientLibrary;
-using Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction;
 using Microsoft.Research.MultiWorldTesting.JoinUploader;
 using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
 using Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction;

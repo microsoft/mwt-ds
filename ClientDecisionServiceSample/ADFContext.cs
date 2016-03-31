@@ -1,5 +1,4 @@
 ﻿using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
-using Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -62,14 +61,11 @@ namespace ClientDecisionServiceSample
         public ILabel Label { get; set; }
     }
 
-    class ADFPolicy : IPolicy<ADFContext>
+    class ADFPolicy : IRanker<ADFContext>
     {
-        public PolicyDecisionTuple ChooseAction(ADFContext context, uint numActionsVariable = uint.MaxValue)
+        public Decision<uint[]> MapContext(ADFContext context, ref uint numActionsVariable)
         {
-            return new PolicyDecisionTuple
-            {
-                Actions = Enumerable.Range(1, context.ActionDependentFeatures.Count).Select(a => (uint)a).ToArray()
-            };
+            return Enumerable.Range(1, context.ActionDependentFeatures.Count).Select(a => (uint)a).ToArray();
         }
     }
 }

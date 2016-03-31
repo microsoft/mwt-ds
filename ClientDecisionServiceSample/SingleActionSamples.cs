@@ -1,7 +1,5 @@
-﻿using Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction;
-using Microsoft.Research.MultiWorldTesting.JoinUploader;
+﻿using Microsoft.Research.MultiWorldTesting.JoinUploader;
 using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
-using Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -295,21 +293,26 @@ namespace ClientDecisionServiceSample
         }
     }
 
+    class SimpleContext
+    {
+        public SimpleContext(float[] features)
+        {
+            this.Features = features;
+        }
+
+        public float[] Features { get; set; }
+    }
+
     /// <summary>
     /// The default policy for choosing topic to display given some user context.
     /// </summary>
     class SimplePolicy : IPolicy<SimpleContext>
     {
-        /// <summary>
-        /// Choose the action to take given the specified context.
-        /// </summary>
-        /// <param name="context">The user context.</param>
-        /// <returns>The action to take.</returns>
-        public PolicyDecisionTuple ChooseAction(SimpleContext context, uint numActionsVariable = uint.MaxValue)
+        public Decision<uint> MapContext(SimpleContext context, ref uint numActionsVariable)
         {
             // Return a constant action for simple demonstration.
             // In advanced scenarios, users can examine the context and return a more appropriate action.
-            return new PolicyDecisionTuple { Action = 1 };
+ 	        return 1;
         }
     }
 
@@ -323,19 +326,9 @@ namespace ClientDecisionServiceSample
     /// </summary>
     class NewsDisplayPolicy : IPolicy<UserContext>
     {
-        /// <summary>
-        /// Choose the action (or news topic) to take given the specified context.
-        /// </summary>
-        /// <param name="context">The user context.</param>
-        /// <returns>The action (or news topic) to take.</returns>
-        public PolicyDecisionTuple ChooseAction(UserContext context, uint numActionsVariable = uint.MaxValue)
+        public Decision<uint> MapContext(UserContext context, ref uint numActionsVariable)
         {
-            // In this example, we are only picking among the first two topics.
-            // This could simulate picking between the top 2 editorial picks.
-            return new PolicyDecisionTuple
-            {
-                Action = (uint)(Math.Round(context.Sum(f => f.Value) / context.Count + 1))
-            };
+            return Decision.Create((uint)(Math.Round(context.Sum(f => f.Value) / context.Count + 1)));
         }
     }
 }

@@ -4,9 +4,9 @@
     using Microsoft.Research.MultiWorldTesting.JoinUploader;
     using VW;
 
-    public class BaseDecisionServiceConfiguration<TContext>
+    public class DecisionServiceConfiguration //<TContext>
     {
-        public BaseDecisionServiceConfiguration(string authorizationToken)
+        public DecisionServiceConfiguration(string authorizationToken)
         {
             if (authorizationToken == null)
             {
@@ -31,7 +31,7 @@
         /// <summary>
         /// Specify method of feature discovery on the context type.
         /// </summary>
-        public VowpalWabbitFeatureDiscovery FeatureDiscovery { get; set; }
+        // public VowpalWabbitFeatureDiscovery FeatureDiscovery { get; set; }
 
         /// <summary>
         /// Indicates whether to operate in offline mode where polling and join service logging are turned off.
@@ -140,7 +140,7 @@
         /// models and context need to be recorded at the time the scoring
         /// decision is made from the model.
         /// </summary>
-        public Action<TContext, string> SetModelIdCallback { get; set; }
+        // public Action<TContext, string> SetModelIdCallback { get; set; }
         
         /// <summary>
         /// 
@@ -162,7 +162,7 @@
     }
 }
 
-
+/*
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction
 {
     using Microsoft.Research.MultiWorldTesting.JoinUploader;
@@ -293,4 +293,5 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
             UseJsonContext = true;
         }
     }
-}
+ }
+ * */

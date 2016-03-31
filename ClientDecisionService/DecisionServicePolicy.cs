@@ -1,320 +1,93 @@
-﻿namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction
+﻿using Microsoft.Research.MultiWorldTesting.Contract;
+using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    using MultiWorldTesting.ExploreLibrary;
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using VW;
-    
-    /// <summary>
-    /// Represent an updatable <see cref="IPolicy<TContext>"/> object which can consume different VowpalWabbit 
-    /// models to predict actions from an object of specified <see cref="TContext"/> type. This type 
-    /// of object can also observe Azure Storage for newer model files.
-    /// </summary>
-    /// <typeparam name="TContext">The type of the context.</typeparam>
-    internal class DecisionServicePolicy<TContext> : VWPolicy<TContext>
+    internal static class DecisionServicePolicy
     {
-        readonly Action notifyPolicyUpdate;
-        readonly string updateTaskId = "model";
-
-        public DecisionServicePolicy(
-            string modelAddress,
-            string modelConnectionString, 
-            string modelOutputDir,
-            TimeSpan pollDelay,
-            Action notifyPolicyUpdate,
-            Action<Exception> modelPollFailureCallback,
-            VowpalWabbitFeatureDiscovery featureDiscovery = VowpalWabbitFeatureDiscovery.Default)
-            : base(featureDiscovery: featureDiscovery)
+        public static IContextMapper<TContext, TValue> Wrap<TContext, TValue>
+            (IContextMapper<TContext, TValue> contextMapper, DecisionServiceConfiguration config, ApplicationTransferMetadata metaData)
         {
-            if (pollDelay != TimeSpan.MinValue)
-            {
-                AzureBlobUpdater.RegisterTask(this.updateTaskId, modelAddress,
-                   modelConnectionString, modelOutputDir, pollDelay,
-                   this.UpdateFromFile, modelPollFailureCallback);
-            }
+            // conditionally wrap if it can be updated.
+            var updatableContextMapper = contextMapper as IUpdatable<Stream>;
 
-            this.notifyPolicyUpdate = notifyPolicyUpdate;
-        }
+            if (config.OfflineMode || metaData == null || updatableContextMapper == null)
+                return contextMapper;
 
-        /// <summary>
-        /// Stop checking for new model update.
-        /// </summary>
-        public void StopPolling()
-        {
-            AzureBlobUpdater.CancelTask(this.updateTaskId);
-        }
-
-        /// <summary>
-        /// Dispose the object.
-        /// </summary>
-        /// <param name="disposing">Whether the object is disposing resources.</param>
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-
-            if (disposing)
-            {
-                // free managed resources
-            }
-        }
-
-        /// <summary>
-        /// Update new model from file and trigger callback if success.
-        /// </summary>
-        /// <param name="modelFile">The model file to load from.</param>
-        /// <remarks>
-        /// Triggered when a new model blob is found.
-        /// </remarks>
-        internal void UpdateFromFile(string modelFile)
-        {
-            if (base.ModelUpdate(modelFile) && this.notifyPolicyUpdate != null)
-            {
-                this.notifyPolicyUpdate();
-            }
-            else
-            {
-                Trace.TraceInformation("Attempt to update model failed.");
-            }
+            return new DecisionServicePolicy<TContext, TValue>(contextMapper, config, metaData);
         }
     }
 
-    internal class DecisionServiceJsonPolicy : VWJsonPolicy
+    internal class DecisionServicePolicy<TContext, TValue> 
+        : IDisposable, IContextMapper<TContext, TValue>
     {
-        readonly Action notifyPolicyUpdate;
-        readonly string updateTaskId = "model";
+        private IContextMapper<TContext, TValue> contextMapper;
+        private IUpdatable<Stream> updatable;
+        private readonly TimeSpan modelBlobPollDelay;
+        private readonly string updateModelTaskId = "model";
 
-        public DecisionServiceJsonPolicy(
-            string modelAddress,
-            string modelConnectionString,
-            string modelOutputDir,
-            TimeSpan pollDelay,
-            Action notifyPolicyUpdate,
-            Action<Exception> modelPollFailureCallback)
+        internal DecisionServicePolicy(IContextMapper<TContext, TValue> contextMapper, DecisionServiceConfiguration config, ApplicationTransferMetadata metaData)
         {
-            if (pollDelay != TimeSpan.MinValue)
+            this.contextMapper = contextMapper;
+            this.updatable = contextMapper as IUpdatable<Stream>;
+            if (this.updatable == null)
+                throw new ArgumentException("contextMapper must be of type IUpdatable<Stream>");
+
+            this.modelBlobPollDelay = config.PollingForModelPeriod == TimeSpan.Zero ? DecisionServiceConstants.PollDelay : config.PollingForModelPeriod;
+
+            if (this.modelBlobPollDelay != TimeSpan.MinValue)
             {
-                AzureBlobUpdater.RegisterTask(this.updateTaskId, modelAddress,
-                   modelConnectionString, modelOutputDir, pollDelay,
-                   this.UpdateFromFile, modelPollFailureCallback);
-            }
-
-            this.notifyPolicyUpdate = notifyPolicyUpdate;
-        }
-
-        public void StopPolling()
-        {
-            AzureBlobUpdater.CancelTask(this.updateTaskId);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-
-            if (disposing)
-            {
-                // free managed resources
+                AzureBlobUpdater.RegisterTask(
+                    this.updateModelTaskId,
+                    metaData.ModelBlobUri,
+                    metaData.ConnectionString,
+                    config.BlobOutputDir, 
+                    this.modelBlobPollDelay,
+                    this.UpdateContextMapperFromFile,
+                    config.ModelPollFailureCallback);
             }
         }
-
-        internal void UpdateFromFile(string modelFile)
+        private void UpdateContextMapperFromFile(string modelFile)
         {
-            if (base.ModelUpdate(modelFile) && this.notifyPolicyUpdate != null)
+            using (var stream = File.OpenRead(modelFile))
             {
-                this.notifyPolicyUpdate();
-            }
-            else
-            {
-                Trace.TraceInformation("Attempt to update model failed.");
+                this.updatable.Update(stream);
+
+                Trace.TraceInformation("Model update succeeded.");
             }
         }
-    }
-}
 
-namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
-{
-    using MultiWorldTesting.ExploreLibrary;
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using VW;
-
-    /// <summary>
-    /// Represent an updatable <see cref="IPolicy<TContext>"/> object which can consume different VowpalWabbit 
-    /// models to predict actions from an object of specified <see cref="TContext"/> type. This type 
-    /// of object can also observe Azure Storage for newer model files.
-    /// </summary>
-    /// <typeparam name="TContext">The type of the context.</typeparam>
-    internal class DecisionServicePolicy<TContext, TActionDependentFeature> : VWPolicy<TContext, TActionDependentFeature>
-    {
-        readonly Action notifyPolicyUpdate;
-        readonly string updateTaskId = "model";
-
-        public DecisionServicePolicy(
-            string modelAddress,
-            string modelConnectionString,
-            string modelOutputDir,
-            TimeSpan pollDelay,
-            Func<TContext, IReadOnlyCollection<TActionDependentFeature>> getContextFeaturesFunc,
-            Action notifyPolicyUpdate,
-            Action<Exception> modelPollFailureCallback,
-            VowpalWabbitFeatureDiscovery featureDiscovery = VowpalWabbitFeatureDiscovery.Default)
-            : base(getContextFeaturesFunc, featureDiscovery: featureDiscovery)
+        public Decision<TValue> MapContext(TContext context, ref uint numActionsVariable)
         {
-            if (pollDelay != TimeSpan.MinValue)
-            {
-                AzureBlobUpdater.RegisterTask(this.updateTaskId, modelAddress,
-                   modelConnectionString, modelOutputDir, pollDelay,
-                   this.UpdateFromFile, modelPollFailureCallback);
-            }
-
-            this.notifyPolicyUpdate = notifyPolicyUpdate;
+            return this.contextMapper.MapContext(context, ref numActionsVariable);
         }
 
         /// <summary>
-        /// Stop checking for new model update.
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
-        public void StopPolling()
+        public void Dispose()
         {
-            AzureBlobUpdater.CancelTask(this.updateTaskId);
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
-        /// <summary>
-        /// Dispose the object.
-        /// </summary>
-        /// <param name="disposing">Whether the object is disposing resources.</param>
-        protected override void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
-            base.Dispose(disposing);
-
             if (disposing)
             {
-                // free managed resources
-            }
-        }
-
-        /// <summary>
-        /// Update new model from file and trigger callback if success.
-        /// </summary>
-        /// <param name="modelFile">The model file to load from.</param>
-        /// <remarks>
-        /// Triggered when a new model blob is found.
-        /// </remarks>
-        internal void UpdateFromFile(string modelFile)
-        {
-            if (base.ModelUpdate(modelFile) && this.notifyPolicyUpdate != null)
-            {
-                this.notifyPolicyUpdate();
-            }
-            else
-            {
-                Trace.TraceInformation("Attempt to update model failed.");
-            }
-        }
-    }
-
-    internal class DecisionServiceJsonDirectPolicy<TContext> : VWJsonDirectPolicy<TContext>
-    {
-        readonly Action notifyPolicyUpdate;
-        readonly string updateTaskId = "model";
-
-        public DecisionServiceJsonDirectPolicy(
-            string modelAddress,
-            string modelConnectionString,
-            string modelOutputDir,
-            TimeSpan pollDelay,
-            Action notifyPolicyUpdate,
-            Action<Exception> modelPollFailureCallback)
-        {
-            if (pollDelay != TimeSpan.MinValue)
-            {
-                AzureBlobUpdater.RegisterTask(this.updateTaskId, modelAddress,
-                   modelConnectionString, modelOutputDir, pollDelay,
-                   this.UpdateFromFile, modelPollFailureCallback);
-            }
-
-            this.notifyPolicyUpdate = notifyPolicyUpdate;
-        }
-
-        public void StopPolling()
-        {
-            AzureBlobUpdater.CancelTask(this.updateTaskId);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-
-            if (disposing)
-            {
-                // free managed resources
-            }
-        }
-
-        internal void UpdateFromFile(string modelFile)
-        {
-            if (base.ModelUpdate(modelFile) && this.notifyPolicyUpdate != null)
-            {
-                this.notifyPolicyUpdate();
-            }
-            else
-            {
-                Trace.TraceInformation("Attempt to update model failed.");
-            }
-        }
-    }
-
-    internal class DecisionServiceJsonPolicy<TActionDependentFeature> : VWJsonPolicy<TActionDependentFeature>
-    {
-        readonly Action notifyPolicyUpdate;
-        readonly string updateTaskId = "model";
-
-        public DecisionServiceJsonPolicy(
-            string modelAddress,
-            string modelConnectionString,
-            string modelOutputDir,
-            TimeSpan pollDelay,
-            Func<string, IReadOnlyCollection<TActionDependentFeature>> getContextFeaturesFunc,
-            Action notifyPolicyUpdate,
-            Action<Exception> modelPollFailureCallback)
-            : base(getContextFeaturesFunc)
-        {
-            if (pollDelay != TimeSpan.MinValue)
-            {
-                AzureBlobUpdater.RegisterTask(this.updateTaskId, modelAddress,
-                   modelConnectionString, modelOutputDir, pollDelay,
-                   this.UpdateFromFile, modelPollFailureCallback);
-            }
-
-            this.notifyPolicyUpdate = notifyPolicyUpdate;
-        }
-
-        public void StopPolling()
-        {
-            AzureBlobUpdater.CancelTask(this.updateTaskId);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-
-            if (disposing)
-            {
-                // free managed resources
-            }
-        }
-
-        internal void UpdateFromFile(string modelFile)
-        {
-            if (base.ModelUpdate(modelFile) && this.notifyPolicyUpdate != null)
-            {
-                this.notifyPolicyUpdate();
-            }
-            else
-            {
-                Trace.TraceInformation("Attempt to update model failed.");
+                var disposable = this.contextMapper as IDisposable;
+                if (disposable != null)
+                {
+                    disposable.Dispose();
+                    this.contextMapper = null;
+                }
             }
         }
     }

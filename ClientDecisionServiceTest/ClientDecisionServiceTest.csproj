@@ -18,7 +18,7 @@
     <TestProjectType>UnitTest</TestProjectType>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
-    <NuGetPackageImportStamp>4901cf25</NuGetPackageImportStamp>
+    <NuGetPackageImportStamp>122cb88c</NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup>
     <OutputPath>$(SolutionDir)bin\$(Platform)\$(Configuration)</OutputPath>
@@ -92,15 +92,15 @@
     </Reference>
     <Reference Include="System.Web" />
     <Reference Include="VowpalWabbit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <HintPath>..\packages\VowpalWabbit.8.0.0.40\lib\net45\VowpalWabbit.dll</HintPath>
+      <HintPath>..\packages\VowpalWabbit.8.0.0.42\lib\net45\VowpalWabbit.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="VowpalWabbit.Common, Version=1.0.0.0, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <HintPath>..\packages\VowpalWabbit.8.0.0.40\lib\net45\VowpalWabbit.Common.dll</HintPath>
+      <HintPath>..\packages\VowpalWabbit.8.0.0.42\lib\net45\VowpalWabbit.Common.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="VowpalWabbitCore, Version=0.0.0.0, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <HintPath>..\packages\VowpalWabbit.8.0.0.40\lib\net45\VowpalWabbitCore.dll</HintPath>
+      <HintPath>..\packages\VowpalWabbit.8.0.0.42\lib\net45\VowpalWabbitCore.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
@@ -157,7 +157,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
@@ -185,9 +187,9 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
-    <Error Condition="!Exists('..\packages\VowpalWabbit.8.0.0.40\build\VowpalWabbit.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\VowpalWabbit.8.0.0.40\build\VowpalWabbit.targets'))" />
+    <Error Condition="!Exists('..\packages\VowpalWabbit.8.0.0.42\build\VowpalWabbit.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\VowpalWabbit.8.0.0.42\build\VowpalWabbit.targets'))" />
   </Target>
-  <Import Project="..\packages\VowpalWabbit.8.0.0.40\build\VowpalWabbit.targets" Condition="Exists('..\packages\VowpalWabbit.8.0.0.40\build\VowpalWabbit.targets')" />
+  <Import Project="..\packages\VowpalWabbit.8.0.0.42\build\VowpalWabbit.targets" Condition="Exists('..\packages\VowpalWabbit.8.0.0.42\build\VowpalWabbit.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

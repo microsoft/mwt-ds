@@ -6,56 +6,69 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
+
+    public static class Explorer<TContext>
+    {
+        public static TopSlotExplorer<TContext, TauFirstExplorer<TContext>, TauFirstState>
+            CreateTopSlotTauFirstExplorer(
+                IContextMapper<TContext, uint[]> defaultPolicy,
+                uint tau,
+                uint numActionsVariable = uint.MaxValue)
+        {
+            return Explorer.Create<TContext, TauFirstExplorer<TContext>, TauFirstState>(
+                defaultPolicy,
+                policy => new TauFirstExplorer<TContext>(policy, tau, numActionsVariable),
+                numActionsVariable);
+        }
+    }
+
+    // TODO: move it up
     public static class Explorer
     {
-        private static TopSlotExplorer<TContext, TExplorer, TExplorerState, TMapperState> Create<TContext, TExplorer, TExplorerState, TMapperState>(
-            IRanker<TContext, TMapperState> defaultPolicy,
-            Func<IPolicy<TContext, Decision<uint[], TMapperState>>, TExplorer> singleExplorerFactory,
+        internal static TopSlotExplorer<TContext, TExplorer, TExplorerState> Create<TContext, TExplorer, TExplorerState>(
+            IContextMapper<TContext, uint[]> defaultRanker,
+            Func<IContextMapper<TContext, uint>, TExplorer> singleExplorerFactory,
             uint numActions)
         where TExplorer : 
-            IExplorer<TContext, uint, TExplorerState, uint, Decision<uint[], TMapperState>>,
-                IConsumeContextMapper<TContext, uint, Decision<uint[], TMapperState>>
+            IExplorer<TContext, uint, TExplorerState, uint>
         {
-            return new TopSlotExplorer<TContext, TExplorer, TExplorerState, TMapperState>(defaultPolicy, singleExplorerFactory, numActions);
+            return new TopSlotExplorer<TContext, TExplorer, TExplorerState>(defaultRanker, singleExplorerFactory, numActions);
         }
 
-        public static TopSlotExplorer<TContext, EpsilonGreedyExplorer<TContext, Decision<uint[], TMapperState>>, EpsilonGreedyState, TMapperState>
-            CreateTopSlotEpsilonGreedyExplorer<TContext, TMapperState>(
-                IRanker<TContext, TMapperState> defaultPolicy, 
+        public static TopSlotExplorer<TContext, EpsilonGreedyExplorer<TContext>, EpsilonGreedyState>
+            CreateTopSlotEpsilonGreedyExplorer<TContext>(
+                IContextMapper<TContext, uint[]> defaultPolicy, 
                 float epsilon,
                 uint numActionsVariable = uint.MaxValue)
         {
-            return Create<TContext, EpsilonGreedyExplorer<TContext, Decision<uint[], TMapperState>>, EpsilonGreedyState, TMapperState>(
+            return Create<TContext, EpsilonGreedyExplorer<TContext>, EpsilonGreedyState>(
                 defaultPolicy,
-                policy => new EpsilonGreedyExplorer<TContext, Decision<uint[], TMapperState>>(policy, epsilon, numActionsVariable),
+                policy => new EpsilonGreedyExplorer<TContext>(policy, epsilon, numActionsVariable),
                 numActionsVariable);
         }
 
-        public static TopSlotExplorer<TContext, TauFirstExplorer<TContext, Decision<uint[], TMapperState>>, TauFirstState, TMapperState>
-            CreateTopSlotTauFirstExplorer<TContext, TMapperState>(
-                IRanker<TContext, TMapperState> defaultPolicy, 
+        public static TopSlotExplorer<TContext, TauFirstExplorer<TContext>, TauFirstState>
+            CreateTopSlotTauFirstExplorer<TContext>(
+                IContextMapper<TContext, uint[]> defaultPolicy, 
                 uint tau, 
                 uint numActionsVariable = uint.MaxValue)
         {
-            return Create<TContext, TauFirstExplorer<TContext, Decision<uint[], TMapperState>>, TauFirstState, TMapperState>(
-                defaultPolicy,
-                policy => new TauFirstExplorer<TContext, Decision<uint[], TMapperState>>(policy, tau, numActionsVariable),
-                numActionsVariable);
+            return Explorer<TContext>.CreateTopSlotTauFirstExplorer(defaultPolicy, tau, numActionsVariable);
         }
 
-        public static EpsilonGreedyExplorer<TContext, TMapperState> CreateEpsilonGreedyExplorer<TContext, TMapperState>(IPolicy<TContext, TMapperState> defaultPolicy, float epsilon, uint numActionsVariable = uint.MaxValue)
+        public static EpsilonGreedyExplorer<TContext> CreateEpsilonGreedyExplorer<TContext>(IContextMapper<TContext, uint> defaultPolicy, float epsilon, uint numActionsVariable = uint.MaxValue)
         {
-            return new EpsilonGreedyExplorer<TContext, TMapperState>(defaultPolicy, epsilon, numActionsVariable);
+            return new EpsilonGreedyExplorer<TContext>(defaultPolicy, epsilon, numActionsVariable);
         }
 
-        public static TauFirstExplorer<TContext, TMapperState> CreateTauFirstExplorer<TContext, TMapperState>(IPolicy<TContext, TMapperState> defaultPolicy, uint tau, uint numActionsVariable = uint.MaxValue)
+        public static TauFirstExplorer<TContext> CreateTauFirstExplorer<TContext>(IContextMapper<TContext, uint> defaultPolicy, uint tau, uint numActionsVariable = uint.MaxValue)
         {
-            return new TauFirstExplorer<TContext, TMapperState>(defaultPolicy, tau, numActionsVariable);
+            return new TauFirstExplorer<TContext>(defaultPolicy, tau, numActionsVariable);
         }
 
-        public static SoftmaxExplorer<TContext, TMapperState> CreateSoftmaxExplorer<TContext, TMapperState>(IScorer<TContext, TMapperState> defaultScorer, float lambda, uint numActionsVariable = uint.MaxValue)
+        public static SoftmaxExplorer<TContext> CreateSoftmaxExplorer<TContext>(IContextMapper<TContext, float[]> defaultScorer, float lambda, uint numActionsVariable = uint.MaxValue)
         {
-            return new SoftmaxExplorer<TContext, TMapperState>(defaultScorer, lambda, numActionsVariable);
+            return new SoftmaxExplorer<TContext>(defaultScorer, lambda, numActionsVariable);
         }
 
         // TODO: add more factory methods
