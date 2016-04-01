@@ -3,6 +3,7 @@
     using System;
     using Microsoft.Research.MultiWorldTesting.JoinUploader;
     using VW;
+    using System.IO;
 
     public class DecisionServiceConfiguration //<TContext>
     {
@@ -21,17 +22,22 @@
         /// </summary>
         public string AuthorizationToken { get; private set; }
 
+        /// <summary>
+        ///  TODO: comment
+        /// </summary>
+        public Stream ModelStream { get; set; }
+
         #region Optional Parameters
 
         /// <summary>
         /// Whether the context provided is already serialized in JSON format.
         /// </summary>
-        public bool UseJsonContext { get; set; }
+        internal bool UseJsonContext { get; set; }
 
         /// <summary>
         /// Specify method of feature discovery on the context type.
         /// </summary>
-        // public VowpalWabbitFeatureDiscovery FeatureDiscovery { get; set; }
+        public VowpalWabbitFeatureDiscovery FeatureDiscovery { get; set; }
 
         /// <summary>
         /// Indicates whether to operate in offline mode where polling and join service logging are turned off.

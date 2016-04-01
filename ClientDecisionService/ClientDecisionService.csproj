@@ -122,11 +122,8 @@
     <Compile Include="DecisionServiceBaseClient.cs" />
     <Compile Include="DecisionServiceConfiguration.cs" />
     <Compile Include="DecisionServiceConstants.cs" />
-    <Compile Include="DecisionServiceFactory.cs" />
     <Compile Include="DecisionServiceHttpModule.cs" />
     <Compile Include="DecisionServicePolicy.cs" />
-    <Compile Include="DecisionServicePolicyClient.cs" />
-    <Compile Include="DecisionServiceRankerClient.cs" />
     <Compile Include="IUpdateableContextMapper.cs" />
     <Compile Include="JoinServerType.cs" />
     <Compile Include="JoinServiceLogger.cs" />

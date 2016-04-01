@@ -9,14 +9,14 @@ using System.Collections.Generic;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    public class VWPolicy<TContext> 
+    internal class VWPolicy<TContext> 
         : VWBaseContextMapper<VowpalWabbitThreadedPrediction<TContext>, VowpalWabbit<TContext>, TContext, uint>, IPolicy<TContext>
     {
         /// <summary>
         /// Constructor using a memory stream.
         /// </summary>
         /// <param name="vwModelStream">The VW model memory stream.</param>
-        public VWPolicy(Stream vwModelStream = null, VowpalWabbitFeatureDiscovery featureDiscovery = VowpalWabbitFeatureDiscovery.Json)
+        internal VWPolicy(Stream vwModelStream = null, VowpalWabbitFeatureDiscovery featureDiscovery = VowpalWabbitFeatureDiscovery.Json)
             : base(vwModelStream, featureDiscovery)
         {
         }
@@ -30,14 +30,14 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         }
     }
 
-    public class VWRanker<TContext>
+    internal class VWRanker<TContext>
         : VWBaseContextMapper<VowpalWabbitThreadedPrediction<TContext>, VowpalWabbit<TContext>, TContext, uint[]>, IRanker<TContext>
     {
         /// <summary>
         /// Constructor using a memory stream.
         /// </summary>
         /// <param name="vwModelStream">The VW model memory stream.</param>
-        public VWRanker(Stream vwModelStream = null, VowpalWabbitFeatureDiscovery featureDiscovery = VowpalWabbitFeatureDiscovery.Json)
+        internal VWRanker(Stream vwModelStream = null, VowpalWabbitFeatureDiscovery featureDiscovery = VowpalWabbitFeatureDiscovery.Json)
             : base(vwModelStream, featureDiscovery)
         {
         }
@@ -54,7 +54,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         }
     }
 
-    public class VWRanker<TContext, TActionDependentFeature>
+    internal class VWRanker<TContext, TActionDependentFeature>
         : VWBaseContextMapper<VowpalWabbitThreadedPrediction<TContext, TActionDependentFeature>, VowpalWabbit<TContext, TActionDependentFeature>, TContext, uint[]>, IRanker<TContext>
     {
         private readonly Func<TContext, IReadOnlyCollection<TActionDependentFeature>> getContextFeaturesFunc;
@@ -63,7 +63,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         /// Constructor using a memory stream.
         /// </summary>
         /// <param name="vwModelStream">The VW model memory stream.</param>
-        public VWRanker(
+        internal VWRanker(
             Func<TContext, IReadOnlyCollection<TActionDependentFeature>> getContextFeaturesFunc,
             Stream vwModelStream = null, 
             VowpalWabbitFeatureDiscovery featureDiscovery = VowpalWabbitFeatureDiscovery.Default)

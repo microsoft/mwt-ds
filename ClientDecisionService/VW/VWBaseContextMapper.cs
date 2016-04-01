@@ -9,7 +9,7 @@ using VW;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    public abstract class VWBaseContextMapper<TPool, TVowpalWabbit, TContext, TValue>
+    internal abstract class VWBaseContextMapper<TPool, TVowpalWabbit, TContext, TValue>
         : IUpdatable<Stream>, IDisposable, IContextMapper<TContext, TValue>
         where TPool : VowpalWabbitThreadedPredictionBase<TVowpalWabbit>, new()
         where TVowpalWabbit : class, IDisposable
@@ -21,7 +21,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         /// Constructor using a memory stream.
         /// </summary>
         /// <param name="vwModelStream">The VW model memory stream.</param>
-        public VWBaseContextMapper(
+        protected VWBaseContextMapper(
             Stream vwModelStream = null,
             VowpalWabbitFeatureDiscovery featureDiscovery = VowpalWabbitFeatureDiscovery.Default)
         {

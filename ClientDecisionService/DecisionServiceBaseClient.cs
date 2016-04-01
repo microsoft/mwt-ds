@@ -9,10 +9,11 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using System.Runtime.Caching;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    public class DecisionServiceBaseClient<TContext, TValue, TExplorerState, TMapperValue> : IDisposable
+    public class DecisionServiceClient<TContext, TValue, TExplorerState, TMapperValue> : IDisposable
     {
         private readonly TimeSpan settingsBlobPollDelay;
 
@@ -24,7 +25,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         protected readonly DecisionServiceConfiguration config;
         protected MwtExplorer<TContext, TValue, TExplorerState, TMapperValue> mwtExplorer;
 
-        public DecisionServiceBaseClient(
+        public DecisionServiceClient(
             DecisionServiceConfiguration config,
             ApplicationTransferMetadata metaData,
             IExplorer<TContext, TValue, TExplorerState, TMapperValue> explorer,
@@ -91,6 +92,12 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             this.mwtExplorer = MwtExplorer.Create(config.AuthorizationToken, this.recorder, explorer);
         }
 
+        // TODO: rename?
+        public TValue ChooseAction(UniqueEventID uniqueKey, TContext context, uint numActionsVariable = uint.MaxValue)
+        {
+            return this.mwtExplorer.MapContext(uniqueKey, context, numActionsVariable);
+        }
+
         /// <summary>
         /// Report a simple float reward for the experimental unit identified by the given unique key.
         /// </summary>
@@ -153,6 +160,55 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             {
                 Trace.TraceWarning("Cannot read new settings: " + jrex.Message);
             }
+        }
+    }
+
+    public static class DecisionServiceClient
+    {
+        private static MemoryCache dsCache = new MemoryCache("DecisionServiceCache");
+        private static readonly TimeSpan DefaultExpirationTime = TimeSpan.FromHours(24);
+
+        public static T AddOrGetExisting<T>(
+            string token,
+            Func<string, T> clientCreator, TimeSpan? expirationTime = null)
+        {
+            var obj = new Lazy<T>(() => clientCreator(token));
+
+            var oldObj = (Lazy<T>)dsCache.AddOrGetExisting(
+                token,
+                obj,
+                new CacheItemPolicy
+                {
+                    SlidingExpiration = expirationTime ?? DefaultExpirationTime,
+                    RemovedCallback = (cacheEntryRemovedArguments) =>
+                    {
+                        var dsObject = cacheEntryRemovedArguments.CacheItem.Value as IDisposable;
+                        if (dsObject != null)
+                        {
+                            dsObject.Dispose();
+                        }
+                    }
+                });
+
+            return (oldObj ?? obj).Value;
+        }
+
+        /// <summary>
+        /// Remove and dispose all objects in the cache.
+        /// </summary>
+        public static void EvictAll()
+        {
+            var cacheKeyList = dsCache.Select(item => item.Key).ToList();
+            foreach (var key in cacheKeyList)
+                dsCache.Remove(key);
+        }
+
+        public static DecisionServiceClient<TContext, TValue, TExplorerState, TMapperValue>
+            Create<TContext, TValue, TExplorerState, TMapperValue>(
+                UnboundExplorer<TContext, TValue, TExplorerState, TMapperValue> explorer)
+        {
+            return new DecisionServiceClient<TContext, TValue, TExplorerState, TMapperValue>(
+                explorer.ContextMapper.Configuration, explorer.ContextMapper.Metadata, explorer.Explorer);
         }
     }
 }

@@ -15,7 +15,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
         public void Dispose()
         {
-            DecisionServiceFactory.EvictAll();
+            DecisionServiceClient.EvictAll();
             Trace.TraceInformation("Decision Service Cache detected Dispose event.");
         }
     }
