@@ -86,8 +86,8 @@ namespace ClientDecisionServiceTest
             uploader.PackageSent += (sender, e) => { eventSentCount += e.Records.Count(); };
             uploader.PackageSendFailed += (sender, e) => { exceptionCaught = e.Exception != null; };
 
-            uploader.Upload(new SingleActionInteraction { Action = 1, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.5, Key = uniqueKey });
-            uploader.Upload(new MultiActionInteraction { Actions = new uint[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), Probability = 0.5, Key = uniqueKey });
+            uploader.Upload(new Interaction { Value = 1, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
+            uploader.Upload(new Interaction { Value = new uint[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
             uploader.Flush();
 
             Assert.AreEqual(0, joinServer.RequestCount);

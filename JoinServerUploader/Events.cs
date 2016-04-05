@@ -51,7 +51,7 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
 
         public float? ProbabilityOfDrop { get; set; }
     }
-    
+
     /// <summary>
     /// Represents an observed outcome that is associated with some interaction.
     /// </summary>

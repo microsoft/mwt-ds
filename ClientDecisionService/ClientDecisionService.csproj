@@ -129,6 +129,7 @@
     <Compile Include="JoinServiceLogger.cs" />
     <Compile Include="ILogger.cs" />
     <Compile Include="ModelTransferData.cs" />
+    <Compile Include="MultiPolicy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RawStringConverter.cs" />
     <Compile Include="DecisionServiceTransientErrorDetectionStrategy.cs" />

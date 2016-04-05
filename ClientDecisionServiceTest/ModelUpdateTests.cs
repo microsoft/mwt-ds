@@ -1,5 +1,4 @@
 ﻿using Microsoft.Research.MultiWorldTesting.ClientLibrary;
-using Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
 using Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction;
@@ -21,9 +20,7 @@ namespace ClientDecisionServiceTest
             int numActions = 10;
             int numFeatures = 1024;
 
-            var dsConfig = new DecisionServiceConfiguration<TestRcv1Context>(
-                authorizationToken: MockCommandCenter.AuthorizationToken,
-                explorer: new EpsilonGreedyExplorer<TestRcv1Context>(new TestRcv1ContextPolicy(), epsilon: 0.5f, numActions: (uint)numActions))
+            var dsConfig = new DecisionServiceConfiguration(authorizationToken: MockCommandCenter.AuthorizationToken)
             {
                 JoinServerType = JoinServerType.CustomSolution,
                 LoggingServiceAddress = MockJoinServer.MockJoinServerAddress,
@@ -32,7 +29,8 @@ namespace ClientDecisionServiceTest
             };
 
             var actualModelFiles = new List<string>();
-            using (var ds = new DecisionService<TestRcv1Context>(dsConfig))
+            var policy = VWPolicy.StartWithPolicy(dsConfig, new TestRcv1ContextPolicy());
+            using (var ds = DecisionServiceClient.Create(policy.WithEpsilonGreedy(epsilon: 0.5f, numActionsVariable: (uint)numActions)))
             {
                 string uniqueKey = "eventid";
 
@@ -50,7 +48,7 @@ namespace ClientDecisionServiceTest
                         byte[] modelContent = commandCenter.GetCBModelBlobContent(numExamples: 3 + modelIndex, numFeatures: numFeatures, numActions: numActions);
                         System.IO.File.WriteAllBytes(currentModelFile, modelContent);
 
-                        ds.UpdatePolicy(new VWPolicy<TestRcv1Context>(currentModelFile));
+                        ds.UpdateModel(File.OpenRead(currentModelFile));
 
                         actualModelFiles.Add(currentModelFile);
                     }
@@ -84,9 +82,8 @@ namespace ClientDecisionServiceTest
             int numActions = 10;
             int numFeatures = 1024;
 
-            var dsConfig = new DecisionServiceConfiguration<TestRcv1Context>(
-                authorizationToken: MockCommandCenter.AuthorizationToken,
-                explorer: new EpsilonGreedyExplorer<TestRcv1Context>(new TestRcv1ContextPolicy(), epsilon: 0.5f, numActions: (uint)numActions))
+            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken)
+                //explorer: new EpsilonGreedyExplorer<TestRcv1Context>(new TestRcv1ContextPolicy(), epsilon: 0.5f, numActions: (uint)numActions))
             {
                 JoinServerType = JoinServerType.CustomSolution,
                 LoggingServiceAddress = MockJoinServer.MockJoinServerAddress,
@@ -94,7 +91,8 @@ namespace ClientDecisionServiceTest
                 PollingForSettingsPeriod = TimeSpan.MinValue
             };
 
-            using (var ds = new DecisionService<TestRcv1Context>(dsConfig))
+            var policy = VWPolicy.StartWithPolicy(dsConfig, new TestRcv1ContextPolicy());
+            using (var ds = DecisionServiceClient.Create(policy.WithEpsilonGreedy(epsilon: .5f, numActionsVariable: (uint)numActions)))
             {
                 string uniqueKey = "eventid";
 
@@ -113,7 +111,7 @@ namespace ClientDecisionServiceTest
 
                         var modelStream = new MemoryStream(modelContent);
 
-                        ds.UpdatePolicy(new VWPolicy<TestRcv1Context>(modelStream));
+                        ds.UpdateModel(modelStream);
                     }
 
                     var context = TestRcv1Context.CreateRandom(numActions, numFeatures, rg);
