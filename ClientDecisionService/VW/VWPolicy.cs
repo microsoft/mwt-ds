@@ -50,6 +50,8 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             var actions = vwMultilabelPredictions.Select(a => (uint)(a + 1)).ToArray();
             var state = new VWState { ModelId = vw.Native.ID };
 
+            numActionsVariable = (uint)actions.Length;
+
             return Decision.Create(actions, state);
         }
     }
@@ -82,6 +84,8 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             // VW multi-label predictions are 0-based
             var actions = vwMultilabelPredictions.Select(p => (uint)(p.Index + 1)).ToArray();
             var state = new VWState { ModelId = vw.Native.ID };
+
+            numActionsVariable = (uint)actions.Length;
 
             return Decision.Create(actions, state);
         }

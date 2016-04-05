@@ -35,10 +35,11 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             uint numActions = (numActionsFixed == uint.MaxValue) ? numActionsVariable : numActionsFixed;
 
             // Actual number of actions at decision time must be a valid positive finite number.
-            if (numActions == uint.MaxValue || numActions < 1)
-            {
-                throw new ArgumentException("Number of actions must be at least 1.");
-            }
+            // TODO: doesn't work with ADF...
+            //if (numActions == uint.MaxValue || numActions < 1)
+            //{
+            //    throw new ArgumentException("Number of actions must be at least 1.");
+            //}
 
             return this.MapContextInternal(saltedSeed, context, numActions);
         }

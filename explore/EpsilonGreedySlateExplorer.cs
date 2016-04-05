@@ -43,16 +43,19 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             MultiActionHelper.ValidateActionList(policyDecisionTuple.Value);
 
             var random = new PRG(saltedSeed);
-            float epsilon = explore ? this.defaultEpsilon : 0f;
+            float epsilon = this.explore ? this.defaultEpsilon : 0f;
 
             uint[] chosenAction;
-
             bool isExplore;
 
-            if (random.UniformUnitInterval() < 1f - epsilon)
-            {
-                chosenAction = Enumerable.Range(0, (int)numActionsVariable).Select(u => (uint)u).ToArray();
+            numActionsVariable = (uint)policyDecisionTuple.Value.Length;
 
+            if (random.UniformUnitInterval() < epsilon)
+            {
+                // 1 ... n
+                chosenAction = Enumerable.Range(1, (int)numActionsVariable).Select(u => (uint)u).ToArray();
+
+                // 0 ... n - 2
                 for (int i = 0; i < numActionsVariable - 1; i++)
 			    {
                     int swapIndex = (int)random.UniformInt((uint)i, numActionsVariable - 1);

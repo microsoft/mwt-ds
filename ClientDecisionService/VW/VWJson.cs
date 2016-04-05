@@ -48,6 +48,8 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 var actions = vwMultilabelPredictions.Select(a => (uint)(a + 1)).ToArray();
                 var state = new VWState { ModelId = vw.ID };
 
+                numActionsVariable = (uint)actions.Length;
+
                 return Decision.Create(actions, state);
             }
         }

@@ -9,7 +9,7 @@ using VW;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    internal abstract class VWBaseContextMapper<TPool, TVowpalWabbit, TContext, TValue>
+    public abstract class VWBaseContextMapper<TPool, TVowpalWabbit, TContext, TValue>
         : IUpdatable<Stream>, IDisposable, IContextMapper<TContext, TValue>
         where TPool : VowpalWabbitThreadedPredictionBase<TVowpalWabbit>, new()
         where TVowpalWabbit : class, IDisposable
