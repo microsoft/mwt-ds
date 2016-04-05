@@ -25,6 +25,8 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         protected readonly DecisionServiceConfiguration config;
         protected MwtExplorer<TContext, TValue, TExplorerState, TMapperValue> mwtExplorer;
 
+        public event EventHandler<Stream> ModelUpdated;
+
         public DecisionServiceClient(
             DecisionServiceConfiguration config,
             ApplicationTransferMetadata metaData,
@@ -123,6 +125,14 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 logger.ReportOutcome(uniqueKey, outcome);
         }
 
+        public void UpdateModel(Stream model)
+        {
+            if (ModelUpdated != null)
+            {
+                ModelUpdated(this, model);
+            }
+        }
+
         /// <summary>
         /// Flush any pending data to be logged and request to stop all polling as appropriate.
         /// </summary>
@@ -205,10 +215,15 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
         public static DecisionServiceClient<TContext, TValue, TExplorerState, TMapperValue>
             Create<TContext, TValue, TExplorerState, TMapperValue>(
-                UnboundExplorer<TContext, TValue, TExplorerState, TMapperValue> explorer)
+                UnboundExplorer<TContext, TValue, TExplorerState, TMapperValue> explorer,
+                IRecorder<TContext, TValue, TExplorerState> recorder = null)
         {
-            return new DecisionServiceClient<TContext, TValue, TExplorerState, TMapperValue>(
-                explorer.ContextMapper.Configuration, explorer.ContextMapper.Metadata, explorer.Explorer);
+            var dsClient = new DecisionServiceClient<TContext, TValue, TExplorerState, TMapperValue>(
+                explorer.ContextMapper.Configuration, explorer.ContextMapper.Metadata, explorer.Explorer, recorder);
+
+            dsClient.ModelUpdated += explorer.UpdateModel;
+
+            return dsClient;
         }
     }
 }

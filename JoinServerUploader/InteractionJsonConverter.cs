@@ -11,7 +11,7 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
     {
         public override bool CanConvert(Type objectType)
         {
-            return objectType is Interaction;
+            return objectType == typeof(Interaction);
         }
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)

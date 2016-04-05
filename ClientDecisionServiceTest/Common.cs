@@ -171,7 +171,7 @@ namespace ClientDecisionServiceTest
         }
     }
 
-    class TestLogger : ILogger, IRecorder<TestContext, uint, EpsilonGreedyState>
+    class TestLogger : ILogger, IRecorder<TestContext, uint, EpsilonGreedyState>, IRecorder<TestContext, uint[], EpsilonGreedyState>
     {
         public TestLogger()
         {
@@ -202,6 +202,11 @@ namespace ClientDecisionServiceTest
             this.numRecord++;
         }
 
+        public void Record(TestContext context, uint[] value, EpsilonGreedyState explorerState, object mapperState, UniqueEventID uniqueKey)
+        {
+            throw new NotImplementedException();
+        }
+
         public int NumRecord
         {
             get { return numRecord; }
@@ -220,7 +225,6 @@ namespace ClientDecisionServiceTest
         int numRecord;
         int numReward;
         int numOutcome;
-
     }
 
     public class PartialExperimentalUnitFragment

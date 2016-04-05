@@ -14,11 +14,21 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
     public class UnboundContextMapper<TContext, TMapperValue>
     {
+        internal event EventHandler<Stream> ModelUpdated;
+
         internal IContextMapper<TContext, TMapperValue> DefaultPolicy { get; set; }
 
         internal DecisionServiceConfiguration Configuration { get; set; }
 
         internal ApplicationTransferMetadata Metadata { get; set; }
+
+        internal void UpdateModel(object sender, Stream model)
+        {
+            if (ModelUpdated != null)
+            {
+                ModelUpdated(sender, model);
+            }
+        }
     }
 
     public static class ExplorerExtensions
@@ -43,9 +53,19 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
     public class UnboundExplorer<TContext, TValue, TExplorerState, TMapperValue>
     {
-        public IExplorer<TContext, TValue, TExplorerState, TMapperValue> Explorer { get; set; }
+        internal event EventHandler<Stream> ModelUpdated;
 
-        public UnboundContextMapper<TContext, TMapperValue> ContextMapper { get; set; }
+        internal IExplorer<TContext, TValue, TExplorerState, TMapperValue> Explorer { get; set; }
+
+        internal UnboundContextMapper<TContext, TMapperValue> ContextMapper { get; set; }
+
+        internal void UpdateModel(object sender, Stream model)
+        {
+            if (ModelUpdated != null)
+            {
+                ModelUpdated(sender, model);
+            }
+        }
     }
 
     public class UnboundExplorer
@@ -54,7 +74,9 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             UnboundContextMapper<TContext, TMapperValue> unboundContextMapper,
             IExplorer<TContext, TValue, TExplorerState, TMapperValue> explorer)
         {
-            return new UnboundExplorer<TContext, TValue, TExplorerState, TMapperValue> { Explorer = explorer, ContextMapper = unboundContextMapper };
+            var unboundExplorer = new UnboundExplorer<TContext, TValue, TExplorerState, TMapperValue> { Explorer = explorer, ContextMapper = unboundContextMapper };
+            unboundExplorer.ModelUpdated += unboundContextMapper.UpdateModel;
+            return unboundExplorer;
         }
     }
 
@@ -127,7 +149,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         // TODO: add more factory methods
     }
 
-    internal static class VWPolicy
+    public static class VWPolicy
     {
         public static UnboundContextMapper<string, uint> CreateJsonPolicy(DecisionServiceConfiguration config)
         {
@@ -161,22 +183,76 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             return VWPolicy.Wrap(new VWRanker<TContext, TActionDependentFeature>(getContextFeaturesFunc, config.ModelStream, config.FeatureDiscovery), config);
         }
 
+        public static UnboundContextMapper<string, uint> StartWithJsonPolicy(
+            DecisionServiceConfiguration config,
+            IContextMapper<string, uint> initialPolicy)
+        {
+            config.UseJsonContext = true;
+            return VWPolicy.Wrap(MultiPolicy.Create(new VWJsonPolicy(config.ModelStream), initialPolicy), config);
+        }
+
+        public static UnboundContextMapper<string, uint[]> StartWithJsonRanker(
+            DecisionServiceConfiguration config,
+            IContextMapper<string, uint[]> initialPolicy)
+        {
+            config.UseJsonContext = true;
+            return VWPolicy.Wrap(MultiPolicy.Create(new VWJsonRanker(config.ModelStream), initialPolicy), config);
+        }
+
+        public static UnboundContextMapper<TContext, uint> StartWithPolicy<TContext>(
+            DecisionServiceConfiguration config,
+            IContextMapper<TContext, uint> initialPolicy)
+        {
+            config.UseJsonContext = false;
+            return VWPolicy.Wrap(MultiPolicy.Create(
+                new VWPolicy<TContext>(config.ModelStream, config.FeatureDiscovery), initialPolicy),
+                config);
+        }
+
+        public static UnboundContextMapper<TContext, uint[]> StartWithRanker<TContext>(
+            DecisionServiceConfiguration config,
+            IContextMapper<TContext, uint[]> initialPolicy)
+        {
+            config.UseJsonContext = false;
+            return VWPolicy.Wrap(MultiPolicy.Create(
+                new VWRanker<TContext>(config.ModelStream, config.FeatureDiscovery), initialPolicy),
+                config);
+        }
+
+        public static UnboundContextMapper<TContext, uint[]> StartWithRanker<TContext, TActionDependentFeature>(
+            DecisionServiceConfiguration config,
+            Func<TContext, IReadOnlyCollection<TActionDependentFeature>> getContextFeaturesFunc,
+            IContextMapper<TContext, uint[]> initialPolicy)
+        {
+            config.UseJsonContext = false;
+            return VWPolicy.Wrap(MultiPolicy.Create(
+                new VWRanker<TContext, TActionDependentFeature>(getContextFeaturesFunc, config.ModelStream, config.FeatureDiscovery), initialPolicy),
+                config);
+        }
+
+
         public static UnboundContextMapper<TContext, TValue> Wrap<TContext, TValue>
-            (IContextMapper<TContext, TValue> contextMapper, DecisionServiceConfiguration config)
+            (IContextMapper<TContext, TValue> vwPolicy, DecisionServiceConfiguration config)
         {
             var metaData = GetBlobLocations(config);
+            var ucm = new UnboundContextMapper<TContext, TValue> { Configuration = config, Metadata = metaData };
 
             // conditionally wrap if it can be updated.
-            var updatableContextMapper = contextMapper as IUpdatable<Stream>;
+            var updatableContextMapper = vwPolicy as IUpdatable<Stream>;
 
             IContextMapper<TContext, TValue> policy;
 
             if (config.OfflineMode || metaData == null || updatableContextMapper == null)
-                policy = contextMapper;
+                policy = vwPolicy;
             else
-                policy = new DecisionServicePolicy<TContext, TValue>(contextMapper, config, metaData);
-
-            return new UnboundContextMapper<TContext, TValue> { DefaultPolicy = policy, Configuration = config, Metadata = metaData };
+            {
+                var dsPolicy = new DecisionServicePolicy<TContext, TValue>(vwPolicy, config, metaData);
+                ucm.ModelUpdated += dsPolicy.UpdateModel;
+                policy = dsPolicy;
+            }
+            ucm.DefaultPolicy = policy;
+            
+            return ucm;
         }
 
         internal static ApplicationTransferMetadata GetBlobLocations(DecisionServiceConfiguration config)
@@ -230,6 +306,15 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                     config.ModelPollFailureCallback);
             }
         }
+
+        internal void UpdateModel(object sender, Stream model)
+        {
+            if (this.updatable != null)
+            {
+                this.updatable.Update(model);
+            }
+        }
+
         private void UpdateContextMapperFromFile(string modelFile)
         {
             using (var stream = File.OpenRead(modelFile))

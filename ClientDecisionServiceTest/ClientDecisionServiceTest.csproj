@@ -117,7 +117,6 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <None Include="Batching.cs" />
     <Compile Include="ActionDependentFeaturesTest.cs" />
     <Compile Include="Authorization.cs" />
     <Compile Include="AzureStorageEmulatorManager.cs" />
