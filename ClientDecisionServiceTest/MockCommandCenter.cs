@@ -1,4 +1,4 @@
-﻿using Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction;
+﻿using Microsoft.Research.MultiWorldTesting.ClientLibrary;
 using Microsoft.Research.MultiWorldTesting.Contract;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -22,7 +22,7 @@ namespace ClientDecisionServiceTest
 
         public static void SetRedirectionBlobLocation()
         {
-            Assembly assembly = typeof(DecisionService<int>).Assembly;
+            Assembly assembly = typeof(DecisionServiceClient).Assembly;
             Type dsct = assembly.GetType("Microsoft.Research.MultiWorldTesting.ClientLibrary.DecisionServiceConstants");
             FieldInfo rblf = dsct.GetField("RedirectionBlobLocation", BindingFlags.NonPublic | BindingFlags.Static);
             rblf.SetValue(null, MockCommandCenter.RedictionBlobLocation);
@@ -30,7 +30,7 @@ namespace ClientDecisionServiceTest
 
         public static void UnsetRedirectionBlobLocation()
         {
-            Assembly assembly = typeof(DecisionService<int>).Assembly;
+            Assembly assembly = typeof(DecisionServiceClient).Assembly;
             Type dsct = assembly.GetType("Microsoft.Research.MultiWorldTesting.ClientLibrary.DecisionServiceConstants");
             FieldInfo rblf = dsct.GetField("RedirectionBlobLocation", BindingFlags.NonPublic | BindingFlags.Static);
             rblf.SetValue(null, "http://decisionservicestorage.blob.core.windows.net/app-locations/{0}");

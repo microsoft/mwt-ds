@@ -16,9 +16,7 @@ namespace ClientDecisionServiceTest
         {
             joinServer.Reset();
 
-            var dsConfig = new DecisionServiceConfiguration<TestADFContext, DummyADFType>(
-                authorizationToken: MockCommandCenter.AuthorizationToken,
-                explorer: new EpsilonGreedyExplorer<TestADFContext>(new TestADFPolicy(), epsilon: 0.5f))
+            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken)
             {
                 PollingForModelPeriod = TimeSpan.MinValue,
                 PollingForSettingsPeriod = TimeSpan.MinValue,
@@ -26,7 +24,8 @@ namespace ClientDecisionServiceTest
                 LoggingServiceAddress = MockJoinServer.MockJoinServerAddress
             };
 
-            using (var ds = new DecisionService<TestADFContext, DummyADFType>(dsConfig))
+            var ranker = VWPolicy.StartWithRanker(dsConfig, new TestADFPolicy());
+            using (var ds = DecisionServiceClient.Create(ranker.WithTopSlotEpsilonGreedy(epsilon: .5f)))
             {
                 string uniqueKey = "eventid";
 
@@ -54,9 +53,7 @@ namespace ClientDecisionServiceTest
         {
             joinServer.Reset();
 
-            var dsConfig = new DecisionServiceConfiguration<TestADFContextWithFeatures, TestADFFeatures>(
-                authorizationToken: MockCommandCenter.AuthorizationToken,
-                explorer: new EpsilonGreedyExplorer<TestADFContextWithFeatures>(new TestADFWithFeaturesPolicy(), epsilon: 0.5f))
+            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken)
             {
                 JoinServerType = JoinServerType.CustomSolution,
                 LoggingServiceAddress = MockJoinServer.MockJoinServerAddress,
@@ -65,7 +62,8 @@ namespace ClientDecisionServiceTest
             };
 
             var actualModelFiles = new List<string>();
-            using (var ds = new DecisionService<TestADFContextWithFeatures, TestADFFeatures>(dsConfig))
+            var ranker = VWPolicy.StartWithRanker(dsConfig, new TestADFWithFeaturesPolicy());
+            using (var ds = DecisionServiceClient.Create(ranker.WithTopSlotEpsilonGreedy(epsilon: .5f)))
             {
                 string uniqueKey = "eventid";
 
@@ -83,7 +81,7 @@ namespace ClientDecisionServiceTest
                         byte[] modelContent = commandCenter.GetCBADFModelBlobContent(numExamples: 3 + modelIndex, numFeatureVectors: 4 + modelIndex);
                         System.IO.File.WriteAllBytes(currentModelFile, modelContent);
 
-                        ds.UpdatePolicy(new VWPolicy<TestADFContextWithFeatures, TestADFFeatures>(GetFeaturesFromContext, currentModelFile));
+                        ds.UpdateModel(File.OpenRead(currentModelFile));
 
                         actualModelFiles.Add(currentModelFile);
                     }
@@ -117,9 +115,7 @@ namespace ClientDecisionServiceTest
         {
             joinServer.Reset();
 
-            var dsConfig = new DecisionServiceConfiguration<TestADFContextWithFeatures, TestADFFeatures>(
-                authorizationToken: MockCommandCenter.AuthorizationToken,
-                explorer: new EpsilonGreedyExplorer<TestADFContextWithFeatures>(new TestADFWithFeaturesPolicy(), epsilon: 0.5f))
+            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken)
             {
                 JoinServerType = JoinServerType.CustomSolution,
                 LoggingServiceAddress = MockJoinServer.MockJoinServerAddress,
@@ -127,7 +123,8 @@ namespace ClientDecisionServiceTest
                 PollingForSettingsPeriod = TimeSpan.MinValue
             };
 
-            using (var ds = new DecisionService<TestADFContextWithFeatures, TestADFFeatures>(dsConfig))
+            var ranker = VWPolicy.StartWithRanker(dsConfig, new TestADFWithFeaturesPolicy());
+            using (var ds = DecisionServiceClient.Create(ranker.WithTopSlotEpsilonGreedy(epsilon: 0.5f)))
             {
                 string uniqueKey = "eventid";
 
@@ -146,7 +143,7 @@ namespace ClientDecisionServiceTest
 
                         var modelStream = new MemoryStream(modelContent);
 
-                        ds.UpdatePolicy(new VWPolicy<TestADFContextWithFeatures, TestADFFeatures>(GetFeaturesFromContext, modelStream));
+                        ds.UpdateModel(modelStream);
                     }
 
                     int numActions = rg.Next(5, 20);

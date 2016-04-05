@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Newtonsoft.Json;
+using Microsoft.Research.MultiWorldTesting.ClientLibrary;
 
 namespace ClientDecisionServiceSample
 {
@@ -42,30 +43,25 @@ namespace ClientDecisionServiceSample
             int numUsers = 10; // number of users for the news site
             int numFeatures = 20; // number of features for each user
 
-            var defaultPolicy = new DefaultJsonPolicy();
-
-            var serviceConfig = new DecisionServiceJsonConfiguration( // specify that context types are Json-formatted
-                authorizationToken: MwtServiceToken,
-                // Specify the exploration algorithm to use, here we will use Epsilon-Greedy.
-                // For more details about this and other algorithms, refer to the MWT onboarding whitepaper.
-                explorer: new EpsilonGreedyExplorer<string>(defaultPolicy, epsilon, numTopics))
+            var serviceConfig = new DecisionServiceConfiguration(authorizationToken: MwtServiceToken)
             {
                 EventHubConnectionString = SingleActionSamples.EventHubConnectionString,
-                EventHubInputName = SingleActionSamples.EventHubInputName
-            };
-
-            // Optional: set the configuration for how often data is uploaded to the join server.
-            serviceConfig.JoinServiceBatchConfiguration = new BatchingConfiguration
-            {
-                MaxBufferSizeInBytes = 4 * 1024,
-                MaxDuration = TimeSpan.FromSeconds(5),
-                MaxEventCount = 1000,
-                MaxUploadQueueCapacity = 100,
-                UploadRetryPolicy = BatchUploadRetryPolicy.ExponentialRetry
+                EventHubInputName = SingleActionSamples.EventHubInputName,
+                JoinServiceBatchConfiguration = new BatchingConfiguration // Optionally configure batch upload
+                {
+                    MaxBufferSizeInBytes = 4 * 1024,
+                    MaxDuration = TimeSpan.FromSeconds(5),
+                    MaxEventCount = 1000,
+                    MaxUploadQueueCapacity = 100,
+                    UploadRetryPolicy = BatchUploadRetryPolicy.ExponentialRetry
+                }
             };
 
             // Create the main service object with above configurations.
-            using (var service = new DecisionServiceJson(serviceConfig))
+            // Specify the exploration algorithm to use, here we will use Epsilon-Greedy.
+            // For more details about this and other algorithms, refer to the MWT onboarding whitepaper.
+            var policy = VWPolicy.StartWithJsonPolicy(serviceConfig, new DefaultJsonPolicy());
+            using (var service = DecisionServiceClient.Create(Explorer.WithEpsilonGreedy(policy, epsilon, numTopics)))
             {
                 var random = new Random();
                 for (int user = 0; user < numUsers; user++)
@@ -124,30 +120,24 @@ namespace ClientDecisionServiceSample
             int numUsers = 100; // number of users for the news site
             int numFeatures = 20; // number of features for each user
 
-            var defaultPolicy = new SimplePolicy();
-
             // Create configuration for the decision service.
-            var serviceConfig = new DecisionServiceConfiguration<SimpleContext>
-            (
-                authorizationToken: MwtServiceToken,
-
-                // Specify the exploration algorithm to use, here we will use Epsilon-Greedy.
-                // For more details about this and other algorithms, refer to the MWT onboarding whitepaper.
-                explorer: new EpsilonGreedyExplorer<SimpleContext>(defaultPolicy, epsilon, numTopics)
-            );
-
-            // Optional: set the configuration for how often data is uploaded to the join server.
-            serviceConfig.JoinServiceBatchConfiguration = new BatchingConfiguration
+            var serviceConfig = new DecisionServiceConfiguration(authorizationToken: MwtServiceToken)
             {
-                MaxBufferSizeInBytes = 4 * 1024,
-                MaxDuration = TimeSpan.FromSeconds(5),
-                MaxEventCount = 1000,
-                MaxUploadQueueCapacity = 100,
-                UploadRetryPolicy = BatchUploadRetryPolicy.ExponentialRetry
+                JoinServiceBatchConfiguration = new BatchingConfiguration // Optionally configure batch upload
+                {
+                    MaxBufferSizeInBytes = 4 * 1024,
+                    MaxDuration = TimeSpan.FromSeconds(5),
+                    MaxEventCount = 1000,
+                    MaxUploadQueueCapacity = 100,
+                    UploadRetryPolicy = BatchUploadRetryPolicy.ExponentialRetry
+                }
             };
 
             // Create the main service object with above configurations.
-            using (var service = new DecisionService<SimpleContext>(serviceConfig))
+            // Specify the exploration algorithm to use, here we will use Epsilon-Greedy.
+            // For more details about this and other algorithms, refer to the MWT onboarding whitepaper.
+            var policy = VWPolicy.StartWithPolicy(serviceConfig, new SimplePolicy());
+            using (var service = DecisionServiceClient.Create(Explorer.WithEpsilonGreedy(policy, epsilon, numTopics)))
             {
                 var random = new Random();
                 for (int user = 0; user < numUsers; user++)
@@ -199,30 +189,25 @@ namespace ClientDecisionServiceSample
             float epsilon = 0.2f; // randomize the topics to show for 20% of traffic
             int numUsers = 100; // number of users for the news site
 
-            var defaultPolicy = new NewsDisplayPolicy();
-
             // Create configuration for the decision service.
-            var serviceConfig = new DecisionServiceConfiguration<UserContext>
-            (
-                authorizationToken: MwtServiceToken,
-
-                // Specify the exploration algorithm to use, here we will use Epsilon-Greedy.
-                // For more details about this and other algorithms, refer to the MWT onboarding whitepaper.
-                explorer: new EpsilonGreedyExplorer<UserContext>(defaultPolicy, epsilon, numTopics)
-            );
-
-            // Optional: set the configuration for how often data is uploaded to the join server.
-            serviceConfig.JoinServiceBatchConfiguration = new BatchingConfiguration
+            var serviceConfig = new DecisionServiceConfiguration(authorizationToken: MwtServiceToken)
             {
-                MaxBufferSizeInBytes = 4 * 1024,
-                MaxDuration = TimeSpan.FromSeconds(5),
-                MaxEventCount = 1000,
-                MaxUploadQueueCapacity = 100,
-                UploadRetryPolicy = BatchUploadRetryPolicy.ExponentialRetry
+                // Optional: set the configuration for how often data is uploaded to the join server.
+                JoinServiceBatchConfiguration = new BatchingConfiguration
+                {
+                    MaxBufferSizeInBytes = 4 * 1024,
+                    MaxDuration = TimeSpan.FromSeconds(5),
+                    MaxEventCount = 1000,
+                    MaxUploadQueueCapacity = 100,
+                    UploadRetryPolicy = BatchUploadRetryPolicy.ExponentialRetry
+                }
             };
 
             // Create the main service object with above configurations.
-            using (var service = new DecisionService<UserContext>(serviceConfig))
+            // Specify the exploration algorithm to use, here we will use Epsilon-Greedy.
+            // For more details about this and other algorithms, refer to the MWT onboarding whitepaper.
+            var policy = VWPolicy.StartWithPolicy(serviceConfig, new NewsDisplayPolicy());
+            using (var service = DecisionServiceClient.Create(Explorer.WithEpsilonGreedy(policy, epsilon, numTopics)))
             {
                 var random = new Random();
                 for (int user = 0; user < numUsers; user++)
@@ -276,7 +261,7 @@ namespace ClientDecisionServiceSample
             uploader.PackageSent += (sender, pse) => { Console.WriteLine("Uploaded {0} events.", pse.Records.Count()); };
 
             // Actual uploading of data.
-            uploader.Upload(new SingleActionInteraction { Key = "sample-upload", Action = 1, Context = null, Probability = 0.5f });
+            uploader.Upload(new Interaction { Key = "sample-upload", Value = 1, Context = null, ExplorerState = new GenericExplorerState { Probability = 0.5f } });
 
             // Flush to ensure any remaining data is uploaded.
             uploader.Flush();
@@ -312,7 +297,7 @@ namespace ClientDecisionServiceSample
         {
             // Return a constant action for simple demonstration.
             // In advanced scenarios, users can examine the context and return a more appropriate action.
- 	        return 1;
+            return 1;
         }
     }
 
@@ -329,6 +314,14 @@ namespace ClientDecisionServiceSample
         public Decision<uint> MapContext(UserContext context, ref uint numActionsVariable)
         {
             return Decision.Create((uint)(Math.Round(context.Sum(f => f.Value) / context.Count + 1)));
+        }
+    }
+
+    public class DefaultJsonPolicy : IPolicy<string>
+    {
+        public Decision<uint> MapContext(string context, ref uint numActionsVariable)
+        {
+            return 1;
         }
     }
 }

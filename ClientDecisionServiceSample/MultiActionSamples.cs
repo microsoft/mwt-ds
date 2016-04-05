@@ -10,6 +10,7 @@ using System.IO;
 using VW;
 using Newtonsoft.Json;
 using VW.Labels;
+using Microsoft.Research.MultiWorldTesting.ClientLibrary;
 
 namespace ClientDecisionServiceSample
 {
@@ -29,9 +30,7 @@ namespace ClientDecisionServiceSample
         public static void SampleCodeUsingASAWithJsonContext()
         {
             // Create configuration for the decision service
-            var serviceConfig = new DecisionServiceJsonConfiguration( // specify that context types are Json-formatted
-                authorizationToken: AuthorizationToken,
-                explorer: new EpsilonGreedyExplorer<string>(new DefaultJsonPolicy(), epsilon: 0.8f))
+            var serviceConfig = new DecisionServiceConfiguration(authorizationToken: AuthorizationToken)
             {
                 PollingForModelPeriod = TimeSpan.MinValue,
                 PollingForSettingsPeriod = TimeSpan.MinValue,
@@ -39,7 +38,8 @@ namespace ClientDecisionServiceSample
                 EventHubInputName = MultiActionSamples.EventHubInputName,
             };
 
-            using (var service = new DecisionServiceJson(serviceConfig))
+            var ranker = VWPolicy.CreateJsonRanker(serviceConfig);
+            using (var service = DecisionServiceClient.Create(ranker.WithTopSlotEpsilonGreedy(epsilon: .8f)))
             {
                 string uniqueKey = "json-key-";
 
@@ -67,19 +67,17 @@ namespace ClientDecisionServiceSample
         public static void SampleCodeUsingASAJoinServer()
         {
             // Create configuration for the decision service
-            var serviceConfig = new DecisionServiceConfiguration<FoodContext, FoodFeature>(
-                authorizationToken: AuthorizationToken,
-                explorer: new EpsilonGreedyExplorer<FoodContext>(new FoodPolicy(), epsilon: 0.8f))
+
+            var serviceConfig = new DecisionServiceConfiguration(authorizationToken: AuthorizationToken)
             {
                 EventHubConnectionString = MultiActionSamples.EventHubConnectionString,
                 EventHubInputName = MultiActionSamples.EventHubInputName,
-                GetContextFeaturesFunc = FoodContext.GetFeaturesFromContext,
                 FeatureDiscovery = VowpalWabbitFeatureDiscovery.Json
             };
 
-            using (var service = new DecisionService<FoodContext, FoodFeature>(serviceConfig))
+            var ranker = VWPolicy.CreateRanker<FoodContext, FoodFeature>(serviceConfig, context => FoodContext.GetFeaturesFromContext(context));
+            using (var service = DecisionServiceClient.Create(ranker.WithTopSlotEpsilonGreedy(epsilon: .8f)))
             {
-                //string uniqueKey = "sample-asa-client-";
                 string uniqueKey = "scratch-key-";
                 string baseLocation = "Washington-";
                 int numActions = 3;
@@ -110,12 +108,12 @@ namespace ClientDecisionServiceSample
             var events = new IEvent[numEvents];
             for (int i = 0; i < numEvents; i++)
             {
-                events[i] = new SingleActionInteraction
+                events[i] = new Interaction
                 {
                     Key = i.ToString(),
-                    Action = 1,
+                    Value = 1,
                     Context = "context " + i,
-                    Probability = (float)i / numEvents
+                    ExplorerState = new GenericExplorerState { Probability = (float)i / numEvents }
                 };
             }
             //await uploader.UploadAsync(events[0]);
@@ -144,17 +142,15 @@ namespace ClientDecisionServiceSample
         public static void SampleCodeUsingJsonDirectContext()
         {
             // Create configuration for the decision service
-            var serviceConfig = new DecisionServiceConfiguration<FoodContext, FoodFeature>(
-                authorizationToken: AuthorizationToken,
-                explorer: new EpsilonGreedyExplorer<FoodContext>(new FoodPolicy(), epsilon: 0.2f))
+            var serviceConfig = new DecisionServiceConfiguration(authorizationToken: AuthorizationToken)
             {
                 EventHubConnectionString = EventHubConnectionString,
                 EventHubInputName = EventHubInputName,
-                GetContextFeaturesFunc = FoodContext.GetFeaturesFromContext,
                 FeatureDiscovery = VowpalWabbitFeatureDiscovery.Json
             };
 
-            using (var service = new DecisionService<FoodContext, FoodFeature>(serviceConfig))
+            var ranker = VWPolicy.CreateRanker<FoodContext, FoodFeature>(serviceConfig, context => FoodContext.GetFeaturesFromContext(context));
+            using (var service = DecisionServiceClient.Create(ranker.WithTopSlotEpsilonGreedy(epsilon: .2f)))
             {
                 System.Threading.Thread.Sleep(10000);
 
@@ -204,8 +200,8 @@ namespace ClientDecisionServiceSample
                     if (location.Equals("HealthyTown"))
                     {
                         // for healthy town, buy burger 1 with probability 0.1, burger 2 with probability 0.15, salad with probability 0.6
-                        if ((action[0] == 1 && currentRand < 0.1)  || 
-                            (action[0] == 2 && currentRand < 0.15) || 
+                        if ((action[0] == 1 && currentRand < 0.1) ||
+                            (action[0] == 2 && currentRand < 0.15) ||
                             (action[0] == 3 && currentRand < 0.6))
                         {
                             reward = 10;
@@ -235,55 +231,6 @@ namespace ClientDecisionServiceSample
             }
         }
 
-        public static void SampleCodeUsingActionDependentFeatures()
-        {
-            // Create configuration for the decision service
-            var serviceConfig = new DecisionServiceConfiguration<ADFContext, ADFFeatures>(
-                authorizationToken: "",
-                explorer: new EpsilonGreedyExplorer<ADFContext>(new ADFPolicy(), epsilon: 0.8f))
-            {
-                PollingForModelPeriod = TimeSpan.MinValue,
-                PollingForSettingsPeriod = TimeSpan.MinValue
-            };
-
-            using (var service = new DecisionService<ADFContext, ADFFeatures>(serviceConfig))
-            {
-                string uniqueKey = "eventid";
-
-                var rg = new Random(uniqueKey.GetHashCode());
-
-                var vwPolicy = new VWPolicy<ADFContext, ADFFeatures>(GetFeaturesFromContext);
-
-                for (int i = 1; i < 100; i++)
-                {
-                    if (i == 30)
-                    {
-                        string vwModelFile = TrainNewVWModelWithRandomData(numExamples: 5, numActions: 10);
-
-                        vwPolicy = new VWPolicy<ADFContext, ADFFeatures>(GetFeaturesFromContext, vwModelFile);
-
-                        // Alternatively, VWPolicy can also be loaded from an IO stream:
-                        // var vwModelStream = new MemoryStream(File.ReadAllBytes(vwModelFile));
-                        // vwPolicy = new VWPolicy<ADFContext, ADFFeatures>(GetFeaturesFromContext, vwModelStream);
-
-                        // Manually updates decision service with a new policy for consuming VW models.
-                        service.UpdatePolicy(vwPolicy);
-                    }
-                    if (i == 60)
-                    {
-                        string vwModelFile = TrainNewVWModelWithRandomData(numExamples: 6, numActions: 8);
-
-                        // Evolves the existing VWPolicy with a new model
-                        vwPolicy.ModelUpdate(vwModelFile);
-                    }
-
-                    int numActions = rg.Next(5, 10);
-                    uint[] action = service.ChooseAction(new UniqueEventID { Key = uniqueKey }, ADFContext.CreateRandom(numActions, rg), (uint)numActions);
-                    service.ReportReward(i / 100f, new UniqueEventID { Key = uniqueKey });
-                }
-            }
-        }
-
         public static void TrainNewVWModelWithMultiActionJsonDirectData()
         {
             int numLocations = 2; // user location
@@ -293,22 +240,10 @@ namespace ClientDecisionServiceSample
             int numExamplesPerActions = 10000;
             var recorder = new FoodRecorder();
 
-            //var serviceConfig = new DecisionServiceConfiguration<FoodContext, FoodFeature>(
-            //    authorizationToken: AuthorizationToken,
-            //    explorer: new EpsilonGreedyExplorer<FoodContext>(new FoodPolicy(), epsilon: 0.2f))
-            //{
-            //    OfflineMode = true,
-            //    Recorder = recorder,
-            //    GetContextFeaturesFunc = FoodContext.GetFeaturesFromContext,
-            //    FeatureDiscovery = VowpalWabbitFeatureDiscovery.Json
-            //};
-
             var stringExamplesTrain = new StringBuilder();
-            //using (var service = new DecisionService<FoodContext, FoodFeature>(serviceConfig))
-            //using (var vw = new VowpalWabbit(new VowpalWabbitSettings("--cb_adf --rank_all --cb_type dr")))
             using (var vw = new VowpalWabbit<FoodContext>(
                 new VowpalWabbitSettings(
-                    "--cb_adf --rank_all --cb_type dr -q ::", 
+                    "--cb_adf --rank_all --cb_type dr -q ::",
                     featureDiscovery: VowpalWabbitFeatureDiscovery.Json,
                     enableStringExampleGeneration: true,
                     enableStringFloatCompact: true)))
@@ -324,10 +259,8 @@ namespace ClientDecisionServiceSample
                     var context = new FoodContext { Actions = new int[] { 1, 2, 3 }, UserLocation = locations[iL] };
                     string key = "fooditem " + Guid.NewGuid().ToString();
 
-                    //uint[] chosenActions = service.ChooseAction(new UniqueEventID { Key = key, TimeStamp = timeStamp}, context, (uint)numActions);
-                    //uint action = chosenActions[0];
                     uint action = (uint)(iE % numActions + 1);
-                    recorder.Record(null, null, 1.0f / numActions, null, new UniqueEventID { Key = key, TimeStamp = timeStamp });
+                    recorder.Record(null, null, new EpsilonGreedyState { Probability = 1.0f / numActions }, null, new UniqueEventID { Key = key, TimeStamp = timeStamp });
 
                     float cost = 0;
 
@@ -348,7 +281,7 @@ namespace ClientDecisionServiceSample
                             cost = -10;
                         }
                     }
-                    var label = new ContextualBanditLabel 
+                    var label = new ContextualBanditLabel
                     {
                         Action = action - 1,
                         Cost = cost,

@@ -12,15 +12,11 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         public void TestSingleActionOfflineModeArgument()
         {
-            var dsConfig = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionServiceConfiguration<TestContext>(
-                authorizationToken: "my token",
-                explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction.EpsilonGreedyExplorer<TestContext>(new TestSingleActionPolicy(), epsilon: 0.2f, numActions: 2));
-
-            dsConfig.OfflineMode = true;
-
+            var dsConfig = new DecisionServiceConfiguration("my token") { OfflineMode = true };
             try
             {
-                using (var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionService<TestContext>(dsConfig))
+                var policy = VWPolicy.StartWithPolicy(dsConfig, new TestSingleActionPolicy());
+                using (var ds = DecisionServiceClient.Create(policy.WithEpsilonGreedy(epsilon: 0.2f, numActionsVariable: 2)))
                 { }
             }
             catch (ArgumentException ex)
@@ -32,22 +28,19 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         public void TestSingleActionOfflineModeCustomLogger()
         {
-            var dsConfig = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionServiceConfiguration<TestContext>(
-                authorizationToken: "my token",
-                explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction.EpsilonGreedyExplorer<TestContext>(new TestSingleActionPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
+            var dsConfig = new DecisionServiceConfiguration("my token") { OfflineMode = true };
 
-            dsConfig.OfflineMode = true;
-            dsConfig.Recorder = new TestLogger();
-
+            var recorder = new TestLogger();
             int numChooseAction = 100;
-            using (var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionService<TestContext>(dsConfig))
+            var policy = VWPolicy.StartWithPolicy(dsConfig, new TestSingleActionPolicy());
+            using (var ds = DecisionServiceClient.Create(policy.WithEpsilonGreedy(epsilon: 0.2f, numActionsVariable: Constants.NumberOfActions), recorder))
             {
                 for (int i = 0; i < numChooseAction; i++)
                 {
                     ds.ChooseAction(new UniqueEventID { Key = i.ToString() }, new TestContext());
                 }
 
-                Assert.AreEqual(numChooseAction, ((TestLogger)dsConfig.Recorder).NumRecord);
+                Assert.AreEqual(numChooseAction, recorder.NumRecord);
 
                 int numReward = 200;
                 for (int i = 0; i < numReward; i++)
@@ -55,7 +48,7 @@ namespace ClientDecisionServiceTest
                     ds.ReportReward(i, new UniqueEventID { Key = i.ToString() });
                 }
 
-                Assert.AreEqual(numReward, ((TestLogger)dsConfig.Recorder).NumReward);
+                Assert.AreEqual(numReward, recorder.NumReward);
 
                 int numOutcome = 300;
                 for (int i = 0; i < numOutcome; i++)
@@ -63,32 +56,30 @@ namespace ClientDecisionServiceTest
                     ds.ReportOutcome(i.ToString(), new UniqueEventID { Key = i.ToString() });
                 }
 
-                Assert.AreEqual(numOutcome, ((TestLogger)dsConfig.Recorder).NumOutcome);
+                Assert.AreEqual(numOutcome, recorder.NumOutcome);
             }
 
-            Assert.AreEqual(0, ((TestLogger)dsConfig.Recorder).NumRecord);
-            Assert.AreEqual(0, ((TestLogger)dsConfig.Recorder).NumReward);
-            Assert.AreEqual(0, ((TestLogger)dsConfig.Recorder).NumOutcome);
+            Assert.AreEqual(0, recorder.NumRecord);
+            Assert.AreEqual(0, recorder.NumReward);
+            Assert.AreEqual(0, recorder.NumOutcome);
         }
 
         [TestMethod]
         public void TestSingleActionOnlineModeCustomLogger()
         {
-            var dsConfig = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionServiceConfiguration<TestContext>(
-                authorizationToken: MockCommandCenter.AuthorizationToken,
-                explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction.EpsilonGreedyExplorer<TestContext>(new TestSingleActionPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
-
-            dsConfig.Recorder = new TestLogger();
+            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken);
+            var recorder = new TestLogger();
 
             int numChooseAction = 100;
-            using (var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionService<TestContext>(dsConfig))
+            var policy = VWPolicy.StartWithPolicy(dsConfig, new TestSingleActionPolicy());
+            using (var ds = DecisionServiceClient.Create(policy.WithEpsilonGreedy(epsilon: .2f, numActionsVariable: Constants.NumberOfActions), recorder))
             {
                 for (int i = 0; i < numChooseAction; i++)
                 {
                     ds.ChooseAction(new UniqueEventID { Key = i.ToString() }, new TestContext());
                 }
 
-                Assert.AreEqual(numChooseAction, ((TestLogger)dsConfig.Recorder).NumRecord);
+                Assert.AreEqual(numChooseAction, recorder.NumRecord);
 
                 int numReward = 200;
                 for (int i = 0; i < numReward; i++)
@@ -96,7 +87,7 @@ namespace ClientDecisionServiceTest
                     ds.ReportReward(i, new UniqueEventID { Key = i.ToString() });
                 }
 
-                Assert.AreEqual(numReward, ((TestLogger)dsConfig.Recorder).NumReward);
+                Assert.AreEqual(numReward, recorder.NumReward);
 
                 int numOutcome = 300;
                 for (int i = 0; i < numOutcome; i++)
@@ -104,12 +95,12 @@ namespace ClientDecisionServiceTest
                     ds.ReportOutcome(i.ToString(), new UniqueEventID { Key = i.ToString() });
                 }
 
-                Assert.AreEqual(numOutcome, ((TestLogger)dsConfig.Recorder).NumOutcome);
+                Assert.AreEqual(numOutcome, recorder.NumOutcome);
             }
 
-            Assert.AreEqual(0, ((TestLogger)dsConfig.Recorder).NumRecord);
-            Assert.AreEqual(0, ((TestLogger)dsConfig.Recorder).NumReward);
-            Assert.AreEqual(0, ((TestLogger)dsConfig.Recorder).NumOutcome);
+            Assert.AreEqual(0, recorder.NumRecord);
+            Assert.AreEqual(0, recorder.NumReward);
+            Assert.AreEqual(0, recorder.NumOutcome);
         }
 
         [TestMethod]
@@ -117,15 +108,14 @@ namespace ClientDecisionServiceTest
         {
             MockCommandCenter.UnsetRedirectionBlobLocation();
 
-            var dsConfig = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionServiceConfiguration<TestContext>(
-                authorizationToken: MockCommandCenter.AuthorizationToken,
-                explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction.EpsilonGreedyExplorer<TestContext>(new TestSingleActionPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
+            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken);
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
 
             bool isExceptionExpected = false;
             try
             {
-                using (var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionService<TestContext>(dsConfig))
+                var policy = VWPolicy.StartWithPolicy(dsConfig, new TestSingleActionPolicy());
+                using (var ds = DecisionServiceClient.Create(policy.WithEpsilonGreedy(epsilon: .2f, numActionsVariable: Constants.NumberOfActions)))
                 { }
             }
             catch (InvalidDataException)
@@ -138,15 +128,11 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         public void TestMultiActionOfflineModeArgument()
         {
-            var dsConfig = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionServiceConfiguration<TestContext, DummyADFType>(
-                authorizationToken: "my token",
-                explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.EpsilonGreedyExplorer<TestContext>(new TestMultiActionPolicy(), epsilon: 0.2f, numActions: 2));
-
-            dsConfig.OfflineMode = true;
-
+            var dsConfig = new DecisionServiceConfiguration("my token") { OfflineMode = true };
             try
             {
-                using (var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig))
+                var ranker = VWPolicy.StartWithRanker(dsConfig, new TestMultiActionPolicy());
+                using (var ds = DecisionServiceClient.Create(ranker.WithTopSlotEpsilonGreedy(epsilon: .2f, numActionsVariable: 2)))
                 { }
             }
             catch (ArgumentException ex)
@@ -158,22 +144,18 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         public void TestMultiActionOfflineModeCustomLogger()
         {
-            var dsConfig = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionServiceConfiguration<TestContext, DummyADFType>(
-                authorizationToken: "my token",
-                explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.EpsilonGreedyExplorer<TestContext>(new TestMultiActionPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
-
-            dsConfig.OfflineMode = true;
-            dsConfig.Recorder = new TestLogger();
-
+            var dsConfig = new DecisionServiceConfiguration("my token") { OfflineMode = true };
+            var recorder = new TestLogger();
             int numChooseAction = 100;
-            using (var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig))
+            var ranker = VWPolicy.StartWithRanker(dsConfig, new TestMultiActionPolicy());
+            using (var ds = DecisionServiceClient.Create(ranker.WithTopSlotEpsilonGreedy(epsilon: .2f, numActionsVariable: Constants.NumberOfActions), recorder))
             {
                 for (int i = 0; i < numChooseAction; i++)
                 {
                     ds.ChooseAction(new UniqueEventID { Key = i.ToString() }, new TestContext());
                 }
 
-                Assert.AreEqual(numChooseAction, ((TestLogger)dsConfig.Recorder).NumRecord);
+                Assert.AreEqual(numChooseAction, recorder.NumRecord);
 
                 int numReward = 200;
                 for (int i = 0; i < numReward; i++)
@@ -181,7 +163,7 @@ namespace ClientDecisionServiceTest
                     ds.ReportReward(i, new UniqueEventID { Key = i.ToString() });
                 }
 
-                Assert.AreEqual(numReward, ((TestLogger)dsConfig.Recorder).NumReward);
+                Assert.AreEqual(numReward, recorder.NumReward);
 
                 int numOutcome = 300;
                 for (int i = 0; i < numOutcome; i++)
@@ -189,35 +171,32 @@ namespace ClientDecisionServiceTest
                     ds.ReportOutcome(i.ToString(), new UniqueEventID { Key = i.ToString() });
                 }
 
-                Assert.AreEqual(numOutcome, ((TestLogger)dsConfig.Recorder).NumOutcome);
+                Assert.AreEqual(numOutcome, recorder.NumOutcome);
             }
-            Assert.AreEqual(0, ((TestLogger)dsConfig.Recorder).NumRecord);
-            Assert.AreEqual(0, ((TestLogger)dsConfig.Recorder).NumReward);
-            Assert.AreEqual(0, ((TestLogger)dsConfig.Recorder).NumOutcome);
+            Assert.AreEqual(0, recorder.NumRecord);
+            Assert.AreEqual(0, recorder.NumReward);
+            Assert.AreEqual(0, recorder.NumOutcome);
         }
 
         [TestMethod]
         public void TestMultiActionOnlineModeCustomLogger()
         {
-            var dsConfig = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionServiceConfiguration<TestContext, DummyADFType>
-            (
-                authorizationToken: MockCommandCenter.AuthorizationToken,
-                explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.EpsilonGreedyExplorer<TestContext>(new TestMultiActionPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions)
-            );
+            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken);
 
-            dsConfig.Recorder = new TestLogger();
+            var recorder = new TestLogger();
             dsConfig.PollingForModelPeriod = TimeSpan.MinValue;
             dsConfig.PollingForSettingsPeriod = TimeSpan.MinValue;
 
             int numChooseAction = 100;
-            using (var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig))
+            var policy = VWPolicy.StartWithRanker(dsConfig, new TestMultiActionPolicy());
+            using (var ds = DecisionServiceClient.Create(policy.WithTopSlotEpsilonGreedy(epsilon: .2f, numActionsVariable: Constants.NumberOfActions)))
             {
                 for (int i = 0; i < numChooseAction; i++)
                 {
                     ds.ChooseAction(new UniqueEventID { Key = i.ToString() }, new TestContext());
                 }
 
-                Assert.AreEqual(numChooseAction, ((TestLogger)dsConfig.Recorder).NumRecord);
+                Assert.AreEqual(numChooseAction, recorder.NumRecord);
 
                 int numReward = 200;
                 for (int i = 0; i < numReward; i++)
@@ -225,7 +204,7 @@ namespace ClientDecisionServiceTest
                     ds.ReportReward(i, new UniqueEventID { Key = i.ToString() });
                 }
 
-                Assert.AreEqual(numReward, ((TestLogger)dsConfig.Recorder).NumReward);
+                Assert.AreEqual(numReward, recorder.NumReward);
 
                 int numOutcome = 300;
                 for (int i = 0; i < numOutcome; i++)
@@ -233,11 +212,11 @@ namespace ClientDecisionServiceTest
                     ds.ReportOutcome(i.ToString(), new UniqueEventID { Key = i.ToString() });
                 }
 
-                Assert.AreEqual(numOutcome, ((TestLogger)dsConfig.Recorder).NumOutcome);
+                Assert.AreEqual(numOutcome, recorder.NumOutcome);
             }
-            Assert.AreEqual(0, ((TestLogger)dsConfig.Recorder).NumRecord);
-            Assert.AreEqual(0, ((TestLogger)dsConfig.Recorder).NumReward);
-            Assert.AreEqual(0, ((TestLogger)dsConfig.Recorder).NumOutcome);
+            Assert.AreEqual(0, recorder.NumRecord);
+            Assert.AreEqual(0, recorder.NumReward);
+            Assert.AreEqual(0, recorder.NumOutcome);
         }
 
         [TestMethod]
@@ -246,16 +225,14 @@ namespace ClientDecisionServiceTest
             MockCommandCenter.UnsetRedirectionBlobLocation();
 
             /*** This test requires real value of RedirectionBlobLocation set in DecisionServiceConstants.cs file ***/
-            var dsConfig = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionServiceConfiguration<TestContext, DummyADFType>(
-                authorizationToken: MockCommandCenter.AuthorizationToken,
-                explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.EpsilonGreedyExplorer<TestContext>(new TestMultiActionPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
-
+            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken);
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
 
             bool isExceptionExpected = false;
             try
             {
-                using (var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig))
+                var policy = VWPolicy.StartWithRanker(dsConfig, new TestMultiActionPolicy());
+                using (var ds = DecisionServiceClient.Create(policy.WithTopSlotEpsilonGreedy(epsilon: .2f, numActionsVariable: Constants.NumberOfActions)))
                 { }
             }
             catch (InvalidDataException)
