@@ -21,14 +21,13 @@ namespace ClientDecisionServiceTest
 
             string uniqueKey = "test interaction";
 
-            var dsConfig = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionServiceConfiguration<TestContext>(
-                authorizationToken: MockCommandCenter.AuthorizationToken,
-                explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction.EpsilonGreedyExplorer<TestContext>(new TestSingleActionPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
+            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken);
 
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
 
-            using (var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionService<TestContext>(dsConfig))
+            var policy = VWPolicy.StartWithPolicy(dsConfig, new TestSingleActionPolicy());
+            using (var ds = DecisionServiceClient.Create(policy.WithEpsilonGreedy(epsilon: .2f, numActionsVariable: Constants.NumberOfActions)))
             {
                 uint chosenAction = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
                 ds.Flush();
@@ -47,14 +46,13 @@ namespace ClientDecisionServiceTest
 
             string uniqueKey = "test interaction";
 
-            var dsConfig = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionServiceConfiguration<TestContext>(
-                authorizationToken: MockCommandCenter.AuthorizationToken,
-                explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction.EpsilonGreedyExplorer<TestContext>(new TestSingleActionPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
+            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken);
 
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
 
-            var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionService<TestContext>(dsConfig);
+            var policy = VWPolicy.StartWithPolicy(dsConfig, new TestSingleActionPolicy());
+            var ds = DecisionServiceClient.Create(policy.WithEpsilonGreedy(epsilon: .2f, numActionsVariable: Constants.NumberOfActions));
 
             uint chosenAction1 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
             uint chosenAction2 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
@@ -75,16 +73,14 @@ namespace ClientDecisionServiceTest
 
             var createObservation = (Func<int, string>)((i) => { return string.Format("00000", i); });
 
-            var dsConfig = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionServiceConfiguration<TestContext>(
-                authorizationToken: MockCommandCenter.AuthorizationToken,
-                explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.SingleAction.EpsilonGreedyExplorer<TestContext>(new TestSingleActionPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
-
+            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken);
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
 
             int numEvents = 1000;
             var chosenActions = new ConcurrentBag<uint>();
-            using (var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction.DecisionService<TestContext>(dsConfig))
+            var policy = VWPolicy.StartWithPolicy(dsConfig, new TestSingleActionPolicy());
+            using (var ds = DecisionServiceClient.Create(policy.WithEpsilonGreedy(epsilon: .2f, numActionsVariable: Constants.NumberOfActions)))
             {
                 Parallel.For(0, numEvents, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, (i) =>
                 {
@@ -144,14 +140,13 @@ namespace ClientDecisionServiceTest
 
             string uniqueKey = "test interaction";
 
-            var dsConfig = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionServiceConfiguration<TestContext, DummyADFType>(
-                authorizationToken: MockCommandCenter.AuthorizationToken,
-                explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.EpsilonGreedyExplorer<TestContext>(new TestMultiActionPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
+            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken);
 
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
 
-            using (var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig))
+            var ranker = VWPolicy.StartWithRanker(dsConfig, new TestMultiActionPolicy());
+            using (var ds = DecisionServiceClient.Create(ranker.WithTopSlotEpsilonGreedy(epsilon: .2f, numActionsVariable: Constants.NumberOfActions)))
             {
                 uint[] chosenActions = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
                 ds.Flush();
@@ -170,14 +165,12 @@ namespace ClientDecisionServiceTest
 
             string uniqueKey = "test interaction";
 
-            var dsConfig = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionServiceConfiguration<TestContext, DummyADFType>(
-                authorizationToken: MockCommandCenter.AuthorizationToken,
-                explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.EpsilonGreedyExplorer<TestContext>(new TestMultiActionPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
-
+            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken);
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
 
-            using (var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig))
+            var ranker = VWPolicy.StartWithRanker(dsConfig, new TestMultiActionPolicy());
+            using (var ds = DecisionServiceClient.Create(ranker.WithTopSlotEpsilonGreedy(epsilon: .2f, numActionsVariable: Constants.NumberOfActions)))
             {
                 uint[] chosenAction1 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
                 uint[] chosenAction2 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
@@ -194,10 +187,7 @@ namespace ClientDecisionServiceTest
 
             string uniqueKey = "test interaction";
 
-            var dsConfig = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionServiceConfiguration<TestContext, DummyADFType>(
-                authorizationToken: MockCommandCenter.AuthorizationToken,
-                explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.EpsilonGreedyExplorer<TestContext>(new TestMultiActionPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
-
+            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken);
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
             dsConfig.JoinServiceBatchConfiguration = new BatchingConfiguration();
@@ -216,7 +206,8 @@ namespace ClientDecisionServiceTest
                 ProbabilityOfDrop = .5f
             };
 
-            using (var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig))
+            var ranker = VWPolicy.StartWithRanker(dsConfig, new TestMultiActionPolicy());
+            using (var ds = DecisionServiceClient.Create(ranker.WithTopSlotEpsilonGreedy(epsilon: .2f, numActionsVariable: Constants.NumberOfActions)))
             {
                 for (int i = 0; i < numEvents; i++)
                 {
@@ -245,10 +236,7 @@ namespace ClientDecisionServiceTest
 
             var createObservation = (Func<int, string>)((i) => { return string.Format("00000", i); });
 
-            var dsConfig = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionServiceConfiguration<TestContext, DummyADFType>(
-                authorizationToken: MockCommandCenter.AuthorizationToken,
-                explorer: new Microsoft.Research.MultiWorldTesting.ExploreLibrary.MultiAction.EpsilonGreedyExplorer<TestContext>(new TestMultiActionPolicy(), epsilon: 0.2f, numActions: Constants.NumberOfActions));
-
+            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken);
             dsConfig.JoinServiceBatchConfiguration = new Microsoft.Research.MultiWorldTesting.JoinUploader.BatchingConfiguration
             {
                 MaxBufferSizeInBytes = 4 * 1024 * 1024,
@@ -264,7 +252,8 @@ namespace ClientDecisionServiceTest
 
             int numEvents = 1000;
             var chosenActions = new ConcurrentBag<uint[]>();
-            using (var ds = new Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction.DecisionService<TestContext, DummyADFType>(dsConfig))
+            var ranker = VWPolicy.StartWithRanker(dsConfig, new TestMultiActionPolicy());
+            using (var ds = DecisionServiceClient.Create(ranker.WithTopSlotEpsilonGreedy(epsilon: .2f, numActionsVariable: Constants.NumberOfActions)))
             {
                 Parallel.For(0, numEvents, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, (i) =>
                 {

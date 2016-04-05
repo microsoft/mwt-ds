@@ -117,13 +117,11 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <None Include="Batching.cs" />
     <Compile Include="ActionDependentFeaturesTest.cs" />
     <Compile Include="Authorization.cs" />
     <Compile Include="AzureStorageEmulatorManager.cs" />
     <Compile Include="AzureStorageHelper.cs" />
     <Compile Include="Common.cs" />
-    <Compile Include="EventJsonConverter.cs" />
     <Compile Include="MockJoinServer.cs" />
     <Compile Include="MockCommandCenter.cs" />
     <Compile Include="MockHttpServer.cs" />
