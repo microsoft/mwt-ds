@@ -234,7 +234,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         {
             var dsClient = new DecisionServiceClient<TContext, TValue, TExplorerState, TMapperValue>(
                 explorer.ContextMapper.Configuration, explorer.ContextMapper.Metadata, explorer.Explorer, recorder);
-            ((IModelListener)explorer).Subscribe(dsClient);
+            explorer.Subscribe(dsClient);
             return dsClient;
         }
     }

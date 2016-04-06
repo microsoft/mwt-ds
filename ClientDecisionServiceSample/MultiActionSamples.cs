@@ -45,7 +45,6 @@ namespace ClientDecisionServiceSample
 
                 var rg = new Random(uniqueKey.GetHashCode());
 
-                int numActions = 3;
                 string baseLocation = "Washington-";
 
                 for (int i = 1; i < 20; i++)
@@ -80,7 +79,6 @@ namespace ClientDecisionServiceSample
             {
                 string uniqueKey = "scratch-key-";
                 string baseLocation = "Washington-";
-                int numActions = 3;
 
                 var rg = new Random(uniqueKey.GetHashCode());
 
