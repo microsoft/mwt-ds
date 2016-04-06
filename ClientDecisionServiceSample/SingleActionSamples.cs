@@ -254,6 +254,7 @@ namespace ClientDecisionServiceSample
 
             var uploader = new EventUploader();
 
+            // TODO: remove this sample code since in-mem join server is no longer supported?
             // Initialize the uploader with a valid authorization token.
             uploader.InitializeWithToken(MwtServiceToken);
 
@@ -261,7 +262,7 @@ namespace ClientDecisionServiceSample
             uploader.PackageSent += (sender, pse) => { Console.WriteLine("Uploaded {0} events.", pse.Records.Count()); };
 
             // Actual uploading of data.
-            uploader.Upload(new Interaction { Key = "sample-upload", Value = 1, Context = null, ExplorerState = new GenericExplorerState { Probability = 0.5f } });
+            uploader.Upload(Interaction.CreateEpsilonGreedy(key: "sample-upload", context: "sample context", action: 1, probability: 0.5f));
 
             // Flush to ensure any remaining data is uploaded.
             uploader.Flush();

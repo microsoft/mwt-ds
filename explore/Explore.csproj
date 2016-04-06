@@ -41,7 +41,6 @@
     <Compile Include="EpsilonGreedyExplorer.cs" />
     <Compile Include="EpsilonGreedySlateExplorer.cs" />
     <Compile Include="Explorer.cs" />
-    <Compile Include="IVariableActionExplorer.cs" />
     <Compile Include="PolicyDecision.cs" />
     <Compile Include="Feature.cs" />
     <Compile Include="GenericExplorer.cs" />

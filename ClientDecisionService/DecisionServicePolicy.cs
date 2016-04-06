@@ -12,18 +12,29 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    internal interface IModelUpdate
+    internal interface IModelSender
     {
-        event EventHandler<Stream> ModelUpdated;
+        event EventHandler<Stream> Send;
     }
 
-    public class UnboundContextMapper<TContext, TMapperValue> : IModelUpdate
+    internal interface IModelListener
     {
-        private EventHandler<Stream> modelUpdated;
-        event EventHandler<Stream> IModelUpdate.ModelUpdated
+        void Subscribe(IModelSender sender);
+
+        void Unsubscribe();
+
+        void Receive(object sender, Stream model);
+    }
+
+    public class UnboundContextMapper<TContext, TMapperValue> : IModelSender, IModelListener, IDisposable
+    {
+        private EventHandler<Stream> sendModelHandler;
+        private IModelSender modelSender;
+
+        event EventHandler<Stream> IModelSender.Send
         {
-            add { modelUpdated += value; }
-            remove { modelUpdated -= value; }
+            add { this.sendModelHandler += value; }
+            remove { this.sendModelHandler -= value; }
         }
 
         internal IContextMapper<TContext, TMapperValue> DefaultPolicy { get; set; }
@@ -32,11 +43,44 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
         internal ApplicationTransferMetadata Metadata { get; set; }
 
-        internal void UpdateModel(object sender, Stream model)
+        internal void IModelListener.Subscribe(IModelSender modelSender)
         {
-            if (modelUpdated != null)
+            ((IModelListener)this).Unsubscribe();
+            this.modelSender = modelSender;
+            this.modelSender.Send += ((IModelListener)this).Receive;
+        }
+
+        internal void IModelListener.Unsubscribe()
+        {
+            if (this.modelSender != null)
             {
-                modelUpdated(sender, model);
+                this.modelSender.Send -= ((IModelListener)this).Receive;
+                this.modelSender = null;
+            }
+        }
+
+        internal void IModelListener.Receive(object sender, Stream model)
+        {
+            if (sendModelHandler != null)
+            {
+                sendModelHandler(sender, model);
+            }
+        }
+
+        public void Dispose()
+        {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (this.modelSender != null)
+                {
+                    this.modelSender.Send -= ((IModelListener)this).Receive;
+                }
             }
         }
     }
@@ -61,19 +105,59 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         }
     }
 
-    public class UnboundExplorer<TContext, TValue, TExplorerState, TMapperValue>
+    public class UnboundExplorer<TContext, TValue, TExplorerState, TMapperValue> : IModelSender, IModelListener, IDisposable
     {
-        internal event EventHandler<Stream> ModelUpdated;
+        private IModelSender modelSender;
+        internal event EventHandler<Stream> sendModelHandler;
+
+        event EventHandler<Stream> IModelSender.Send
+        {
+            add { this.sendModelHandler += value; }
+            remove { this.sendModelHandler -= value; }
+        }
 
         internal IExplorer<TContext, TValue, TExplorerState, TMapperValue> Explorer { get; set; }
 
         internal UnboundContextMapper<TContext, TMapperValue> ContextMapper { get; set; }
 
-        internal void UpdateModel(object sender, Stream model)
+        internal void IModelListener.Receive(object sender, Stream model)
         {
-            if (ModelUpdated != null)
+            if (sendModelHandler != null)
             {
-                ModelUpdated(sender, model);
+                sendModelHandler(sender, model);
+            }
+        }
+
+        internal void IModelListener.Subscribe(IModelSender modelSender)
+        {
+            ((IModelListener)this).Unsubscribe();
+            this.modelSender = modelSender;
+            this.modelSender.Send += ((IModelListener)this).Receive;
+        }
+
+        internal void IModelListener.Unsubscribe()
+        {
+            if (this.modelSender != null)
+            {
+                this.modelSender.Send -= ((IModelListener)this).Receive;
+                this.modelSender = null;
+            }
+        }
+
+        public void Dispose()
+        {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (this.modelSender != null)
+                {
+                    this.modelSender.Send -= ((IModelListener)this).Receive;
+                }
             }
         }
     }
@@ -85,7 +169,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             IExplorer<TContext, TValue, TExplorerState, TMapperValue> explorer)
         {
             var unboundExplorer = new UnboundExplorer<TContext, TValue, TExplorerState, TMapperValue> { Explorer = explorer, ContextMapper = unboundContextMapper };
-            unboundExplorer.ModelUpdated += unboundContextMapper.UpdateModel;
+            ((IModelListener)unboundContextMapper).Subscribe(unboundExplorer); // cast because interface is internal
             return unboundExplorer;
         }
     }
@@ -113,8 +197,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             IContextMapper<TContext, uint[]> defaultRanker,
             Func<IContextMapper<TContext, uint>, TExplorer> singleExplorerFactory,
             uint numActions)
-        where TExplorer :
-            IExplorer<TContext, uint, TExplorerState, uint>
+        where TExplorer : IVariableActionExplorer<TContext, uint, TExplorerState, uint>
         {
             return new TopSlotExplorer<TContext, TExplorer, TExplorerState>(defaultRanker, singleExplorerFactory, numActions);
         }
@@ -257,7 +340,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             else
             {
                 var dsPolicy = new DecisionServicePolicy<TContext, TValue>(vwPolicy, config, metaData);
-                //ucm. += dsPolicy.UpdateModel;
+                ((IModelListener)dsPolicy).Subscribe(ucm); // cast because interface is internal
                 policy = dsPolicy;
             }
             ucm.DefaultPolicy = policy;
@@ -288,26 +371,26 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
     }
 
     internal class DecisionServicePolicy<TContext, TValue> 
-        : IDisposable, IContextMapper<TContext, TValue>
+        : IDisposable, IContextMapper<TContext, TValue>, IModelListener
     {
         private IContextMapper<TContext, TValue> contextMapper;
         private IUpdatable<Stream> updatable;
+        private IModelSender modelSender; 
         private readonly TimeSpan modelBlobPollDelay;
         private readonly string updateModelTaskId = "model";
 
         internal DecisionServicePolicy(
             IContextMapper<TContext, TValue> contextMapper,
             DecisionServiceConfiguration config,
-            ApplicationTransferMetadata metaData,
-            IModelUpdate modelUpdate)
+            ApplicationTransferMetadata metaData)
         {
-            // TODO: add and dispose imodelupdate
             this.contextMapper = contextMapper;
             this.updatable = contextMapper as IUpdatable<Stream>;
             if (this.updatable == null)
                 throw new ArgumentException("contextMapper must be of type IUpdatable<Stream>");
 
             this.modelBlobPollDelay = config.PollingForModelPeriod == TimeSpan.Zero ? DecisionServiceConstants.PollDelay : config.PollingForModelPeriod;
+            
 
             if (this.modelBlobPollDelay != TimeSpan.MinValue)
             {
@@ -322,7 +405,24 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             }
         }
 
-        internal void UpdateModel(object sender, Stream model)
+        void IModelListener.Subscribe(IModelSender modelSender)
+        {
+            ((IModelListener)this).Unsubscribe();
+
+            this.modelSender = modelSender;
+            this.modelSender.Send += ((IModelListener)this).Receive;
+        }
+
+        void IModelListener.Unsubscribe()
+        {
+            if (this.modelSender != null)
+            {
+                this.modelSender.Send -= ((IModelListener)this).Receive;
+                this.modelSender = null;
+            }
+        }
+
+        void IModelListener.Receive(object sender, Stream model)
         {
             if (this.updatable != null)
             {
@@ -364,6 +464,8 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                     disposable.Dispose();
                     this.contextMapper = null;
                 }
+
+                ((IModelListener)this).Unsubscribe();
             }
         }
     }

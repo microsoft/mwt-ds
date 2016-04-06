@@ -52,12 +52,19 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
 
         public float? ProbabilityOfDrop { get; set; }
 
-        public static Interaction CreateEpsilonGreedy<TContext>(UniqueEventID eventId, TContext context, uint action, EpsilonGreedyState state)
+        public static Interaction CreateEpsilonGreedy<TContext>(string key, TContext context, uint action, float probability)
         {
-            return Interaction.Create(eventId, context, action, state);
+            return Interaction.CreateEpsilonGreedy(new UniqueEventID { Key = key }, context, action, probability);
         }
 
-        public static Interaction Create<TValue, TContext, TExplorerState>(
+        public static Interaction CreateEpsilonGreedy<TContext>(UniqueEventID eventId, TContext context, uint action, float probability)
+        {
+            return Interaction.Create(eventId, context, action, new GenericExplorerState { Probability = probability });
+        }
+        
+        // TODO: add other exploration types
+
+        internal static Interaction Create<TValue, TContext, TExplorerState>(
             UniqueEventID eventId, TContext context, TValue value, TExplorerState exploreState)
         {
             return new Interaction 

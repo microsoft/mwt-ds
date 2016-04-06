@@ -124,6 +124,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Explore\Explore.csproj">
+      <Project>{6d245816-6016-49b6-9e37-a0bf0d2a736a}</Project>
+      <Name>Explore</Name>
+    </ProjectReference>
     <ProjectReference Include="..\MultiWorldTestingServiceContract\MultiWorldTestingServiceContract.csproj">
       <Project>{d10392b9-7f76-4d1f-8f38-b0b63aa63760}</Project>
       <Name>MultiWorldTestingServiceContract</Name>

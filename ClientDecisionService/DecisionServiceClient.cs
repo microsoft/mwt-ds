@@ -13,7 +13,7 @@ using System.Runtime.Caching;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    public class DecisionServiceClient<TContext, TValue, TExplorerState, TMapperValue> : IDisposable
+    public class DecisionServiceClient<TContext, TValue, TExplorerState, TMapperValue> : IDisposable, IModelSender
     {
         private readonly TimeSpan settingsBlobPollDelay;
 
@@ -25,7 +25,12 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         protected readonly DecisionServiceConfiguration config;
         protected MwtExplorer<TContext, TValue, TExplorerState, TMapperValue> mwtExplorer;
 
-        public event EventHandler<Stream> ModelUpdated;
+        private event EventHandler<Stream> sendModelHandler;
+        event EventHandler<Stream> IModelSender.Send
+        {
+            add { this.sendModelHandler += value; }
+            remove { this.sendModelHandler -= value; }
+        }
 
         public DecisionServiceClient(
             DecisionServiceConfiguration config,
@@ -41,22 +46,25 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
             this.config = config;
 
-
-
-            if (config.OfflineMode || metaData == null)
+            if (config.OfflineMode)
             {
                 if (recorder == null)
                     throw new ArgumentException("A custom recorder must be defined when operating in offline mode.", "Recorder");
 
-                this.recorder = recorder; // todo: add check for null metadata
+                this.recorder = recorder;
             }
             else
             {
+                if (metaData == null)
+                {
+                    throw new Exception("Unable to locate a registered MWT application.");
+                }
+
                 if (recorder != null)
-                    this.recorder = recorder; // todo: remove this
+                    Trace.WriteLine("A custom recorder was specified but will be ignored. The client provides a built-in recorder for uploading data when it's in online mode.");
                 else
                 {
-                    var joinServerLogger = new JoinServiceLogger(); // todo: add template parameters
+                    var joinServerLogger = new JoinServiceLogger<TContext, TValue, TExplorerState>();
                     switch (config.JoinServerType)
                     {
                         case JoinServerType.CustomSolution:
@@ -73,7 +81,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                                 config.JoinServiceBatchConfiguration);
                             break;
                     }
-                    // TODO: fix this cast
                     this.recorder = (IRecorder<TContext, TValue, TExplorerState>)joinServerLogger;
                 }
 
@@ -134,9 +141,9 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         /// <param name="model"></param>
         public void UpdateModel(Stream model)
         {
-            if (ModelUpdated != null)
+            if (sendModelHandler != null)
             {
-                ModelUpdated(this, model);
+                sendModelHandler(this, model);
             }
         }
 
@@ -227,9 +234,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         {
             var dsClient = new DecisionServiceClient<TContext, TValue, TExplorerState, TMapperValue>(
                 explorer.ContextMapper.Configuration, explorer.ContextMapper.Metadata, explorer.Explorer, recorder);
-
-            dsClient.ModelUpdated += explorer.UpdateModel;
-
+            ((IModelListener)explorer).Subscribe(dsClient);
             return dsClient;
         }
     }

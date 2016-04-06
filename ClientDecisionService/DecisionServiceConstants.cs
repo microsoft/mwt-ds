@@ -4,7 +4,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
     internal static class DecisionServiceConstants
     {
-        // TODO: Make test cases set this flag automatically
         //internal static readonly string RedirectionBlobLocation = "http://127.0.0.1:10000/devstoreaccount1/app-locations/{0}";
 
         internal static readonly string RedirectionBlobLocation = "http://decisionservicestorage.blob.core.windows.net/app-locations/{0}";

@@ -45,7 +45,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         void EnableExplore(bool explore);
     }
 
-    interface IVariableActionExplorer<TContext, TValue, TExplorerState, TMapperValue>
+    public interface IVariableActionExplorer<TContext, TValue, TExplorerState, TMapperValue>
     {
         // TODO: review xml docs
         Decision<TValue, TExplorerState, TMapperValue> MapContext(ulong saltedSeed, TContext context, uint numActionsVariable);
