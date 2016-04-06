@@ -79,9 +79,11 @@ namespace ClientDecisionServiceTest
                         string currentModelFile = string.Format(modelFile, modelIndex);
 
                         byte[] modelContent = commandCenter.GetCBADFModelBlobContent(numExamples: 3 + modelIndex, numFeatureVectors: 4 + modelIndex);
-                        System.IO.File.WriteAllBytes(currentModelFile, modelContent);
 
-                        ds.UpdateModel(File.OpenRead(currentModelFile));
+                        using (var modelStream = new MemoryStream(modelContent))
+                        {
+                            ds.UpdateModel(modelStream);
+                        }
 
                         actualModelFiles.Add(currentModelFile);
                     }

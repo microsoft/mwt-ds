@@ -41,20 +41,22 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
             this.config = config;
 
+
+
             if (config.OfflineMode || metaData == null)
             {
                 if (recorder == null)
                     throw new ArgumentException("A custom recorder must be defined when operating in offline mode.", "Recorder");
 
-                this.recorder = recorder;
+                this.recorder = recorder; // todo: add check for null metadata
             }
             else
             {
                 if (recorder != null)
-                    this.recorder = recorder;
+                    this.recorder = recorder; // todo: remove this
                 else
                 {
-                    var joinServerLogger = new JoinServiceLogger();
+                    var joinServerLogger = new JoinServiceLogger(); // todo: add template parameters
                     switch (config.JoinServerType)
                     {
                         case JoinServerType.CustomSolution:
@@ -71,6 +73,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                                 config.JoinServiceBatchConfiguration);
                             break;
                     }
+                    // TODO: fix this cast
                     this.recorder = (IRecorder<TContext, TValue, TExplorerState>)joinServerLogger;
                 }
 
@@ -125,6 +128,10 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 logger.ReportOutcome(uniqueKey, outcome);
         }
 
+        /// <summary>
+        /// TODO: Stream needs to be disposed by users
+        /// </summary>
+        /// <param name="model"></param>
         public void UpdateModel(Stream model)
         {
             if (ModelUpdated != null)

@@ -51,7 +51,18 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
 
             if (v.ExplorerState != null)
             {
-                writer.WritePropertyName(v.ExplorerState.GetType().Name);
+                // TODO: look at this
+                var exploreType = v.ExplorerState.GetType();
+                var jsonObjectAnnotation = (JsonObjectAttribute)exploreType
+                    .GetCustomAttributes(typeof(JsonObjectAttribute), inherit: false)
+                    .FirstOrDefault();
+
+                if (jsonObjectAnnotation == null)
+	            {
+                    throw new NotSupportedException(exploreType.Name + " is not annotated with JsonObject.");
+	            }
+
+                writer.WritePropertyName(jsonObjectAnnotation.Id);
                 serializer.Serialize(writer, v.ExplorerState);
             }
 

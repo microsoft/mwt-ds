@@ -13,7 +13,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         protected bool explore;
         protected readonly uint numActionsFixed;
 
-        protected BaseExplorer(IContextMapper<TContext, TMapperValue> defaultPolicy, uint numActions = uint.MaxValue)
+        protected BaseExplorer(IContextMapper<TContext, TMapperValue> defaultPolicy, uint numActions)
         {
             if (defaultPolicy == null)
                 throw new ArgumentNullException("defaultPolicy");
@@ -29,22 +29,6 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         {
             this.explore = explore;
         }
-
-        public Decision<TValue, TExplorerState, TMapperValue> MapContext(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
-        {
-            uint numActions = (numActionsFixed == uint.MaxValue) ? numActionsVariable : numActionsFixed;
-
-            // Actual number of actions at decision time must be a valid positive finite number.
-            // TODO: doesn't work with ADF...
-            //if (numActions == uint.MaxValue || numActions < 1)
-            //{
-            //    throw new ArgumentException("Number of actions must be at least 1.");
-            //}
-
-            return this.MapContextInternal(saltedSeed, context, numActions);
-        }
-
-        protected abstract Decision<TValue, TExplorerState, TMapperValue> MapContextInternal(ulong saltedSeed, TContext context, uint numActionsVariable);
 
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
@@ -67,5 +51,23 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                 }
             }
         }
+
+        public abstract Decision<TValue, TExplorerState, TMapperValue> MapContext(ulong saltedSeed, TContext context);
+    }
+
+
+    public abstract class BaseVariableActionExplorer<TContext, TValue, TExplorerState, TMapperValue>
+       : BaseExplorer<TContext, TValue, TExplorerState, TMapperValue>, IVariableActionExplorer<TContext, TValue, TExplorerState, TMapperValue>
+    {
+        // TODO: change uint.max to nullable
+        protected BaseVariableActionExplorer(IContextMapper<TContext, TMapperValue> defaultPolicy, uint numActions = uint.MaxValue)
+            : base(defaultPolicy, numActions) { }
+
+        public override Decision<TValue, TExplorerState, TMapperValue> MapContext(ulong saltedSeed, TContext context)
+        {
+            return this.MapContext(saltedSeed, context, this.numActionsFixed);
+        }
+
+        public abstract Decision<TValue, TExplorerState, TMapperValue> MapContext(ulong saltedSeed, TContext context, uint numActionsVariable);
     }
 }

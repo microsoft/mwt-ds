@@ -49,10 +49,8 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.explore = explore;
         }
 
-        public Decision<TValue, GenericExplorerState, TValue> MapContext(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
+        public Decision<TValue, GenericExplorerState, TValue> MapContext(ulong saltedSeed, TContext context)
         {
-            uint numActions = VariableActionHelper.GetNumberOfActions(this.numActionsFixed, numActionsVariable);
-
             var random = new PRG(saltedSeed);
 
             // Select bag
@@ -66,19 +64,17 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             {
                 Decision<TValue> decisionFromBag = null;
                 uint actionFromBag = 0;
-                uint[] actionsSelected = Enumerable.Repeat<uint>(0, (int)numActions).ToArray();
-                uint numActionsVariableSelected;
+                uint[] actionsSelected = Enumerable.Repeat<uint>(0, (int)this.numActionsFixed).ToArray();
                 // Invoke the default policy function to get the action
                 for (int currentBag = 0; currentBag < this.bags; currentBag++)
                 {
                     // TODO: can VW predict for all bags on one call? (returning all actions at once)
                     // if we trigger into VW passing an index to invoke bootstrap scoring, and if VW model changes while we are doing so, 
                     // we could end up calling the wrong bag
-                    numActionsVariableSelected = numActionsVariable;
-                    decisionFromBag = this.defaultPolicyFunctions[currentBag].MapContext(context, ref numActionsVariableSelected);
+                    decisionFromBag = this.defaultPolicyFunctions[currentBag].MapContext(context);
                     actionFromBag = this.GetTopAction(decisionFromBag.Value);
 
-                    if (actionFromBag == 0 || actionFromBag > numActions)
+                    if (actionFromBag == 0 || actionFromBag > this.numActionsFixed)
                     {
                         throw new ArgumentException("Action chosen by default policy is not within valid range.");
                     }
@@ -95,7 +91,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             }
             else
             {
-                chosenDecision = this.defaultPolicyFunctions[0].MapContext(context, ref numActionsVariable);
+                chosenDecision = this.defaultPolicyFunctions[0].MapContext(context);
                 actionProbability = 1f;
             }
 

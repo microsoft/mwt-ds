@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -50,6 +51,25 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         public object MapperState { get; set; }
 
         public float? ProbabilityOfDrop { get; set; }
+
+        public static Interaction CreateEpsilonGreedy<TContext>(UniqueEventID eventId, TContext context, uint action, EpsilonGreedyState state)
+        {
+            return Interaction.Create(eventId, context, action, state);
+        }
+
+        public static Interaction Create<TValue, TContext, TExplorerState>(
+            UniqueEventID eventId, TContext context, TValue value, TExplorerState exploreState)
+        {
+            return new Interaction 
+            { 
+                Key = eventId.Key,
+                TimeStamp = eventId.TimeStamp,
+                Context = context,
+                ExplorerState = exploreState,
+                Value = value
+            };
+        }
+
     }
 
     /// <summary>

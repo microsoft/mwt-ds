@@ -23,21 +23,21 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 		/// <param name="defaultScorer">A function which outputs a score for each action.</param>
 		/// <param name="lambda">lambda = 0 implies uniform distribution. Large lambda is equivalent to a max.</param>
 		/// <param name="numActions">The number of actions to randomize over.</param>
-        public SoftmaxExplorer(IContextMapper<TContext, float[]> defaultScorer, float lambda, uint numActions = uint.MaxValue)
+        public SoftmaxExplorer(IContextMapper<TContext, float[]> defaultScorer, float lambda, uint numActions)
             : base(defaultScorer, numActions)
         {
             this.lambda = lambda;
         }
 
-        protected override Decision<uint, GenericExplorerState, float[]> MapContextInternal(ulong saltedSeed, TContext context, uint numActionsVariable)
+        public override Decision<uint, GenericExplorerState, float[]> MapContext(ulong saltedSeed, TContext context)
         {
             var random = new PRG(saltedSeed);
 
             // Invoke the default scorer function
-            Decision<float[]> policyDecision = this.contextMapper.MapContext(context, ref numActionsVariable);
+            Decision<float[]> policyDecision = this.contextMapper.MapContext(context);
             float[] scores = policyDecision.Value;
             uint numScores = (uint)scores.Length;
-            if (numScores != numActionsVariable)
+            if (this.numActionsFixed != uint.MaxValue && numScores != this.numActionsFixed)
             {
                 throw new ArgumentException("The number of scores returned by the scorer must equal number of actions");
             }
@@ -112,10 +112,10 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 		/// <param name="defaultScorer">A function which outputs a score for each action.</param>
 		/// <param name="lambda">lambda = 0 implies uniform distribution. Large lambda is equivalent to a max.</param>
 		/// <param name="numActions">The number of actions to randomize over.</param>
-        public SoftmaxSampleWithoutReplacementExplorer(IContextMapper<TContext, float[]> defaultScorer, float lambda, uint numActions = uint.MaxValue)
-            : base(defaultScorer, numActions)
+        public SoftmaxSampleWithoutReplacementExplorer(IContextMapper<TContext, float[]> defaultScorer, float lambda)
+            : base(defaultScorer, uint.MaxValue)
         {
-            this.explorer = new SoftmaxExplorer<TContext>(defaultScorer, lambda, numActions);
+            this.explorer = new SoftmaxExplorer<TContext>(defaultScorer, lambda, uint.MaxValue);
         }
 
         public override void EnableExplore(bool explore)
@@ -124,10 +124,12 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.explorer.EnableExplore(explore);
         }
 
-        protected override Decision<uint[], GenericExplorerState, float[]> MapContextInternal(ulong saltedSeed, TContext context, uint numActionsVariable)
+        public override Decision<uint[], GenericExplorerState, float[]> MapContext(ulong saltedSeed, TContext context)
         {
-            var decision = this.explorer.MapContext(saltedSeed, context, numActionsVariable);
+            var decision = this.explorer.MapContext(saltedSeed, context);
             var scores = decision.MapperDecision.Value;
+            uint numActionsVariable = (uint)scores.Length;
+            // TODO: check scores null or empty array
 
             uint[] chosenActions;
             float actionProbability = decision.ExplorerState.Probability;

@@ -41,9 +41,14 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         /// A <see cref="DecisionTuple"/> object including the action to take, the probability it was chosen, 
         /// and a flag indicating whether to record this decision.
         /// </returns>
-        Decision<TValue, TExplorerState, TMapperValue> MapContext(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue);
-
+        Decision<TValue, TExplorerState, TMapperValue> MapContext(ulong saltedSeed, TContext context);
         void EnableExplore(bool explore);
+    }
+
+    interface IVariableActionExplorer<TContext, TValue, TExplorerState, TMapperValue>
+    {
+        // TODO: review xml docs
+        Decision<TValue, TExplorerState, TMapperValue> MapContext(ulong saltedSeed, TContext context, uint numActionsVariable);
     }
 
     public interface IContextMapper<in TContext, TValue>
@@ -55,7 +60,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         /// <param name="context">A user-defined context for the decision.</param>
         /// <param name="numActionsVariable">Optional; Number of actions available which may be variable across decisions.</param>
         /// <returns>A decision tuple containing the index of the action to take (1-based), and the Id of the model or policy used to make the decision.</returns>
-        Decision<TValue> MapContext(TContext context, ref uint numActionsVariable);
+        Decision<TValue> MapContext(TContext context);
     }
 
     public interface IUpdatable<TModel>

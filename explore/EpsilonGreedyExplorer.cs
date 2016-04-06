@@ -4,6 +4,7 @@ using System.Reflection;
 
 namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
+    [JsonObject(Id = "steg")] // TODO: do this for all of the other explorer states
     public sealed class EpsilonGreedyState : GenericExplorerState
     {
         [JsonProperty(PropertyName = "e")]
@@ -21,7 +22,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
     /// Epsilon greedy is also computationally cheap.
     /// </remarks>
     /// <typeparam name="TContext">The Context type.</typeparam>
-    public class EpsilonGreedyExplorer<TContext> : BaseExplorer<TContext, uint, EpsilonGreedyState, uint>
+    public class EpsilonGreedyExplorer<TContext> : BaseVariableActionExplorer<TContext, uint, EpsilonGreedyState, uint>
     {
         private readonly float defaultEpsilon;
 
@@ -41,10 +42,10 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.defaultEpsilon = epsilon;
         }
 
-        protected override Decision<uint, EpsilonGreedyState, uint> MapContextInternal(ulong saltedSeed, TContext context, uint numActionsVariable)
+        protected override Decision<uint, EpsilonGreedyState, uint> MapContext(ulong saltedSeed, TContext context, uint numActionsVariable)
         {
             // Invoke the default policy function to get the action
-            Decision<uint> policyDecisionTuple = this.contextMapper.MapContext(context, ref numActionsVariable);
+            Decision<uint> policyDecisionTuple = this.contextMapper.MapContext(context);
             uint chosenAction = policyDecisionTuple.Value;
 
             if (chosenAction == 0 || chosenAction > numActionsVariable)

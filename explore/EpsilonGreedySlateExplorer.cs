@@ -28,17 +28,16 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         /// </summary>
         /// <param name="defaultPolicy">A default function which outputs an action given a context.</param>
         /// <param name="epsilon">The probability of a random exploration.</param>
-        /// <param name="numActions">The number of actions to randomize over.</param>
-        public EpsilonGreedySlateExplorer(IRanker<TContext> defaultPolicy, float epsilon, uint numActions = uint.MaxValue)
-            : base(defaultPolicy, numActions)
+        public EpsilonGreedySlateExplorer(IRanker<TContext> defaultPolicy, float epsilon)
+            : base(defaultPolicy, uint.MaxValue) // TODO: use int? instead of uint.maxvalue
         {
             this.defaultEpsilon = epsilon;
         }
 
-        protected override Decision<uint[], EpsilonGreedySlateState, uint[]> MapContextInternal(ulong saltedSeed, TContext context, uint numActionsVariable)
+        protected override Decision<uint[], EpsilonGreedySlateState, uint[]> MapContextInternal(ulong saltedSeed, TContext context, uint dummy)
         {
             // Invoke the default policy function to get the action
-            Decision<uint[]> policyDecisionTuple = this.contextMapper.MapContext(context, ref numActionsVariable);
+            Decision<uint[]> policyDecisionTuple = this.contextMapper.MapContext(context);
 
             MultiActionHelper.ValidateActionList(policyDecisionTuple.Value);
 
@@ -48,7 +47,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             uint[] chosenAction;
             bool isExplore;
 
-            numActionsVariable = (uint)policyDecisionTuple.Value.Length;
+            uint numActionsVariable = (uint)policyDecisionTuple.Value.Length;
 
             if (random.UniformUnitInterval() < epsilon)
             {

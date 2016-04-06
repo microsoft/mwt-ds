@@ -12,9 +12,19 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    public class UnboundContextMapper<TContext, TMapperValue>
+    internal interface IModelUpdate
     {
-        internal event EventHandler<Stream> ModelUpdated;
+        event EventHandler<Stream> ModelUpdated;
+    }
+
+    public class UnboundContextMapper<TContext, TMapperValue> : IModelUpdate
+    {
+        private EventHandler<Stream> modelUpdated;
+        event EventHandler<Stream> IModelUpdate.ModelUpdated
+        {
+            add { modelUpdated += value; }
+            remove { modelUpdated -= value; }
+        }
 
         internal IContextMapper<TContext, TMapperValue> DefaultPolicy { get; set; }
 
@@ -24,9 +34,9 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
         internal void UpdateModel(object sender, Stream model)
         {
-            if (ModelUpdated != null)
+            if (modelUpdated != null)
             {
-                ModelUpdated(sender, model);
+                modelUpdated(sender, model);
             }
         }
     }
@@ -247,7 +257,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             else
             {
                 var dsPolicy = new DecisionServicePolicy<TContext, TValue>(vwPolicy, config, metaData);
-                ucm.ModelUpdated += dsPolicy.UpdateModel;
+                //ucm. += dsPolicy.UpdateModel;
                 policy = dsPolicy;
             }
             ucm.DefaultPolicy = policy;
@@ -285,8 +295,13 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         private readonly TimeSpan modelBlobPollDelay;
         private readonly string updateModelTaskId = "model";
 
-        internal DecisionServicePolicy(IContextMapper<TContext, TValue> contextMapper, DecisionServiceConfiguration config, ApplicationTransferMetadata metaData)
+        internal DecisionServicePolicy(
+            IContextMapper<TContext, TValue> contextMapper,
+            DecisionServiceConfiguration config,
+            ApplicationTransferMetadata metaData,
+            IModelUpdate modelUpdate)
         {
+            // TODO: add and dispose imodelupdate
             this.contextMapper = contextMapper;
             this.updatable = contextMapper as IUpdatable<Stream>;
             if (this.updatable == null)

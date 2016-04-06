@@ -30,16 +30,16 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 		{
         }
 
-        protected override Decision<uint, GenericExplorerState, float[]> MapContextInternal(ulong saltedSeed, TContext context, uint numActionsVariable = uint.MaxValue)
+        public override Decision<uint, GenericExplorerState, float[]> MapContext(ulong saltedSeed, TContext context)
         {
             var random = new PRG(saltedSeed);
 
             // Invoke the default scorer function
-            Decision<float[]> policyDecision = this.contextMapper.MapContext(context, ref numActionsVariable);
+            Decision<float[]> policyDecision = this.contextMapper.MapContext(context);
             float[] weights = policyDecision.Value;
 
             uint numWeights = (uint)weights.Length;
-            if (numWeights != numActionsVariable)
+            if (this.numActionsFixed != uint.MaxValue && numWeights != this.numActionsFixed)
             {
                 throw new ArgumentException("The number of weights returned by the scorer must equal number of actions");
             }
@@ -118,17 +118,17 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.explorer.EnableExplore(explore);
         }
 
-        protected override Decision<uint[], GenericExplorerState, float[]> MapContextInternal(ulong saltedSeed, TContext context, uint numActionsVariable)
+        public override Decision<uint[], GenericExplorerState, float[]> MapContext(ulong saltedSeed, TContext context)
         {
             var random = new PRG(saltedSeed);
 
-            var decision = this.explorer.MapContext(saltedSeed, context, numActionsVariable);
+            var decision = this.explorer.MapContext(saltedSeed, context);
 
             // Note: this assume update of the weights array.
             float[] weights = decision.MapperDecision.Value;
 
             float actionProbability = 0f;
-            uint[] chosenActions = MultiActionHelper.SampleWithoutReplacement(weights, numActionsVariable, random, ref actionProbability);
+            uint[] chosenActions = MultiActionHelper.SampleWithoutReplacement(weights, (uint)weights.Length, random, ref actionProbability);
 
             // action id is one-based
             return Decision.Create(chosenActions,

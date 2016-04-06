@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
+    [JsonObject(Id = "stvw")]
     public class VWState
     {
         [JsonProperty("m")]
