@@ -17,7 +17,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         {
         }
 
-        protected override Decision<uint> MapContext(VowpalWabbit vw, string context, ref uint numActionsVariable)
+        protected override Decision<uint> MapContext(VowpalWabbit vw, string context)
         {
             using (var vwJson = new VowpalWabbitJsonSerializer(vw))
             using (VowpalWabbitExampleCollection vwExample = vwJson.ParseAndCreate(context))
@@ -37,7 +37,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         {
         }
 
-        protected override Decision<uint[]> MapContext(VowpalWabbit vw, string context, ref uint numActionsVariable)
+        protected override Decision<uint[]> MapContext(VowpalWabbit vw, string context)
         {
             using (var vwJson = new VowpalWabbitJsonSerializer(vw))
             using (VowpalWabbitExampleCollection vwExample = vwJson.ParseAndCreate(context))
@@ -47,8 +47,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 // VW multi-label predictions are 0-based
                 var actions = vwMultilabelPredictions.Select(a => (uint)(a + 1)).ToArray();
                 var state = new VWState { ModelId = vw.ID };
-
-                numActionsVariable = (uint)actions.Length;
 
                 return Decision.Create(actions, state);
             }

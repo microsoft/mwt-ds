@@ -20,7 +20,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 	/// exploration events, and then uses the default policy. 
 	/// </remarks>
 	/// <typeparam name="TContext">The Context type.</typeparam>
-    public class TauFirstExplorer<TContext> : BaseExplorer<TContext, uint, TauFirstState, uint>
+    public class TauFirstExplorer<TContext> : BaseVariableActionExplorer<TContext, uint, TauFirstState, uint>
 	{
         private uint tau;
         private readonly object lockObject = new object();
@@ -37,7 +37,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.tau = tau;
         }
 
-        protected override Decision<uint, TauFirstState, uint> MapContextInternal(ulong saltedSeed, TContext context, uint numActions)
+        public override Decision<uint, TauFirstState, uint> MapContext(ulong saltedSeed, TContext context, uint numActionsVariable)
         {
             var random = new PRG(saltedSeed);
 
@@ -53,8 +53,8 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                 if (this.tau > 0 && this.explore)
                 {
                     this.tau--;
-                    uint actionId = random.UniformInt(1, numActions);
-                    actionProbability = 1f / numActions;
+                    uint actionId = random.UniformInt(1, numActionsVariable);
+                    actionProbability = 1f / numActionsVariable;
                     chosenAction = actionId;
                     shouldRecordDecision = true;
                     isExplore = true;
@@ -65,7 +65,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                     policyDecision = this.contextMapper.MapContext(context);
                     chosenAction = policyDecision.Value;
 
-                    if (chosenAction == 0 || chosenAction > numActions)
+                    if (chosenAction == 0 || chosenAction > numActionsVariable)
                     {
                         throw new ArgumentException("Action chosen by default policy is not within valid range.");
                     }

@@ -34,7 +34,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.defaultEpsilon = epsilon;
         }
 
-        protected override Decision<uint[], EpsilonGreedySlateState, uint[]> MapContextInternal(ulong saltedSeed, TContext context, uint dummy)
+        public override Decision<uint[], EpsilonGreedySlateState, uint[]> MapContext(ulong saltedSeed, TContext context)
         {
             // Invoke the default policy function to get the action
             Decision<uint[]> policyDecisionTuple = this.contextMapper.MapContext(context);

@@ -20,9 +20,9 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             this.initialPolicy = this.vwPolicy;
         }
 
-        public Decision<TValue> MapContext(TContext context, ref uint numActionsVariable)
+        public Decision<TValue> MapContext(TContext context)
         {
-            return this.initialPolicy.MapContext(context, ref numActionsVariable);
+            return this.initialPolicy.MapContext(context);
         }
     }
 

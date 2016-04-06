@@ -44,7 +44,7 @@ namespace ClientDecisionServiceSample
 
     class FoodPolicy : IRanker<FoodContext>
     {
-        public Decision<uint[]> MapContext(FoodContext context, ref uint numActionsVariable)
+        public Decision<uint[]> MapContext(FoodContext context)
         {
             return context.Actions.Select((a, i) => (uint)i + 1).ToArray();
         }

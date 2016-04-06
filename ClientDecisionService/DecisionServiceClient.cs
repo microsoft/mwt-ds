@@ -105,9 +105,9 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         }
 
         // TODO: rename?
-        public TValue ChooseAction(UniqueEventID uniqueKey, TContext context, uint numActionsVariable = uint.MaxValue)
+        public TValue ChooseAction(UniqueEventID uniqueKey, TContext context)
         {
-            return this.mwtExplorer.MapContext(uniqueKey, context, numActionsVariable);
+            return this.mwtExplorer.MapContext(uniqueKey, context);
         }
 
         /// <summary>

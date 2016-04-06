@@ -59,7 +59,7 @@ namespace ClientDecisionServiceTest
 
         public class MockupRanker : IRanker<uint[]>
         {
-            public Decision<uint[]> MapContext(uint[] context, ref uint numActionsVariable)
+            public Decision<uint[]> MapContext(uint[] context)
             {
                 return context;
             }

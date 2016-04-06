@@ -80,7 +80,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             }
         }
 
-        public Decision<TValue> MapContext(TContext context, ref uint numActionsVariable)
+        public Decision<TValue> MapContext(TContext context)
         {
             if (this.vwPool == null)
                 throw new InvalidOperationException("A VW model must be supplied before the call to ChooseAction.");
@@ -90,10 +90,10 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 if (vw.Value == null)
                     throw new InvalidOperationException("A VW model must be supplied before the call to ChooseAction.");
 
-                return MapContext(vw.Value, context, ref numActionsVariable);    
+                return MapContext(vw.Value, context);    
             }
         }
 
-        protected abstract Decision<TValue> MapContext(TVowpalWabbit vw, TContext context, ref uint numActionsVariable);
+        protected abstract Decision<TValue> MapContext(TVowpalWabbit vw, TContext context);
     }
 }

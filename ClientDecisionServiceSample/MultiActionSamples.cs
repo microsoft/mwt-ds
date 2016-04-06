@@ -57,7 +57,7 @@ namespace ClientDecisionServiceSample
                     var context = new FoodContext { Actions = new int[] { 1, 2, 3 }, UserLocation = baseLocation + rg.Next(100) };
                     var contextJson = JsonConvert.SerializeObject(context);
 
-                    uint[] action = service.ChooseAction(new UniqueEventID { Key = key, TimeStamp = timeStamp }, contextJson, (uint)numActions);
+                    uint[] action = service.ChooseAction(new UniqueEventID { Key = key, TimeStamp = timeStamp }, contextJson);
                     service.ReportReward(i / 100f, new UniqueEventID { Key = key, TimeStamp = timeStamp });
 
                     System.Threading.Thread.Sleep(1);
@@ -90,7 +90,7 @@ namespace ClientDecisionServiceSample
                     string key = uniqueKey + Guid.NewGuid().ToString();
 
                     var context = new FoodContext { Actions = new int[] { 1, 2, 3 }, UserLocation = baseLocation + rg.Next(100) };
-                    uint[] action = service.ChooseAction(new UniqueEventID { Key = key, TimeStamp = timeStamp }, context, (uint)numActions);
+                    uint[] action = service.ChooseAction(new UniqueEventID { Key = key, TimeStamp = timeStamp }, context);
                     service.ReportReward(i / 100f, new UniqueEventID { Key = key, TimeStamp = timeStamp });
 
                     System.Threading.Thread.Sleep(1);
@@ -182,7 +182,7 @@ namespace ClientDecisionServiceSample
                     currentContext.UserLocation = location;
                     currentContext.Actions = Enumerable.Range(1, numActions).ToArray();
 
-                    uint[] action = service.ChooseAction(new UniqueEventID { Key = key, TimeStamp = timeStamp }, currentContext, (uint)numActions);
+                    uint[] action = service.ChooseAction(new UniqueEventID { Key = key, TimeStamp = timeStamp }, currentContext);
 
                     counterTotal += 1;
 

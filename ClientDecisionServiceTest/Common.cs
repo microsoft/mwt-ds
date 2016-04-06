@@ -129,7 +129,7 @@ namespace ClientDecisionServiceTest
 
     class TestSingleActionPolicy : IPolicy<TestContext>
     {
-        public Decision<uint> MapContext(TestContext context, ref uint numActionsVariable)
+        public Decision<uint> MapContext(TestContext context)
         {
             // Always returns the same action regardless of context
             return Constants.NumberOfActions - 1;
@@ -138,7 +138,7 @@ namespace ClientDecisionServiceTest
 
     class TestMultiActionPolicy : IRanker<TestContext>
     {
-        public Decision<uint[]> MapContext(TestContext context, ref uint numActionsVariable)
+        public Decision<uint[]> MapContext(TestContext context)
         {
             // Always returns the same action regardless of context
             return Enumerable.Range(1, (int)Constants.NumberOfActions).Select(m => (uint)m).ToArray();
@@ -147,7 +147,7 @@ namespace ClientDecisionServiceTest
 
     public class TestRcv1ContextPolicy : IPolicy<TestRcv1Context>
     {
-        public Decision<uint> MapContext(TestRcv1Context context, ref uint numActionsVariable)
+        public Decision<uint> MapContext(TestRcv1Context context)
         {
             return 1;
         }
@@ -155,7 +155,7 @@ namespace ClientDecisionServiceTest
 
     class TestADFPolicy : IRanker<TestADFContext>
     {
-        public Decision<uint[]> MapContext(TestADFContext context, ref uint numActionsVariable)
+        public Decision<uint[]> MapContext(TestADFContext context)
         {
             // Always returns the same action regardless of context
             return Enumerable.Range(1, (int)context.ActionDependentFeatures.Count).Select(m => (uint)m).ToArray();
@@ -164,7 +164,7 @@ namespace ClientDecisionServiceTest
 
     class TestADFWithFeaturesPolicy : IRanker<TestADFContextWithFeatures>
     {
-        public Decision<uint[]> MapContext(TestADFContextWithFeatures context, ref uint numActionsVariable)
+        public Decision<uint[]> MapContext(TestADFContextWithFeatures context)
         {
             // Always returns the same action regardless of context
             return Enumerable.Range(1, (int)context.ActionDependentFeatures.Count).Select(m => (uint)m).ToArray();

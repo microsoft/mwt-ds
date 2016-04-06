@@ -43,14 +43,14 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
         internal ApplicationTransferMetadata Metadata { get; set; }
 
-        internal void IModelListener.Subscribe(IModelSender modelSender)
+        void IModelListener.Subscribe(IModelSender modelSender)
         {
             ((IModelListener)this).Unsubscribe();
             this.modelSender = modelSender;
             this.modelSender.Send += ((IModelListener)this).Receive;
         }
 
-        internal void IModelListener.Unsubscribe()
+        void IModelListener.Unsubscribe()
         {
             if (this.modelSender != null)
             {
@@ -59,7 +59,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             }
         }
 
-        internal void IModelListener.Receive(object sender, Stream model)
+        void IModelListener.Receive(object sender, Stream model)
         {
             if (sendModelHandler != null)
             {
@@ -120,7 +120,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
         internal UnboundContextMapper<TContext, TMapperValue> ContextMapper { get; set; }
 
-        internal void IModelListener.Receive(object sender, Stream model)
+        void IModelListener.Receive(object sender, Stream model)
         {
             if (sendModelHandler != null)
             {
@@ -128,14 +128,14 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             }
         }
 
-        internal void IModelListener.Subscribe(IModelSender modelSender)
+        void IModelListener.Subscribe(IModelSender modelSender)
         {
             ((IModelListener)this).Unsubscribe();
             this.modelSender = modelSender;
             this.modelSender.Send += ((IModelListener)this).Receive;
         }
 
-        internal void IModelListener.Unsubscribe()
+        void IModelListener.Unsubscribe()
         {
             if (this.modelSender != null)
             {
@@ -440,9 +440,9 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             }
         }
 
-        public Decision<TValue> MapContext(TContext context, ref uint numActionsVariable)
+        public Decision<TValue> MapContext(TContext context)
         {
-            return this.contextMapper.MapContext(context, ref numActionsVariable);
+            return this.contextMapper.MapContext(context);
         }
 
         /// <summary>

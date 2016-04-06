@@ -21,7 +21,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         {
         }
 
-        protected override Decision<uint> MapContext(VowpalWabbit<TContext> vw, TContext context, ref uint numActionsVariable)
+        protected override Decision<uint> MapContext(VowpalWabbit<TContext> vw, TContext context)
         {
             var action = (uint)vw.Predict(context, VowpalWabbitPredictionType.CostSensitive);
             var state = new VWState { ModelId = vw.Native.ID };
@@ -42,15 +42,13 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         {
         }
 
-        protected override Decision<uint[]> MapContext(VowpalWabbit<TContext> vw, TContext context, ref uint numActionsVariable)
+        protected override Decision<uint[]> MapContext(VowpalWabbit<TContext> vw, TContext context)
         {
             int[] vwMultilabelPredictions = vw.Predict(context, VowpalWabbitPredictionType.Multilabel);
 
             // VW multi-label predictions are 0-based
             var actions = vwMultilabelPredictions.Select(a => (uint)(a + 1)).ToArray();
             var state = new VWState { ModelId = vw.Native.ID };
-
-            numActionsVariable = (uint)actions.Length;
 
             return Decision.Create(actions, state);
         }
@@ -74,7 +72,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             this.getContextFeaturesFunc = getContextFeaturesFunc;
         }
 
-        protected override Decision<uint[]> MapContext(VowpalWabbit<TContext, TActionDependentFeature> vw, TContext context, ref uint numActionsVariable)
+        protected override Decision<uint[]> MapContext(VowpalWabbit<TContext, TActionDependentFeature> vw, TContext context)
         {
             IReadOnlyCollection<TActionDependentFeature> features = this.getContextFeaturesFunc(context);
 
@@ -84,8 +82,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             // VW multi-label predictions are 0-based
             var actions = vwMultilabelPredictions.Select(p => (uint)(p.Index + 1)).ToArray();
             var state = new VWState { ModelId = vw.Native.ID };
-
-            numActionsVariable = (uint)actions.Length;
 
             return Decision.Create(actions, state);
         }

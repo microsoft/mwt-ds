@@ -45,11 +45,11 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 		/// <param name="context">The context upon which a decision is made. See SimpleContext above for an example.</param>
         /// <param name="numActionsVariable">Optional; Number of actions available which may be variable across decisions.</param>
         /// <returns>An unsigned 32-bit integer representing the 1-based chosen action.</returns>
-        public TValue MapContext(UniqueEventID uniqueKey, TContext context, uint numActionsVariable = uint.MaxValue)
+        public TValue MapContext(UniqueEventID uniqueKey, TContext context)
         {
             ulong seed = MurMurHash3.ComputeIdHash(uniqueKey.Key);
 
-            var decision = this.Explorer.MapContext(seed + this.appId, context, numActionsVariable);
+            var decision = this.Explorer.MapContext(seed + this.appId, context);
 
             if (decision.ShouldRecord)
                 this.recorder.Record(context, decision.Value, decision.ExplorerState, decision.MapperDecision.MapperState, uniqueKey);
@@ -65,9 +65,9 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         /// <param name="context">The context upon which a decision is made. See SimpleContext above for an example.</param>
         /// <param name="numActionsVariable">Optional; Number of actions available which may be variable across decisions.</param>
         /// <returns>An unsigned 32-bit integer representing the 1-based chosen action.</returns>
-        public TValue MapContext(string uniqueKey, TContext context, uint numActionsVariable = uint.MaxValue)
+        public TValue MapContext(string uniqueKey, TContext context)
         {
-            return this.MapContext(new UniqueEventID { Key = uniqueKey }, context, numActionsVariable);
+            return this.MapContext(new UniqueEventID { Key = uniqueKey }, context);
         }
 
         /// <summary>
