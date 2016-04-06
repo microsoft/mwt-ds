@@ -13,7 +13,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         static AzureBlobUpdater()
         {
             Instance = new AzureBlobUpdater();
-            TaskManager.Initialize(Instance);
         }
 
         internal static void RegisterTask(
@@ -31,6 +30,12 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         internal static void CancelTask(string taskId)
         {
             AzureBlobUpdater.Instance.Cancel(taskId);
+        }
+
+        internal static void Start()
+        {
+            // important: this needs to be called after all tasks are registered.
+            TaskManager.Initialize(Instance);
         }
 
         internal static void Stop()

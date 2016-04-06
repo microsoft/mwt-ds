@@ -71,7 +71,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                                 config.JoinServiceBatchConfiguration);
                             break;
                     }
-                    // TODO: check if this cast actually works
                     this.recorder = (IRecorder<TContext, TValue, TExplorerState>)joinServerLogger;
                 }
 
@@ -88,6 +87,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                         this.UpdateSettings,
                         config.SettingsPollFailureCallback);
                 }
+                AzureBlobUpdater.Start();
             }
 
             this.logger = this.recorder as ILogger;
