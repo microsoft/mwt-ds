@@ -1,11 +1,11 @@
-﻿namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
-{
-    using System;
-    using Microsoft.Research.MultiWorldTesting.JoinUploader;
-    using VW;
-    using System.IO;
+﻿using System;
+using Microsoft.Research.MultiWorldTesting.JoinUploader;
+using VW;
+using System.IO;
 
-    public class DecisionServiceConfiguration //<TContext>
+namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
+{
+    public class DecisionServiceConfiguration
     {
         public DecisionServiceConfiguration(string authorizationToken)
         {
@@ -140,21 +140,12 @@
         }
 
         /// <summary>
-        /// Callback to set model Id in the Context for reproducibility.
-        /// This callback is triggered when a model is used for scoring.
-        /// In order to reproduce the behavior of an online system, exact
-        /// models and context need to be recorded at the time the scoring
-        /// decision is made from the model.
-        /// </summary>
-        // public Action<TContext, string> SetModelIdCallback { get; set; }
-        
-        /// <summary>
-        /// 
+        /// Triggers when a polling for model update fails.
         /// </summary>
         public Action<Exception> ModelPollFailureCallback { get; set; }
         
         /// <summary>
-        /// 
+        /// Triggers when a polling for settings update fails.
         /// </summary>
         public Action<Exception> SettingsPollFailureCallback { get; set; }
 
@@ -167,137 +158,3 @@
         private TimeSpan pollingForModelPeriod;
     }
 }
-
-/*
-namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.SingleAction
-{
-    using Microsoft.Research.MultiWorldTesting.JoinUploader;
-    using MultiWorldTesting.ExploreLibrary;
-    using MultiWorldTesting.ExploreLibrary.SingleAction;
-    using Newtonsoft.Json;
-    using System;
-    using Microsoft.Research.MultiWorldTesting.ClientLibrary;
-
-    /// <summary>
-    /// Configuration object for the client decision service which contains settings for batching, retry storage, etc...
-    /// </summary>
-    public class DecisionServiceConfiguration<TContext> : BaseDecisionServiceConfiguration<TContext>
-    {
-        public DecisionServiceConfiguration(string authorizationToken, IExplorer<TContext> explorer)
-            : base(authorizationToken)
-        {
-            if (explorer == null)
-            {
-                throw new ArgumentNullException("explorer", "Exploration algorithm cannot be null");
-            }
-
-            this.Explorer = explorer;
-        }
-
-        /// <summary>
-        /// The <see cref="IExplorer{TContext}"/> object representing an exploration algorithm.
-        /// </summary>
-        public IExplorer<TContext> Explorer { get; private set; }
-
-        #region Optional Parameters
-
-        /// <summary>
-        /// Specifies a custom <see cref="IRecorder{TContext}"/> object to be used for logging exploration data. 
-        /// </summary>
-        public IRecorder<TContext> Recorder 
-        { 
-            get { return recorder; } 
-            set 
-            { 
-                if (value == null) throw new ArgumentNullException("Recorder cannot be null");
-                recorder = value;
-            } 
-        }
-
-        private IRecorder<TContext> recorder;
-
-        #endregion
-    }
-
-    public class DecisionServiceJsonConfiguration : DecisionServiceConfiguration<string>
-    {
-        public DecisionServiceJsonConfiguration(string authorizationToken, IExplorer<string> explorer)
-            : base(authorizationToken, explorer)
-        {
-            UseJsonContext = true;
-        }
-    }
-}
-
-namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.MultiAction
-{
-    using Microsoft.Research.MultiWorldTesting.JoinUploader;
-    using MultiWorldTesting.ExploreLibrary;
-    using MultiWorldTesting.ExploreLibrary.MultiAction;
-    using Newtonsoft.Json;
-    using System;
-    using Microsoft.Research.MultiWorldTesting.ClientLibrary;
-    using System.Collections.Generic;
-
-    /// <summary>
-    /// Configuration object for the client decision service which contains settings for batching, retry storage, etc...
-    /// This configuration allows the use of variable number of actions with action-dependent features.
-    /// </summary>
-    public class DecisionServiceConfiguration<TContext, TActionDependentFeature> : BaseDecisionServiceConfiguration<TContext>
-    {
-        public DecisionServiceConfiguration(string authorizationToken, IExplorer<TContext> explorer)
-            : base(authorizationToken)
-        {
-            if (explorer == null)
-            {
-                throw new ArgumentNullException("explorer", "Exploration algorithm cannot be null");
-            }
-
-            this.Explorer = explorer;
-        }
-
-        /// <summary>
-        /// The <see cref="IExplorer{TContext}"/> object representing an exploration algorithm.
-        /// </summary>
-        public IExplorer<TContext> Explorer { get; private set; }
-
-        #region Optional Parameters
-
-        /// <summary>
-        /// Specifies a custom <see cref="IRecorder{TContext}"/> object to be used for logging exploration data. 
-        /// </summary>
-        public IRecorder<TContext> Recorder
-        {
-            get { return recorder; }
-            set
-            {
-                if (value == null) throw new ArgumentNullException("Recorder cannot be null");
-                recorder = value;
-            }
-        }
-
-        /// <summary>
-        /// A callback to return the action-dependent features in the context.
-        /// </summary>
-        public Func<TContext, IReadOnlyCollection<TActionDependentFeature>> GetContextFeaturesFunc { get; set; }
-
-        /// <summary>
-        /// A callback to return the action-dependent features in the context. The context must be in JSON format.
-        /// </summary>
-        public Func<string, IReadOnlyCollection<TActionDependentFeature>> GetJsonContextFeaturesFunc { get; set; }
-
-        #endregion
-
-        private IRecorder<TContext> recorder;
-    }
-
-    public class DecisionServiceJsonConfiguration : DecisionServiceConfiguration<string, string>
-    {
-        public DecisionServiceJsonConfiguration(string authorizationToken, IExplorer<string> explorer)
-            : base(authorizationToken, explorer)
-        {
-            UseJsonContext = true;
-        }
-    }
- }
- * */

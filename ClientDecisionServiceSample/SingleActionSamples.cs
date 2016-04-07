@@ -61,7 +61,7 @@ namespace ClientDecisionServiceSample
             // Specify the exploration algorithm to use, here we will use Epsilon-Greedy.
             // For more details about this and other algorithms, refer to the MWT onboarding whitepaper.
             var policy = VWPolicy.StartWithJsonPolicy(serviceConfig, new DefaultJsonPolicy());
-            using (var service = DecisionServiceClient.Create(Explorer.WithEpsilonGreedy(policy, epsilon, numTopics)))
+            using (var service = DecisionServiceClient.Create(policy.WithEpsilonGreedy(epsilon, numTopics)))
             {
                 var random = new Random();
                 for (int user = 0; user < numUsers; user++)
@@ -137,7 +137,7 @@ namespace ClientDecisionServiceSample
             // Specify the exploration algorithm to use, here we will use Epsilon-Greedy.
             // For more details about this and other algorithms, refer to the MWT onboarding whitepaper.
             var policy = VWPolicy.StartWithPolicy(serviceConfig, new SimplePolicy());
-            using (var service = DecisionServiceClient.Create(Explorer.WithEpsilonGreedy(policy, epsilon, numTopics)))
+            using (var service = DecisionServiceClient.Create(policy.WithEpsilonGreedy(epsilon, numTopics)))
             {
                 var random = new Random();
                 for (int user = 0; user < numUsers; user++)
@@ -207,7 +207,7 @@ namespace ClientDecisionServiceSample
             // Specify the exploration algorithm to use, here we will use Epsilon-Greedy.
             // For more details about this and other algorithms, refer to the MWT onboarding whitepaper.
             var policy = VWPolicy.StartWithPolicy(serviceConfig, new NewsDisplayPolicy());
-            using (var service = DecisionServiceClient.Create(Explorer.WithEpsilonGreedy(policy, epsilon, numTopics)))
+            using (var service = DecisionServiceClient.Create(policy.WithEpsilonGreedy(epsilon, numTopics)))
             {
                 var random = new Random();
                 for (int user = 0; user < numUsers; user++)

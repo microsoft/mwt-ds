@@ -30,11 +30,6 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             public Decision<uint> MapContext(TContext context)
             {
                 return this.action.Value;
-                //Decision<uint[]> policyDecision = this.policy.MapContext(context);
-
-                ////numActionsVariable = (uint)policyDecision.Value.Length;
-
-                //return Decision.Create(policyDecision.Value[0], policyDecision);
             }
         }
 
