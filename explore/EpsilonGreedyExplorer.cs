@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
-    [JsonObject(Id = "steg")] // TODO: do this for all of the other explorer states
+    [JsonObject(Id = "steg")]
     public sealed class EpsilonGreedyState : GenericExplorerState
     {
         [JsonProperty(PropertyName = "e")]

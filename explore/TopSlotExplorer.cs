@@ -53,7 +53,10 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         public override Decision<uint[], TExplorerState, uint[]> MapContext(ulong saltedSeed, TContext context)
         {
             var policyDecision = this.contextMapper.MapContext(context);
-            // TOdO: check if the Value is empty or null array
+            if (policyDecision.Value == null || policyDecision.Value.Length < 1)
+            {
+                throw new ArgumentException("Actions chosen by default policy must not be empty.");
+            }
             this.topSlotPolicy.UpdateAction(policyDecision.Value[0]);
             var decision = this.singleExplorer.MapContext(saltedSeed, context, (uint)policyDecision.Value.Length);
             MultiActionHelper.PutActionToList(decision.Value, policyDecision.Value);

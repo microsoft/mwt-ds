@@ -129,7 +129,11 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             var decision = this.explorer.MapContext(saltedSeed, context);
             var scores = decision.MapperDecision.Value;
             uint numActionsVariable = (uint)scores.Length;
-            // TODO: check scores null or empty array
+
+            if (scores == null || scores.Length < 1)
+            {
+                throw new ArgumentException("Scores returned by default policy must not be empty.");
+            }
 
             uint[] chosenActions;
             float actionProbability = decision.ExplorerState.Probability;

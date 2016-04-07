@@ -51,7 +51,6 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
 
             if (v.ExplorerState != null)
             {
-                // TODO: look at this
                 var exploreType = v.ExplorerState.GetType();
                 var jsonObjectAnnotation = (JsonObjectAttribute)exploreType
                     .GetCustomAttributes(typeof(JsonObjectAttribute), inherit: false)
