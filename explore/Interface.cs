@@ -30,7 +30,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 
     public interface IExplorer<TContext, TValue, TExplorerState, TMapperValue>
     {
-        /// <summary>B
+        /// <summary>
         /// Determines the action to take and the probability with which it was chosen, for a
         /// given context. 
         /// </summary>
