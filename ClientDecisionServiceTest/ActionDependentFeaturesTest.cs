@@ -49,70 +49,6 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
-        public void TestADFModelUpdateFromFile()
-        {
-            joinServer.Reset();
-
-            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken)
-            {
-                JoinServerType = JoinServerType.CustomSolution,
-                LoggingServiceAddress = MockJoinServer.MockJoinServerAddress,
-                PollingForModelPeriod = TimeSpan.MinValue,
-                PollingForSettingsPeriod = TimeSpan.MinValue
-            };
-
-            var actualModelFiles = new List<string>();
-            var ranker = VWPolicy.StartWithRanker(dsConfig, new TestADFWithFeaturesPolicy());
-            using (var ds = DecisionServiceClient.Create(ranker.WithTopSlotEpsilonGreedy(epsilon: .5f)))
-            {
-                string uniqueKey = "eventid";
-
-                string modelFile = "test_vw_adf{0}.model";
-
-                for (int i = 1; i <= 100; i++)
-                {
-                    Random rg = new Random(i);
-
-                    if (i % 50 == 1)
-                    {
-                        int modelIndex = i / 50;
-                        string currentModelFile = string.Format(modelFile, modelIndex);
-
-                        byte[] modelContent = commandCenter.GetCBADFModelBlobContent(numExamples: 3 + modelIndex, numFeatureVectors: 4 + modelIndex);
-
-                        using (var modelStream = new MemoryStream(modelContent))
-                        {
-                            ds.UpdateModel(modelStream);
-                        }
-
-                        actualModelFiles.Add(currentModelFile);
-                    }
-
-                    int numActions = rg.Next(5, 20);
-                    var context = TestADFContextWithFeatures.CreateRandom(numActions, rg);
-
-                    uint[] action = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, context);
-
-                    Assert.AreEqual(numActions, action.Length);
-
-                    // verify all unique actions in the list
-                    Assert.AreEqual(action.Length, action.Distinct().Count());
-
-                    // verify the actions are in the expected range
-                    Assert.AreEqual((numActions * (numActions + 1)) / 2, action.Sum(a => a));
-
-                    ds.ReportReward(i / 100f, new UniqueEventID { Key = uniqueKey });
-                }
-            }
-            Assert.AreEqual(200, joinServer.EventBatchList.Sum(b => b.ExperimentalUnitFragments.Count));
-
-            foreach (string actualModelFile in actualModelFiles)
-            {
-                System.IO.File.Delete(actualModelFile);
-            }
-        }
-
-        [TestMethod]
         public void TestADFModelUpdateFromStream()
         {
             joinServer.Reset();
@@ -130,8 +66,6 @@ namespace ClientDecisionServiceTest
             {
                 string uniqueKey = "eventid";
 
-                string modelFile = "test_vw_adf{0}.model";
-
                 for (int i = 1; i <= 100; i++)
                 {
                     Random rg = new Random(i);
@@ -139,13 +73,11 @@ namespace ClientDecisionServiceTest
                     if (i % 50 == 1)
                     {
                         int modelIndex = i / 50;
-                        string currentModelFile = string.Format(modelFile, modelIndex);
-
                         byte[] modelContent = commandCenter.GetCBADFModelBlobContent(numExamples: 3 + modelIndex, numFeatureVectors: 4 + modelIndex);
-
-                        var modelStream = new MemoryStream(modelContent);
-
-                        ds.UpdateModel(modelStream);
+                        using (var modelStream = new MemoryStream(modelContent))
+                        {
+                            ds.UpdateModel(modelStream);
+                        }
                     }
 
                     int numActions = rg.Next(5, 20);

@@ -15,7 +15,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             private readonly IContextMapper<TContext, uint[]> policy;
             
             // TODO: review if we can remove this threadloacl
-            private ThreadLocal<uint> action;
+            private ThreadLocal<uint> action = new ThreadLocal<uint>();
 
             internal TopSlotPolicy(IContextMapper<TContext, uint[]> policy)
             {
@@ -40,19 +40,19 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 
         private readonly TExplorer singleExplorer;
         private readonly TopSlotPolicy topSlotPolicy;
-        private readonly IContextMapper<TContext, uint[]> policy;
 
         public TopSlotExplorer(IContextMapper<TContext, uint[]> defaultPolicy,
             Func<IPolicy<TContext>, TExplorer> singleExplorerFactory, 
             uint numActions = uint.MaxValue)
             : base(defaultPolicy, numActions)
         {
-            this.singleExplorer = singleExplorerFactory(new TopSlotPolicy(defaultPolicy));
+            this.topSlotPolicy = new TopSlotPolicy(defaultPolicy);
+            this.singleExplorer = singleExplorerFactory(this.topSlotPolicy);
         }
 
         public override Decision<uint[], TExplorerState, uint[]> MapContext(ulong saltedSeed, TContext context)
         {
-            var policyDecision = this.policy.MapContext(context);
+            var policyDecision = this.contextMapper.MapContext(context);
             // TOdO: check if the Value is empty or null array
             this.topSlotPolicy.UpdateAction(policyDecision.Value[0]);
             var decision = this.singleExplorer.MapContext(saltedSeed, context, (uint)policyDecision.Value.Length);
