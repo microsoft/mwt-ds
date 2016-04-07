@@ -204,7 +204,7 @@ namespace ClientDecisionServiceTest
 
         public void Record(TestContext context, uint[] value, EpsilonGreedyState explorerState, object mapperState, UniqueEventID uniqueKey)
         {
-            throw new NotImplementedException();
+            this.numRecord++;
         }
 
         public int NumRecord
@@ -270,9 +270,6 @@ namespace ClientDecisionServiceTest
 
     public class BaseCompleteExperimentalUnitFragment
     {
-        [JsonProperty(PropertyName = "t", Required = Required.Always)]
-        public string Type { get; set; }
-
         [JsonProperty(PropertyName = "p")]
         public float? Probability { get; set; }
 

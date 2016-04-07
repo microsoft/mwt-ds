@@ -181,15 +181,18 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         public void TestMultiActionOnlineModeCustomLogger()
         {
+            joinServer.Reset();
+
             var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken);
 
             var recorder = new TestLogger();
             dsConfig.PollingForModelPeriod = TimeSpan.MinValue;
             dsConfig.PollingForSettingsPeriod = TimeSpan.MinValue;
+            dsConfig.JoinServerType = JoinServerType.CustomSolution;
 
             int numChooseAction = 100;
             var policy = VWPolicy.StartWithRanker(dsConfig, new TestMultiActionPolicy());
-            using (var ds = DecisionServiceClient.Create(policy.WithTopSlotEpsilonGreedy(epsilon: .2f, numActionsVariable: Constants.NumberOfActions)))
+            using (var ds = DecisionServiceClient.Create(policy.WithTopSlotEpsilonGreedy(epsilon: .2f, numActionsVariable: Constants.NumberOfActions), recorder))
             {
                 for (int i = 0; i < numChooseAction; i++)
                 {
@@ -242,5 +245,22 @@ namespace ClientDecisionServiceTest
             Assert.AreEqual(true, isExceptionExpected);
         }
 
+        [TestInitialize]
+        public void Setup()
+        {
+            joinServer = new MockJoinServer(MockJoinServer.MockJoinServerAddress);
+            joinServer.Run();
+
+            MockCommandCenter.SetRedirectionBlobLocation();
+        }
+
+        [TestCleanup]
+        public void CleanUp()
+        {
+            joinServer.Stop();
+            MockCommandCenter.UnsetRedirectionBlobLocation();
+        }
+
+        private MockJoinServer joinServer;
     }
 }

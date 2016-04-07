@@ -25,7 +25,7 @@ namespace ClientDecisionServiceTest
             Assembly assembly = typeof(DecisionServiceClient).Assembly;
             Type dsct = assembly.GetType("Microsoft.Research.MultiWorldTesting.ClientLibrary.DecisionServiceConstants");
             FieldInfo rblf = dsct.GetField("RedirectionBlobLocation", BindingFlags.NonPublic | BindingFlags.Static);
-            rblf.SetValue(null, MockCommandCenter.RedictionBlobLocation);
+            rblf.SetValue(null, MockCommandCenter.RedirectionBlobLocation);
         }
 
         public static void UnsetRedirectionBlobLocation()
@@ -194,6 +194,6 @@ namespace ClientDecisionServiceTest
         public static readonly string StorageConnectionString = "UseDevelopmentStorage=true";
         public static readonly string AuthorizationToken = "test token";
 
-        public static readonly string RedictionBlobLocation = "http://127.0.0.1:10000/devstoreaccount1/app-locations/{0}";
+        public static readonly string RedirectionBlobLocation = "http://127.0.0.1:10000/devstoreaccount1/app-locations/{0}";
     }
 }

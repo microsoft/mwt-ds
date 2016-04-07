@@ -3,6 +3,7 @@ using System;
 
 namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
+    [JsonObject(Id = "sttf")]
     public sealed class TauFirstState : GenericExplorerState
     {
         [JsonProperty(PropertyName = "t")]

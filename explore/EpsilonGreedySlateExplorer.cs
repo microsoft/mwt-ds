@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
+    [JsonObject(Id = "stegs")]
     public sealed class EpsilonGreedySlateState
     {
         [JsonProperty(PropertyName = "e")]

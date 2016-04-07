@@ -74,7 +74,7 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
 
             if (v.ProbabilityOfDrop != null)
             {
-                writer.WritePropertyName("p");
+                writer.WritePropertyName("p"); // TODO: change to pdrop?
                 serializer.Serialize(writer, v.ProbabilityOfDrop);
             }
 

@@ -32,8 +32,8 @@ namespace ClientDecisionServiceTest
             var uploader = new EventUploader(null, MockJoinServer.MockJoinServerAddress);
             uploader.InitializeWithToken(MockCommandCenter.AuthorizationToken);
             uploader.PackageSent += (sender, e) => { eventSentCount += e.Records.Count(); };
-            uploader.Upload(new Interaction { Value = 1, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = 0.5, Key = uniqueKey });
-            uploader.Upload(new Interaction { Value = new uint[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = 0.5, Key = uniqueKey });
+            uploader.Upload(new Interaction { Value = 1, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
+            uploader.Upload(new Interaction { Value = new uint[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
             uploader.Flush();
 
             Assert.AreEqual(2, eventSentCount);
@@ -61,8 +61,8 @@ namespace ClientDecisionServiceTest
             uploader.PackageSent += (sender, e) => { eventSentCount += e.Records.Count(); };
             uploader.PackageSendFailed += (sender, e) => { exceptionCaught = e.Exception != null; };
 
-            uploader.Upload(new Interaction { Value = 1, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = 0.5, Key = uniqueKey });
-            uploader.Upload(new Interaction { Value = new uint[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = 0.5, Key = uniqueKey });
+            uploader.Upload(new Interaction { Value = 1, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
+            uploader.Upload(new Interaction { Value = new uint[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
             uploader.Flush();
 
             Assert.AreEqual(1, joinServer.RequestCount);
@@ -111,8 +111,8 @@ namespace ClientDecisionServiceTest
             uploader.PackageSent += (sender, e) => { eventSentCount += e.Records.Count(); };
             uploader.PackageSendFailed += (sender, e) => { exceptionCaught = e.Exception != null; };
 
-            uploader.Upload(new Interaction { Value = 1, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = 0.5, Key = uniqueKey });
-            uploader.Upload(new Interaction { Value = new uint[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = 0.5, Key = uniqueKey });
+            uploader.Upload(new Interaction { Value = 1, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
+            uploader.Upload(new Interaction { Value = new uint[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
             uploader.Flush();
 
             Assert.AreEqual(1, joinServer.RequestCount);
@@ -154,13 +154,13 @@ namespace ClientDecisionServiceTest
             uploader.InitializeWithToken(MockCommandCenter.AuthorizationToken);
             uploader.PackageSent += (sender, e) => { eventSentCount += e.Records.Count(); };
 
-            uploader.Upload(new Interaction { Value = 1, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = 0.5, Key = uniqueKey });
-            uploader.Upload(new Interaction { Value = 2, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = 0.7, Key = uniqueKey });
-            uploader.Upload(new Interaction { Value = 0, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = 0.5, Key = uniqueKey });
+            uploader.Upload(new Interaction { Value = 1, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
+            uploader.Upload(new Interaction { Value = 2, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .7f }, Key = uniqueKey });
+            uploader.Upload(new Interaction { Value = 0, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
 
-            uploader.Upload(new Interaction { Value = new uint[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = 0.5, Key = uniqueKey });
-            uploader.Upload(new Interaction { Value = new uint[] { 2 }, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = 0.7, Key = uniqueKey });
-            uploader.Upload(new Interaction { Value = new uint[] { 0 }, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = 0.5, Key = uniqueKey });
+            uploader.Upload(new Interaction { Value = new uint[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
+            uploader.Upload(new Interaction { Value = new uint[] { 2 }, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .7f }, Key = uniqueKey });
+            uploader.Upload(new Interaction { Value = new uint[] { 0 }, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
 
             uploader.Upload(new Observation { Value = "1", Key = uniqueKey });
             uploader.Upload(new Observation { Value = "2", Key = uniqueKey });
@@ -187,8 +187,8 @@ namespace ClientDecisionServiceTest
             int numEvents = 1000;
             Parallel.For(0, numEvents, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, (i) =>
             {
-                uploader.Upload(new Interaction { Value = (uint)i, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = i / 1000.0, Key = uniqueKey });
-                uploader.Upload(new Interaction { Value = new uint[] { (uint)i }, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = i / 1000.0, Key = uniqueKey });
+                uploader.Upload(new Interaction { Value = (uint)i, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = i / 1000.0f }, Key = uniqueKey });
+                uploader.Upload(new Interaction { Value = new uint[] { (uint)i }, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = i / 1000.0f }, Key = uniqueKey });
                 uploader.Upload(new Observation { Value = JsonConvert.SerializeObject(new { value = "999" + i }), Key = uniqueKey });
             });
             uploader.Flush();

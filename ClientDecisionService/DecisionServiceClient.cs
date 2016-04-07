@@ -61,7 +61,9 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 }
 
                 if (recorder != null)
-                    Trace.WriteLine("A custom recorder was specified but will be ignored. The client provides a built-in recorder for uploading data when it's in online mode.");
+                {
+                    this.recorder = recorder;
+                }
                 else
                 {
                     var joinServerLogger = new JoinServiceLogger<TContext, TValue, TExplorerState>();

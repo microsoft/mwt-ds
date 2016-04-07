@@ -219,7 +219,9 @@ namespace ClientDecisionServiceTest
 
             // Get number of events that have been downsampled, i.e. selected with probability q
             int numSampledEvents = joinServer.EventBatchList
-                .SelectMany(batch => batch.ExperimentalUnitFragments.Select(e => e)).Where(e => e.Value.Contains(".0199")).Count();
+                .SelectMany(batch => batch.ExperimentalUnitFragments)
+                .Where(e => e.Value.Contains("\"p\":0.5"))
+                .Count();
 
             Assert.IsTrue(numSampledEvents > 0);
 
