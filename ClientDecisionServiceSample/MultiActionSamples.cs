@@ -56,7 +56,7 @@ namespace ClientDecisionServiceSample
                     var context = new FoodContext { Actions = new int[] { 1, 2, 3 }, UserLocation = baseLocation + rg.Next(100) };
                     var contextJson = JsonConvert.SerializeObject(context);
 
-                    uint[] action = service.ChooseAction(new UniqueEventID { Key = key, TimeStamp = timeStamp }, contextJson);
+                    int[] action = service.ChooseAction(new UniqueEventID { Key = key, TimeStamp = timeStamp }, contextJson);
                     service.ReportReward(i / 100f, new UniqueEventID { Key = key, TimeStamp = timeStamp });
 
                     System.Threading.Thread.Sleep(1);
@@ -88,7 +88,7 @@ namespace ClientDecisionServiceSample
                     string key = uniqueKey + Guid.NewGuid().ToString();
 
                     var context = new FoodContext { Actions = new int[] { 1, 2, 3 }, UserLocation = baseLocation + rg.Next(100) };
-                    uint[] action = service.ChooseAction(new UniqueEventID { Key = key, TimeStamp = timeStamp }, context);
+                    int[] action = service.ChooseAction(new UniqueEventID { Key = key, TimeStamp = timeStamp }, context);
                     service.ReportReward(i / 100f, new UniqueEventID { Key = key, TimeStamp = timeStamp });
 
                     System.Threading.Thread.Sleep(1);
@@ -180,7 +180,7 @@ namespace ClientDecisionServiceSample
                     currentContext.UserLocation = location;
                     currentContext.Actions = Enumerable.Range(1, numActions).ToArray();
 
-                    uint[] action = service.ChooseAction(new UniqueEventID { Key = key, TimeStamp = timeStamp }, currentContext);
+                    int[] action = service.ChooseAction(new UniqueEventID { Key = key, TimeStamp = timeStamp }, currentContext);
 
                     counterTotal += 1;
 
@@ -257,7 +257,7 @@ namespace ClientDecisionServiceSample
                     var context = new FoodContext { Actions = new int[] { 1, 2, 3 }, UserLocation = locations[iL] };
                     string key = "fooditem " + Guid.NewGuid().ToString();
 
-                    uint action = (uint)(iE % numActions + 1);
+                    int action = iE % numActions + 1;
                     recorder.Record(null, null, new EpsilonGreedyState { Probability = 1.0f / numActions }, null, new UniqueEventID { Key = key, TimeStamp = timeStamp });
 
                     float cost = 0;
@@ -281,7 +281,7 @@ namespace ClientDecisionServiceSample
                     }
                     var label = new ContextualBanditLabel
                     {
-                        Action = action - 1,
+                        Action = (uint)(action - 1),
                         Cost = cost,
                         Probability = recorder.GetProb(key)
                     };
@@ -368,9 +368,9 @@ namespace ClientDecisionServiceSample
             return vwFileName;
         }
 
-        private static uint GetNumberOfActionsFromAdfContext(ADFContext context)
+        private static int GetNumberOfActionsFromAdfContext(ADFContext context)
         {
-            return (uint)context.ActionDependentFeatures.Count;
+            return context.ActionDependentFeatures.Count;
         }
 
         private static IReadOnlyCollection<ADFFeatures> GetFeaturesFromContext(ADFContext context)

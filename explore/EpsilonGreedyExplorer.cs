@@ -22,7 +22,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
     /// Epsilon greedy is also computationally cheap.
     /// </remarks>
     /// <typeparam name="TContext">The Context type.</typeparam>
-    public class EpsilonGreedyExplorer<TContext> : BaseVariableActionExplorer<TContext, uint, EpsilonGreedyState, uint>
+    public class EpsilonGreedyExplorer<TContext> : BaseVariableActionExplorer<TContext, int, EpsilonGreedyState, int>
     {
         private readonly float defaultEpsilon;
 
@@ -32,7 +32,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         /// <param name="defaultPolicy">A default function which outputs an action given a context.</param>
         /// <param name="epsilon">The probability of a random exploration.</param>
         /// <param name="numActions">The number of actions to randomize over.</param>
-        public EpsilonGreedyExplorer(IContextMapper<TContext, uint> defaultPolicy, float epsilon, uint numActions = uint.MaxValue)
+        public EpsilonGreedyExplorer(IContextMapper<TContext, int> defaultPolicy, float epsilon, int numActions = int.MaxValue)
             : base(defaultPolicy, numActions)
         {
             if (epsilon < 0 || epsilon > 1)
@@ -42,19 +42,19 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.defaultEpsilon = epsilon;
         }
 
-        public override Decision<uint, EpsilonGreedyState, uint> MapContext(ulong saltedSeed, TContext context, uint numActionsVariable)
+        public override Decision<int, EpsilonGreedyState, int> MapContext(ulong saltedSeed, TContext context, int numActionsVariable)
         {
             var random = new PRG(saltedSeed);
 
             // Invoke the default policy function to get the action
-            Decision<uint> policyDecisionTuple = this.contextMapper.MapContext(context);
+            Decision<int> policyDecisionTuple = this.contextMapper.MapContext(context);
 
             // If the policy isn't ready yet (each model not yet loaded), do 100% randomization
             if (policyDecisionTuple == null)
             {
                 // Get uniform random 1-based action ID
-                return Decision.Create<uint, EpsilonGreedyState, uint>(
-                    (uint)random.UniformInt(1, numActionsVariable),
+                return Decision.Create<int, EpsilonGreedyState, int>(
+                    random.UniformInt(1, numActionsVariable),
                     new EpsilonGreedyState
                     {
                         Epsilon = 1f,
@@ -65,7 +65,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                     shouldRecord: true);
             }
 
-            uint chosenAction = policyDecisionTuple.Value;
+            int chosenAction = policyDecisionTuple.Value;
             if (chosenAction == 0 || chosenAction > numActionsVariable)
             {
                 throw new ArgumentException("Action chosen by default policy is not within valid range.");
@@ -85,7 +85,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             else
             {
                 // Get uniform random 1-based action ID
-                uint actionId = (uint)random.UniformInt(1, numActionsVariable);
+                int actionId = random.UniformInt(1, numActionsVariable);
 
                 if (actionId == chosenAction)
                 {

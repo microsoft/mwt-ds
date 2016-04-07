@@ -29,7 +29,7 @@ namespace ClientDecisionServiceTest
             var policy = VWPolicy.StartWithPolicy(dsConfig, new TestSingleActionPolicy());
             using (var ds = DecisionServiceClient.Create(policy.WithEpsilonGreedy(epsilon: .2f, numActionsVariable: Constants.NumberOfActions)))
             {
-                uint chosenAction = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
+                int chosenAction = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
                 ds.Flush();
                 Assert.AreEqual(1, joinServer.RequestCount);
                 Assert.AreEqual(1, joinServer.EventBatchList.Count);
@@ -54,8 +54,8 @@ namespace ClientDecisionServiceTest
             var policy = VWPolicy.StartWithPolicy(dsConfig, new TestSingleActionPolicy());
             var ds = DecisionServiceClient.Create(policy.WithEpsilonGreedy(epsilon: .2f, numActionsVariable: Constants.NumberOfActions));
 
-            uint chosenAction1 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
-            uint chosenAction2 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
+            int chosenAction1 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
+            int chosenAction2 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
             ds.ReportReward(1.0f, new UniqueEventID { Key = uniqueKey });
             ds.ReportOutcome(JsonConvert.SerializeObject(new { value = "test outcome" }), new UniqueEventID { Key = uniqueKey });
 
@@ -78,7 +78,7 @@ namespace ClientDecisionServiceTest
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
 
             int numEvents = 1000;
-            var chosenActions = new ConcurrentBag<uint>();
+            var chosenActions = new ConcurrentBag<int>();
             var policy = VWPolicy.StartWithPolicy(dsConfig, new TestSingleActionPolicy());
             using (var ds = DecisionServiceClient.Create(policy.WithEpsilonGreedy(epsilon: .2f, numActionsVariable: Constants.NumberOfActions)))
             {
@@ -148,7 +148,7 @@ namespace ClientDecisionServiceTest
             var ranker = VWPolicy.StartWithRanker(dsConfig, new TestMultiActionPolicy());
             using (var ds = DecisionServiceClient.Create(ranker.WithTopSlotEpsilonGreedy(epsilon: .2f, numActionsVariable: Constants.NumberOfActions)))
             {
-                uint[] chosenActions = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
+                int[] chosenActions = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
                 ds.Flush();
                 Assert.AreEqual(1, joinServer.RequestCount);
                 Assert.AreEqual(1, joinServer.EventBatchList.Count);
@@ -172,8 +172,8 @@ namespace ClientDecisionServiceTest
             var ranker = VWPolicy.StartWithRanker(dsConfig, new TestMultiActionPolicy());
             using (var ds = DecisionServiceClient.Create(ranker.WithTopSlotEpsilonGreedy(epsilon: .2f, numActionsVariable: Constants.NumberOfActions)))
             {
-                uint[] chosenAction1 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
-                uint[] chosenAction2 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
+                int[] chosenAction1 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
+                int[] chosenAction2 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
                 ds.ReportReward(1.0f, new UniqueEventID { Key = uniqueKey });
                 ds.ReportOutcome(new { value = "test outcome" }, new UniqueEventID { Key = uniqueKey });
             }
@@ -211,7 +211,7 @@ namespace ClientDecisionServiceTest
             {
                 for (int i = 0; i < numEvents; i++)
                 {
-                    uint[] chosenAction1 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
+                    int[] chosenAction1 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
                 }
             }
             // Some events must have been dropped so the total count cannot be same as original
@@ -253,7 +253,7 @@ namespace ClientDecisionServiceTest
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
 
             int numEvents = 1000;
-            var chosenActions = new ConcurrentBag<uint[]>();
+            var chosenActions = new ConcurrentBag<int[]>();
             var ranker = VWPolicy.StartWithRanker(dsConfig, new TestMultiActionPolicy());
             using (var ds = DecisionServiceClient.Create(ranker.WithTopSlotEpsilonGreedy(epsilon: .2f, numActionsVariable: Constants.NumberOfActions)))
             {

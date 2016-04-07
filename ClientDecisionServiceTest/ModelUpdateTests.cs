@@ -21,7 +21,7 @@ namespace ClientDecisionServiceTest
             int numFeatures = 1024;
 
             var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken)
-            //explorer: new EpsilonGreedyExplorer<TestRcv1Context>(new TestRcv1ContextPolicy(), epsilon: 0.5f, numActions: (uint)numActions))
+            //explorer: new EpsilonGreedyExplorer<TestRcv1Context>(new TestRcv1ContextPolicy(), epsilon: 0.5f, numActions: (int)numActions))
             {
                 JoinServerType = JoinServerType.CustomSolution,
                 LoggingServiceAddress = MockJoinServer.MockJoinServerAddress,
@@ -30,7 +30,7 @@ namespace ClientDecisionServiceTest
             };
 
             var policy = VWPolicy.StartWithPolicy(dsConfig, new TestRcv1ContextPolicy());
-            using (var ds = DecisionServiceClient.Create(policy.WithEpsilonGreedy(epsilon: .5f, numActionsVariable: (uint)numActions)))
+            using (var ds = DecisionServiceClient.Create(policy.WithEpsilonGreedy(epsilon: .5f, numActionsVariable: numActions)))
             {
                 string uniqueKey = "eventid";
 
@@ -52,7 +52,7 @@ namespace ClientDecisionServiceTest
 
                     DateTime timeStamp = DateTime.UtcNow;
 
-                    uint action = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, context);
+                    int action = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, context);
 
                     // verify the actions are in the expected range
                     Assert.IsTrue(action >= 1 && action <= numActions);

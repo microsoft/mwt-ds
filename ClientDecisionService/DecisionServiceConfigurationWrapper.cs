@@ -32,20 +32,20 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
     public static class DecisionServiceConfigurationWrapperExtensions
     {
-        public static ExploreConfigurationWrapper<TContext, uint, EpsilonGreedyState, uint>
+        public static ExploreConfigurationWrapper<TContext, int, EpsilonGreedyState, int>
             WithEpsilonGreedy<TContext>(
-                this DecisionServiceConfigurationWrapper<TContext, uint> mapper,
+                this DecisionServiceConfigurationWrapper<TContext, int> mapper,
                 float epsilon,
-                uint numActionsVariable = uint.MaxValue)
+                int numActionsVariable = int.MaxValue)
         {
             return ExploreConfigurationWrapper.Create(mapper, new EpsilonGreedyExplorer<TContext>(mapper.DefaultPolicy, epsilon, numActionsVariable));
         }
 
-        public static ExploreConfigurationWrapper<TContext, uint[], EpsilonGreedyState, uint[]>
+        public static ExploreConfigurationWrapper<TContext, int[], EpsilonGreedyState, int[]>
             WithTopSlotEpsilonGreedy<TContext>(
-                this DecisionServiceConfigurationWrapper<TContext, uint[]> mapper,
+                this DecisionServiceConfigurationWrapper<TContext, int[]> mapper,
                 float epsilon,
-                uint numActionsVariable = uint.MaxValue)
+                int numActionsVariable = int.MaxValue)
         {
             var explorer = ExplorerFactory.CreateTopSlot<TContext, EpsilonGreedyExplorer<TContext>, EpsilonGreedyState>(
                 mapper.DefaultPolicy,

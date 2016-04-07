@@ -16,15 +16,15 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 	{
         private IContextMapper<TContext, TValue>[] defaultPolicyFunctions;
         private bool explore;
-        private readonly uint bags;
-	    private readonly uint numActionsFixed;
+        private readonly int bags;
+	    private readonly int numActionsFixed;
 
 		/// <summary>
 		/// The constructor is the only public member, because this should be used with the MwtExplorer.
 		/// </summary>
 		/// <param name="defaultPolicies">A set of default policies to be uniform random over.</param>
 		/// <param name="numActions">The number of actions to randomize over.</param>
-        protected BaseBootstrapExplorer(IContextMapper<TContext, TValue>[] defaultPolicies, uint numActions = uint.MaxValue)
+        protected BaseBootstrapExplorer(IContextMapper<TContext, TValue>[] defaultPolicies, int numActions = int.MaxValue)
 		{
             VariableActionHelper.ValidateInitialNumberOfActions(numActions);
 
@@ -34,7 +34,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 		    }
 
             this.defaultPolicyFunctions = defaultPolicies;
-            this.bags = (uint)this.defaultPolicyFunctions.Length;
+            this.bags = this.defaultPolicyFunctions.Length;
             this.numActionsFixed = numActions;
             this.explore = true;
         }
@@ -54,7 +54,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             var random = new PRG(saltedSeed);
 
             // Select bag
-            uint chosenBag = random.UniformInt(0, this.bags - 1);
+            int chosenBag = random.UniformInt(0, this.bags - 1);
 
             // Invoke the default policy function to get the action
             Decision<TValue> chosenDecision = null; // TODO
@@ -63,8 +63,8 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             if (this.explore)
             {
                 Decision<TValue> decisionFromBag = null;
-                uint actionFromBag = 0;
-                uint[] actionsSelected = Enumerable.Repeat<uint>(0, (int)this.numActionsFixed).ToArray();
+                int actionFromBag = 0;
+                int[] actionsSelected = Enumerable.Repeat<int>(0, this.numActionsFixed).ToArray();
                 // Invoke the default policy function to get the action
                 for (int currentBag = 0; currentBag < this.bags; currentBag++)
                 {
@@ -102,7 +102,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             return Decision.Create(chosenDecision.Value, explorerState, chosenDecision, true);
         }
 
-        protected abstract uint GetTopAction(TValue action);
+        protected abstract int GetTopAction(TValue action);
 
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
@@ -123,29 +123,29 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         }
     }
 
-    public class BootstrapExplorer<TContext> : BaseBootstrapExplorer<TContext, uint>
+    public class BootstrapExplorer<TContext> : BaseBootstrapExplorer<TContext, int>
     {
-        public BootstrapExplorer(IContextMapper<TContext, uint>[] defaultPolicies, 
-            uint numActions = uint.MaxValue)
+        public BootstrapExplorer(IContextMapper<TContext, int>[] defaultPolicies, 
+            int numActions = int.MaxValue)
             : base(defaultPolicies, numActions)
         {
         }
 
-        protected override uint GetTopAction(uint action)
+        protected override int GetTopAction(int action)
         {
             return action;
         }
     }
 
-    public class BootstrapTopSlotExplorer<TContext> : BaseBootstrapExplorer<TContext, uint[]>
+    public class BootstrapTopSlotExplorer<TContext> : BaseBootstrapExplorer<TContext, int[]>
     {
-        public BootstrapTopSlotExplorer(IContextMapper<TContext, uint[]>[] defaultPolicies,
-            uint numActions = uint.MaxValue)
+        public BootstrapTopSlotExplorer(IContextMapper<TContext, int[]>[] defaultPolicies,
+            int numActions = int.MaxValue)
             : base(defaultPolicies, numActions)
         {
         }
 
-        protected override uint GetTopAction(uint[] action)
+        protected override int GetTopAction(int[] action)
         {
             return action[0];
         }

@@ -14,13 +14,13 @@ namespace ClientDecisionServiceTest
     [TestClass]
     public class InitialFullExploration
     {
-        private class MyRecorder : IRecorder<string, uint[], EpsilonGreedyState>
+        private class MyRecorder : IRecorder<string, int[], EpsilonGreedyState>
         {
             public EpsilonGreedyState LastExplorerState { get; set; }
 
             public object LastMapperState { get; set; }
 
-            public void Record(string context, uint[] value, EpsilonGreedyState explorerState, object mapperState, UniqueEventID uniqueKey)
+            public void Record(string context, int[] value, EpsilonGreedyState explorerState, object mapperState, UniqueEventID uniqueKey)
             {
                 this.LastExplorerState = explorerState;
                 this.LastMapperState = mapperState;

@@ -48,7 +48,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
     public interface IVariableActionExplorer<TContext, TValue, TExplorerState, TMapperValue>
     {
         // TODO: review xml docs
-        Decision<TValue, TExplorerState, TMapperValue> MapContext(ulong saltedSeed, TContext context, uint numActionsVariable);
+        Decision<TValue, TExplorerState, TMapperValue> MapContext(ulong saltedSeed, TContext context, int numActionsVariable);
     }
 
     public interface IContextMapper<in TContext, TValue>
@@ -74,11 +74,11 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         void Update(TModel model);
     }
 
-    public interface IPolicy<in TContext> : IContextMapper<TContext, uint>
+    public interface IPolicy<in TContext> : IContextMapper<TContext, int>
     {
     }
 
-    public interface IRanker<in TContext> : IContextMapper<TContext, uint[]>
+    public interface IRanker<in TContext> : IContextMapper<TContext, int[]>
     {
     }
 

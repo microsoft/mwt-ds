@@ -73,5 +73,10 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             uint ret = low + (uint)((V >> 25) % (high - low + 1));
             return ret;
         }
+    
+        public int UniformInt(int low, int high)
+        {
+            return (int)UniformInt((uint)low, (uint)high);
+        }
     }
 }

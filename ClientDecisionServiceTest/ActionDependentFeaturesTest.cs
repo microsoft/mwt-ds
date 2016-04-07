@@ -32,7 +32,7 @@ namespace ClientDecisionServiceTest
                 for (int i = 1; i <= 100; i++)
                 {
                     var adfContext = new TestADFContext(i);
-                    uint[] action = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, adfContext);
+                    int[] action = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, adfContext);
 
                     Assert.AreEqual(i, action.Length);
 
@@ -83,7 +83,7 @@ namespace ClientDecisionServiceTest
                     int numActions = rg.Next(5, 20);
                     var context = TestADFContextWithFeatures.CreateRandom(numActions, rg);
 
-                    uint[] action = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, context);
+                    int[] action = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, context);
 
                     Assert.AreEqual(numActions, action.Length);
 

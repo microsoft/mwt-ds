@@ -7,27 +7,27 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
-    public class TopSlotExplorer<TContext, TExplorer, TExplorerState> : BaseExplorer<TContext, uint[], TExplorerState, uint[]>
-        where TExplorer : IVariableActionExplorer<TContext, uint, TExplorerState, uint>
+    public class TopSlotExplorer<TContext, TExplorer, TExplorerState> : BaseExplorer<TContext, int[], TExplorerState, int[]>
+        where TExplorer : IVariableActionExplorer<TContext, int, TExplorerState, int>
     {
         private class TopSlotPolicy : IPolicy<TContext>
         {
-            private readonly IContextMapper<TContext, uint[]> policy;
+            private readonly IContextMapper<TContext, int[]> policy;
 
             // TODO: review if we can remove this ThreadLocal
-            private ThreadLocal<uint?> action = new ThreadLocal<uint?>();
+            private ThreadLocal<int?> action = new ThreadLocal<int?>();
 
-            internal TopSlotPolicy(IContextMapper<TContext, uint[]> policy)
+            internal TopSlotPolicy(IContextMapper<TContext, int[]> policy)
             {
                 this.policy = policy;
             }
 
-            public void UpdateAction(uint? action)
+            public void UpdateAction(int? action)
             {
                 this.action.Value = action;
             }
 
-            public Decision<uint> MapContext(TContext context)
+            public Decision<int> MapContext(TContext context)
             {
                 return this.action.Value ?? null;
             }
@@ -37,9 +37,9 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         private readonly TopSlotPolicy topSlotPolicy;
         private readonly INumberOfActionsProvider<TContext> numberOfActionsProvider;
 
-        public TopSlotExplorer(IContextMapper<TContext, uint[]> defaultPolicy,
+        public TopSlotExplorer(IContextMapper<TContext, int[]> defaultPolicy,
             Func<IPolicy<TContext>, TExplorer> singleExplorerFactory, 
-            uint numActions = uint.MaxValue)
+            int numActions = int.MaxValue)
             : base(defaultPolicy, numActions)
         {
             this.topSlotPolicy = new TopSlotPolicy(defaultPolicy);
@@ -47,22 +47,22 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.numberOfActionsProvider = defaultPolicy as INumberOfActionsProvider<TContext>;
         }
 
-        public override Decision<uint[], TExplorerState, uint[]> MapContext(ulong saltedSeed, TContext context)
+        public override Decision<int[], TExplorerState, int[]> MapContext(ulong saltedSeed, TContext context)
         {
             var policyDecision = this.contextMapper.MapContext(context);
 
-            uint? topAction;
-            uint numActions;
+            int? topAction;
+            int numActions;
             if (policyDecision == null)
             {
                 // handle policy that's not loaded yet
                 if (this.numberOfActionsProvider == null)
                     throw new InvalidOperationException(string.Format("Policy '{0}' is unable to provide decision AND does not implement INumberOfActionsProvider", this.contextMapper.GetType()));
 
-                numActions = (uint)this.numberOfActionsProvider.GetNumberOfActions(context);
+                numActions = this.numberOfActionsProvider.GetNumberOfActions(context);
                 topAction = null;
                 policyDecision = Decision.Create(
-                    Enumerable.Range(1, (int)numActions).Select(a => (uint)a).ToArray());
+                    Enumerable.Range(1, numActions).ToArray());
             }
             else
             {
@@ -71,7 +71,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                     throw new ArgumentException("Actions chosen by default policy must not be empty.");
                 }
 
-                numActions = (uint)policyDecision.Value.Length;
+                numActions = policyDecision.Value.Length;
                 topAction = policyDecision.Value[0];
             }
 

@@ -14,13 +14,13 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         public float Epsilon { get; set; }
 
         [JsonProperty(PropertyName = "r")]
-        public uint[] Ranking { get; set; }
+        public int[] Ranking { get; set; }
 
         [JsonProperty(PropertyName = "isExplore")]
         public bool IsExplore { get; set; }
     }
 
-    public sealed class EpsilonGreedySlateExplorer<TContext> : BaseExplorer<TContext, uint[], EpsilonGreedySlateState, uint[]>
+    public sealed class EpsilonGreedySlateExplorer<TContext> : BaseExplorer<TContext, int[], EpsilonGreedySlateState, int[]>
     {        
         private readonly float defaultEpsilon;
         private readonly INumberOfActionsProvider<TContext> numberOfActionsProvider;
@@ -31,52 +31,52 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         /// <param name="defaultPolicy">A default function which outputs an action given a context.</param>
         /// <param name="epsilon">The probability of a random exploration.</param>
         public EpsilonGreedySlateExplorer(IRanker<TContext> defaultPolicy, float epsilon)
-            : base(defaultPolicy, uint.MaxValue) // TODO: use int? instead of uint.maxvalue
+            : base(defaultPolicy, int.MaxValue) // TODO: use int? instead of int.maxvalue
         {
             this.defaultEpsilon = epsilon;
             this.numberOfActionsProvider = defaultPolicy as INumberOfActionsProvider<TContext>;
         }
 
-        public override Decision<uint[], EpsilonGreedySlateState, uint[]> MapContext(ulong saltedSeed, TContext context)
+        public override Decision<int[], EpsilonGreedySlateState, int[]> MapContext(ulong saltedSeed, TContext context)
         {
             float epsilon = this.explore ? this.defaultEpsilon : 0f;
-            uint numActionsVariable;
+            int numActionsVariable;
 
             // Invoke the default policy function to get the action
-            Decision<uint[]> policyDecisionTuple = this.contextMapper.MapContext(context);
+            Decision<int[]> policyDecisionTuple = this.contextMapper.MapContext(context);
             if (policyDecisionTuple == null)
             {
                 if (this.numberOfActionsProvider == null)
                     throw new InvalidOperationException(string.Format("Ranker '{0}' is unable to provide decision AND does not implement INumberOfActionsProvider", this.contextMapper.GetType()));
 
-                numActionsVariable = (uint)this.numberOfActionsProvider.GetNumberOfActions(context);
+                numActionsVariable = this.numberOfActionsProvider.GetNumberOfActions(context);
                 epsilon = 1f;
 
                 policyDecisionTuple = Decision.Create(
-                    Enumerable.Range(1, (int)numActionsVariable).Select(a => (uint)a).ToArray());
+                    Enumerable.Range(1, numActionsVariable).ToArray());
             }
             else
             {
-                numActionsVariable = (uint)policyDecisionTuple.Value.Length; ;
+                numActionsVariable = policyDecisionTuple.Value.Length;
                 MultiActionHelper.ValidateActionList(policyDecisionTuple.Value);
             }
 
             var random = new PRG(saltedSeed);
             
-            uint[] chosenAction;
+            int[] chosenAction;
             bool isExplore;
 
             if (random.UniformUnitInterval() < epsilon)
             {
                 // 1 ... n
-                chosenAction = Enumerable.Range(1, (int)numActionsVariable).Select(u => (uint)u).ToArray();
+                chosenAction = Enumerable.Range(1, numActionsVariable).ToArray();
 
                 // 0 ... n - 2
                 for (int i = 0; i < numActionsVariable - 1; i++)
 			    {
-                    int swapIndex = (int)random.UniformInt((uint)i, numActionsVariable - 1);
+                    int swapIndex = random.UniformInt(i, numActionsVariable - 1);
 
-                    uint temp = chosenAction[swapIndex];
+                    int temp = chosenAction[swapIndex];
                     chosenAction[swapIndex] = chosenAction[i];
                     chosenAction[i] = temp;
 			    }

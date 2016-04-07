@@ -11,7 +11,7 @@ using VW;
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
     internal class VWPolicy<TContext> 
-        : VWBaseContextMapper<VowpalWabbitThreadedPrediction<TContext>, VowpalWabbit<TContext>, TContext, uint>, IPolicy<TContext>
+        : VWBaseContextMapper<VowpalWabbitThreadedPrediction<TContext>, VowpalWabbit<TContext>, TContext, int>, IPolicy<TContext>
     {
         /// <summary>
         /// Constructor using a memory stream.
@@ -22,9 +22,9 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         {
         }
 
-        protected override Decision<uint> MapContext(VowpalWabbit<TContext> vw, TContext context)
+        protected override Decision<int> MapContext(VowpalWabbit<TContext> vw, TContext context)
         {
-            var action = (uint)vw.Predict(context, VowpalWabbitPredictionType.CostSensitive);
+            var action = (int)vw.Predict(context, VowpalWabbitPredictionType.CostSensitive);
             var state = new VWState { ModelId = vw.Native.ID };
 
             return Decision.Create(action, state);
@@ -33,31 +33,31 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
     public static class VWPolicy
     {
-        public static DecisionServiceConfigurationWrapper<string, uint> CreateJsonPolicy(DecisionServiceConfiguration config)
+        public static DecisionServiceConfigurationWrapper<string, int> CreateJsonPolicy(DecisionServiceConfiguration config)
         {
             config.UseJsonContext = true;
             return VWPolicy.Wrap(new VWJsonPolicy(config.ModelStream), config);
         }
 
-        public static DecisionServiceConfigurationWrapper<string, uint[]> CreateJsonRanker(DecisionServiceConfiguration config)
+        public static DecisionServiceConfigurationWrapper<string, int[]> CreateJsonRanker(DecisionServiceConfiguration config)
         {
             config.UseJsonContext = true;
             return VWPolicy.Wrap(new VWJsonRanker(config.ModelStream), config);
         }
 
-        public static DecisionServiceConfigurationWrapper<TContext, uint> CreatePolicy<TContext>(DecisionServiceConfiguration config)
+        public static DecisionServiceConfigurationWrapper<TContext, int> CreatePolicy<TContext>(DecisionServiceConfiguration config)
         {
             config.UseJsonContext = false;
             return VWPolicy.Wrap(new VWPolicy<TContext>(config.ModelStream, config.FeatureDiscovery), config);
         }
 
-        public static DecisionServiceConfigurationWrapper<TContext, uint[]> CreateRanker<TContext>(DecisionServiceConfiguration config)
+        public static DecisionServiceConfigurationWrapper<TContext, int[]> CreateRanker<TContext>(DecisionServiceConfiguration config)
         {
             config.UseJsonContext = false;
             return VWPolicy.Wrap(new VWRanker<TContext>(config.ModelStream, config.FeatureDiscovery), config);
         }
 
-        public static DecisionServiceConfigurationWrapper<TContext, uint[]> CreateRanker<TContext, TActionDependentFeature>(
+        public static DecisionServiceConfigurationWrapper<TContext, int[]> CreateRanker<TContext, TActionDependentFeature>(
             DecisionServiceConfiguration config,
             Func<TContext, IReadOnlyCollection<TActionDependentFeature>> getContextFeaturesFunc)
         {
@@ -65,25 +65,25 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             return VWPolicy.Wrap(new VWRanker<TContext, TActionDependentFeature>(getContextFeaturesFunc, config.ModelStream, config.FeatureDiscovery), config);
         }
 
-        public static DecisionServiceConfigurationWrapper<string, uint> StartWithJsonPolicy(
+        public static DecisionServiceConfigurationWrapper<string, int> StartWithJsonPolicy(
             DecisionServiceConfiguration config,
-            IContextMapper<string, uint> initialPolicy = null)
+            IContextMapper<string, int> initialPolicy = null)
         {
             config.UseJsonContext = true;
             return VWPolicy.Wrap(MultiPolicy.Create(new VWJsonPolicy(config.ModelStream), initialPolicy), config);
         }
 
-        public static DecisionServiceConfigurationWrapper<string, uint[]> StartWithJsonRanker(
+        public static DecisionServiceConfigurationWrapper<string, int[]> StartWithJsonRanker(
             DecisionServiceConfiguration config,
-            IContextMapper<string, uint[]> initialPolicy = null)
+            IContextMapper<string, int[]> initialPolicy = null)
         {
             config.UseJsonContext = true;
             return VWPolicy.Wrap(MultiPolicy.Create(new VWJsonRanker(config.ModelStream), initialPolicy), config);
         }
 
-        public static DecisionServiceConfigurationWrapper<TContext, uint> StartWithPolicy<TContext>(
+        public static DecisionServiceConfigurationWrapper<TContext, int> StartWithPolicy<TContext>(
             DecisionServiceConfiguration config,
-            IContextMapper<TContext, uint> initialPolicy = null)
+            IContextMapper<TContext, int> initialPolicy = null)
         {
             config.UseJsonContext = false;
             return VWPolicy.Wrap(MultiPolicy.Create(
@@ -91,9 +91,9 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 config);
         }
 
-        public static DecisionServiceConfigurationWrapper<TContext, uint[]> StartWithRanker<TContext>(
+        public static DecisionServiceConfigurationWrapper<TContext, int[]> StartWithRanker<TContext>(
             DecisionServiceConfiguration config,
-            IContextMapper<TContext, uint[]> initialPolicy = null)
+            IContextMapper<TContext, int[]> initialPolicy = null)
         {
             config.UseJsonContext = false;
             return VWPolicy.Wrap(MultiPolicy.Create(
@@ -101,10 +101,10 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 config);
         }
 
-        public static DecisionServiceConfigurationWrapper<TContext, uint[]> StartWithRanker<TContext, TActionDependentFeature>(
+        public static DecisionServiceConfigurationWrapper<TContext, int[]> StartWithRanker<TContext, TActionDependentFeature>(
             DecisionServiceConfiguration config,
             Func<TContext, IReadOnlyCollection<TActionDependentFeature>> getContextFeaturesFunc,
-            IContextMapper<TContext, uint[]> initialPolicy = null)
+            IContextMapper<TContext, int[]> initialPolicy = null)
         {
             config.UseJsonContext = false;
             return VWPolicy.Wrap(MultiPolicy.Create(

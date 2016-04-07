@@ -9,7 +9,7 @@ using VW.Serializer;
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.VW
 {
     internal class VWRanker<TContext> :
-        VWBaseContextMapper<VowpalWabbitThreadedPrediction<TContext>, VowpalWabbit<TContext>, TContext, uint[]>,
+        VWBaseContextMapper<VowpalWabbitThreadedPrediction<TContext>, VowpalWabbit<TContext>, TContext, int[]>,
         IRanker<TContext>, INumberOfActionsProvider<TContext>
     {
         private readonly IVowpalWabbitMultiExampleSerializerCompiler<TContext> serializer;
@@ -25,12 +25,12 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.VW
                 as IVowpalWabbitMultiExampleSerializerCompiler<TContext>;
         }
 
-        protected override Decision<uint[]> MapContext(VowpalWabbit<TContext> vw, TContext context)
+        protected override Decision<int[]> MapContext(VowpalWabbit<TContext> vw, TContext context)
         {
             int[] vwMultilabelPredictions = vw.Predict(context, VowpalWabbitPredictionType.Multilabel);
 
             // VW multi-label predictions are 0-based
-            var actions = vwMultilabelPredictions.Select(a => (uint)(a + 1)).ToArray();
+            var actions = vwMultilabelPredictions.Select(a => a + 1).ToArray();
             var state = new VWState { ModelId = vw.Native.ID };
 
             return Decision.Create(actions, state);
@@ -43,7 +43,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.VW
     }
 
     internal class VWRanker<TContext, TActionDependentFeature> :
-        VWBaseContextMapper<VowpalWabbitThreadedPrediction<TContext, TActionDependentFeature>, VowpalWabbit<TContext, TActionDependentFeature>, TContext, uint[]>,
+        VWBaseContextMapper<VowpalWabbitThreadedPrediction<TContext, TActionDependentFeature>, VowpalWabbit<TContext, TActionDependentFeature>, TContext, int[]>,
         IRanker<TContext>, INumberOfActionsProvider<TContext>
     {
         private readonly Func<TContext, IReadOnlyCollection<TActionDependentFeature>> getContextFeaturesFunc;
@@ -61,7 +61,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.VW
             this.getContextFeaturesFunc = getContextFeaturesFunc;
         }
 
-        protected override Decision<uint[]> MapContext(VowpalWabbit<TContext, TActionDependentFeature> vw, TContext context)
+        protected override Decision<int[]> MapContext(VowpalWabbit<TContext, TActionDependentFeature> vw, TContext context)
         {
             IReadOnlyCollection<TActionDependentFeature> features = this.getContextFeaturesFunc(context);
 
@@ -69,7 +69,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.VW
             ActionDependentFeature<TActionDependentFeature>[] vwMultilabelPredictions = vw.Predict(context, features);
 
             // VW multi-label predictions are 0-based
-            var actions = vwMultilabelPredictions.Select(p => (uint)(p.Index + 1)).ToArray();
+            var actions = vwMultilabelPredictions.Select(p => p.Index + 1).ToArray();
             var state = new VWState { ModelId = vw.Native.ID };
 
             return Decision.Create(actions, state);

@@ -11,9 +11,9 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
     {
         protected IContextMapper<TContext, TMapperValue> contextMapper;
         protected bool explore;
-        protected readonly uint numActionsFixed;
+        protected readonly int numActionsFixed;
 
-        protected BaseExplorer(IContextMapper<TContext, TMapperValue> defaultPolicy, uint numActions)
+        protected BaseExplorer(IContextMapper<TContext, TMapperValue> defaultPolicy, int numActions)
         {
             if (defaultPolicy == null)
                 throw new ArgumentNullException("defaultPolicy");
@@ -59,8 +59,8 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
     public abstract class BaseVariableActionExplorer<TContext, TValue, TExplorerState, TMapperValue>
        : BaseExplorer<TContext, TValue, TExplorerState, TMapperValue>, IVariableActionExplorer<TContext, TValue, TExplorerState, TMapperValue>
     {
-        // TODO: change uint.max to nullable
-        protected BaseVariableActionExplorer(IContextMapper<TContext, TMapperValue> defaultPolicy, uint numActions = uint.MaxValue)
+        // TODO: change int.max to nullable
+        protected BaseVariableActionExplorer(IContextMapper<TContext, TMapperValue> defaultPolicy, int numActions = int.MaxValue)
             : base(defaultPolicy, numActions) { }
 
         public override Decision<TValue, TExplorerState, TMapperValue> MapContext(ulong saltedSeed, TContext context)
@@ -68,6 +68,6 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             return this.MapContext(saltedSeed, context, this.numActionsFixed);
         }
 
-        public abstract Decision<TValue, TExplorerState, TMapperValue> MapContext(ulong saltedSeed, TContext context, uint numActionsVariable);
+        public abstract Decision<TValue, TExplorerState, TMapperValue> MapContext(ulong saltedSeed, TContext context, int numActionsVariable);
     }
 }
