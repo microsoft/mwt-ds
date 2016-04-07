@@ -25,6 +25,11 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 sendModelHandler(sender, model);
             }
         }
+
+        public DecisionServiceClient<TContext, TValue, TExplorerState, TMapperValue> CreateDecisionServiceClient(IRecorder<TContext, TValue, TExplorerState> recorder = null)
+        {
+            return DecisionServiceClient.Create(this, recorder);
+        }
     }
 
     public class ExploreConfigurationWrapper

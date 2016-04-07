@@ -44,10 +44,28 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 
         public override Decision<uint, EpsilonGreedyState, uint> MapContext(ulong saltedSeed, TContext context, uint numActionsVariable)
         {
+            var random = new PRG(saltedSeed);
+
             // Invoke the default policy function to get the action
             Decision<uint> policyDecisionTuple = this.contextMapper.MapContext(context);
-            uint chosenAction = policyDecisionTuple.Value;
 
+            // If the policy isn't ready yet (each model not yet loaded), do 100% randomization
+            if (policyDecisionTuple == null)
+            {
+                // Get uniform random 1-based action ID
+                return Decision.Create<uint, EpsilonGreedyState, uint>(
+                    (uint)random.UniformInt(1, numActionsVariable),
+                    new EpsilonGreedyState
+                    {
+                        Epsilon = 1f,
+                        IsExplore = true,
+                        Probability = 1f
+                    },
+                    policyDecision: null, 
+                    shouldRecord: true);
+            }
+
+            uint chosenAction = policyDecisionTuple.Value;
             if (chosenAction == 0 || chosenAction > numActionsVariable)
             {
                 throw new ArgumentException("Action chosen by default policy is not within valid range.");
@@ -56,9 +74,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             float actionProbability;
             bool isExplore;
 
-            var random = new PRG(saltedSeed);
             float epsilon = explore ? this.defaultEpsilon : 0f;
-
             float baseProbability = epsilon / numActionsVariable; // uniform probability
 
             if (random.UniformUnitInterval() < 1f - epsilon)

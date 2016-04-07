@@ -23,6 +23,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
     public sealed class EpsilonGreedySlateExplorer<TContext> : BaseExplorer<TContext, uint[], EpsilonGreedySlateState, uint[]>
     {        
         private readonly float defaultEpsilon;
+        private readonly INumberOfActionsProvider<TContext> numberOfActionsProvider;
 
         /// <summary>
         /// The constructor is the only public member, because this should be used with the MwtExplorer.
@@ -33,22 +34,37 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             : base(defaultPolicy, uint.MaxValue) // TODO: use int? instead of uint.maxvalue
         {
             this.defaultEpsilon = epsilon;
+            this.numberOfActionsProvider = defaultPolicy as INumberOfActionsProvider<TContext>;
         }
 
         public override Decision<uint[], EpsilonGreedySlateState, uint[]> MapContext(ulong saltedSeed, TContext context)
         {
+            float epsilon = this.explore ? this.defaultEpsilon : 0f;
+            uint numActionsVariable;
+
             // Invoke the default policy function to get the action
             Decision<uint[]> policyDecisionTuple = this.contextMapper.MapContext(context);
+            if (policyDecisionTuple == null)
+            {
+                if (this.numberOfActionsProvider == null)
+                    throw new InvalidOperationException(string.Format("Ranker '{0}' is unable to provide decision AND does not implement INumberOfActionsProvider", this.contextMapper.GetType()));
 
-            MultiActionHelper.ValidateActionList(policyDecisionTuple.Value);
+                numActionsVariable = (uint)this.numberOfActionsProvider.GetNumberOfActions(context);
+                epsilon = 1f;
+
+                policyDecisionTuple = Decision.Create(
+                    Enumerable.Range(1, (int)numActionsVariable).Select(a => (uint)a).ToArray());
+            }
+            else
+            {
+                numActionsVariable = (uint)policyDecisionTuple.Value.Length; ;
+                MultiActionHelper.ValidateActionList(policyDecisionTuple.Value);
+            }
 
             var random = new PRG(saltedSeed);
-            float epsilon = this.explore ? this.defaultEpsilon : 0f;
-
+            
             uint[] chosenAction;
             bool isExplore;
-
-            uint numActionsVariable = (uint)policyDecisionTuple.Value.Length;
 
             if (random.UniformUnitInterval() < epsilon)
             {

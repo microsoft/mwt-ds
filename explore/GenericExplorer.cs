@@ -37,6 +37,16 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 
             // Invoke the default scorer function
             Decision<float[]> policyDecision = this.contextMapper.MapContext(context);
+            if (policyDecision == null)
+                return Decision.Create<uint, GenericExplorerState, float[]>(
+                    (uint)random.UniformInt(1, this.numActionsFixed),
+                    new GenericExplorerState
+                    {
+                        Probability = 1f
+                    },
+                    policyDecision: null,
+                    shouldRecord: true);
+
             float[] weights = policyDecision.Value;
 
             uint numWeights = (uint)weights.Length;

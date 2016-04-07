@@ -72,17 +72,16 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                     // if we trigger into VW passing an index to invoke bootstrap scoring, and if VW model changes while we are doing so, 
                     // we could end up calling the wrong bag
                     decisionFromBag = this.defaultPolicyFunctions[currentBag].MapContext(context);
+                    if (decisionFromBag == null)
+                        throw new NotSupportedException("Policy must make a decision.");
+
                     actionFromBag = this.GetTopAction(decisionFromBag.Value);
 
                     if (actionFromBag == 0 || actionFromBag > this.numActionsFixed)
-                    {
                         throw new ArgumentException("Action chosen by default policy is not within valid range.");
-                    }
 
                     if (currentBag == chosenBag)
-                    {
                         chosenDecision = decisionFromBag;
-                    }
 
                     //this won't work if actions aren't 0 to Count
                     actionsSelected[actionFromBag - 1]++; // action id is one-based

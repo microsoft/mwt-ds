@@ -4,12 +4,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using VW;
+using VW.Serializer;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.VW
 {
-    internal class VWRanker<TContext>
-        : VWBaseContextMapper<VowpalWabbitThreadedPrediction<TContext>, VowpalWabbit<TContext>, TContext, uint[]>, IRanker<TContext>
+    internal class VWRanker<TContext> :
+        VWBaseContextMapper<VowpalWabbitThreadedPrediction<TContext>, VowpalWabbit<TContext>, TContext, uint[]>,
+        IRanker<TContext>, INumberOfActionsProvider<TContext>
     {
+        private readonly IVowpalWabbitMultiExampleSerializerCompiler<TContext> serializer;
+
         /// <summary>
         /// Constructor using a memory stream.
         /// </summary>
@@ -17,6 +21,8 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.VW
         internal VWRanker(Stream vwModelStream = null, VowpalWabbitFeatureDiscovery featureDiscovery = VowpalWabbitFeatureDiscovery.Json)
             : base(vwModelStream, featureDiscovery)
         {
+            this.serializer = VowpalWabbitSerializerFactory.CreateSerializer<TContext>(new VowpalWabbitSettings(featureDiscovery: featureDiscovery))
+                as IVowpalWabbitMultiExampleSerializerCompiler<TContext>;
         }
 
         protected override Decision<uint[]> MapContext(VowpalWabbit<TContext> vw, TContext context)
@@ -29,10 +35,16 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.VW
 
             return Decision.Create(actions, state);
         }
+
+        public int GetNumberOfActions(TContext context)
+        {
+            return this.serializer.GetNumberOfActionDependentExamples(context);
+        }
     }
 
-    internal class VWRanker<TContext, TActionDependentFeature>
-        : VWBaseContextMapper<VowpalWabbitThreadedPrediction<TContext, TActionDependentFeature>, VowpalWabbit<TContext, TActionDependentFeature>, TContext, uint[]>, IRanker<TContext>
+    internal class VWRanker<TContext, TActionDependentFeature> :
+        VWBaseContextMapper<VowpalWabbitThreadedPrediction<TContext, TActionDependentFeature>, VowpalWabbit<TContext, TActionDependentFeature>, TContext, uint[]>,
+        IRanker<TContext>, INumberOfActionsProvider<TContext>
     {
         private readonly Func<TContext, IReadOnlyCollection<TActionDependentFeature>> getContextFeaturesFunc;
 
@@ -61,6 +73,12 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.VW
             var state = new VWState { ModelId = vw.Native.ID };
 
             return Decision.Create(actions, state);
+        }
+
+        public int GetNumberOfActions(TContext context)
+        {
+            var adfs = this.getContextFeaturesFunc(context);
+            return adfs == null ? 0 : adfs.Count;
         }
     }
 

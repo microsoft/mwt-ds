@@ -54,7 +54,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 this.vwPool.UpdateModel(model);
         }
 
-
         /// <summary>
         /// Dispose the object and clean up any resources.
         /// </summary>

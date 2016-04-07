@@ -45,8 +45,8 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             Decision<uint> policyDecision = null;
             uint chosenAction = 0;
             float actionProbability = 0f;
-            bool shouldRecordDecision;
-            bool isExplore = false;
+            bool shouldRecordDecision = true;
+            bool isExplore = true;
             uint tau = this.tau;
 
             lock (this.lockObject)
@@ -54,25 +54,32 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                 if (this.tau > 0 && this.explore)
                 {
                     this.tau--;
-                    uint actionId = random.UniformInt(1, numActionsVariable);
+                    chosenAction = random.UniformInt(1, numActionsVariable);
                     actionProbability = 1f / numActionsVariable;
-                    chosenAction = actionId;
-                    shouldRecordDecision = true;
                     isExplore = true;
                 }
                 else
                 {
                     // Invoke the default policy function to get the action
                     policyDecision = this.contextMapper.MapContext(context);
-                    chosenAction = policyDecision.Value;
-
-                    if (chosenAction == 0 || chosenAction > numActionsVariable)
+                    if (policyDecision != null)
                     {
-                        throw new ArgumentException("Action chosen by default policy is not within valid range.");
-                    }
+                        chosenAction = policyDecision.Value;
 
-                    actionProbability = 1f;
-                    shouldRecordDecision = false;
+                        if (chosenAction == 0 || chosenAction > numActionsVariable)
+                        {
+                            throw new ArgumentException("Action chosen by default policy is not within valid range.");
+                        }
+
+                        actionProbability = 1f;
+                        shouldRecordDecision = false; // TODO: don't?
+                        isExplore = false;
+                    }
+                    else
+                    {
+                        chosenAction = random.UniformInt(1, numActionsVariable);
+                        actionProbability = 1f / numActionsVariable;
+                    }
                 }
             }
 

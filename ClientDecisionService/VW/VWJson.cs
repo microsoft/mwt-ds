@@ -10,7 +10,9 @@ using VW.Serializer;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    internal class VWJsonPolicy : VWBaseContextMapper<VowpalWabbitThreadedPrediction, VowpalWabbit, string, uint>, IPolicy<string>
+    internal class VWJsonPolicy : 
+        VWBaseContextMapper<VowpalWabbitThreadedPrediction, VowpalWabbit, string, uint>, 
+        IPolicy<string>
     {
         internal VWJsonPolicy(Stream vwModelStream = null)
             : base(vwModelStream)
@@ -30,7 +32,9 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         }
     }
 
-    internal class VWJsonRanker : VWBaseContextMapper<VowpalWabbitThreadedPrediction, VowpalWabbit, string, uint[]>, IRanker<string>
+    internal class VWJsonRanker : 
+        VWBaseContextMapper<VowpalWabbitThreadedPrediction, VowpalWabbit, string, uint[]>, 
+        IRanker<string>, INumberOfActionsProvider<string>
     {
         internal VWJsonRanker(Stream vwModelStream = null)
             : base(vwModelStream)
@@ -50,6 +54,11 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
                 return Decision.Create(actions, state);
             }
+        }
+
+        public int GetNumberOfActions(string context)
+        {
+            return VowpalWabbitJsonSerializer.GetNumberOfActionDependentExamples(context);
         }
     }
 }

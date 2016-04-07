@@ -13,28 +13,29 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         private class TopSlotPolicy : IPolicy<TContext>
         {
             private readonly IContextMapper<TContext, uint[]> policy;
-            
-            // TODO: review if we can remove this threadloacl
-            private ThreadLocal<uint> action = new ThreadLocal<uint>();
+
+            // TODO: review if we can remove this ThreadLocal
+            private ThreadLocal<uint?> action = new ThreadLocal<uint?>();
 
             internal TopSlotPolicy(IContextMapper<TContext, uint[]> policy)
             {
                 this.policy = policy;
             }
 
-            public void UpdateAction(uint action)
+            public void UpdateAction(uint? action)
             {
                 this.action.Value = action;
             }
 
             public Decision<uint> MapContext(TContext context)
             {
-                return this.action.Value;
+                return this.action.Value ?? null;
             }
         }
 
         private readonly TExplorer singleExplorer;
         private readonly TopSlotPolicy topSlotPolicy;
+        private readonly INumberOfActionsProvider<TContext> numberOfActionsProvider;
 
         public TopSlotExplorer(IContextMapper<TContext, uint[]> defaultPolicy,
             Func<IPolicy<TContext>, TExplorer> singleExplorerFactory, 
@@ -43,17 +44,39 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         {
             this.topSlotPolicy = new TopSlotPolicy(defaultPolicy);
             this.singleExplorer = singleExplorerFactory(this.topSlotPolicy);
+            this.numberOfActionsProvider = defaultPolicy as INumberOfActionsProvider<TContext>;
         }
 
         public override Decision<uint[], TExplorerState, uint[]> MapContext(ulong saltedSeed, TContext context)
         {
             var policyDecision = this.contextMapper.MapContext(context);
-            if (policyDecision.Value == null || policyDecision.Value.Length < 1)
+
+            uint? topAction;
+            uint numActions;
+            if (policyDecision == null)
             {
-                throw new ArgumentException("Actions chosen by default policy must not be empty.");
+                // handle policy that's not loaded yet
+                if (this.numberOfActionsProvider == null)
+                    throw new InvalidOperationException(string.Format("Policy '{0}' is unable to provide decision AND does not implement INumberOfActionsProvider", this.contextMapper.GetType()));
+
+                numActions = (uint)this.numberOfActionsProvider.GetNumberOfActions(context);
+                topAction = null;
+                policyDecision = Decision.Create(
+                    Enumerable.Range(1, (int)numActions).Select(a => (uint)a).ToArray());
             }
-            this.topSlotPolicy.UpdateAction(policyDecision.Value[0]);
-            var decision = this.singleExplorer.MapContext(saltedSeed, context, (uint)policyDecision.Value.Length);
+            else
+            {
+                if (policyDecision.Value == null || policyDecision.Value.Length < 1)
+                {
+                    throw new ArgumentException("Actions chosen by default policy must not be empty.");
+                }
+
+                numActions = (uint)policyDecision.Value.Length;
+                topAction = policyDecision.Value[0];
+            }
+
+            this.topSlotPolicy.UpdateAction(topAction);
+            var decision = this.singleExplorer.MapContext(saltedSeed, context, numActions);
             MultiActionHelper.PutActionToList(decision.Value, policyDecision.Value);
 
             return Decision.Create(policyDecision.Value, decision.ExplorerState, policyDecision, decision.ShouldRecord);
