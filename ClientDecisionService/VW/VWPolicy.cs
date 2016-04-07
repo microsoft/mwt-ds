@@ -33,31 +33,31 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
     public static class VWPolicy
     {
-        public static UnboundContextMapper<string, uint> CreateJsonPolicy(DecisionServiceConfiguration config)
+        public static DecisionServiceConfigurationWrapper<string, uint> CreateJsonPolicy(DecisionServiceConfiguration config)
         {
             config.UseJsonContext = true;
             return VWPolicy.Wrap(new VWJsonPolicy(config.ModelStream), config);
         }
 
-        public static UnboundContextMapper<string, uint[]> CreateJsonRanker(DecisionServiceConfiguration config)
+        public static DecisionServiceConfigurationWrapper<string, uint[]> CreateJsonRanker(DecisionServiceConfiguration config)
         {
             config.UseJsonContext = true;
             return VWPolicy.Wrap(new VWJsonRanker(config.ModelStream), config);
         }
 
-        public static UnboundContextMapper<TContext, uint> CreatePolicy<TContext>(DecisionServiceConfiguration config)
+        public static DecisionServiceConfigurationWrapper<TContext, uint> CreatePolicy<TContext>(DecisionServiceConfiguration config)
         {
             config.UseJsonContext = false;
             return VWPolicy.Wrap(new VWPolicy<TContext>(config.ModelStream, config.FeatureDiscovery), config);
         }
 
-        public static UnboundContextMapper<TContext, uint[]> CreateRanker<TContext>(DecisionServiceConfiguration config)
+        public static DecisionServiceConfigurationWrapper<TContext, uint[]> CreateRanker<TContext>(DecisionServiceConfiguration config)
         {
             config.UseJsonContext = false;
             return VWPolicy.Wrap(new VWRanker<TContext>(config.ModelStream, config.FeatureDiscovery), config);
         }
 
-        public static UnboundContextMapper<TContext, uint[]> CreateRanker<TContext, TActionDependentFeature>(
+        public static DecisionServiceConfigurationWrapper<TContext, uint[]> CreateRanker<TContext, TActionDependentFeature>(
             DecisionServiceConfiguration config,
             Func<TContext, IReadOnlyCollection<TActionDependentFeature>> getContextFeaturesFunc)
         {
@@ -65,7 +65,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             return VWPolicy.Wrap(new VWRanker<TContext, TActionDependentFeature>(getContextFeaturesFunc, config.ModelStream, config.FeatureDiscovery), config);
         }
 
-        public static UnboundContextMapper<string, uint> StartWithJsonPolicy(
+        public static DecisionServiceConfigurationWrapper<string, uint> StartWithJsonPolicy(
             DecisionServiceConfiguration config,
             IContextMapper<string, uint> initialPolicy)
         {
@@ -73,7 +73,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             return VWPolicy.Wrap(MultiPolicy.Create(new VWJsonPolicy(config.ModelStream), initialPolicy), config);
         }
 
-        public static UnboundContextMapper<string, uint[]> StartWithJsonRanker(
+        public static DecisionServiceConfigurationWrapper<string, uint[]> StartWithJsonRanker(
             DecisionServiceConfiguration config,
             IContextMapper<string, uint[]> initialPolicy)
         {
@@ -81,7 +81,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             return VWPolicy.Wrap(MultiPolicy.Create(new VWJsonRanker(config.ModelStream), initialPolicy), config);
         }
 
-        public static UnboundContextMapper<TContext, uint> StartWithPolicy<TContext>(
+        public static DecisionServiceConfigurationWrapper<TContext, uint> StartWithPolicy<TContext>(
             DecisionServiceConfiguration config,
             IContextMapper<TContext, uint> initialPolicy)
         {
@@ -91,7 +91,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 config);
         }
 
-        public static UnboundContextMapper<TContext, uint[]> StartWithRanker<TContext>(
+        public static DecisionServiceConfigurationWrapper<TContext, uint[]> StartWithRanker<TContext>(
             DecisionServiceConfiguration config,
             IContextMapper<TContext, uint[]> initialPolicy)
         {
@@ -101,7 +101,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 config);
         }
 
-        public static UnboundContextMapper<TContext, uint[]> StartWithRanker<TContext, TActionDependentFeature>(
+        public static DecisionServiceConfigurationWrapper<TContext, uint[]> StartWithRanker<TContext, TActionDependentFeature>(
             DecisionServiceConfiguration config,
             Func<TContext, IReadOnlyCollection<TActionDependentFeature>> getContextFeaturesFunc,
             IContextMapper<TContext, uint[]> initialPolicy)
@@ -113,11 +113,11 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         }
 
 
-        public static UnboundContextMapper<TContext, TValue> Wrap<TContext, TValue>
+        public static DecisionServiceConfigurationWrapper<TContext, TValue> Wrap<TContext, TValue>
             (IContextMapper<TContext, TValue> vwPolicy, DecisionServiceConfiguration config)
         {
             var metaData = GetBlobLocations(config);
-            var ucm = new UnboundContextMapper<TContext, TValue> { Configuration = config, Metadata = metaData };
+            var ucm = new DecisionServiceConfigurationWrapper<TContext, TValue> { Configuration = config, Metadata = metaData };
 
             // conditionally wrap if it can be updated.
             var updatableContextMapper = vwPolicy as IUpdatable<Stream>;

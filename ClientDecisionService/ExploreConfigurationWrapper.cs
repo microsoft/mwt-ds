@@ -4,7 +4,7 @@ using System.IO;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    public class UnboundExplorer<TContext, TValue, TExplorerState, TMapperValue> : AbstractModelListener, IModelSender
+    public class ExploreConfigurationWrapper<TContext, TValue, TExplorerState, TMapperValue> : AbstractModelListener, IModelSender
     {
         internal event EventHandler<Stream> sendModelHandler;
 
@@ -16,7 +16,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
         internal IExplorer<TContext, TValue, TExplorerState, TMapperValue> Explorer { get; set; }
 
-        internal UnboundContextMapper<TContext, TMapperValue> ContextMapper { get; set; }
+        internal DecisionServiceConfigurationWrapper<TContext, TMapperValue> ContextMapper { get; set; }
 
         internal override void Receive(object sender, Stream model)
         {
@@ -27,13 +27,14 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         }
     }
 
-    public class UnboundExplorer
+    public class ExploreConfigurationWrapper
     {
-        public static UnboundExplorer<TContext, TValue, TExplorerState, TMapperValue> Create<TContext, TValue, TExplorerState, TMapperValue>(
-            UnboundContextMapper<TContext, TMapperValue> unboundContextMapper,
-            IExplorer<TContext, TValue, TExplorerState, TMapperValue> explorer)
+        public static ExploreConfigurationWrapper<TContext, TValue, TExplorerState, TMapperValue>
+            Create<TContext, TValue, TExplorerState, TMapperValue>(
+                DecisionServiceConfigurationWrapper<TContext, TMapperValue> unboundContextMapper,
+                IExplorer<TContext, TValue, TExplorerState, TMapperValue> explorer)
         {
-            var unboundExplorer = new UnboundExplorer<TContext, TValue, TExplorerState, TMapperValue> { Explorer = explorer, ContextMapper = unboundContextMapper };
+            var unboundExplorer = new ExploreConfigurationWrapper<TContext, TValue, TExplorerState, TMapperValue> { Explorer = explorer, ContextMapper = unboundContextMapper };
             unboundContextMapper.Subscribe(unboundExplorer);
             return unboundExplorer;
         }

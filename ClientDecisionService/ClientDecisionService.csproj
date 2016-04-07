@@ -131,9 +131,8 @@
     <Compile Include="ILogger.cs" />
     <Compile Include="MultiPolicy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="DecisionServiceTransientErrorDetectionStrategy.cs" />
-    <Compile Include="UnboundContextMapper.cs" />
-    <Compile Include="UnboundExplorer.cs" />
+    <Compile Include="DecisionServiceConfigurationWrapper.cs" />
+    <Compile Include="ExploreConfigurationWrapper.cs" />
     <Compile Include="VW\VWJson.cs" />
     <Compile Include="VW\VWPolicy.cs" />
     <Compile Include="VW\VWBaseContextMapper.cs" />

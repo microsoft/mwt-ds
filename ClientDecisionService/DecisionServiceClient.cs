@@ -14,7 +14,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
     {
         public static DecisionServiceClient<TContext, TValue, TExplorerState, TMapperValue>
         Create<TContext, TValue, TExplorerState, TMapperValue>(
-            UnboundExplorer<TContext, TValue, TExplorerState, TMapperValue> explorer,
+            ExploreConfigurationWrapper<TContext, TValue, TExplorerState, TMapperValue> explorer,
             IRecorder<TContext, TValue, TExplorerState> recorder = null)
         {
             var dsClient = new DecisionServiceClient<TContext, TValue, TExplorerState, TMapperValue>(

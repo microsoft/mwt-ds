@@ -5,7 +5,7 @@ using System.IO;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    public class UnboundContextMapper<TContext, TMapperValue> : AbstractModelListener, IModelSender
+    public class DecisionServiceConfigurationWrapper<TContext, TMapperValue> : AbstractModelListener, IModelSender
     {
         private EventHandler<Stream> sendModelHandler;
 
@@ -30,27 +30,29 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         }
     }
 
-    public static class UnboundContextMapperExtensions
+    public static class DecisionServiceConfigurationWrapperExtensions
     {
-        public static UnboundExplorer<TContext, uint, EpsilonGreedyState, uint>
+        public static ExploreConfigurationWrapper<TContext, uint, EpsilonGreedyState, uint>
             WithEpsilonGreedy<TContext>(
-                this UnboundContextMapper<TContext, uint> mapper,
+                this DecisionServiceConfigurationWrapper<TContext, uint> mapper,
                 float epsilon,
                 uint numActionsVariable = uint.MaxValue)
         {
-            return UnboundExplorer.Create(mapper, new EpsilonGreedyExplorer<TContext>(mapper.DefaultPolicy, epsilon, numActionsVariable));
+            return ExploreConfigurationWrapper.Create(mapper, new EpsilonGreedyExplorer<TContext>(mapper.DefaultPolicy, epsilon, numActionsVariable));
         }
 
-        public static UnboundExplorer<TContext, uint[], EpsilonGreedyState, uint[]>
+        public static ExploreConfigurationWrapper<TContext, uint[], EpsilonGreedyState, uint[]>
             WithTopSlotEpsilonGreedy<TContext>(
-            this UnboundContextMapper<TContext, uint[]> mapper, float epsilon, uint numActionsVariable = uint.MaxValue)
+                this DecisionServiceConfigurationWrapper<TContext, uint[]> mapper,
+                float epsilon,
+                uint numActionsVariable = uint.MaxValue)
         {
             var explorer = ExplorerFactory.CreateTopSlot<TContext, EpsilonGreedyExplorer<TContext>, EpsilonGreedyState>(
                 mapper.DefaultPolicy,
                 policy => new EpsilonGreedyExplorer<TContext>(policy, epsilon, numActionsVariable),
                 numActionsVariable);
 
-            return UnboundExplorer.Create(mapper, explorer);
+            return ExploreConfigurationWrapper.Create(mapper, explorer);
         }
     }
 }
