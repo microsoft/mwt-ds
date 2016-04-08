@@ -10,9 +10,9 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
     {
         //public static TopSlotExplorer<TContext, TauFirstExplorer<TContext>, TauFirstState>
         //    CreateTopSlotTauFirstExplorer(
-        //        IContextMapper<TContext, uint[]> defaultPolicy,
-        //        uint tau,
-        //        uint numActionsVariable = uint.MaxValue)
+        //        IContextMapper<TContext, int[]> defaultPolicy,
+        //        int tau,
+        //        int numActionsVariable = int.MaxValue)
         //{
         //    return Create<TContext, TauFirstExplorer<TContext>, TauFirstState>(
         //        defaultPolicy,
@@ -21,20 +21,20 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         //}
 
         //internal static TopSlotExplorer<TContext, TExplorer, TExplorerState> Create<TExplorer, TExplorerState>(
-        //    IContextMapper<TContext, uint[]> defaultRanker,
-        //    Func<IContextMapper<TContext, uint>, TExplorer> singleExplorerFactory,
-        //    uint numActions)
+        //    IContextMapper<TContext, int[]> defaultRanker,
+        //    Func<IContextMapper<TContext, int>, TExplorer> singleExplorerFactory,
+        //    int numActions)
         //where TExplorer : 
-        //    IExplorer<TContext, uint, TExplorerState, uint>
+        //    IExplorer<TContext, int, TExplorerState, int>
         //{
         //    return new TopSlotExplorer<TContext, TExplorer, TExplorerState>(defaultRanker, singleExplorerFactory, numActions);
         //}
 
         //internal static TopSlotExplorer<TContext, EpsilonGreedyExplorer<TContext>, EpsilonGreedyState>
         //    CreateTopSlotEpsilonGreedyExplorer(
-        //        IContextMapper<TContext, uint[]> defaultPolicy, 
+        //        IContextMapper<TContext, int[]> defaultPolicy, 
         //        float epsilon,
-        //        uint numActionsVariable = uint.MaxValue)
+        //        int numActionsVariable = int.MaxValue)
         //{
         //    return Create<TContext, EpsilonGreedyExplorer<TContext>, EpsilonGreedyState>(
         //        defaultPolicy,
@@ -44,24 +44,24 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 
         //internal static TopSlotExplorer<TContext, TauFirstExplorer<TContext>, TauFirstState>
         //    CreateTopSlotTauFirstExplorer(
-        //        IContextMapper<TContext, uint[]> defaultPolicy, 
-        //        uint tau, 
-        //        uint numActionsVariable = uint.MaxValue)
+        //        IContextMapper<TContext, int[]> defaultPolicy, 
+        //        int tau, 
+        //        int numActionsVariable = int.MaxValue)
         //{
         //    return Explorer<TContext>.CreateTopSlotTauFirstExplorer(defaultPolicy, tau, numActionsVariable);
         //}
 
-        public static EpsilonGreedyExplorer<TContext> CreateEpsilonGreedyExplorer(IContextMapper<TContext, uint> defaultPolicy, float epsilon, uint numActionsVariable = uint.MaxValue)
+        public static EpsilonGreedyExplorer<TContext> CreateEpsilonGreedyExplorer(IContextMapper<TContext, int> defaultPolicy, float epsilon, int numActionsVariable = int.MaxValue)
         {
             return new EpsilonGreedyExplorer<TContext>(defaultPolicy, epsilon, numActionsVariable);
         }
 
-        //internal static TauFirstExplorer<TContext> CreateTauFirstExplorer(IContextMapper<TContext, uint> defaultPolicy, uint tau, uint numActionsVariable = uint.MaxValue)
+        //internal static TauFirstExplorer<TContext> CreateTauFirstExplorer(IContextMapper<TContext, int> defaultPolicy, int tau, int numActionsVariable = int.MaxValue)
         //{
         //    return new TauFirstExplorer<TContext>(defaultPolicy, tau, numActionsVariable);
         //}
 
-        //internal static SoftmaxExplorer<TContext> CreateSoftmaxExplorer(IContextMapper<TContext, float[]> defaultScorer, float lambda, uint numActionsVariable = uint.MaxValue)
+        //internal static SoftmaxExplorer<TContext> CreateSoftmaxExplorer(IContextMapper<TContext, float[]> defaultScorer, float lambda, int numActionsVariable = int.MaxValue)
         //{
         //    return new SoftmaxExplorer<TContext>(defaultScorer, lambda, numActionsVariable);
         //}

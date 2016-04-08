@@ -38,7 +38,7 @@ namespace ClientDecisionServiceSample
 
             Trace.Listeners.Add(new ConsoleTraceListener());
 
-            uint numTopics = 10; // number of different topic choices to show
+            int numTopics = 10; // number of different topic choices to show
             float epsilon = 0.2f; // randomize the topics to show for 20% of traffic
             int numUsers = 10; // number of users for the news site
             int numFeatures = 20; // number of features for each user
@@ -81,7 +81,7 @@ namespace ClientDecisionServiceSample
                     var timestamp = DateTime.UtcNow;
 
                     // Perform exploration given user features.
-                    uint topicId = service.ChooseAction(new UniqueEventID { Key = userId, TimeStamp = timestamp }, context: userContext);
+                    int topicId = service.ChooseAction(new UniqueEventID { Key = userId, TimeStamp = timestamp }, context: userContext);
 
                     // Display the news topic chosen by exploration process.
                     DisplayNewsTopic(topicId, user + 1);
@@ -115,7 +115,7 @@ namespace ClientDecisionServiceSample
 
             Trace.Listeners.Add(new ConsoleTraceListener());
 
-            uint numTopics = 10; // number of different topic choices to show
+            int numTopics = 10; // number of different topic choices to show
             float epsilon = 0.2f; // randomize the topics to show for 20% of traffic
             int numUsers = 100; // number of users for the news site
             int numFeatures = 20; // number of features for each user
@@ -157,7 +157,7 @@ namespace ClientDecisionServiceSample
                     var userContext = new SimpleContext(features);
 
                     // Perform exploration given user features.
-                    uint topicId = service.ChooseAction(new UniqueEventID { Key = userId }, context: userContext);
+                    int topicId = service.ChooseAction(new UniqueEventID { Key = userId }, context: userContext);
 
                     // Display the news topic chosen by exploration process.
                     DisplayNewsTopic(topicId, user + 1);
@@ -187,7 +187,7 @@ namespace ClientDecisionServiceSample
 
             Trace.Listeners.Add(new ConsoleTraceListener());
 
-            uint numTopics = 10; // number of different topic choices to show
+            int numTopics = 10; // number of different topic choices to show
             float epsilon = 0.2f; // randomize the topics to show for 20% of traffic
             int numUsers = 100; // number of users for the news site
 
@@ -225,7 +225,7 @@ namespace ClientDecisionServiceSample
                     }
 
                     // Perform exploration given user features.
-                    uint topicId = service.ChooseAction(new UniqueEventID { Key = userId }, context: userContext);
+                    int topicId = service.ChooseAction(new UniqueEventID { Key = userId }, context: userContext);
 
                     // Display the news topic chosen by exploration process.
                     DisplayNewsTopic(topicId, user + 1);
@@ -275,7 +275,7 @@ namespace ClientDecisionServiceSample
         /// </summary>
         /// <param name="topicId">The topic id.</param>
         /// <param name="userId">The user id.</param>
-        private static void DisplayNewsTopic(uint topicId, int userId)
+        private static void DisplayNewsTopic(int topicId, int userId)
         {
             Console.WriteLine("Topic {0} was chosen for user {1}.", topicId, userId);
         }
@@ -296,7 +296,7 @@ namespace ClientDecisionServiceSample
     /// </summary>
     class SimplePolicy : IPolicy<SimpleContext>
     {
-        public Decision<uint> MapContext(SimpleContext context)
+        public Decision<int> MapContext(SimpleContext context)
         {
             // Return a constant action for simple demonstration.
             // In advanced scenarios, users can examine the context and return a more appropriate action.
@@ -314,15 +314,15 @@ namespace ClientDecisionServiceSample
     /// </summary>
     class NewsDisplayPolicy : IPolicy<UserContext>
     {
-        public Decision<uint> MapContext(UserContext context)
+        public Decision<int> MapContext(UserContext context)
         {
-            return Decision.Create((uint)(Math.Round(context.Sum(f => f.Value) / context.Count + 1)));
+            return Decision.Create((int)(Math.Round(context.Sum(f => f.Value) / context.Count + 1)));
         }
     }
 
     public class DefaultJsonPolicy : IPolicy<string>
     {
-        public Decision<uint> MapContext(string context)
+        public Decision<int> MapContext(string context)
         {
             return 1;
         }

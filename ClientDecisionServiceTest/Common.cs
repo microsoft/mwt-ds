@@ -117,7 +117,7 @@ namespace ClientDecisionServiceTest
                 Features = features,
                 Label = new ContextualBanditLabel
                 {
-                    Action = (uint)rand.Next(0, numActions) + 1,
+                    Action = (uint)(rand.Next(0, numActions) + 1),
                     Cost = (float)rand.NextDouble(),
                     Probability = (float)rand.NextDouble()
                 }
@@ -129,7 +129,7 @@ namespace ClientDecisionServiceTest
 
     class TestSingleActionPolicy : IPolicy<TestContext>
     {
-        public Decision<uint> MapContext(TestContext context)
+        public Decision<int> MapContext(TestContext context)
         {
             // Always returns the same action regardless of context
             return Constants.NumberOfActions - 1;
@@ -138,16 +138,16 @@ namespace ClientDecisionServiceTest
 
     class TestMultiActionPolicy : IRanker<TestContext>
     {
-        public Decision<uint[]> MapContext(TestContext context)
+        public Decision<int[]> MapContext(TestContext context)
         {
             // Always returns the same action regardless of context
-            return Enumerable.Range(1, (int)Constants.NumberOfActions).Select(m => (uint)m).ToArray();
+            return Enumerable.Range(1, (int)Constants.NumberOfActions).ToArray();
         }
     }
 
     public class TestRcv1ContextPolicy : IPolicy<TestRcv1Context>
     {
-        public Decision<uint> MapContext(TestRcv1Context context)
+        public Decision<int> MapContext(TestRcv1Context context)
         {
             return 1;
         }
@@ -155,23 +155,23 @@ namespace ClientDecisionServiceTest
 
     class TestADFPolicy : IRanker<TestADFContext>
     {
-        public Decision<uint[]> MapContext(TestADFContext context)
+        public Decision<int[]> MapContext(TestADFContext context)
         {
             // Always returns the same action regardless of context
-            return Enumerable.Range(1, (int)context.ActionDependentFeatures.Count).Select(m => (uint)m).ToArray();
+            return Enumerable.Range(1, (int)context.ActionDependentFeatures.Count).ToArray();
         }
     }
 
     class TestADFWithFeaturesPolicy : IRanker<TestADFContextWithFeatures>
     {
-        public Decision<uint[]> MapContext(TestADFContextWithFeatures context)
+        public Decision<int[]> MapContext(TestADFContextWithFeatures context)
         {
             // Always returns the same action regardless of context
-            return Enumerable.Range(1, (int)context.ActionDependentFeatures.Count).Select(m => (uint)m).ToArray();
+            return Enumerable.Range(1, context.ActionDependentFeatures.Count).ToArray();
         }
     }
 
-    class TestLogger : ILogger, IRecorder<TestContext, uint, EpsilonGreedyState>, IRecorder<TestContext, uint[], EpsilonGreedyState>
+    class TestLogger : ILogger, IRecorder<TestContext, int, EpsilonGreedyState>, IRecorder<TestContext, int[], EpsilonGreedyState>
     {
         public TestLogger()
         {
@@ -197,12 +197,12 @@ namespace ClientDecisionServiceTest
             this.numOutcome = 0;
         }
 
-        public void Record(TestContext context, uint value, EpsilonGreedyState explorerState, object mapperState, UniqueEventID uniqueKey)
+        public void Record(TestContext context, int value, EpsilonGreedyState explorerState, object mapperState, UniqueEventID uniqueKey)
         {
             this.numRecord++;
         }
 
-        public void Record(TestContext context, uint[] value, EpsilonGreedyState explorerState, object mapperState, UniqueEventID uniqueKey)
+        public void Record(TestContext context, int[] value, EpsilonGreedyState explorerState, object mapperState, UniqueEventID uniqueKey)
         {
             this.numRecord++;
         }
@@ -296,6 +296,6 @@ namespace ClientDecisionServiceTest
 
     public static class Constants
     {
-        public static readonly uint NumberOfActions = 5;
+        public static readonly int NumberOfActions = 5;
     }
 }

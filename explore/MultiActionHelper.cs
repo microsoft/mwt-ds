@@ -7,7 +7,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
     internal static class MultiActionHelper
     {
-        internal static void ValidateActionList(uint[] actions)
+        internal static void ValidateActionList(int[] actions)
         {
             bool[] exists = new bool[actions.Length + 1]; // plus 1 since action index is 1-based
 
@@ -25,7 +25,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             }
         }
 
-        internal static void PutActionToList(uint action, uint[] actionList)
+        internal static void PutActionToList(int action, int[] actionList)
         {
             for (int i = 0; i < actionList.Length; i++)
             {
@@ -40,7 +40,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             }
         }
 
-        internal static uint[] SampleWithoutReplacement(float[] probabilities, uint size, PRG randomGenerator, ref float topActionProbability)
+        internal static int[] SampleWithoutReplacement(float[] probabilities, int size, PRG randomGenerator, ref float topActionProbability)
         {
             for (int i = 0; i < size; i++)
             {
@@ -50,12 +50,12 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                 }
             }
 
-            uint[] actions = Enumerable.Repeat<uint>(0, (int)size).ToArray();
+            int[] actions = Enumerable.Repeat(0, size).ToArray();
             bool[] exists = new bool[actions.Length + 1]; // plus 1 since action index is 1-based
 
             // sample without replacement
-            uint runningIndex = 0;
-            uint runningAction = 0;
+            int runningIndex = 0;
+            int runningAction = 0;
             float draw, sum;
             while (runningIndex < size)
             {
@@ -67,7 +67,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                     sum += probabilities[i];
                     if (sum > draw)
                     {
-                        runningAction = (uint)(i + 1);
+                        runningAction = i + 1;
 
                         // check for duplicate
                         if (exists[runningAction])

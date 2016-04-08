@@ -7,7 +7,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
     public sealed class TauFirstState : GenericExplorerState
     {
         [JsonProperty(PropertyName = "t")]
-        public uint Tau { get; set; }
+        public int Tau { get; set; }
 
         [JsonProperty(PropertyName = "isExplore")]
         public bool IsExplore { get; set; }
@@ -21,9 +21,9 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 	/// exploration events, and then uses the default policy. 
 	/// </remarks>
 	/// <typeparam name="TContext">The Context type.</typeparam>
-    public class TauFirstExplorer<TContext> : BaseVariableActionExplorer<TContext, uint, TauFirstState, uint>
+    public class TauFirstExplorer<TContext> : BaseVariableActionExplorer<TContext, int, TauFirstState, int>
 	{
-        private uint tau;
+        private int tau;
         private readonly object lockObject = new object();
 
 		/// <summary>
@@ -32,47 +32,54 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 		/// <param name="defaultPolicy">A default policy after randomization finishes.</param>
 		/// <param name="tau">The number of events to be uniform over.</param>
 		/// <param name="numActions">The number of actions to randomize over.</param>
-        public TauFirstExplorer(IContextMapper<TContext, uint> defaultPolicy, uint tau, uint numActions = uint.MaxValue)
+        public TauFirstExplorer(IContextMapper<TContext, int> defaultPolicy, int tau, int numActions = int.MaxValue)
             : base(defaultPolicy, numActions)
         {
             this.tau = tau;
         }
 
-        public override Decision<uint, TauFirstState, uint> MapContext(ulong saltedSeed, TContext context, uint numActionsVariable)
+        public override Decision<int, TauFirstState, int> MapContext(ulong saltedSeed, TContext context, int numActionsVariable)
         {
             var random = new PRG(saltedSeed);
 
-            Decision<uint> policyDecision = null;
-            uint chosenAction = 0;
+            Decision<int> policyDecision = null;
+            int chosenAction = 0;
             float actionProbability = 0f;
-            bool shouldRecordDecision;
-            bool isExplore = false;
-            uint tau = this.tau;
+            bool shouldRecordDecision = true;
+            bool isExplore = true;
+            int tau = this.tau;
 
             lock (this.lockObject)
             {
                 if (this.tau > 0 && this.explore)
                 {
                     this.tau--;
-                    uint actionId = random.UniformInt(1, numActionsVariable);
+                    chosenAction = random.UniformInt(1, numActionsVariable);
                     actionProbability = 1f / numActionsVariable;
-                    chosenAction = actionId;
-                    shouldRecordDecision = true;
                     isExplore = true;
                 }
                 else
                 {
                     // Invoke the default policy function to get the action
                     policyDecision = this.contextMapper.MapContext(context);
-                    chosenAction = policyDecision.Value;
-
-                    if (chosenAction == 0 || chosenAction > numActionsVariable)
+                    if (policyDecision != null)
                     {
-                        throw new ArgumentException("Action chosen by default policy is not within valid range.");
-                    }
+                        chosenAction = policyDecision.Value;
 
-                    actionProbability = 1f;
-                    shouldRecordDecision = false;
+                        if (chosenAction == 0 || chosenAction > numActionsVariable)
+                        {
+                            throw new ArgumentException("Action chosen by default policy is not within valid range.");
+                        }
+
+                        actionProbability = 1f;
+                        shouldRecordDecision = false; // TODO: don't?
+                        isExplore = false;
+                    }
+                    else
+                    {
+                        chosenAction = random.UniformInt(1, numActionsVariable);
+                        actionProbability = 1f / numActionsVariable;
+                    }
                 }
             }
 

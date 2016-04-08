@@ -48,7 +48,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
     public interface IVariableActionExplorer<TContext, TValue, TExplorerState, TMapperValue>
     {
         // TODO: review xml docs
-        Decision<TValue, TExplorerState, TMapperValue> MapContext(ulong saltedSeed, TContext context, uint numActionsVariable);
+        Decision<TValue, TExplorerState, TMapperValue> MapContext(ulong saltedSeed, TContext context, int numActionsVariable);
     }
 
     public interface IContextMapper<in TContext, TValue>
@@ -59,8 +59,14 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         /// </summary>
         /// <param name="context">A user-defined context for the decision.</param>
         /// <param name="numActionsVariable">Optional; Number of actions available which may be variable across decisions.</param>
-        /// <returns>A decision tuple containing the index of the action to take (1-based), and the Id of the model or policy used to make the decision.</returns>
+        /// <returns>A decision tuple containing the index of the action to take (1-based), and the Id of the model or policy used to make the decision.
+        /// Can be null if the Policy is not ready yet (e.g. model not loaded).</returns>
         Decision<TValue> MapContext(TContext context);
+    }
+    
+    public interface INumberOfActionsProvider<in TContext>
+    {
+        int GetNumberOfActions(TContext context);
     }
 
     public interface IUpdatable<TModel>
@@ -68,11 +74,11 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         void Update(TModel model);
     }
 
-    public interface IPolicy<in TContext> : IContextMapper<TContext, uint>
+    public interface IPolicy<in TContext> : IContextMapper<TContext, int>
     {
     }
 
-    public interface IRanker<in TContext> : IContextMapper<TContext, uint[]>
+    public interface IRanker<in TContext> : IContextMapper<TContext, int[]>
     {
     }
 

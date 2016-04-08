@@ -50,9 +50,9 @@ namespace ClientDecisionServiceSample
             return context;
         }
 
-        public static uint GetNumberOfActionsFromAdfContext(ExpandedContext context)
+        public static int GetNumberOfActionsFromAdfContext(ExpandedContext context)
         {
-            return (uint)context.Actions.Length;
+            return context.Actions.Length;
         }
 
         public static IReadOnlyCollection<ExpandedActionDependentFeatures> GetFeaturesFromContext(ExpandedContext context)
@@ -86,9 +86,9 @@ namespace ClientDecisionServiceSample
 
     class ExpandedPolicy : IRanker<ExpandedContext>
     {
-        public Decision<uint[]> MapContext(ExpandedContext context)
+        public Decision<int[]> MapContext(ExpandedContext context)
         {
-            return context.Actions.Select((a, i) => (uint)i + 1).ToArray();
+            return context.Actions.Select((a, i) => i + 1).ToArray();
         }
     }
 

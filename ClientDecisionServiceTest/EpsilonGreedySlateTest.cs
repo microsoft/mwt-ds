@@ -11,15 +11,15 @@ namespace ClientDecisionServiceTest
     [TestClass]
     public class EpsilonGreedySlateTestClass
     {
-        private void RunTest(float epsilon, Action<double, Dictionary<uint, int>> validate)
+        private void RunTest(float epsilon, Action<double, Dictionary<int, int>> validate)
         {
-            var context = new uint[] { 1, 2, 3 };
+            var context = new int[] { 1, 2, 3 };
 
-            var explorer = new EpsilonGreedySlateExplorer<uint[]>(new MockupRanker(), epsilon);
+            var explorer = new EpsilonGreedySlateExplorer<int[]>(new MockupRanker(), epsilon);
 
             var rnd = new Random(123);
 
-            var histogram = new Dictionary<uint, int>();
+            var histogram = new Dictionary<int, int>();
             var runs = 1024;
             for (int i = 0; i < runs; i++)
             {
@@ -57,9 +57,9 @@ namespace ClientDecisionServiceTest
             RunTest(0f, (_, histogram) => Assert.AreEqual(histogram[123], 1024));
         }
 
-        public class MockupRanker : IRanker<uint[]>
+        public class MockupRanker : IRanker<int[]>
         {
-            public Decision<uint[]> MapContext(uint[] context)
+            public Decision<int[]> MapContext(int[] context)
             {
                 return context;
             }

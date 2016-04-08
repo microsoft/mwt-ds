@@ -10,19 +10,21 @@ using VW.Serializer;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    internal class VWJsonPolicy : VWBaseContextMapper<VowpalWabbitThreadedPrediction, VowpalWabbit, string, uint>, IPolicy<string>
+    internal class VWJsonPolicy : 
+        VWBaseContextMapper<VowpalWabbitThreadedPrediction, VowpalWabbit, string, int>, 
+        IPolicy<string>
     {
         internal VWJsonPolicy(Stream vwModelStream = null)
             : base(vwModelStream)
         {
         }
 
-        protected override Decision<uint> MapContext(VowpalWabbit vw, string context)
+        protected override Decision<int> MapContext(VowpalWabbit vw, string context)
         {
             using (var vwJson = new VowpalWabbitJsonSerializer(vw))
             using (VowpalWabbitExampleCollection vwExample = vwJson.ParseAndCreate(context))
             {
-                var action = (uint)vwExample.Predict(VowpalWabbitPredictionType.CostSensitive);
+                var action = (int)vwExample.Predict(VowpalWabbitPredictionType.CostSensitive);
                 var state = new VWState { ModelId = vw.ID };
 
                 return Decision.Create(action, state);
@@ -30,14 +32,16 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         }
     }
 
-    internal class VWJsonRanker : VWBaseContextMapper<VowpalWabbitThreadedPrediction, VowpalWabbit, string, uint[]>, IRanker<string>
+    internal class VWJsonRanker : 
+        VWBaseContextMapper<VowpalWabbitThreadedPrediction, VowpalWabbit, string, int[]>, 
+        IRanker<string>, INumberOfActionsProvider<string>
     {
         internal VWJsonRanker(Stream vwModelStream = null)
             : base(vwModelStream)
         {
         }
 
-        protected override Decision<uint[]> MapContext(VowpalWabbit vw, string context)
+        protected override Decision<int[]> MapContext(VowpalWabbit vw, string context)
         {
             using (var vwJson = new VowpalWabbitJsonSerializer(vw))
             using (VowpalWabbitExampleCollection vwExample = vwJson.ParseAndCreate(context))
@@ -45,11 +49,16 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 int[] vwMultilabelPredictions = vwExample.Predict(VowpalWabbitPredictionType.Multilabel);
 
                 // VW multi-label predictions are 0-based
-                var actions = vwMultilabelPredictions.Select(a => (uint)(a + 1)).ToArray();
+                var actions = vwMultilabelPredictions.Select(a => a + 1).ToArray();
                 var state = new VWState { ModelId = vw.ID };
 
                 return Decision.Create(actions, state);
             }
+        }
+
+        public int GetNumberOfActions(string context)
+        {
+            return VowpalWabbitJsonSerializer.GetNumberOfActionDependentExamples(context);
         }
     }
 }

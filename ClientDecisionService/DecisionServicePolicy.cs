@@ -26,7 +26,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
             this.modelBlobPollDelay = config.PollingForModelPeriod == TimeSpan.Zero ? DecisionServiceConstants.PollDelay : config.PollingForModelPeriod;
             
-
             if (this.modelBlobPollDelay != TimeSpan.MinValue)
             {
                 AzureBlobUpdater.RegisterTask(

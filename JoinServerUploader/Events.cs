@@ -41,7 +41,7 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// </summary>
         public DateTime TimeStamp { get; set; }
 
-        // uint, uint[]
+        // int, int[]
         public object Value { get; set; }
 
         public object Context { get; set; }
@@ -52,12 +52,12 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
 
         public float? ProbabilityOfDrop { get; set; }
 
-        public static Interaction CreateEpsilonGreedy<TContext>(string key, TContext context, uint action, float probability)
+        public static Interaction CreateEpsilonGreedy<TContext>(string key, TContext context, int action, float probability)
         {
             return Interaction.CreateEpsilonGreedy(new UniqueEventID { Key = key }, context, action, probability);
         }
 
-        public static Interaction CreateEpsilonGreedy<TContext>(UniqueEventID eventId, TContext context, uint action, float probability)
+        public static Interaction CreateEpsilonGreedy<TContext>(UniqueEventID eventId, TContext context, int action, float probability)
         {
             return Interaction.Create(eventId, context, action, new GenericExplorerState { Probability = probability });
         }
