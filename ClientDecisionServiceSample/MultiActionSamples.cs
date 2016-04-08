@@ -20,8 +20,8 @@ namespace ClientDecisionServiceSample
     /// </summary>
     public class MultiActionSamples
     {
-        /***** Copy & Paste your auth token here *****/
-        static readonly string AuthorizationToken = "";
+        /***** Copy & Paste your authorization token here *****/
+        static readonly string MwtServiceToken = "";
 
         /***** Copy & Paste your EventHub configurations here *****/
         static readonly string EventHubConnectionString = "";
@@ -30,7 +30,7 @@ namespace ClientDecisionServiceSample
         public static void SampleCodeUsingASAWithJsonContext()
         {
             // Create configuration for the decision service
-            var serviceConfig = new DecisionServiceConfiguration(authorizationToken: AuthorizationToken)
+            var serviceConfig = new DecisionServiceConfiguration(authorizationToken: MwtServiceToken)
             {
                 PollingForModelPeriod = TimeSpan.MinValue,
                 PollingForSettingsPeriod = TimeSpan.MinValue,
@@ -67,14 +67,14 @@ namespace ClientDecisionServiceSample
         {
             // Create configuration for the decision service
 
-            var serviceConfig = new DecisionServiceConfiguration(authorizationToken: AuthorizationToken)
+            var serviceConfig = new DecisionServiceConfiguration(authorizationToken: MwtServiceToken)
             {
                 EventHubConnectionString = MultiActionSamples.EventHubConnectionString,
                 EventHubInputName = MultiActionSamples.EventHubInputName,
                 FeatureDiscovery = VowpalWabbitFeatureDiscovery.Json
             };
 
-            var ranker = VWPolicy.CreateRanker<FoodContext, FoodFeature>(serviceConfig, context => FoodContext.GetFeaturesFromContext(context));
+            var ranker = VWPolicy.StartWithRanker(serviceConfig, context => FoodContext.GetFeaturesFromContext(context), new FoodPolicy());
             using (var service = DecisionServiceClient.Create(ranker.WithTopSlotEpsilonGreedy(epsilon: .8f)))
             {
                 string uniqueKey = "scratch-key-";
@@ -140,14 +140,14 @@ namespace ClientDecisionServiceSample
         public static void SampleCodeUsingJsonDirectContext()
         {
             // Create configuration for the decision service
-            var serviceConfig = new DecisionServiceConfiguration(authorizationToken: AuthorizationToken)
+            var serviceConfig = new DecisionServiceConfiguration(authorizationToken: MwtServiceToken)
             {
                 EventHubConnectionString = EventHubConnectionString,
                 EventHubInputName = EventHubInputName,
                 FeatureDiscovery = VowpalWabbitFeatureDiscovery.Json
             };
 
-            var ranker = VWPolicy.CreateRanker<FoodContext, FoodFeature>(serviceConfig, context => FoodContext.GetFeaturesFromContext(context));
+            var ranker = VWPolicy.StartWithRanker<FoodContext, FoodFeature>(serviceConfig, context => FoodContext.GetFeaturesFromContext(context), new FoodPolicy());
             using (var service = DecisionServiceClient.Create(ranker.WithTopSlotEpsilonGreedy(epsilon: .2f)))
             {
                 System.Threading.Thread.Sleep(10000);

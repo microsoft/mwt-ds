@@ -123,6 +123,8 @@ namespace ClientDecisionServiceSample
             // Create configuration for the decision service.
             var serviceConfig = new DecisionServiceConfiguration(authorizationToken: MwtServiceToken)
             {
+                EventHubConnectionString = SingleActionSamples.EventHubConnectionString,
+                EventHubInputName = SingleActionSamples.EventHubInputName,
                 JoinServiceBatchConfiguration = new BatchingConfiguration // Optionally configure batch upload
                 {
                     MaxBufferSizeInBytes = 4 * 1024,
