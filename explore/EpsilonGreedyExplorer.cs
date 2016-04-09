@@ -22,7 +22,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
     /// Epsilon greedy is also computationally cheap.
     /// </remarks>
     /// <typeparam name="TContext">The Context type.</typeparam>
-    public class EpsilonGreedyExplorer<TContext> : BaseVariableActionExplorer<TContext, int, EpsilonGreedyState, int>
+    public class EpsilonGreedyExplorer : BaseVariableActionExplorer<int, int>
     {
         private readonly float defaultEpsilon;
 
@@ -32,8 +32,8 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         /// <param name="defaultPolicy">A default function which outputs an action given a context.</param>
         /// <param name="epsilon">The probability of a random exploration.</param>
         /// <param name="numActions">The number of actions to randomize over.</param>
-        public EpsilonGreedyExplorer(IContextMapper<TContext, int> defaultPolicy, float epsilon, int numActions = int.MaxValue)
-            : base(defaultPolicy, numActions)
+        public EpsilonGreedyExplorer(float epsilon, int numActions = int.MaxValue)
+            : base(numActions)
         {
             if (epsilon < 0 || epsilon > 1)
             {
@@ -42,34 +42,12 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.defaultEpsilon = epsilon;
         }
 
-        public override Decision<int, EpsilonGreedyState, int> MapContext(ulong saltedSeed, TContext context, int numActionsVariable)
+        public override ExplorerDecision<int> Explore(ulong saltedSeed, int policyAction, int numActionsVariable)
         {
             var random = new PRG(saltedSeed);
 
-            // Invoke the default policy function to get the action
-            Decision<int> policyDecisionTuple = this.contextMapper.MapContext(context);
-
-            // If the policy isn't ready yet (each model not yet loaded), do 100% randomization
-            if (policyDecisionTuple == null)
-            {
-                // Get uniform random 1-based action ID
-                return Decision.Create<int, EpsilonGreedyState, int>(
-                    random.UniformInt(1, numActionsVariable),
-                    new EpsilonGreedyState
-                    {
-                        Epsilon = 1f,
-                        IsExplore = true,
-                        Probability = 1f
-                    },
-                    policyDecision: null, 
-                    shouldRecord: true);
-            }
-
-            int chosenAction = policyDecisionTuple.Value;
-            if (chosenAction == 0 || chosenAction > numActionsVariable)
-            {
+            if (policyAction == 0 || policyAction > numActionsVariable)
                 throw new ArgumentException("Action chosen by default policy is not within valid range.");
-            }
 
             float actionProbability;
             bool isExplore;
@@ -87,7 +65,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                 // Get uniform random 1-based action ID
                 int actionId = random.UniformInt(1, numActionsVariable);
 
-                if (actionId == chosenAction)
+                if (actionId == policyAction)
                 {
                     // If it matches the one chosen by the default policy
                     // then increase the probability
@@ -98,7 +76,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                     // Otherwise it's just the uniform probability
                     actionProbability = baseProbability;
                 }
-                chosenAction = actionId;
+                policyAction = actionId;
                 isExplore = true;
             }
 
@@ -109,7 +87,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                 Probability = actionProbability
             };
 
-            return Decision.Create(chosenAction, explorerState, policyDecisionTuple, true);
+            return ExplorerDecision.Create(policyAction, explorerState, true);
         }
     }
 }

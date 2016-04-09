@@ -38,7 +38,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 float epsilon,
                 int numActionsVariable = int.MaxValue)
         {
-            return ExploreConfigurationWrapper.Create(mapper, new EpsilonGreedyExplorer<TContext>(mapper.DefaultPolicy, epsilon, numActionsVariable));
+            return ExploreConfigurationWrapper.Create(mapper, new EpsilonGreedyExplorer(epsilon, numActionsVariable));
         }
 
         public static ExploreConfigurationWrapper<TContext, int[], EpsilonGreedyState, int[]>

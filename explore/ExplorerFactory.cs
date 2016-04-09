@@ -5,16 +5,17 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
     public static class ExplorerFactory
     {
-        public static TopSlotExplorer<TContext, TExplorer, TExplorerState>
-            CreateTopSlot<TContext, TExplorer, TExplorerState>(
+        /*
+        public static TopSlotExplorer<TContext, TExplorer>
+            CreateTopSlot<TContext, TExplorer>(
                 IContextMapper<TContext, int[]> defaultRanker,
                 Func<IContextMapper<TContext, int>, TExplorer> singleExplorerFactory,
                 int numActions)
-                where TExplorer : IVariableActionExplorer<TContext, int, TExplorerState, int>
+                where TExplorer : IVariableActionExplorer<TContext, int, int>
         {
-            return new TopSlotExplorer<TContext, TExplorer, TExplorerState>(defaultRanker, singleExplorerFactory, numActions);
+            return new TopSlotExplorer<TContext, TExplorer>(defaultRanker, singleExplorerFactory, numActions);
         }
-
+        */
         // TODO: Add back
         //internal static TopSlotExplorer<TContext, EpsilonGreedyExplorer<TContext>, EpsilonGreedyState>
         //    CreateTopSlotEpsilonGreedyExplorer<TContext>(

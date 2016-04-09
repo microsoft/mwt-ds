@@ -3,6 +3,7 @@ using System;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
+    /*
     public class MultiPolicy<TContext, TValue> : IContextMapper<TContext, TValue>, INumberOfActionsProvider<TContext>, IDisposable
     {
         private IContextMapper<TContext, TValue> vwPolicy;
@@ -87,5 +88,5 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         {
             return new MultiPolicy<TContext, TValue>(vwPolicy, initialPolicy);
         }
-    }
+    }*/
 }

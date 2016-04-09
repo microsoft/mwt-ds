@@ -25,7 +25,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.VW
                 as IVowpalWabbitMultiExampleSerializerCompiler<TContext>;
         }
 
-        protected override Decision<int[]> MapContext(VowpalWabbit<TContext> vw, TContext context)
+        protected override PolicyDecision<int[]> MapContext(VowpalWabbit<TContext> vw, TContext context)
         {
             int[] vwMultilabelPredictions = vw.Predict(context, VowpalWabbitPredictionType.Multilabel);
 
@@ -33,7 +33,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.VW
             var actions = vwMultilabelPredictions.Select(a => a + 1).ToArray();
             var state = new VWState { ModelId = vw.Native.ID };
 
-            return Decision.Create(actions, state);
+            return PolicyDecision.Create(actions, state);
         }
 
         public int GetNumberOfActions(TContext context)
@@ -61,7 +61,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.VW
             this.getContextFeaturesFunc = getContextFeaturesFunc;
         }
 
-        protected override Decision<int[]> MapContext(VowpalWabbit<TContext, TActionDependentFeature> vw, TContext context)
+        protected override PolicyDecision<int[]> MapContext(VowpalWabbit<TContext, TActionDependentFeature> vw, TContext context)
         {
             IReadOnlyCollection<TActionDependentFeature> features = this.getContextFeaturesFunc(context);
 
@@ -72,7 +72,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.VW
             var actions = vwMultilabelPredictions.Select(p => p.Index + 1).ToArray();
             var state = new VWState { ModelId = vw.Native.ID };
 
-            return Decision.Create(actions, state);
+            return PolicyDecision.Create(actions, state);
         }
 
         public int GetNumberOfActions(TContext context)

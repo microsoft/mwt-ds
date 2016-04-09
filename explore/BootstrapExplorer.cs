@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
@@ -12,11 +13,9 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 	/// computationally expensive.
 	/// </remarks>
 	/// <typeparam name="TContext">The Context type.</typeparam>
-	public abstract class BaseBootstrapExplorer<TContext, TValue> : IExplorer<TContext, TValue, GenericExplorerState, TValue>
+    public abstract class BaseBootstrapExplorer<TValue> : IExplorer<TValue, IReadOnlyCollection<TValue>>
 	{
-        private IContextMapper<TContext, TValue>[] defaultPolicyFunctions;
         private bool explore;
-        private readonly int bags;
 	    private readonly int numActionsFixed;
 
 		/// <summary>
@@ -24,24 +23,11 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 		/// </summary>
 		/// <param name="defaultPolicies">A set of default policies to be uniform random over.</param>
 		/// <param name="numActions">The number of actions to randomize over.</param>
-        protected BaseBootstrapExplorer(IContextMapper<TContext, TValue>[] defaultPolicies, int numActions = int.MaxValue)
+        protected BaseBootstrapExplorer(int numActions = int.MaxValue)
 		{
             VariableActionHelper.ValidateInitialNumberOfActions(numActions);
-
-            if (defaultPolicies == null || defaultPolicies.Length < 1)
-		    {
-			    throw new ArgumentException("Number of bags must be at least 1.");
-		    }
-
-            this.defaultPolicyFunctions = defaultPolicies;
-            this.bags = this.defaultPolicyFunctions.Length;
             this.numActionsFixed = numActions;
             this.explore = true;
-        }
-
-        public void UpdatePolicy(IContextMapper<TContext, TValue>[] newPolicies)
-        {
-            this.defaultPolicyFunctions = newPolicies;
         }
 
         public void EnableExplore(bool explore)
@@ -49,48 +35,43 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.explore = explore;
         }
 
-        public Decision<TValue, GenericExplorerState, TValue> MapContext(ulong saltedSeed, TContext context)
+        public ExplorerDecision<TValue> MapContext(ulong saltedSeed, IReadOnlyCollection<TValue> policyActions)
         {
-            var random = new PRG(saltedSeed);
-
-            // Select bag
-            int chosenBag = random.UniformInt(0, this.bags - 1);
-
             // Invoke the default policy function to get the action
-            Decision<TValue> chosenDecision = null; // TODO
+            TValue chosenDecision = default(TValue);
             float actionProbability = 0f;
 
             if (this.explore)
             {
-                Decision<TValue> decisionFromBag = null;
-                int actionFromBag = 0;
-                int[] actionsSelected = Enumerable.Repeat<int>(0, this.numActionsFixed).ToArray();
-                // Invoke the default policy function to get the action
-                for (int currentBag = 0; currentBag < this.bags; currentBag++)
-                {
-                    // TODO: can VW predict for all bags on one call? (returning all actions at once)
-                    // if we trigger into VW passing an index to invoke bootstrap scoring, and if VW model changes while we are doing so, 
-                    // we could end up calling the wrong bag
-                    decisionFromBag = this.defaultPolicyFunctions[currentBag].MapContext(context);
-                    if (decisionFromBag == null)
-                        throw new NotSupportedException("Policy must make a decision.");
+                var random = new PRG(saltedSeed);
 
-                    actionFromBag = this.GetTopAction(decisionFromBag.Value);
+                // Select bag
+                int chosenBag = random.UniformInt(0, policyActions.Count - 1);
+
+                int[] actionsSelected = Enumerable.Repeat<int>(0, this.numActionsFixed).ToArray();
+
+                int currentBag = 0;
+                foreach (var policyAction in policyActions)
+                {
+                    var actionFromBag = this.GetTopAction(policyAction);
 
                     if (actionFromBag == 0 || actionFromBag > this.numActionsFixed)
                         throw new ArgumentException("Action chosen by default policy is not within valid range.");
 
-                    if (currentBag == chosenBag)
-                        chosenDecision = decisionFromBag;
-
                     //this won't work if actions aren't 0 to Count
                     actionsSelected[actionFromBag - 1]++; // action id is one-based
+
+                    if (currentBag == chosenBag)
+                        chosenDecision = policyAction;
+
+                    currentBag++;
                 }
-                actionProbability = (float)actionsSelected[this.GetTopAction(chosenDecision.Value) - 1] / this.bags; // action id is one-based
+
+                actionProbability = (float)actionsSelected[this.GetTopAction(chosenDecision) - 1] / policyActions.Count; // action id is one-based
             }
             else
             {
-                chosenDecision = this.defaultPolicyFunctions[0].MapContext(context);
+                chosenDecision = policyActions.First();
                 actionProbability = 1f;
             }
 
@@ -99,35 +80,15 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                 Probability = actionProbability
             };
 
-            return Decision.Create(chosenDecision.Value, explorerState, chosenDecision, true);
+            return ExplorerDecision.Create(chosenDecision, explorerState, true);
         }
 
         protected abstract int GetTopAction(TValue action);
-
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public void Dispose()
-        {
-            this.Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        private void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                foreach (var disposable in this.defaultPolicyFunctions.OfType<IDisposable>())
-                    disposable.Dispose();
-            }
-        }
     }
 
-    public class BootstrapExplorer<TContext> : BaseBootstrapExplorer<TContext, int>
+    public class BootstrapExplorer : BaseBootstrapExplorer<int>
     {
-        public BootstrapExplorer(IContextMapper<TContext, int>[] defaultPolicies, 
-            int numActions = int.MaxValue)
-            : base(defaultPolicies, numActions)
+        public BootstrapExplorer(int numActions = int.MaxValue) : base(numActions)
         {
         }
 
@@ -137,11 +98,9 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         }
     }
 
-    public class BootstrapTopSlotExplorer<TContext> : BaseBootstrapExplorer<TContext, int[]>
+    public class BootstrapTopSlotExplorer : BaseBootstrapExplorer<int[]>
     {
-        public BootstrapTopSlotExplorer(IContextMapper<TContext, int[]>[] defaultPolicies,
-            int numActions = int.MaxValue)
-            : base(defaultPolicies, numActions)
+        public BootstrapTopSlotExplorer(int numActions = int.MaxValue) : base(numActions)
         {
         }
 

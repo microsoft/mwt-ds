@@ -12,29 +12,29 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
     /// </summary>
     public static class DecisionServiceClient
     {
-        public static DecisionServiceClient<TContext, TValue, TExplorerState, TMapperValue>
-        Create<TContext, TValue, TExplorerState, TMapperValue>(
-            ExploreConfigurationWrapper<TContext, TValue, TExplorerState, TMapperValue> explorer,
-            IRecorder<TContext, TValue, TExplorerState> recorder = null)
+        public static DecisionServiceClient<TContext, TValue, TMapperValue>
+        Create<TContext, TValue, TMapperValue>(
+            ExploreConfigurationWrapper<TContext, TValue, TMapperValue> explorer,
+            IRecorder<TContext, TValue> recorder = null)
         {
-            var dsClient = new DecisionServiceClient<TContext, TValue, TExplorerState, TMapperValue>(
+            var dsClient = new DecisionServiceClient<TContext, TValue, TMapperValue>(
                 explorer.ContextMapper.Configuration, explorer.ContextMapper.Metadata, explorer.Explorer, recorder);
             explorer.Subscribe(dsClient);
             return dsClient;
         }
     }
 
-    public class DecisionServiceClient<TContext, TValue, TExplorerState, TMapperValue> : IDisposable, IModelSender
+    public class DecisionServiceClient<TContext, TValue, TMapperValue> : IDisposable, IModelSender
     {
         private readonly TimeSpan settingsBlobPollDelay;
 
         private readonly string updateSettingsTaskId = "settings";
 
-        private readonly IRecorder<TContext, TValue, TExplorerState> recorder;
+        private readonly IRecorder<TContext, TValue> recorder;
         private readonly ILogger logger;
 
         protected readonly DecisionServiceConfiguration config;
-        protected MwtExplorer<TContext, TValue, TExplorerState, TMapperValue> mwtExplorer;
+        protected MwtExplorer<TContext, TValue, TMapperValue> mwtExplorer;
 
         private event EventHandler<Stream> sendModelHandler;
         event EventHandler<Stream> IModelSender.Send
@@ -46,8 +46,9 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         public DecisionServiceClient(
             DecisionServiceConfiguration config,
             ApplicationTransferMetadata metaData,
-            IExplorer<TContext, TValue, TExplorerState, TMapperValue> explorer,
-            IRecorder<TContext, TValue, TExplorerState> recorder = null)
+            IExplorer<TValue, TMapperValue> explorer,
+            IFullExplorer<TContext, TValue> initialExplorer = null,
+            IRecorder<TContext, TValue> recorder = null)
         {
             if (config == null)
                 throw new ArgumentNullException("config");
@@ -77,7 +78,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 }
                 else
                 {
-                    var joinServerLogger = new JoinServiceLogger<TContext, TValue, TExplorerState>();
+                    var joinServerLogger = new JoinServiceLogger<TContext, TValue>();
                     switch (config.JoinServerType)
                     {
                         case JoinServerType.CustomSolution:
@@ -94,7 +95,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                                 config.JoinServiceBatchConfiguration);
                             break;
                     }
-                    this.recorder = (IRecorder<TContext, TValue, TExplorerState>)joinServerLogger;
+                    this.recorder = (IRecorder<TContext, TValue>)joinServerLogger;
                 }
 
                 this.settingsBlobPollDelay = config.PollingForSettingsPeriod == TimeSpan.Zero ? DecisionServiceConstants.PollDelay : config.PollingForSettingsPeriod;
@@ -114,13 +115,17 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             }
 
             this.logger = this.recorder as ILogger;
-            this.mwtExplorer = MwtExplorer.Create(config.AuthorizationToken, this.recorder, explorer);
+            this.mwtExplorer = MwtExplorer.Create(config.AuthorizationToken, this.recorder, explorer, initialExplorer);
         }
 
-        // TODO: rename?
         public TValue ChooseAction(UniqueEventID uniqueKey, TContext context)
         {
-            return this.mwtExplorer.MapContext(uniqueKey, context);
+            return this.mwtExplorer.ChooseAction(uniqueKey, context);
+        }
+
+        public TValue ChooseAction(UniqueEventID uniqueKey, TContext context, TValue initialAction)
+        {
+            return this.mwtExplorer.ChooseAction(uniqueKey, context, initialAction);
         }
 
         /// <summary>

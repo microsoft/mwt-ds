@@ -19,7 +19,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         {
         }
 
-        protected override Decision<int> MapContext(VowpalWabbit vw, string context)
+        protected override PolicyDecision<int> MapContext(VowpalWabbit vw, string context)
         {
             using (var vwJson = new VowpalWabbitJsonSerializer(vw))
             using (VowpalWabbitExampleCollection vwExample = vwJson.ParseAndCreate(context))
@@ -41,7 +41,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         {
         }
 
-        protected override Decision<int[]> MapContext(VowpalWabbit vw, string context)
+        protected override PolicyDecision<int[]> MapContext(VowpalWabbit vw, string context)
         {
             using (var vwJson = new VowpalWabbitJsonSerializer(vw))
             using (VowpalWabbitExampleCollection vwExample = vwJson.ParseAndCreate(context))

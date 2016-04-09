@@ -6,21 +6,16 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
-    public abstract class BaseExplorer<TContext, TValue, TExplorerState, TMapperValue>
-        : IExplorer<TContext, TValue, TExplorerState, TMapperValue>, IDisposable
+    public abstract class BaseExplorer<TValue, TMapperValue>
+        : IExplorer<TValue, TMapperValue> 
     {
-        protected IContextMapper<TContext, TMapperValue> contextMapper;
         protected bool explore;
         protected readonly int numActionsFixed;
 
-        protected BaseExplorer(IContextMapper<TContext, TMapperValue> defaultPolicy, int numActions)
+        protected BaseExplorer(int numActions)
         {
-            if (defaultPolicy == null)
-                throw new ArgumentNullException("defaultPolicy");
-
             VariableActionHelper.ValidateInitialNumberOfActions(numActions);
 
-            this.contextMapper = defaultPolicy;
             this.explore = true;
             this.numActionsFixed = numActions;
         }
@@ -30,44 +25,22 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.explore = explore;
         }
 
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public void Dispose()
-        {
-            this.Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        private void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                var disposable = this.contextMapper as IDisposable;
-                if (disposable != null)
-                {
-                    disposable.Dispose();
-                    this.contextMapper = null;
-                }
-            }
-        }
-
-        public abstract Decision<TValue, TExplorerState, TMapperValue> MapContext(ulong saltedSeed, TContext context);
+        public abstract ExplorerDecision<TValue> MapContext(ulong saltedSeed, TMapperValue policyAction);
     }
 
 
-    public abstract class BaseVariableActionExplorer<TContext, TValue, TExplorerState, TMapperValue>
-       : BaseExplorer<TContext, TValue, TExplorerState, TMapperValue>, IVariableActionExplorer<TContext, TValue, TExplorerState, TMapperValue>
+    public abstract class BaseVariableActionExplorer<TValue, TMapperValue>
+       : BaseExplorer<TValue, TMapperValue>, IVariableActionExplorer<TValue, TMapperValue>
     {
         // TODO: change int.max to nullable
-        protected BaseVariableActionExplorer(IContextMapper<TContext, TMapperValue> defaultPolicy, int numActions = int.MaxValue)
-            : base(defaultPolicy, numActions) { }
+        protected BaseVariableActionExplorer(int numActions = int.MaxValue)
+            : base(numActions) { }
 
-        public override Decision<TValue, TExplorerState, TMapperValue> MapContext(ulong saltedSeed, TContext context)
+        public override ExplorerDecision<TValue> MapContext(ulong saltedSeed, TMapperValue policyAction)
         {
-            return this.MapContext(saltedSeed, context, this.numActionsFixed);
+            return this.Explore(saltedSeed, policyAction, this.numActionsFixed);
         }
 
-        public abstract Decision<TValue, TExplorerState, TMapperValue> MapContext(ulong saltedSeed, TContext context, int numActionsVariable);
+        public abstract ExplorerDecision<TValue> Explore(ulong saltedSeed, TMapperValue policyAction, int numActionsVariable);
     }
 }

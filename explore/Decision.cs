@@ -7,31 +7,20 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
-    public static class Decision
+    public static class ExplorerDecision
     {
-        public static Decision<TValue, TExplorerState, TMapperValue> Create<TValue, TExplorerState, TMapperValue>(
-            TValue action, TExplorerState explorerState, Decision<TMapperValue> policyDecision, bool shouldRecord)
+        public static ExplorerDecision<TValue> Create<TValue>(TValue action, object explorerState, bool shouldRecord)
         {
-            return new Decision<TValue, TExplorerState, TMapperValue>
+            return new ExplorerDecision<TValue>
             {
                 Value = action,
                 ExplorerState = explorerState,
-                MapperDecision = policyDecision,
                 ShouldRecord = shouldRecord
-            };
-        }
-
-        public static Decision<TValue> Create<TValue>(TValue action, object policyState = null)
-        {
-            return new Decision<TValue>
-            {
-                Value = action,
-                MapperState = policyState
             };
         }
     }
 
-    public sealed class Decision<TValue, TExplorerState, TMapperValue>
+    public sealed class ExplorerDecision<TValue>
     {
         public bool ShouldRecord { get; set; }
 
@@ -42,16 +31,30 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 
         // probability | predicted ranking, epsilon
         // "EpsilonGreedyLog":{ ... } 
-        public TExplorerState ExplorerState { get; set; }
-
+        public object ExplorerState { get; set; }
+    }
+/*
         // only logging TMapperState
         public Decision<TMapperValue> MapperDecision { get; set; }
+    }
+*/
+
+    public static class PolicyDecision
+    {
+        public static PolicyDecision<TValue> Create<TValue>(TValue action, object policyState = null)
+        {
+            return new PolicyDecision<TValue>
+            {
+                Value = action,
+                MapperState = policyState
+            };
+        }
     }
 
     /// <summary>
     /// Decision result from a policy. 
     /// </summary>
-    public class Decision<TValue>
+    public class PolicyDecision<TValue>
     {
         // int, int[], float[]
         // choose action (shown)
@@ -59,9 +62,9 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 
         public object MapperState { get; set; }
 
-        static public implicit operator Decision<TValue>(TValue value)
+        static public implicit operator PolicyDecision<TValue>(TValue value)
         {
-            return new Decision<TValue> { Value = value };
+            return new PolicyDecision<TValue> { Value = value };
         }
     }
 }

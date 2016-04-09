@@ -21,7 +21,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 	/// exploration events, and then uses the default policy. 
 	/// </remarks>
 	/// <typeparam name="TContext">The Context type.</typeparam>
-    public class TauFirstExplorer<TContext> : BaseVariableActionExplorer<TContext, int, TauFirstState, int>
+    public sealed class TauFirstExplorer<TContext> : BaseVariableActionExplorer<int, int>
 	{
         private int tau;
         private readonly object lockObject = new object();
@@ -32,17 +32,17 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 		/// <param name="defaultPolicy">A default policy after randomization finishes.</param>
 		/// <param name="tau">The number of events to be uniform over.</param>
 		/// <param name="numActions">The number of actions to randomize over.</param>
-        public TauFirstExplorer(IContextMapper<TContext, int> defaultPolicy, int tau, int numActions = int.MaxValue)
-            : base(defaultPolicy, numActions)
+        public TauFirstExplorer(int tau, int numActions = int.MaxValue)
+            : base(numActions)
         {
             this.tau = tau;
         }
 
-        public override Decision<int, TauFirstState, int> MapContext(ulong saltedSeed, TContext context, int numActionsVariable)
+        public override ExplorerDecision<int> Explore(ulong saltedSeed, int policyAction, int numActionsVariable)
         {
-            var random = new PRG(saltedSeed);
+            if (policyAction == 0 || policyAction > numActionsVariable)
+                throw new ArgumentException("Action chosen by default policy is not within valid range.");
 
-            Decision<int> policyDecision = null;
             int chosenAction = 0;
             float actionProbability = 0f;
             bool shouldRecordDecision = true;
@@ -54,32 +54,19 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                 if (this.tau > 0 && this.explore)
                 {
                     this.tau--;
+
+                    var random = new PRG(saltedSeed);
                     chosenAction = random.UniformInt(1, numActionsVariable);
                     actionProbability = 1f / numActionsVariable;
                     isExplore = true;
                 }
                 else
                 {
-                    // Invoke the default policy function to get the action
-                    policyDecision = this.contextMapper.MapContext(context);
-                    if (policyDecision != null)
-                    {
-                        chosenAction = policyDecision.Value;
+                    chosenAction = policyAction;
 
-                        if (chosenAction == 0 || chosenAction > numActionsVariable)
-                        {
-                            throw new ArgumentException("Action chosen by default policy is not within valid range.");
-                        }
-
-                        actionProbability = 1f;
-                        shouldRecordDecision = false; // TODO: don't?
-                        isExplore = false;
-                    }
-                    else
-                    {
-                        chosenAction = random.UniformInt(1, numActionsVariable);
-                        actionProbability = 1f / numActionsVariable;
-                    }
+                    actionProbability = 1f;
+                    shouldRecordDecision = false; // TODO: don't?
+                    isExplore = false;
                 }
             }
 
@@ -90,7 +77,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                 Tau = tau
             };
 
-            return Decision.Create(chosenAction, explorerState, policyDecision, shouldRecordDecision);
+            return ExplorerDecision.Create(chosenAction, explorerState, shouldRecordDecision);
         }
     }
 }

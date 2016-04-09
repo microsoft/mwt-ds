@@ -4,7 +4,7 @@ using System.IO;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    public class ExploreConfigurationWrapper<TContext, TValue, TExplorerState, TMapperValue> : AbstractModelListener, IModelSender
+    public class ExploreConfigurationWrapper<TContext, TValue, TMapperValue> : AbstractModelListener, IModelSender
     {
         internal event EventHandler<Stream> sendModelHandler;
 
@@ -14,7 +14,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             remove { this.sendModelHandler -= value; }
         }
 
-        internal IExplorer<TContext, TValue, TExplorerState, TMapperValue> Explorer { get; set; }
+        internal IExplorer<TValue, TMapperValue> Explorer { get; set; }
 
         internal DecisionServiceConfigurationWrapper<TContext, TMapperValue> ContextMapper { get; set; }
 
@@ -26,7 +26,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             }
         }
 
-        public DecisionServiceClient<TContext, TValue, TExplorerState, TMapperValue> CreateDecisionServiceClient(IRecorder<TContext, TValue, TExplorerState> recorder = null)
+        public DecisionServiceClient<TContext, TValue, TMapperValue> CreateDecisionServiceClient(IRecorder<TContext, TValue> recorder = null)
         {
             return DecisionServiceClient.Create(this, recorder);
         }
@@ -34,12 +34,12 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
     public class ExploreConfigurationWrapper
     {
-        public static ExploreConfigurationWrapper<TContext, TValue, TExplorerState, TMapperValue>
-            Create<TContext, TValue, TExplorerState, TMapperValue>(
+        public static ExploreConfigurationWrapper<TContext, TValue, TMapperValue>
+            Create<TContext, TValue, TMapperValue>(
                 DecisionServiceConfigurationWrapper<TContext, TMapperValue> unboundContextMapper,
-                IExplorer<TContext, TValue, TExplorerState, TMapperValue> explorer)
+                IExplorer<TValue, TMapperValue> explorer)
         {
-            var unboundExplorer = new ExploreConfigurationWrapper<TContext, TValue, TExplorerState, TMapperValue> { Explorer = explorer, ContextMapper = unboundContextMapper };
+            var unboundExplorer = new ExploreConfigurationWrapper<TContext, TValue, TMapperValue> { Explorer = explorer, ContextMapper = unboundContextMapper };
             unboundContextMapper.Subscribe(unboundExplorer);
             return unboundExplorer;
         }

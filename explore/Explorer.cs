@@ -20,14 +20,14 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         //        numActionsVariable);
         //}
 
-        //internal static TopSlotExplorer<TContext, TExplorer, TExplorerState> Create<TExplorer, TExplorerState>(
+        //internal static TopSlotExplorer<TContext, TExplorer> Create<TExplorer>(
         //    IContextMapper<TContext, int[]> defaultRanker,
         //    Func<IContextMapper<TContext, int>, TExplorer> singleExplorerFactory,
         //    int numActions)
         //where TExplorer : 
-        //    IExplorer<TContext, int, TExplorerState, int>
+        //    IExplorer<TContext, int, int>
         //{
-        //    return new TopSlotExplorer<TContext, TExplorer, TExplorerState>(defaultRanker, singleExplorerFactory, numActions);
+        //    return new TopSlotExplorer<TContext, TExplorer>(defaultRanker, singleExplorerFactory, numActions);
         //}
 
         //internal static TopSlotExplorer<TContext, EpsilonGreedyExplorer<TContext>, EpsilonGreedyState>
@@ -50,11 +50,11 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         //{
         //    return Explorer<TContext>.CreateTopSlotTauFirstExplorer(defaultPolicy, tau, numActionsVariable);
         //}
-
-        public static EpsilonGreedyExplorer<TContext> CreateEpsilonGreedyExplorer(IContextMapper<TContext, int> defaultPolicy, float epsilon, int numActionsVariable = int.MaxValue)
-        {
-            return new EpsilonGreedyExplorer<TContext>(defaultPolicy, epsilon, numActionsVariable);
-        }
+        
+        //public static EpsilonGreedyExplorer CreateEpsilonGreedyExplorer(IContextMapper<TContext, int> defaultPolicy, float epsilon, int numActionsVariable = int.MaxValue)
+        //{
+        //    return new EpsilonGreedyExplorer<TContext>(defaultPolicy, epsilon, numActionsVariable);
+        //}
 
         //internal static TauFirstExplorer<TContext> CreateTauFirstExplorer(IContextMapper<TContext, int> defaultPolicy, int tau, int numActionsVariable = int.MaxValue)
         //{

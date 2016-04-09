@@ -20,46 +20,31 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         public bool IsExplore { get; set; }
     }
 
-    public sealed class EpsilonGreedySlateExplorer<TContext> : BaseExplorer<TContext, int[], EpsilonGreedySlateState, int[]>
-    {        
+    public sealed class EpsilonGreedySlateExplorer<TContext> : IExplorer<int[], int[]>
+    {
+        private bool explore;
         private readonly float defaultEpsilon;
-        private readonly INumberOfActionsProvider<TContext> numberOfActionsProvider;
 
         /// <summary>
         /// The constructor is the only public member, because this should be used with the MwtExplorer.
         /// </summary>
         /// <param name="defaultPolicy">A default function which outputs an action given a context.</param>
         /// <param name="epsilon">The probability of a random exploration.</param>
-        public EpsilonGreedySlateExplorer(IRanker<TContext> defaultPolicy, float epsilon)
-            : base(defaultPolicy, int.MaxValue) // TODO: use int? instead of int.maxvalue
+        public EpsilonGreedySlateExplorer(float epsilon)
         {
             this.defaultEpsilon = epsilon;
-            this.numberOfActionsProvider = defaultPolicy as INumberOfActionsProvider<TContext>;
         }
 
-        public override Decision<int[], EpsilonGreedySlateState, int[]> MapContext(ulong saltedSeed, TContext context)
+        public void EnableExplore(bool explore)
         {
+            this.explore = explore;
+        }
+
+        public ExplorerDecision<int[]> MapContext(ulong saltedSeed, int[] policyAction)
+        {
+            MultiActionHelper.ValidateActionList(policyAction);
+
             float epsilon = this.explore ? this.defaultEpsilon : 0f;
-            int numActionsVariable;
-
-            // Invoke the default policy function to get the action
-            Decision<int[]> policyDecisionTuple = this.contextMapper.MapContext(context);
-            if (policyDecisionTuple == null)
-            {
-                if (this.numberOfActionsProvider == null)
-                    throw new InvalidOperationException(string.Format("Ranker '{0}' is unable to provide decision AND does not implement INumberOfActionsProvider", this.contextMapper.GetType()));
-
-                numActionsVariable = this.numberOfActionsProvider.GetNumberOfActions(context);
-                epsilon = 1f;
-
-                policyDecisionTuple = Decision.Create(
-                    Enumerable.Range(1, numActionsVariable).ToArray());
-            }
-            else
-            {
-                numActionsVariable = policyDecisionTuple.Value.Length;
-                MultiActionHelper.ValidateActionList(policyDecisionTuple.Value);
-            }
 
             var random = new PRG(saltedSeed);
             
@@ -69,12 +54,12 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             if (random.UniformUnitInterval() < epsilon)
             {
                 // 1 ... n
-                chosenAction = Enumerable.Range(1, numActionsVariable).ToArray();
+                chosenAction = Enumerable.Range(1, policyAction.Length).ToArray();
 
                 // 0 ... n - 2
-                for (int i = 0; i < numActionsVariable - 1; i++)
+                for (int i = 0; i < policyAction.Length - 1; i++)
 			    {
-                    int swapIndex = random.UniformInt(i, numActionsVariable - 1);
+                    int swapIndex = random.UniformInt(i, policyAction.Length - 1);
 
                     int temp = chosenAction[swapIndex];
                     chosenAction[swapIndex] = chosenAction[i];
@@ -85,7 +70,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             }
             else
             {
-                chosenAction = policyDecisionTuple.Value;
+                chosenAction = policyAction;
                 isExplore = false;
             }
 
@@ -93,10 +78,10 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             { 
                 Epsilon = this.defaultEpsilon, 
                 IsExplore = isExplore,
-                Ranking = policyDecisionTuple.Value
+                Ranking = policyAction
             };
 
-            return Decision.Create(chosenAction, explorerState, policyDecisionTuple, true);
+            return ExplorerDecision.Create(chosenAction, explorerState, true);
         }
     }
 }
