@@ -129,7 +129,7 @@ namespace ClientDecisionServiceTest
 
     class TestSingleActionPolicy : IPolicy<TestContext>
     {
-        public Decision<int> MapContext(TestContext context)
+        public PolicyDecision<int> MapContext(TestContext context)
         {
             // Always returns the same action regardless of context
             return Constants.NumberOfActions - 1;
@@ -138,7 +138,7 @@ namespace ClientDecisionServiceTest
 
     class TestMultiActionPolicy : IRanker<TestContext>
     {
-        public Decision<int[]> MapContext(TestContext context)
+        public PolicyDecision<int[]> MapContext(TestContext context)
         {
             // Always returns the same action regardless of context
             return Enumerable.Range(1, (int)Constants.NumberOfActions).ToArray();
@@ -147,7 +147,7 @@ namespace ClientDecisionServiceTest
 
     public class TestRcv1ContextPolicy : IPolicy<TestRcv1Context>
     {
-        public Decision<int> MapContext(TestRcv1Context context)
+        public PolicyDecision<int> MapContext(TestRcv1Context context)
         {
             return 1;
         }
@@ -155,7 +155,7 @@ namespace ClientDecisionServiceTest
 
     class TestADFPolicy : IRanker<TestADFContext>
     {
-        public Decision<int[]> MapContext(TestADFContext context)
+        public PolicyDecision<int[]> MapContext(TestADFContext context)
         {
             // Always returns the same action regardless of context
             return Enumerable.Range(1, (int)context.ActionDependentFeatures.Count).ToArray();
@@ -164,14 +164,14 @@ namespace ClientDecisionServiceTest
 
     class TestADFWithFeaturesPolicy : IRanker<TestADFContextWithFeatures>
     {
-        public Decision<int[]> MapContext(TestADFContextWithFeatures context)
+        public PolicyDecision<int[]> MapContext(TestADFContextWithFeatures context)
         {
             // Always returns the same action regardless of context
             return Enumerable.Range(1, context.ActionDependentFeatures.Count).ToArray();
         }
     }
 
-    class TestLogger : ILogger, IRecorder<TestContext, int, EpsilonGreedyState>, IRecorder<TestContext, int[], EpsilonGreedyState>
+    class TestLogger : ILogger, IRecorder<TestContext, int>, IRecorder<TestContext, int[]>
     {
         public TestLogger()
         {

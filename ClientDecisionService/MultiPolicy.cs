@@ -3,7 +3,6 @@ using System;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    /*
     public class MultiPolicy<TContext, TValue> : IContextMapper<TContext, TValue>, INumberOfActionsProvider<TContext>, IDisposable
     {
         private IContextMapper<TContext, TValue> vwPolicy;
@@ -22,7 +21,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
         private sealed class NullPolicy : IContextMapper<TContext, TValue>
         {
-            public Decision<TValue> MapContext(TContext context)
+            public PolicyDecision<TValue> MapContext(TContext context)
             {
                 return null;
             }
@@ -37,7 +36,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             this.activePolicy = this.vwPolicy;
         }
 
-        public Decision<TValue> MapContext(TContext context)
+        public PolicyDecision<TValue> MapContext(TContext context)
         {
             return this.activePolicy.MapContext(context);
         }
@@ -88,5 +87,5 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         {
             return new MultiPolicy<TContext, TValue>(vwPolicy, initialPolicy);
         }
-    }*/
+    }
 }

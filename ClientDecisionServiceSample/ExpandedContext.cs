@@ -86,7 +86,7 @@ namespace ClientDecisionServiceSample
 
     class ExpandedPolicy : IRanker<ExpandedContext>
     {
-        public Decision<int[]> MapContext(ExpandedContext context)
+        public PolicyDecision<int[]> MapContext(ExpandedContext context)
         {
             return context.Actions.Select((a, i) => i + 1).ToArray();
         }

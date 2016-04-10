@@ -18,7 +18,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             IRecorder<TContext, TValue> recorder = null)
         {
             var dsClient = new DecisionServiceClient<TContext, TValue, TMapperValue>(
-                explorer.ContextMapper.Configuration, explorer.ContextMapper.Metadata, explorer.Explorer, recorder);
+                explorer.ContextMapper.Configuration, explorer.ContextMapper.Metadata, explorer.Explorer, recorder: recorder);
             explorer.Subscribe(dsClient);
             return dsClient;
         }

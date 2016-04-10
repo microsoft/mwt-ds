@@ -296,7 +296,7 @@ namespace ClientDecisionServiceSample
     /// </summary>
     class SimplePolicy : IPolicy<SimpleContext>
     {
-        public Decision<int> MapContext(SimpleContext context)
+        public PolicyDecision<int> MapContext(SimpleContext context)
         {
             // Return a constant action for simple demonstration.
             // In advanced scenarios, users can examine the context and return a more appropriate action.
@@ -314,15 +314,15 @@ namespace ClientDecisionServiceSample
     /// </summary>
     class NewsDisplayPolicy : IPolicy<UserContext>
     {
-        public Decision<int> MapContext(UserContext context)
+        public PolicyDecision<int> MapContext(UserContext context)
         {
-            return Decision.Create((int)(Math.Round(context.Sum(f => f.Value) / context.Count + 1)));
+            return PolicyDecision.Create((int)(Math.Round(context.Sum(f => f.Value) / context.Count + 1)));
         }
     }
 
     public class DefaultJsonPolicy : IPolicy<string>
     {
-        public Decision<int> MapContext(string context)
+        public PolicyDecision<int> MapContext(string context)
         {
             return 1;
         }

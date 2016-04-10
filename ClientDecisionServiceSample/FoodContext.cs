@@ -44,13 +44,13 @@ namespace ClientDecisionServiceSample
 
     class FoodPolicy : IRanker<FoodContext>
     {
-        public Decision<int[]> MapContext(FoodContext context)
+        public PolicyDecision<int[]> MapContext(FoodContext context)
         {
             return context.Actions.Select((a, i) => (int)i + 1).ToArray();
         }
     }
 
-    class FoodRecorder : IRecorder<FoodContext, int[], EpsilonGreedyState>
+    class FoodRecorder : IRecorder<FoodContext, int[]>
     {
         Dictionary<string, float> keyToProb = new Dictionary<string, float>();
         public float GetProb(string key)
@@ -58,9 +58,9 @@ namespace ClientDecisionServiceSample
             return keyToProb[key];
         }
 
-        public void Record(FoodContext context, int[] value, EpsilonGreedyState explorerState, object mapperState, UniqueEventID uniqueKey)
+        public void Record(FoodContext context, int[] value, object explorerState, object mapperState, UniqueEventID uniqueKey)
         {
-            keyToProb.Add(uniqueKey.Key, explorerState.Probability);
+            keyToProb.Add(uniqueKey.Key, ((EpsilonGreedyState)explorerState).Probability);
         }
     }
 

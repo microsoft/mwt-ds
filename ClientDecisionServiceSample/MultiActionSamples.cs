@@ -38,8 +38,8 @@ namespace ClientDecisionServiceSample
                 EventHubInputName = MultiActionSamples.EventHubInputName,
             };
 
-            var ranker = VWPolicy.CreateJsonRanker(serviceConfig);
-            using (var service = DecisionServiceClient.Create(ranker.WithTopSlotEpsilonGreedy(epsilon: .8f)))
+            var explorer = VWPolicy.CreateJsonRanker(serviceConfig).WithTopSlotEpsilonGreedy(epsilon: 0.8f);
+            using (var service = DecisionServiceClient.Create(explorer))
             {
                 string uniqueKey = "json-key-";
 

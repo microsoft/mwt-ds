@@ -14,7 +14,7 @@ namespace ClientDecisionServiceTest
     [TestClass]
     public class InitialFullExploration
     {
-        private class MyRecorder : IRecorder<string, int[], EpsilonGreedyState>
+        private class MyRecorder : IRecorder<string, int[]>
         {
             public EpsilonGreedyState LastExplorerState { get; set; }
 

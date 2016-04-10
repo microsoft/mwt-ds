@@ -32,7 +32,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
     public static class DecisionServiceConfigurationWrapperExtensions
     {
-        public static ExploreConfigurationWrapper<TContext, int, EpsilonGreedyState, int>
+        public static ExploreConfigurationWrapper<TContext, int, int>
             WithEpsilonGreedy<TContext>(
                 this DecisionServiceConfigurationWrapper<TContext, int> mapper,
                 float epsilon,
@@ -41,18 +41,18 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             return ExploreConfigurationWrapper.Create(mapper, new EpsilonGreedyExplorer(epsilon, numActionsVariable));
         }
 
-        public static ExploreConfigurationWrapper<TContext, int[], EpsilonGreedyState, int[]>
-            WithTopSlotEpsilonGreedy<TContext>(
-                this DecisionServiceConfigurationWrapper<TContext, int[]> mapper,
-                float epsilon,
-                int numActionsVariable = int.MaxValue)
-        {
-            var explorer = ExplorerFactory.CreateTopSlot<TContext, EpsilonGreedyExplorer<TContext>, EpsilonGreedyState>(
-                mapper.DefaultPolicy,
-                policy => new EpsilonGreedyExplorer<TContext>(policy, epsilon, numActionsVariable),
-                numActionsVariable);
+        //public static ExploreConfigurationWrapper<TContext, int[], int[]>
+        //    WithTopSlotEpsilonGreedy<TContext>(
+        //        this DecisionServiceConfigurationWrapper<TContext, int[]> mapper,
+        //        float epsilon,
+        //        int numActionsVariable = int.MaxValue)
+        //{
+        //    var explorer = ExplorerFactory.CreateTopSlot<TContext, EpsilonGreedyExplorer, EpsilonGreedyState>(
+        //        mapper.DefaultPolicy,
+        //        policy => new EpsilonGreedyExplorer(policy, epsilon, numActionsVariable),
+        //        numActionsVariable);
 
-            return ExploreConfigurationWrapper.Create(mapper, explorer);
-        }
+        //    return ExploreConfigurationWrapper.Create(mapper, explorer);
+        //}
     }
 }

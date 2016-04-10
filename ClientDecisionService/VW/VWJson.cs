@@ -27,7 +27,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 var action = (int)vwExample.Predict(VowpalWabbitPredictionType.CostSensitive);
                 var state = new VWState { ModelId = vw.ID };
 
-                return Decision.Create(action, state);
+                return PolicyDecision.Create(action, state);
             }
         }
     }
@@ -52,7 +52,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 var actions = vwMultilabelPredictions.Select(a => a + 1).ToArray();
                 var state = new VWState { ModelId = vw.ID };
 
-                return Decision.Create(actions, state);
+                return PolicyDecision.Create(actions, state);
             }
         }
 

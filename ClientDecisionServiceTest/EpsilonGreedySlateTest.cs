@@ -59,7 +59,7 @@ namespace ClientDecisionServiceTest
 
         public class MockupRanker : IRanker<int[]>
         {
-            public Decision<int[]> MapContext(int[] context)
+            public PolicyDecision<int[]> MapContext(int[] context)
             {
                 return context;
             }

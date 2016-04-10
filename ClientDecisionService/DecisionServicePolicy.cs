@@ -57,7 +57,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             }
         }
 
-        public Decision<TValue> MapContext(TContext context)
+        public PolicyDecision<TValue> MapContext(TContext context)
         {
             return this.contextMapper.MapContext(context);
         }

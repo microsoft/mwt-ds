@@ -63,7 +63,7 @@ namespace ClientDecisionServiceSample
 
     class ADFPolicy : IRanker<ADFContext>
     {
-        public Decision<int[]> MapContext(ADFContext context)
+        public PolicyDecision<int[]> MapContext(ADFContext context)
         {
             return Enumerable.Range(1, context.ActionDependentFeatures.Count).ToArray();
         }

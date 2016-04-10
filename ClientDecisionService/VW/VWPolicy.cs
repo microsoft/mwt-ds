@@ -10,18 +10,6 @@ using VW;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    class Foo
-    {
-        void X()
-        {
-
-            VWPolicy.CreateJsonPolicy(null)
-                .WithEpsilonGreedy(0.3)
-                .
-                .
-        }
-    }
-
     internal class VWPolicy<TContext> 
         : VWBaseContextMapper<VowpalWabbitThreadedPrediction<TContext>, VowpalWabbit<TContext>, TContext, int>, IPolicy<TContext>
     {
@@ -76,7 +64,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             config.UseJsonContext = false;
             return VWPolicy.Wrap(new VWRanker<TContext, TActionDependentFeature>(getContextFeaturesFunc, config.ModelStream, config.FeatureDiscovery), config);
         }
-        /*
+        
         public static DecisionServiceConfigurationWrapper<string, int> StartWithJsonPolicy(
             DecisionServiceConfiguration config,
             IContextMapper<string, int> initialPolicy = null)
@@ -86,14 +74,16 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         }
 
         public static DecisionServiceConfigurationWrapper<string, int[]> StartWithJsonRanker(
-            DecisionServiceConfiguration config)
+            DecisionServiceConfiguration config,
+            IContextMapper<string, int[]> initialPolicy = null)
         {
             config.UseJsonContext = true;
             return VWPolicy.Wrap(MultiPolicy.Create(new VWJsonRanker(config.ModelStream), initialPolicy), config);
         }
 
         public static DecisionServiceConfigurationWrapper<TContext, int> StartWithPolicy<TContext>(
-            DecisionServiceConfiguration config)
+            DecisionServiceConfiguration config,
+            IContextMapper<TContext, int> initialPolicy = null)
         {
             config.UseJsonContext = false;
             return VWPolicy.Wrap(MultiPolicy.Create(
@@ -122,7 +112,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 config);
         }
 
-        */
+        
         public static DecisionServiceConfigurationWrapper<TContext, TValue> Wrap<TContext, TValue>
             (IContextMapper<TContext, TValue> vwPolicy, DecisionServiceConfiguration config)
         {
