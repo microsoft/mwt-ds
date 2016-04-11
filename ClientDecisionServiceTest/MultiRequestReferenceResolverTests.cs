@@ -26,7 +26,7 @@ namespace ClientDecisionServiceTest
 
             var d = new Data { Name = "foo", Subs = new List<Sub>{ s1, s2 } };
 
-            var json = JsonConvert.SerializeObject(d, Formatting.None, new JsonSerializerSettings { ReferenceResolver = resolver });
+            var json = JsonConvert.SerializeObject(d, Formatting.None, new JsonSerializerSettings { ReferenceResolverProvider = () => resolver });
             var jobject = JsonConvert.DeserializeObject(json) as JObject;
 
             Assert.AreEqual("foo", jobject.Value<string>("Name"));
@@ -46,7 +46,7 @@ namespace ClientDecisionServiceTest
             Thread.Sleep(20);
 
             d = new Data { Name = "bar", Subs = new List<Sub>{ s2, s3 } };
-            json = JsonConvert.SerializeObject(d, Formatting.None, new JsonSerializerSettings { ReferenceResolver = resolver });
+            json = JsonConvert.SerializeObject(d, Formatting.None, new JsonSerializerSettings { ReferenceResolverProvider = () => resolver });
             jobject = JsonConvert.DeserializeObject(json) as JObject;
 
             Assert.AreEqual("bar", jobject.Value<string>("Name"));
@@ -63,7 +63,7 @@ namespace ClientDecisionServiceTest
             Thread.Sleep(20);
 
             d = new Data { Name = "zoo", Subs = new List<Sub>{ s1 } };
-            json = JsonConvert.SerializeObject(d, Formatting.None, new JsonSerializerSettings { ReferenceResolver = resolver });
+            json = JsonConvert.SerializeObject(d, Formatting.None, new JsonSerializerSettings { ReferenceResolverProvider = () => resolver });
             jobject = JsonConvert.DeserializeObject(json) as JObject;
 
             Assert.AreEqual("zoo", jobject.Value<string>("Name"));
@@ -84,7 +84,7 @@ namespace ClientDecisionServiceTest
 
             var d = new Data { Name = "foo", Subs = new List<Sub> { s1, s2 } };
 
-            var json = JsonConvert.SerializeObject(d, Formatting.None, new JsonSerializerSettings { ReferenceResolver = resolver });
+            var json = JsonConvert.SerializeObject(d, Formatting.None, new JsonSerializerSettings { ReferenceResolverProvider = () => resolver });
             var jobject = JsonConvert.DeserializeObject(json) as JObject;
 
             Assert.AreEqual("foo", jobject.Value<string>("Name"));
@@ -102,7 +102,7 @@ namespace ClientDecisionServiceTest
             Assert.AreEqual(s2.X, s2_j.Value<float>("X"));
 
             d = new Data { Name = "bar", Subs = new List<Sub> { s2, s3 } };
-            json = JsonConvert.SerializeObject(d, Formatting.None, new JsonSerializerSettings { ReferenceResolver = resolver });
+            json = JsonConvert.SerializeObject(d, Formatting.None, new JsonSerializerSettings { ReferenceResolverProvider = () => resolver });
             jobject = JsonConvert.DeserializeObject(json) as JObject;
 
             Assert.AreEqual("bar", jobject.Value<string>("Name"));
@@ -118,7 +118,7 @@ namespace ClientDecisionServiceTest
             Thread.Sleep(TimeSpan.FromSeconds(1.5));
 
             d = new Data { Name = "zoo", Subs = new List<Sub> { s1 } };
-            json = JsonConvert.SerializeObject(d, Formatting.None, new JsonSerializerSettings { ReferenceResolver = resolver });
+            json = JsonConvert.SerializeObject(d, Formatting.None, new JsonSerializerSettings { ReferenceResolverProvider = () => resolver });
             jobject = JsonConvert.DeserializeObject(json) as JObject;
 
             Assert.AreEqual("zoo", jobject.Value<string>("Name"));
@@ -139,7 +139,7 @@ namespace ClientDecisionServiceTest
 
             var d = new Data { Name = "foo", Subs = new List<Sub> { s1, s2 } };
 
-            var json = JsonConvert.SerializeObject(d, Formatting.None, new JsonSerializerSettings { ReferenceResolver = resolver });
+            var json = JsonConvert.SerializeObject(d, Formatting.None, new JsonSerializerSettings { ReferenceResolverProvider = () => resolver });
             var jobject = JsonConvert.DeserializeObject(json) as JObject;
 
             Assert.AreEqual("foo", jobject.Value<string>("Name"));
@@ -159,7 +159,7 @@ namespace ClientDecisionServiceTest
             s2 = new Sub { Id = 2, X = 2 };
 
             d = new Data { Name = "bar", Subs = new List<Sub> { s2, s3 } };
-            json = JsonConvert.SerializeObject(d, Formatting.None, new JsonSerializerSettings { ReferenceResolver = resolver });
+            json = JsonConvert.SerializeObject(d, Formatting.None, new JsonSerializerSettings { ReferenceResolverProvider = () => resolver });
             jobject = JsonConvert.DeserializeObject(json) as JObject;
 
             Assert.AreEqual("bar", jobject.Value<string>("Name"));
@@ -175,7 +175,7 @@ namespace ClientDecisionServiceTest
             Thread.Sleep(TimeSpan.FromSeconds(1.5));
 
             d = new Data { Name = "zoo", Subs = new List<Sub> { s1 } };
-            json = JsonConvert.SerializeObject(d, Formatting.None, new JsonSerializerSettings { ReferenceResolver = resolver });
+            json = JsonConvert.SerializeObject(d, Formatting.None, new JsonSerializerSettings { ReferenceResolverProvider = () => resolver });
             jobject = JsonConvert.DeserializeObject(json) as JObject;
 
             Assert.AreEqual("zoo", jobject.Value<string>("Name"));
@@ -196,7 +196,7 @@ namespace ClientDecisionServiceTest
 
             var d = new Data { Name = "foo", Subs = new List<Sub> { s1, s2 } };
 
-            var json = JsonConvert.SerializeObject(d, Formatting.None, new JsonSerializerSettings { ReferenceResolver = resolver });
+            var json = JsonConvert.SerializeObject(d, Formatting.None, new JsonSerializerSettings { ReferenceResolverProvider = () => resolver });
             var jobject = JsonConvert.DeserializeObject(json) as JObject;
 
             Assert.AreEqual("foo", jobject.Value<string>("Name"));
@@ -217,7 +217,7 @@ namespace ClientDecisionServiceTest
             Assert.AreEqual(s2.X, s2_j.Value<float>("X"));
 
             d = new Data { Name = "bar", Subs = new List<Sub> { s2, s3 } };
-            json = JsonConvert.SerializeObject(d, Formatting.None, new JsonSerializerSettings { ReferenceResolver = resolver });
+            json = JsonConvert.SerializeObject(d, Formatting.None, new JsonSerializerSettings { ReferenceResolverProvider = () => resolver });
             jobject = JsonConvert.DeserializeObject(json) as JObject;
 
             Assert.AreEqual("bar", jobject.Value<string>("Name"));
@@ -233,7 +233,7 @@ namespace ClientDecisionServiceTest
             Thread.Sleep(TimeSpan.FromSeconds(1.5));
 
             d = new Data { Name = "zoo", Subs = new List<Sub> { s1 } };
-            json = JsonConvert.SerializeObject(d, Formatting.None, new JsonSerializerSettings { ReferenceResolver = resolver });
+            json = JsonConvert.SerializeObject(d, Formatting.None, new JsonSerializerSettings { ReferenceResolverProvider = () => resolver });
             jobject = JsonConvert.DeserializeObject(json) as JObject;
 
             Assert.AreEqual("zoo", jobject.Value<string>("Name"));
@@ -248,7 +248,7 @@ namespace ClientDecisionServiceTest
         {
             try
             {
-                JsonConvert.DeserializeObject<Sub>("{\"$id\":\"1\"}", new JsonSerializerSettings { ReferenceResolver = new CachingReferenceResolver() });
+                JsonConvert.DeserializeObject<Sub>("{\"$id\":\"1\"}", new JsonSerializerSettings { ReferenceResolverProvider = () => new CachingReferenceResolver() });
                 Assert.Fail("Expected JsonSerializationException");
             }
             catch (NotSupportedException)
@@ -266,7 +266,7 @@ namespace ClientDecisionServiceTest
         {
             try
             {
-                JsonConvert.DeserializeObject<Sub>("{\"$ref\":\"1\"}", new JsonSerializerSettings { ReferenceResolver = new CachingReferenceResolver() });
+                JsonConvert.DeserializeObject<Sub>("{\"$ref\":\"1\"}", new JsonSerializerSettings { ReferenceResolverProvider = () => new CachingReferenceResolver() });
                 Assert.Fail("Expected JsonSerializationException");
             }
             catch (NotSupportedException)

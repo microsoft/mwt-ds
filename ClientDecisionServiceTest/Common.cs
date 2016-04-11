@@ -197,12 +197,12 @@ namespace ClientDecisionServiceTest
             this.numOutcome = 0;
         }
 
-        public void Record(TestContext context, int value, EpsilonGreedyState explorerState, object mapperState, UniqueEventID uniqueKey)
+        public void Record(TestContext context, int value, object explorerState, object mapperState, UniqueEventID uniqueKey)
         {
             this.numRecord++;
         }
 
-        public void Record(TestContext context, int[] value, EpsilonGreedyState explorerState, object mapperState, UniqueEventID uniqueKey)
+        public void Record(TestContext context, int[] value, object explorerState, object mapperState, UniqueEventID uniqueKey)
         {
             this.numRecord++;
         }

@@ -64,7 +64,7 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
                 this.eventSerializer = ev => JsonConvert.SerializeObject(
                     new ExperimentalUnitFragment { Key = ev.Key, Value = ev },
                     Formatting.None,
-                    new JsonSerializerSettings { ReferenceResolver = this.batchConfig.ReferenceResolver });
+                    new JsonSerializerSettings { ReferenceResolverProvider = () => this.batchConfig.ReferenceResolver });
             }
         }
 

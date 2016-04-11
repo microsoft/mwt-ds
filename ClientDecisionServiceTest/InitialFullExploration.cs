@@ -20,9 +20,9 @@ namespace ClientDecisionServiceTest
 
             public object LastMapperState { get; set; }
 
-            public void Record(string context, int[] value, EpsilonGreedyState explorerState, object mapperState, UniqueEventID uniqueKey)
+            public void Record(string context, int[] value, object explorerState, object mapperState, UniqueEventID uniqueKey)
             {
-                this.LastExplorerState = explorerState;
+                this.LastExplorerState = (EpsilonGreedyState)explorerState;
                 this.LastMapperState = mapperState;
             }
         }

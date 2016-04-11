@@ -15,7 +15,7 @@ namespace ClientDecisionServiceTest
         {
             var context = new int[] { 1, 2, 3 };
 
-            var explorer = new EpsilonGreedySlateExplorer<int[]>(new MockupRanker(), epsilon);
+            var explorer = new EpsilonGreedySlateExplorer<int[]>(epsilon);
 
             var rnd = new Random(123);
 
