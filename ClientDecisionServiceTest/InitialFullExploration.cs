@@ -40,9 +40,8 @@ namespace ClientDecisionServiceTest
                     vw.SaveModel(model);
                 }
 
-                // TODO: Louie can you provide a "test" token, with no model?
                 using (var ds = 
-                        VWPolicy.StartWithJsonRanker(new DecisionServiceConfiguration(""))
+                        VWPolicy.StartWithJsonRanker(new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken))
                             .WithTopSlotEpsilonGreedy(0.3f)
                             .CreateDecisionServiceClient(recorder))
                 {
@@ -62,6 +61,12 @@ namespace ClientDecisionServiceTest
                     Assert.AreEqual("123", vwState.ModelId);
                 }
             }
+        }
+
+        [TestInitialize]
+        public void Setup()
+        {
+            MockCommandCenter.SetRedirectionBlobLocation();
         }
     }
 }

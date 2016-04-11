@@ -24,7 +24,7 @@ namespace ClientDecisionServiceTest
         {
             Assembly assembly = typeof(DecisionServiceClient).Assembly;
             Type dsct = assembly.GetType("Microsoft.Research.MultiWorldTesting.ClientLibrary.DecisionServiceConstants");
-            FieldInfo rblf = dsct.GetField("RedirectionBlobLocation", BindingFlags.NonPublic | BindingFlags.Static);
+            FieldInfo rblf = dsct.GetField("RedirectionBlobLocation", BindingFlags.Public | BindingFlags.Static);
             rblf.SetValue(null, MockCommandCenter.RedirectionBlobLocation);
         }
 
@@ -32,7 +32,7 @@ namespace ClientDecisionServiceTest
         {
             Assembly assembly = typeof(DecisionServiceClient).Assembly;
             Type dsct = assembly.GetType("Microsoft.Research.MultiWorldTesting.ClientLibrary.DecisionServiceConstants");
-            FieldInfo rblf = dsct.GetField("RedirectionBlobLocation", BindingFlags.NonPublic | BindingFlags.Static);
+            FieldInfo rblf = dsct.GetField("RedirectionBlobLocation", BindingFlags.Public | BindingFlags.Static);
             rblf.SetValue(null, "http://decisionservicestorage.blob.core.windows.net/app-locations/{0}");
         }
 
