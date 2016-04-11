@@ -41,9 +41,9 @@ namespace ClientDecisionServiceTest
                 }
 
                 using (var ds = 
-                        VWPolicy.StartWithJsonRanker(new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken))
+                        DecisionServiceClient.WithJsonRanker(new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken))
                             .WithTopSlotEpsilonGreedy(0.3f)
-                            .CreateDecisionServiceClient(recorder))
+                            .ExploreUntilModel(new PermutationExplorer<string>(new JsonNumActionsProvider()), recorder))
                 {
                     var decision = ds.ChooseAction(new UniqueEventID() { Key = "abc", TimeStamp = DateTime.Now }, "{\"a\":1,\"_multi\":[{\"b\":2}]}");
 
@@ -67,6 +67,14 @@ namespace ClientDecisionServiceTest
         public void Setup()
         {
             MockCommandCenter.SetRedirectionBlobLocation();
+        }
+    }
+
+    class JsonNumActionsProvider : INumberOfActionsProvider<string>
+    {
+        public int GetNumberOfActions(string context)
+        {
+            return 3;
         }
     }
 }

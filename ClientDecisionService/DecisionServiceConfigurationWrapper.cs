@@ -20,7 +20,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         /// </summary>
         internal IContextMapper<TContext, TPolicyValue> InternalPolicy { get; set; }
 
-        internal IContextMapper<TContext, TPolicyValue> DefaultPolicy { get; set; }
+        internal IContextMapper<TContext, TPolicyValue> InitialPolicy { get; set; }
 
         internal DecisionServiceConfiguration Configuration { get; set; }
 

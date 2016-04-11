@@ -15,8 +15,7 @@ namespace ClientDecisionServiceTest
             var dsConfig = new DecisionServiceConfiguration("my token") { OfflineMode = true };
             try
             {
-                var policy = VWPolicy.StartWithPolicy(dsConfig, new TestSingleActionPolicy());
-                using (var ds = DecisionServiceClient.Create(policy.WithEpsilonGreedy(epsilon: 0.2f, numActionsVariable: 2)))
+                using (var ds = DecisionServiceClient.WithPolicy<TestContext>(dsConfig).WithEpsilonGreedy(.2f, 2).ExploitUntilModel(new TestSingleActionPolicy()))
                 { }
             }
             catch (ArgumentException ex)
@@ -32,8 +31,7 @@ namespace ClientDecisionServiceTest
 
             var recorder = new TestLogger();
             int numChooseAction = 100;
-            var policy = VWPolicy.StartWithPolicy(dsConfig, new TestSingleActionPolicy());
-            using (var ds = DecisionServiceClient.Create(policy.WithEpsilonGreedy(epsilon: 0.2f, numActionsVariable: Constants.NumberOfActions), recorder))
+            using (var ds = DecisionServiceClient.WithPolicy<TestContext>(dsConfig).WithEpsilonGreedy(.2f, Constants.NumberOfActions).ExploitUntilModel(new TestSingleActionPolicy(), recorder))
             {
                 for (int i = 0; i < numChooseAction; i++)
                 {
@@ -71,8 +69,7 @@ namespace ClientDecisionServiceTest
             var recorder = new TestLogger();
 
             int numChooseAction = 100;
-            var policy = VWPolicy.StartWithPolicy(dsConfig, new TestSingleActionPolicy());
-            using (var ds = DecisionServiceClient.Create(policy.WithEpsilonGreedy(epsilon: .2f, numActionsVariable: Constants.NumberOfActions), recorder))
+            using (var ds = DecisionServiceClient.WithPolicy<TestContext>(dsConfig).WithEpsilonGreedy(.2f, Constants.NumberOfActions).ExploitUntilModel(new TestSingleActionPolicy(), recorder))
             {
                 for (int i = 0; i < numChooseAction; i++)
                 {
@@ -114,8 +111,7 @@ namespace ClientDecisionServiceTest
             bool isExceptionExpected = false;
             try
             {
-                var policy = VWPolicy.StartWithPolicy(dsConfig, new TestSingleActionPolicy());
-                using (var ds = DecisionServiceClient.Create(policy.WithEpsilonGreedy(epsilon: .2f, numActionsVariable: Constants.NumberOfActions)))
+                using (var ds = DecisionServiceClient.WithPolicy<TestContext>(dsConfig).WithEpsilonGreedy(.2f, Constants.NumberOfActions).ExploitUntilModel(new TestSingleActionPolicy()))
                 { }
             }
             catch (InvalidDataException)
@@ -131,8 +127,7 @@ namespace ClientDecisionServiceTest
             var dsConfig = new DecisionServiceConfiguration("my token") { OfflineMode = true };
             try
             {
-                var ranker = VWPolicy.StartWithRanker(dsConfig, new TestMultiActionPolicy());
-                using (var ds = DecisionServiceClient.Create(ranker.WithTopSlotEpsilonGreedy(epsilon: .2f, numActionsVariable: 2)))
+                using (var ds = DecisionServiceClient.WithRanker<TestContext>(dsConfig).WithTopSlotEpsilonGreedy(.2f, 2).ExploitUntilModel(new TestMultiActionPolicy()))
                 { }
             }
             catch (ArgumentException ex)
@@ -147,8 +142,7 @@ namespace ClientDecisionServiceTest
             var dsConfig = new DecisionServiceConfiguration("my token") { OfflineMode = true };
             var recorder = new TestLogger();
             int numChooseAction = 100;
-            var ranker = VWPolicy.StartWithRanker(dsConfig, new TestMultiActionPolicy());
-            using (var ds = DecisionServiceClient.Create(ranker.WithTopSlotEpsilonGreedy(epsilon: .2f, numActionsVariable: Constants.NumberOfActions), recorder))
+            using (var ds = DecisionServiceClient.WithRanker<TestContext>(dsConfig).WithTopSlotEpsilonGreedy(.2f, 2).ExploitUntilModel(new TestMultiActionPolicy(), recorder))
             {
                 for (int i = 0; i < numChooseAction; i++)
                 {
@@ -191,8 +185,7 @@ namespace ClientDecisionServiceTest
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
 
             int numChooseAction = 100;
-            var policy = VWPolicy.StartWithRanker(dsConfig, new TestMultiActionPolicy());
-            using (var ds = DecisionServiceClient.Create(policy.WithTopSlotEpsilonGreedy(epsilon: .2f, numActionsVariable: Constants.NumberOfActions), recorder))
+            using (var ds = DecisionServiceClient.WithRanker<TestContext>(dsConfig).WithTopSlotEpsilonGreedy(.2f, Constants.NumberOfActions).ExploitUntilModel(new TestMultiActionPolicy(), recorder))
             {
                 for (int i = 0; i < numChooseAction; i++)
                 {
@@ -234,8 +227,7 @@ namespace ClientDecisionServiceTest
             bool isExceptionExpected = false;
             try
             {
-                var policy = VWPolicy.StartWithRanker(dsConfig, new TestMultiActionPolicy());
-                using (var ds = DecisionServiceClient.Create(policy.WithTopSlotEpsilonGreedy(epsilon: .2f, numActionsVariable: Constants.NumberOfActions)))
+                using (var ds = DecisionServiceClient.WithRanker<TestContext>(dsConfig).WithTopSlotEpsilonGreedy(.2f, Constants.NumberOfActions).ExploitUntilModel(new TestMultiActionPolicy()))
                 { }
             }
             catch (InvalidDataException)

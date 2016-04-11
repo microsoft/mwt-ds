@@ -29,8 +29,7 @@ namespace ClientDecisionServiceTest
                 PollingForSettingsPeriod = TimeSpan.MinValue
             };
 
-            var policy = VWPolicy.StartWithPolicy(dsConfig, new TestRcv1ContextPolicy());
-            using (var ds = DecisionServiceClient.Create(policy.WithEpsilonGreedy(epsilon: .5f, numActionsVariable: numActions)))
+            using (var ds = DecisionServiceClient.WithPolicy<TestRcv1Context>(dsConfig).WithEpsilonGreedy(.5f, numActions).ExploitUntilModel(new TestRcv1ContextPolicy()))
             {
                 string uniqueKey = "eventid";
 

@@ -16,6 +16,8 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
         internal IExplorer<TAction, TPolicyValue> Explorer { get; set; }
 
+        internal IFullExplorer<TContext, TAction> InitialFullExplorer { get; set; }
+
         internal DecisionServiceConfigurationWrapper<TContext, TPolicyValue> ContextMapper { get; set; }
 
         internal override void Receive(object sender, Stream model)
@@ -26,8 +28,15 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             }
         }
 
-        public DecisionServiceClient<TContext, TAction, TPolicyValue> CreateDecisionServiceClient(IRecorder<TContext, TAction> recorder = null)
+        public DecisionServiceClient<TContext, TAction, TPolicyValue> ExploitUntilModel(IContextMapper<TContext, TPolicyValue> initialPolicy, IRecorder<TContext, TAction> recorder = null)
         {
+            this.ContextMapper.InitialPolicy = initialPolicy;
+            return DecisionServiceClient.Create(this, recorder);
+        }
+
+        public DecisionServiceClient<TContext, TAction, TPolicyValue> ExploreUntilModel(IFullExplorer<TContext, TAction> initialExplorer, IRecorder<TContext, TAction> recorder = null)
+        {
+            this.InitialFullExplorer = initialExplorer;
             return DecisionServiceClient.Create(this, recorder);
         }
     }

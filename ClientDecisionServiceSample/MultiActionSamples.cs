@@ -38,7 +38,7 @@ namespace ClientDecisionServiceSample
                 EventHubInputName = MultiActionSamples.EventHubInputName,
             };
 
-            var explorer = VWPolicy.CreateJsonRanker(serviceConfig).WithTopSlotEpsilonGreedy(epsilon: 0.8f);
+            var explorer = DecisionServiceClient.WithJsonRanker(serviceConfig).WithTopSlotEpsilonGreedy(epsilon: 0.8f);
             using (var service = DecisionServiceClient.Create(explorer))
             {
                 string uniqueKey = "json-key-";
@@ -74,8 +74,10 @@ namespace ClientDecisionServiceSample
                 FeatureDiscovery = VowpalWabbitFeatureDiscovery.Json
             };
 
-            var ranker = VWPolicy.StartWithRanker(serviceConfig, context => FoodContext.GetFeaturesFromContext(context), new FoodPolicy());
-            using (var service = DecisionServiceClient.Create(ranker.WithTopSlotEpsilonGreedy(epsilon: .8f)))
+            using (var service = DecisionServiceClient
+                .WithRanker<FoodContext, FoodFeature>(serviceConfig, context => FoodContext.GetFeaturesFromContext(context))
+                .WithTopSlotEpsilonGreedy(epsilon: .8f)
+                .ExploitUntilModel(new FoodPolicy()))
             {
                 string uniqueKey = "scratch-key-";
                 string baseLocation = "Washington-";
@@ -147,8 +149,10 @@ namespace ClientDecisionServiceSample
                 FeatureDiscovery = VowpalWabbitFeatureDiscovery.Json
             };
 
-            var ranker = VWPolicy.StartWithRanker<FoodContext, FoodFeature>(serviceConfig, context => FoodContext.GetFeaturesFromContext(context), new FoodPolicy());
-            using (var service = DecisionServiceClient.Create(ranker.WithTopSlotEpsilonGreedy(epsilon: .2f)))
+            using (var service = DecisionServiceClient
+                .WithRanker<FoodContext, FoodFeature>(serviceConfig, context => FoodContext.GetFeaturesFromContext(context))
+                .WithTopSlotEpsilonGreedy(epsilon: .2f)
+                .ExploitUntilModel(new FoodPolicy()))
             {
                 System.Threading.Thread.Sleep(10000);
 
