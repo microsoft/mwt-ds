@@ -41,7 +41,7 @@ namespace ClientDecisionServiceTest
                 }
 
                 using (var ds = 
-                        DecisionServiceClient.WithJsonRanker(new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken))
+                        DecisionService.WithJsonRanker(new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken))
                             .WithTopSlotEpsilonGreedy(0.3f)
                             .ExploreUntilModel(new PermutationExplorer<string>(new JsonNumActionsProvider()), recorder))
                 {

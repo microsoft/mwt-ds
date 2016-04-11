@@ -26,7 +26,7 @@ namespace ClientDecisionServiceTest
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
 
-            using (var ds = DecisionServiceClient.WithPolicy<TestContext>(dsConfig).WithEpsilonGreedy(.2f, Constants.NumberOfActions).ExploitUntilModel(new TestSingleActionPolicy()))
+            using (var ds = DecisionService.WithPolicy<TestContext>(dsConfig).WithEpsilonGreedy(.2f, Constants.NumberOfActions).ExploitUntilModel(new TestSingleActionPolicy()))
             {
                 int chosenAction = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
                 ds.Flush();
@@ -50,7 +50,7 @@ namespace ClientDecisionServiceTest
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
 
-            var ds = DecisionServiceClient.WithPolicy<TestContext>(dsConfig).WithEpsilonGreedy(.2f, Constants.NumberOfActions).ExploitUntilModel(new TestSingleActionPolicy());
+            var ds = DecisionService.WithPolicy<TestContext>(dsConfig).WithEpsilonGreedy(.2f, Constants.NumberOfActions).ExploitUntilModel(new TestSingleActionPolicy());
 
             int chosenAction1 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
             int chosenAction2 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
@@ -77,7 +77,7 @@ namespace ClientDecisionServiceTest
 
             int numEvents = 1000;
             var chosenActions = new ConcurrentBag<int>();
-            using (var ds = DecisionServiceClient.WithPolicy<TestContext>(dsConfig).WithEpsilonGreedy(.2f, Constants.NumberOfActions).ExploitUntilModel(new TestSingleActionPolicy()))
+            using (var ds = DecisionService.WithPolicy<TestContext>(dsConfig).WithEpsilonGreedy(.2f, Constants.NumberOfActions).ExploitUntilModel(new TestSingleActionPolicy()))
             {
                 Parallel.For(0, numEvents, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, (i) =>
                 {
@@ -142,7 +142,7 @@ namespace ClientDecisionServiceTest
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
 
-            using (var ds = DecisionServiceClient.WithRanker<TestContext>(dsConfig).WithTopSlotEpsilonGreedy(.2f, Constants.NumberOfActions).ExploitUntilModel(new TestMultiActionPolicy()))
+            using (var ds = DecisionService.WithRanker<TestContext>(dsConfig).WithTopSlotEpsilonGreedy(.2f, Constants.NumberOfActions).ExploitUntilModel(new TestMultiActionPolicy()))
             {
                 int[] chosenActions = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
                 ds.Flush();
@@ -165,7 +165,7 @@ namespace ClientDecisionServiceTest
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
 
-            using (var ds = DecisionServiceClient.WithRanker<TestContext>(dsConfig).WithTopSlotEpsilonGreedy(.2f, Constants.NumberOfActions).ExploitUntilModel(new TestMultiActionPolicy()))
+            using (var ds = DecisionService.WithRanker<TestContext>(dsConfig).WithTopSlotEpsilonGreedy(.2f, Constants.NumberOfActions).ExploitUntilModel(new TestMultiActionPolicy()))
             {
                 int[] chosenAction1 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
                 int[] chosenAction2 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
@@ -201,7 +201,7 @@ namespace ClientDecisionServiceTest
                 ProbabilityOfDrop = .5f
             };
 
-            using (var ds = DecisionServiceClient.WithRanker<TestContext>(dsConfig).WithTopSlotEpsilonGreedy(.2f, Constants.NumberOfActions).ExploitUntilModel(new TestMultiActionPolicy()))
+            using (var ds = DecisionService.WithRanker<TestContext>(dsConfig).WithTopSlotEpsilonGreedy(.2f, Constants.NumberOfActions).ExploitUntilModel(new TestMultiActionPolicy()))
             {
                 for (int i = 0; i < numEvents; i++)
                 {
@@ -248,7 +248,7 @@ namespace ClientDecisionServiceTest
 
             int numEvents = 1000;
             var chosenActions = new ConcurrentBag<int[]>();
-            using (var ds = DecisionServiceClient.WithRanker<TestContext>(dsConfig).WithTopSlotEpsilonGreedy(.2f, Constants.NumberOfActions).ExploitUntilModel(new TestMultiActionPolicy()))
+            using (var ds = DecisionService.WithRanker<TestContext>(dsConfig).WithTopSlotEpsilonGreedy(.2f, Constants.NumberOfActions).ExploitUntilModel(new TestMultiActionPolicy()))
             {
                 Parallel.For(0, numEvents, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, (i) =>
                 {

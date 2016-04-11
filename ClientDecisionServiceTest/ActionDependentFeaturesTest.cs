@@ -24,7 +24,7 @@ namespace ClientDecisionServiceTest
                 LoggingServiceAddress = MockJoinServer.MockJoinServerAddress
             };
 
-            using (var ds = DecisionServiceClient.WithRanker<TestADFContext>(dsConfig).WithTopSlotEpsilonGreedy(.5f).ExploitUntilModel(new TestADFPolicy()))
+            using (var ds = DecisionService.WithRanker<TestADFContext>(dsConfig).WithTopSlotEpsilonGreedy(.5f).ExploitUntilModel(new TestADFPolicy()))
             {
                 string uniqueKey = "eventid";
 
@@ -60,7 +60,7 @@ namespace ClientDecisionServiceTest
                 PollingForSettingsPeriod = TimeSpan.MinValue
             };
 
-            using (var ds = DecisionServiceClient.WithRanker<TestADFContextWithFeatures>(dsConfig).WithTopSlotEpsilonGreedy(.5f).ExploitUntilModel(new TestADFWithFeaturesPolicy()))
+            using (var ds = DecisionService.WithRanker<TestADFContextWithFeatures>(dsConfig).WithTopSlotEpsilonGreedy(.5f).ExploitUntilModel(new TestADFWithFeaturesPolicy()))
             {
                 string uniqueKey = "eventid";
 

@@ -3,9 +3,9 @@ using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    public class DecisionServiceClient<TContext, TAction, TPolicyValue> : DecisionServiceBaseClient<TContext, TAction, TPolicyValue>
+    public class DecisionServiceClientAction<TContext, TAction, TPolicyValue> : DecisionServiceBaseClient<TContext, TAction, TPolicyValue>
     {
-        public DecisionServiceClient(
+        public DecisionServiceClientAction(
             DecisionServiceConfiguration config,
             ApplicationTransferMetadata metaData,
             IExplorer<TAction, TPolicyValue> explorer,
@@ -15,9 +15,9 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             IRecorder<TContext, TAction> recorder = null)
             : base(config, metaData, explorer, internalPolicy, initialPolicy, initialExplorer, recorder) { }
 
-        public TAction ChooseAction(UniqueEventID uniqueKey, TContext context)
+        public TAction ChooseAction(UniqueEventID uniqueKey, TContext context, TAction initialAction)
         {
-            return this.mwtExplorer.ChooseAction(uniqueKey, context);
+            return this.mwtExplorer.ChooseAction(uniqueKey, context, initialAction);
         }
     }
 }

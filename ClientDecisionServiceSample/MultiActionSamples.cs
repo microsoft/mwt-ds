@@ -38,8 +38,8 @@ namespace ClientDecisionServiceSample
                 EventHubInputName = MultiActionSamples.EventHubInputName,
             };
 
-            var explorer = DecisionServiceClient.WithJsonRanker(serviceConfig).WithTopSlotEpsilonGreedy(epsilon: 0.8f);
-            using (var service = DecisionServiceClient.Create(explorer))
+            var explorer = DecisionService.WithJsonRanker(serviceConfig).WithTopSlotEpsilonGreedy(epsilon: 0.8f);
+            using (var service = DecisionService.CreatePolicyMode(explorer))
             {
                 string uniqueKey = "json-key-";
 
@@ -74,7 +74,7 @@ namespace ClientDecisionServiceSample
                 FeatureDiscovery = VowpalWabbitFeatureDiscovery.Json
             };
 
-            using (var service = DecisionServiceClient
+            using (var service = DecisionService
                 .WithRanker<FoodContext, FoodFeature>(serviceConfig, context => FoodContext.GetFeaturesFromContext(context))
                 .WithTopSlotEpsilonGreedy(epsilon: .8f)
                 .ExploitUntilModel(new FoodPolicy()))
@@ -149,7 +149,7 @@ namespace ClientDecisionServiceSample
                 FeatureDiscovery = VowpalWabbitFeatureDiscovery.Json
             };
 
-            using (var service = DecisionServiceClient
+            using (var service = DecisionService
                 .WithRanker<FoodContext, FoodFeature>(serviceConfig, context => FoodContext.GetFeaturesFromContext(context))
                 .WithTopSlotEpsilonGreedy(epsilon: .2f)
                 .ExploitUntilModel(new FoodPolicy()))

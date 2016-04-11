@@ -60,7 +60,7 @@ namespace ClientDecisionServiceSample
             // Create the main service object with above configurations.
             // Specify the exploration algorithm to use, here we will use Epsilon-Greedy.
             // For more details about this and other algorithms, refer to the MWT onboarding whitepaper.
-            using (var service = DecisionServiceClient.WithJsonPolicy(serviceConfig).WithEpsilonGreedy(epsilon, numTopics).ExploitUntilModel(new DefaultJsonPolicy()))
+            using (var service = DecisionService.WithJsonPolicy(serviceConfig).WithEpsilonGreedy(epsilon, numTopics).ExploitUntilModel(new DefaultJsonPolicy()))
             {
                 var random = new Random();
                 for (int user = 0; user < numUsers; user++)
@@ -137,7 +137,7 @@ namespace ClientDecisionServiceSample
             // Create the main service object with above configurations.
             // Specify the exploration algorithm to use, here we will use Epsilon-Greedy.
             // For more details about this and other algorithms, refer to the MWT onboarding whitepaper.
-            using (var service = DecisionServiceClient.WithPolicy<SimpleContext>(serviceConfig).WithEpsilonGreedy(epsilon, numTopics).ExploitUntilModel(new SimplePolicy()))
+            using (var service = DecisionService.WithPolicy<SimpleContext>(serviceConfig).WithEpsilonGreedy(epsilon, numTopics).ExploitUntilModel(new SimplePolicy()))
             {
                 var random = new Random();
                 for (int user = 0; user < numUsers; user++)
@@ -206,7 +206,7 @@ namespace ClientDecisionServiceSample
             // Create the main service object with above configurations.
             // Specify the exploration algorithm to use, here we will use Epsilon-Greedy.
             // For more details about this and other algorithms, refer to the MWT onboarding whitepaper.
-            using (var service = DecisionServiceClient.WithPolicy<UserContext>(serviceConfig).WithEpsilonGreedy(epsilon, numTopics).ExploitUntilModel(new NewsDisplayPolicy()))
+            using (var service = DecisionService.WithPolicy<UserContext>(serviceConfig).WithEpsilonGreedy(epsilon, numTopics).ExploitUntilModel(new NewsDisplayPolicy()))
             {
                 var random = new Random();
                 for (int user = 0; user < numUsers; user++)

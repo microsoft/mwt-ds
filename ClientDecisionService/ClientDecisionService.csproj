@@ -119,7 +119,10 @@
     <Compile Include="AzureBlobUpdateMetadata.cs" />
     <Compile Include="AzureBlobUpdater.cs" />
     <Compile Include="AzureBlobUpdateTask.cs" />
+    <Compile Include="DecisionService.cs" />
+    <Compile Include="DecisionServiceBaseClient.cs" />
     <Compile Include="DecisionServiceClient.cs" />
+    <Compile Include="DecisionServiceClientAction.cs" />
     <Compile Include="DecisionServiceConfiguration.cs" />
     <Compile Include="DecisionServiceConstants.cs" />
     <Compile Include="DecisionServiceHttpModule.cs" />

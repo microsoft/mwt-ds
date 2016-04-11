@@ -35,7 +35,7 @@ namespace ClientDecisionServiceTest
                 }
             };
 
-            using (var ds = DecisionServiceClient.WithPolicy<TestContext>(dsConfig).WithEpsilonGreedy(.2f, 2).ExploitUntilModel(new TestSingleActionPolicy()))
+            using (var ds = DecisionService.WithPolicy<TestContext>(dsConfig).WithEpsilonGreedy(.2f, 2).ExploitUntilModel(new TestSingleActionPolicy()))
             {
                 cancelTokenSource.Token.WaitHandle.WaitOne(5000);
             }
@@ -60,7 +60,7 @@ namespace ClientDecisionServiceTest
             dsConfig.BlobOutputDir = settingsPath;
             dsConfig.PollingForSettingsPeriod = TimeSpan.FromMilliseconds(500);
 
-            using (var ds = DecisionServiceClient.WithPolicy<TestContext>(dsConfig).WithEpsilonGreedy(.2f, 2).ExploitUntilModel(new TestSingleActionPolicy()))
+            using (var ds = DecisionService.WithPolicy<TestContext>(dsConfig).WithEpsilonGreedy(.2f, 2).ExploitUntilModel(new TestSingleActionPolicy()))
             {
 
                 string settingsFile = Path.Combine(settingsPath, "settings-" + commandCenter.LocalAzureSettingsBlobName);
@@ -122,7 +122,7 @@ namespace ClientDecisionServiceTest
                 }
             };
 
-            using (var ds = DecisionServiceClient.WithRanker<TestContext>(dsConfig).WithTopSlotEpsilonGreedy(.2f, 2).ExploitUntilModel(new TestMultiActionPolicy()))
+            using (var ds = DecisionService.WithRanker<TestContext>(dsConfig).WithTopSlotEpsilonGreedy(.2f, 2).ExploitUntilModel(new TestMultiActionPolicy()))
             {
                 cancelTokenSource.Token.WaitHandle.WaitOne(5000);
             }
@@ -146,7 +146,7 @@ namespace ClientDecisionServiceTest
             dsConfig.BlobOutputDir = settingsPath;
             dsConfig.PollingForSettingsPeriod = TimeSpan.FromMilliseconds(500);
 
-            using (var ds = DecisionServiceClient.WithRanker<TestContext>(dsConfig).WithTopSlotEpsilonGreedy(.2f, 2).ExploitUntilModel(new TestMultiActionPolicy()))
+            using (var ds = DecisionService.WithRanker<TestContext>(dsConfig).WithTopSlotEpsilonGreedy(.2f, 2).ExploitUntilModel(new TestMultiActionPolicy()))
             {
                 string settingsFile = Path.Combine(settingsPath, "settings-" + commandCenter.LocalAzureSettingsBlobName);
 
