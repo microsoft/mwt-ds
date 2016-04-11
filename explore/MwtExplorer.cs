@@ -4,13 +4,13 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
     public static class MwtExplorer
     {
-        public static MwtExplorer<TContext, TValue, TMapperValue> Create<TContext, TValue, TMapperValue>(
+        public static MwtExplorer<TContext, TAction, TPolicyValue> Create<TContext, TAction, TPolicyValue>(
             string appId, 
-            IRecorder<TContext, TValue> recorder, 
-            IExplorer<TValue, TMapperValue> explorer,
-            IFullExplorer<TContext, TValue> initialExplorer = null)
+            IRecorder<TContext, TAction> recorder, 
+            IExplorer<TAction, TPolicyValue> explorer,
+            IFullExplorer<TContext, TAction> initialExplorer = null)
         {
-            return new MwtExplorer<TContext, TValue, TMapperValue>(appId, recorder, explorer, initialExplorer);
+            return new MwtExplorer<TContext, TAction, TPolicyValue>(appId, recorder, explorer, initialExplorer);
         }
     }
 
@@ -19,11 +19,11 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 	/// right bits are recorded and good random actions are chosen.
 	/// </summary>
 	/// <typeparam name="TContext">The Context type.</typeparam>
-    public sealed class MwtExplorer<TContext, TValue, TMapperValue> : IDisposable
+    public sealed class MwtExplorer<TContext, TAction, TPolicyValue> : IDisposable
 	{
         private ulong appId;
-        private IRecorder<TContext, TValue> recorder;
-        private IFullExplorer<TContext, TValue> initialExplorer;
+        private IRecorder<TContext, TAction> recorder;
+        private IFullExplorer<TContext, TAction> initialExplorer;
 
 		/// <summary>
 		/// Constructor.
@@ -31,9 +31,9 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 		/// <param name="appId">This should be unique to each experiment to avoid correlation bugs.</param>
 		/// <param name="recorder">A user-specified class for recording the appropriate bits for use in evaluation and learning.</param>
         public MwtExplorer(string appId, 
-            IRecorder<TContext, TValue> recorder, 
-            IExplorer<TValue, TMapperValue> explorer,
-            IFullExplorer<TContext, TValue> initialExplorer = null)
+            IRecorder<TContext, TAction> recorder, 
+            IExplorer<TAction, TPolicyValue> explorer,
+            IFullExplorer<TContext, TAction> initialExplorer = null)
 		{
             this.appId = MurMurHash3.ComputeIdHash(appId);
             // TODO: check for null
@@ -43,9 +43,9 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.initialExplorer = initialExplorer;
         }
 
-        public IExplorer<TValue, TMapperValue> Explorer { get; set; }
+        public IExplorer<TAction, TPolicyValue> Explorer { get; set; }
 
-        public IContextMapper<TContext, TMapperValue> Policy { get; set; }
+        public IContextMapper<TContext, TPolicyValue> Policy { get; set; }
 
 		/// <summary>
         /// Choose an action (or decision to take) given the exploration algorithm and context.
@@ -55,7 +55,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 		/// <param name="context">The context upon which a decision is made. See SimpleContext above for an example.</param>
         /// <param name="numActionsVariable">Optional; Number of actions available which may be variable across decisions.</param>
         /// <returns>An unsigned 32-bit integer representing the 1-based chosen action.</returns>
-        public TValue ChooseAction(UniqueEventID uniqueKey, TContext context, TValue initialAction)
+        public TAction ChooseAction(UniqueEventID uniqueKey, TContext context, TAction initialAction)
         {
             // Note: thread-safe atomic reference access
             var policy = this.Policy;
@@ -79,13 +79,13 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             return explorerDecision.Value;
         }
 
-        public TValue ChooseAction(UniqueEventID uniqueKey, TContext context)
+        public TAction ChooseAction(UniqueEventID uniqueKey, TContext context)
         {
             ulong saltedSeed = MurMurHash3.ComputeIdHash(uniqueKey.Key) + this.appId;
 
             var policy = this.Policy;
-            ExplorerDecision<TValue> explorerDecision;
-            PolicyDecision<TMapperValue> policyDecision = null;
+            ExplorerDecision<TAction> explorerDecision;
+            PolicyDecision<TPolicyValue> policyDecision = null;
 
             if (policy == null)
                 explorerDecision = this.initialExplorer.Explore(saltedSeed, context);
@@ -100,7 +100,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             return explorerDecision.Value;
         }
 
-        private void Log(UniqueEventID uniqueKey, TContext context, ExplorerDecision<TValue> explorerDecision, object policyState = null)
+        private void Log(UniqueEventID uniqueKey, TContext context, ExplorerDecision<TAction> explorerDecision, object policyState = null)
         {
             if (explorerDecision.ShouldRecord)
             {

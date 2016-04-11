@@ -12,29 +12,35 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
     /// </summary>
     public static class DecisionServiceClient
     {
-        public static DecisionServiceClient<TContext, TValue, TMapperValue>
-        Create<TContext, TValue, TMapperValue>(
-            ExploreConfigurationWrapper<TContext, TValue, TMapperValue> explorer,
-            IRecorder<TContext, TValue> recorder = null)
+        public static DecisionServiceClient<TContext, TAction, TPolicyValue>
+        Create<TContext, TAction, TPolicyValue>(
+            ExploreConfigurationWrapper<TContext, TAction, TPolicyValue> explorer,
+            IRecorder<TContext, TAction> recorder = null)
         {
-            var dsClient = new DecisionServiceClient<TContext, TValue, TMapperValue>(
-                explorer.ContextMapper.Configuration, explorer.ContextMapper.Metadata, explorer.Explorer, recorder: recorder);
+            var dsClient = new DecisionServiceClient<TContext, TAction, TPolicyValue>(
+                explorer.ContextMapper.Configuration,
+                explorer.ContextMapper.Metadata,
+                explorer.Explorer,
+                explorer.ContextMapper.InternalPolicy,
+                initialPolicy: explorer.ContextMapper.DefaultPolicy,
+                recorder: recorder);
             explorer.Subscribe(dsClient);
             return dsClient;
         }
     }
 
-    public class DecisionServiceClient<TContext, TValue, TMapperValue> : IDisposable, IModelSender
+    public class DecisionServiceClient<TContext, TAction, TPolicyValue> : IDisposable, IModelSender
     {
         private readonly TimeSpan settingsBlobPollDelay;
 
         private readonly string updateSettingsTaskId = "settings";
 
-        private readonly IRecorder<TContext, TValue> recorder;
+        private readonly IRecorder<TContext, TAction> recorder;
         private readonly ILogger logger;
+        private readonly IContextMapper<TContext, TPolicyValue> internalPolicy;
 
         protected readonly DecisionServiceConfiguration config;
-        protected MwtExplorer<TContext, TValue, TMapperValue> mwtExplorer;
+        protected MwtExplorer<TContext, TAction, TPolicyValue> mwtExplorer;
 
         private event EventHandler<Stream> sendModelHandler;
         event EventHandler<Stream> IModelSender.Send
@@ -46,9 +52,11 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         public DecisionServiceClient(
             DecisionServiceConfiguration config,
             ApplicationTransferMetadata metaData,
-            IExplorer<TValue, TMapperValue> explorer,
-            IFullExplorer<TContext, TValue> initialExplorer = null,
-            IRecorder<TContext, TValue> recorder = null)
+            IExplorer<TAction, TPolicyValue> explorer,
+            IContextMapper<TContext, TPolicyValue> internalPolicy,
+            IContextMapper<TContext, TPolicyValue> initialPolicy = null,
+            IFullExplorer<TContext, TAction> initialExplorer = null,
+            IRecorder<TContext, TAction> recorder = null)
         {
             if (config == null)
                 throw new ArgumentNullException("config");
@@ -78,7 +86,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 }
                 else
                 {
-                    var joinServerLogger = new JoinServiceLogger<TContext, TValue>();
+                    var joinServerLogger = new JoinServiceLogger<TContext, TAction>();
                     switch (config.JoinServerType)
                     {
                         case JoinServerType.CustomSolution:
@@ -95,7 +103,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                                 config.JoinServiceBatchConfiguration);
                             break;
                     }
-                    this.recorder = (IRecorder<TContext, TValue>)joinServerLogger;
+                    this.recorder = (IRecorder<TContext, TAction>)joinServerLogger;
                 }
 
                 this.settingsBlobPollDelay = config.PollingForSettingsPeriod == TimeSpan.Zero ? DecisionServiceConstants.PollDelay : config.PollingForSettingsPeriod;
@@ -115,15 +123,23 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             }
 
             this.logger = this.recorder as ILogger;
+            this.internalPolicy = internalPolicy;
+
+            if (initialExplorer != null && initialPolicy != null)
+            {
+                // TODO: raise warning and use default policy (safer) instead of throwing exception?
+                throw new Exception("Initial Explorer and Default Policy are both specified but only one can be used.");
+            }
             this.mwtExplorer = MwtExplorer.Create(config.AuthorizationToken, this.recorder, explorer, initialExplorer);
+            this.mwtExplorer.Policy = initialPolicy;
         }
 
-        public TValue ChooseAction(UniqueEventID uniqueKey, TContext context)
+        public TAction ChooseAction(UniqueEventID uniqueKey, TContext context)
         {
             return this.mwtExplorer.ChooseAction(uniqueKey, context);
         }
 
-        public TValue ChooseAction(UniqueEventID uniqueKey, TContext context, TValue initialAction)
+        public TAction ChooseAction(UniqueEventID uniqueKey, TContext context, TAction initialAction)
         {
             return this.mwtExplorer.ChooseAction(uniqueKey, context, initialAction);
         }
@@ -161,8 +177,12 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         {
             if (sendModelHandler != null)
             {
+                // Raise update model event so that any subscribers can update appropriately
+                // For example, the internal VW policy needs to change its model
                 sendModelHandler(this, model);
             }
+            // Swap out initial policy and use the internal policy to handle new model
+            this.mwtExplorer.Policy = this.internalPolicy;
         }
 
         /// <summary>

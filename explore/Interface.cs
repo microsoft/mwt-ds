@@ -13,7 +13,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
     /// application passes an IRecorder object to the @MwtExplorer constructor. See 
     /// @StringRecorder for a sample IRecorder object.
     /// </remarks>
-    public interface IRecorder<in TContext, in TValue>
+    public interface IRecorder<in TContext, in TAction>
     {
         /// <summary>
         /// Records the exploration data associated with a given decision.
@@ -25,10 +25,10 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         /// <param name="uniqueKey">A user-defined identifer for the decision.</param>
         /// <param name="modelId">Optional; The Id of the model used to make predictions/decisions, if any exists at decision time.</param>
         /// <param name="isExplore">Optional; Indicates whether the decision was generated purely from exploration (vs. exploitation).</param>
-        void Record(TContext context, TValue value, object explorerState, object mapperState, UniqueEventID uniqueKey); 
+        void Record(TContext context, TAction value, object explorerState, object mapperState, UniqueEventID uniqueKey); 
     }
 
-    public interface IExplorer<TValue, TMapperValue>
+    public interface IExplorer<TAction, TPolicyValue>
     {
         /// <summary>
         /// Determines the action to take and the probability with which it was chosen, for a
@@ -41,20 +41,20 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         /// A <see cref="DecisionTuple"/> object including the action to take, the probability it was chosen, 
         /// and a flag indicating whether to record this decision.
         /// </returns>
-        ExplorerDecision<TValue> MapContext(ulong saltedSeed, TMapperValue policyAction); 
+        ExplorerDecision<TAction> MapContext(ulong saltedSeed, TPolicyValue policyAction); 
 
         void EnableExplore(bool explore);
     }
 
-    public interface IFullExplorer<in TContext, TValue>
+    public interface IFullExplorer<in TContext, TAction>
     {
-        ExplorerDecision<TValue> Explore(ulong saltedSeed, TContext context); 
+        ExplorerDecision<TAction> Explore(ulong saltedSeed, TContext context); 
     }
 
-    public interface IVariableActionExplorer<TValue, in TMapperValue>
+    public interface IVariableActionExplorer<TAction, in TPolicyValue>
     {
         // TODO: review xml docs
-        ExplorerDecision<TValue> Explore(ulong saltedSeed, TMapperValue policyAction, int numActions);
+        ExplorerDecision<TAction> Explore(ulong saltedSeed, TPolicyValue policyAction, int numActions);
     }
     
     public interface INumberOfActionsProvider<in TContext>
@@ -62,7 +62,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         int GetNumberOfActions(TContext context);
     }
 
-    public interface IContextMapper<in TContext, TValue>
+    public interface IContextMapper<in TContext, TPolicyValue>
     {
         /// <summary>
         /// Determines the action to take for a given context.
@@ -72,7 +72,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         /// <param name="numActionsVariable">Optional; Number of actions available which may be variable across decisions.</param>
         /// <returns>A decision tuple containing the index of the action to take (1-based), and the Id of the model or policy used to make the decision.
         /// Can be null if the Policy is not ready yet (e.g. model not loaded).</returns>
-        PolicyDecision<TValue> MapContext(TContext context);
+        PolicyDecision<TPolicyValue> MapContext(TContext context);
     }
 
     public interface IUpdatable<TModel>

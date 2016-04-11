@@ -129,7 +129,6 @@
     <Compile Include="JoinServerType.cs" />
     <Compile Include="JoinServiceLogger.cs" />
     <Compile Include="ILogger.cs" />
-    <Compile Include="MultiPolicy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DecisionServiceConfigurationWrapper.cs" />
     <Compile Include="ExploreConfigurationWrapper.cs" />

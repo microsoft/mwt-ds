@@ -6,16 +6,16 @@ using System.IO;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    internal class DecisionServicePolicy<TContext, TValue> 
-        : AbstractModelListener, IContextMapper<TContext, TValue>
+    internal class DecisionServicePolicy<TContext, TAction> 
+        : AbstractModelListener, IContextMapper<TContext, TAction>
     {
-        private IContextMapper<TContext, TValue> contextMapper;
+        private IContextMapper<TContext, TAction> contextMapper;
         private IUpdatable<Stream> updatable;
         private readonly TimeSpan modelBlobPollDelay;
         private readonly string updateModelTaskId = "model";
 
         internal DecisionServicePolicy(
-            IContextMapper<TContext, TValue> contextMapper,
+            IContextMapper<TContext, TAction> contextMapper,
             DecisionServiceConfiguration config,
             ApplicationTransferMetadata metaData)
         {
@@ -57,7 +57,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             }
         }
 
-        public PolicyDecision<TValue> MapContext(TContext context)
+        public PolicyDecision<TAction> MapContext(TContext context)
         {
             return this.contextMapper.MapContext(context);
         }

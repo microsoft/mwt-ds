@@ -5,7 +5,7 @@ using System.IO;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    public class DecisionServiceConfigurationWrapper<TContext, TMapperValue> : AbstractModelListener, IModelSender
+    public class DecisionServiceConfigurationWrapper<TContext, TPolicyValue> : AbstractModelListener, IModelSender
     {
         private EventHandler<Stream> sendModelHandler;
 
@@ -15,7 +15,12 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             remove { this.sendModelHandler -= value; }
         }
 
-        internal IContextMapper<TContext, TMapperValue> DefaultPolicy { get; set; }
+        /// <summary>
+        /// The policy used internally to handle ML models (for example, VWPolicy or DecisionServicePolicy).
+        /// </summary>
+        internal IContextMapper<TContext, TPolicyValue> InternalPolicy { get; set; }
+
+        internal IContextMapper<TContext, TPolicyValue> DefaultPolicy { get; set; }
 
         internal DecisionServiceConfiguration Configuration { get; set; }
 
@@ -33,26 +38,21 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
     public static class DecisionServiceConfigurationWrapperExtensions
     {
         public static ExploreConfigurationWrapper<TContext, int, int>
-            WithEpsilonGreedy<TContext>(
-                this DecisionServiceConfigurationWrapper<TContext, int> mapper,
-                float epsilon,
-                int numActionsVariable = int.MaxValue)
+        WithEpsilonGreedy<TContext>(
+            this DecisionServiceConfigurationWrapper<TContext, int> mapper,
+            float epsilon,
+            int numActionsVariable = int.MaxValue)
         {
             return ExploreConfigurationWrapper.Create(mapper, new EpsilonGreedyExplorer(epsilon, numActionsVariable));
         }
 
-        //public static ExploreConfigurationWrapper<TContext, int[], int[]>
-        //    WithTopSlotEpsilonGreedy<TContext>(
-        //        this DecisionServiceConfigurationWrapper<TContext, int[]> mapper,
-        //        float epsilon,
-        //        int numActionsVariable = int.MaxValue)
-        //{
-        //    var explorer = ExplorerFactory.CreateTopSlot<TContext, EpsilonGreedyExplorer, EpsilonGreedyState>(
-        //        mapper.DefaultPolicy,
-        //        policy => new EpsilonGreedyExplorer(policy, epsilon, numActionsVariable),
-        //        numActionsVariable);
-
-        //    return ExploreConfigurationWrapper.Create(mapper, explorer);
-        //}
+        public static ExploreConfigurationWrapper<TContext, int[], int[]>
+        WithTopSlotEpsilonGreedy<TContext>(
+            this DecisionServiceConfigurationWrapper<TContext, int[]> mapper,
+            float epsilon,
+            int numActionsVariable = int.MaxValue)
+        {
+            return ExploreConfigurationWrapper.Create(mapper, new TopSlotExplorer(new EpsilonGreedyExplorer(epsilon, numActionsVariable)));
+        }
     }
 }

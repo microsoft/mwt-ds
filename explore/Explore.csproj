@@ -40,8 +40,6 @@
     <Compile Include="Decision.cs" />
     <Compile Include="EpsilonGreedyExplorer.cs" />
     <Compile Include="EpsilonGreedySlateExplorer.cs" />
-    <Compile Include="Explorer.cs" />
-    <Compile Include="ExplorerFactory.cs" />
     <Compile Include="Feature.cs" />
     <Compile Include="GenericExplorer.cs" />
     <Compile Include="Interface.cs" />

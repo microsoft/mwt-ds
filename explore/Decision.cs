@@ -9,9 +9,9 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
     public static class ExplorerDecision
     {
-        public static ExplorerDecision<TValue> Create<TValue>(TValue action, object explorerState, bool shouldRecord)
+        public static ExplorerDecision<TAction> Create<TAction>(TAction action, object explorerState, bool shouldRecord)
         {
-            return new ExplorerDecision<TValue>
+            return new ExplorerDecision<TAction>
             {
                 Value = action,
                 ExplorerState = explorerState,
@@ -20,14 +20,14 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         }
     }
 
-    public sealed class ExplorerDecision<TValue>
+    public sealed class ExplorerDecision<TAction>
     {
         public bool ShouldRecord { get; set; }
 
         // int, int[]
         // choose action (shown)
         
-        public TValue Value { get; set; }
+        public TAction Value { get; set; }
 
         // probability | predicted ranking, epsilon
         // "EpsilonGreedyLog":{ ... } 
@@ -35,15 +35,15 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
     }
 /*
         // only logging TMapperState
-        public Decision<TMapperValue> MapperDecision { get; set; }
+        public Decision<TPolicyValue> MapperDecision { get; set; }
     }
 */
 
     public static class PolicyDecision
     {
-        public static PolicyDecision<TValue> Create<TValue>(TValue action, object policyState = null)
+        public static PolicyDecision<TAction> Create<TAction>(TAction action, object policyState = null)
         {
-            return new PolicyDecision<TValue>
+            return new PolicyDecision<TAction>
             {
                 Value = action,
                 MapperState = policyState
@@ -54,17 +54,17 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
     /// <summary>
     /// Decision result from a policy. 
     /// </summary>
-    public class PolicyDecision<TValue>
+    public class PolicyDecision<TAction>
     {
         // int, int[], float[]
         // choose action (shown)
-        public TValue Value { get; set; }
+        public TAction Value { get; set; }
 
         public object MapperState { get; set; }
 
-        static public implicit operator PolicyDecision<TValue>(TValue value)
+        static public implicit operator PolicyDecision<TAction>(TAction value)
         {
-            return new PolicyDecision<TValue> { Value = value };
+            return new PolicyDecision<TAction> { Value = value };
         }
     }
 }

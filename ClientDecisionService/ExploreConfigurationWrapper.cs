@@ -4,7 +4,7 @@ using System.IO;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    public class ExploreConfigurationWrapper<TContext, TValue, TMapperValue> : AbstractModelListener, IModelSender
+    public class ExploreConfigurationWrapper<TContext, TAction, TPolicyValue> : AbstractModelListener, IModelSender
     {
         internal event EventHandler<Stream> sendModelHandler;
 
@@ -14,9 +14,9 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             remove { this.sendModelHandler -= value; }
         }
 
-        internal IExplorer<TValue, TMapperValue> Explorer { get; set; }
+        internal IExplorer<TAction, TPolicyValue> Explorer { get; set; }
 
-        internal DecisionServiceConfigurationWrapper<TContext, TMapperValue> ContextMapper { get; set; }
+        internal DecisionServiceConfigurationWrapper<TContext, TPolicyValue> ContextMapper { get; set; }
 
         internal override void Receive(object sender, Stream model)
         {
@@ -26,7 +26,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             }
         }
 
-        public DecisionServiceClient<TContext, TValue, TMapperValue> CreateDecisionServiceClient(IRecorder<TContext, TValue> recorder = null)
+        public DecisionServiceClient<TContext, TAction, TPolicyValue> CreateDecisionServiceClient(IRecorder<TContext, TAction> recorder = null)
         {
             return DecisionServiceClient.Create(this, recorder);
         }
@@ -34,12 +34,12 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
     public class ExploreConfigurationWrapper
     {
-        public static ExploreConfigurationWrapper<TContext, TValue, TMapperValue>
-            Create<TContext, TValue, TMapperValue>(
-                DecisionServiceConfigurationWrapper<TContext, TMapperValue> unboundContextMapper,
-                IExplorer<TValue, TMapperValue> explorer)
+        public static ExploreConfigurationWrapper<TContext, TAction, TPolicyValue>
+        Create<TContext, TAction, TPolicyValue>(
+            DecisionServiceConfigurationWrapper<TContext, TPolicyValue> unboundContextMapper,
+            IExplorer<TAction, TPolicyValue> explorer)
         {
-            var unboundExplorer = new ExploreConfigurationWrapper<TContext, TValue, TMapperValue> { Explorer = explorer, ContextMapper = unboundContextMapper };
+            var unboundExplorer = new ExploreConfigurationWrapper<TContext, TAction, TPolicyValue> { Explorer = explorer, ContextMapper = unboundContextMapper };
             unboundContextMapper.Subscribe(unboundExplorer);
             return unboundExplorer;
         }

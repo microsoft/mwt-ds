@@ -9,8 +9,8 @@ using VW;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    public abstract class VWBaseContextMapper<TPool, TVowpalWabbit, TContext, TValue>
-        : IUpdatable<Stream>, IDisposable, IContextMapper<TContext, TValue>
+    public abstract class VWBaseContextMapper<TPool, TVowpalWabbit, TContext, TAction>
+        : IUpdatable<Stream>, IDisposable, IContextMapper<TContext, TAction>
         where TPool : VowpalWabbitThreadedPredictionBase<TVowpalWabbit>, new()
         where TVowpalWabbit : class, IDisposable
     {
@@ -79,7 +79,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             }
         }
 
-        public PolicyDecision<TValue> MapContext(TContext context)
+        public PolicyDecision<TAction> MapContext(TContext context)
         {
             if (this.vwPool == null)
                 throw new InvalidOperationException("A VW model must be supplied before the call to ChooseAction.");
@@ -93,6 +93,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             }
         }
 
-        protected abstract PolicyDecision<TValue> MapContext(TVowpalWabbit vw, TContext context);
+        protected abstract PolicyDecision<TAction> MapContext(TVowpalWabbit vw, TContext context);
     }
 }

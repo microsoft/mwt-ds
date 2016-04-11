@@ -13,7 +13,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 	/// computationally expensive.
 	/// </remarks>
 	/// <typeparam name="TContext">The Context type.</typeparam>
-    public abstract class BaseBootstrapExplorer<TValue> : IExplorer<TValue, IReadOnlyCollection<TValue>>
+    public abstract class BaseBootstrapExplorer<TAction> : IExplorer<TAction, IReadOnlyCollection<TAction>>
 	{
         private bool explore;
 	    private readonly int numActionsFixed;
@@ -35,10 +35,10 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.explore = explore;
         }
 
-        public ExplorerDecision<TValue> MapContext(ulong saltedSeed, IReadOnlyCollection<TValue> policyActions)
+        public ExplorerDecision<TAction> MapContext(ulong saltedSeed, IReadOnlyCollection<TAction> policyActions)
         {
             // Invoke the default policy function to get the action
-            TValue chosenDecision = default(TValue);
+            TAction chosenDecision = default(TAction);
             float actionProbability = 0f;
 
             if (this.explore)
@@ -83,7 +83,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             return ExplorerDecision.Create(chosenDecision, explorerState, true);
         }
 
-        protected abstract int GetTopAction(TValue action);
+        protected abstract int GetTopAction(TAction action);
     }
 
     public class BootstrapExplorer : BaseBootstrapExplorer<int>

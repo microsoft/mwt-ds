@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
-    public abstract class BaseExplorer<TValue, TMapperValue>
-        : IExplorer<TValue, TMapperValue> 
+    public abstract class BaseExplorer<TAction, TPolicyValue>
+        : IExplorer<TAction, TPolicyValue> 
     {
         protected bool explore;
         protected readonly int numActionsFixed;
@@ -25,22 +25,22 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.explore = explore;
         }
 
-        public abstract ExplorerDecision<TValue> MapContext(ulong saltedSeed, TMapperValue policyAction);
+        public abstract ExplorerDecision<TAction> MapContext(ulong saltedSeed, TPolicyValue policyAction);
     }
 
 
-    public abstract class BaseVariableActionExplorer<TValue, TMapperValue>
-       : BaseExplorer<TValue, TMapperValue>, IVariableActionExplorer<TValue, TMapperValue>
+    public abstract class BaseVariableActionExplorer<TAction, TPolicyValue>
+       : BaseExplorer<TAction, TPolicyValue>, IVariableActionExplorer<TAction, TPolicyValue>
     {
         // TODO: change int.max to nullable
         protected BaseVariableActionExplorer(int numActions = int.MaxValue)
             : base(numActions) { }
 
-        public override ExplorerDecision<TValue> MapContext(ulong saltedSeed, TMapperValue policyAction)
+        public override ExplorerDecision<TAction> MapContext(ulong saltedSeed, TPolicyValue policyAction)
         {
             return this.Explore(saltedSeed, policyAction, this.numActionsFixed);
         }
 
-        public abstract ExplorerDecision<TValue> Explore(ulong saltedSeed, TMapperValue policyAction, int numActionsVariable);
+        public abstract ExplorerDecision<TAction> Explore(ulong saltedSeed, TPolicyValue policyAction, int numActionsVariable);
     }
 }

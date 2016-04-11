@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
-    public sealed class TopSlotExplorer<TExplorer> : BaseExplorer<int[], int[]>
+    // TODO: what about removing this class entirely and refactor the Top Slot logic as static methods instead?
+    public sealed class TopSlotExplorer : BaseExplorer<int[], int[]>
     {
         private readonly IVariableActionExplorer<int, int> singleExplorer;
 

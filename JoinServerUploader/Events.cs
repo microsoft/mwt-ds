@@ -64,8 +64,8 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         
         // TODO: add other exploration types
 
-        internal static Interaction Create<TValue, TContext>(
-            UniqueEventID eventId, TContext context, TValue value, object exploreState)
+        internal static Interaction Create<TAction, TContext>(
+            UniqueEventID eventId, TContext context, TAction value, object exploreState)
         {
             return new Interaction 
             { 
