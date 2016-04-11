@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Threading.Tasks;
 using System.Web.Hosting;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
@@ -35,93 +36,98 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                     return;
                 }
 
-                var cancelToken = this.updateMetadata.CancelToken;
-                if (cancelToken.IsCancellationRequested)
+                AzureBlobUpdateTask.DownloadAsync(this.updateMetadata).ConfigureAwait(false);
+            }
+        }
+
+        public static async Task DownloadAsync(AzureBlobUpdateMetadata updateMetadata)
+        {
+            var cancelToken = updateMetadata.CancelToken;
+            if (cancelToken.IsCancellationRequested)
+            {
+                return;
+            }
+
+            try
+            {
+                CloudStorageAccount storageAccount = null;
+                bool accountFound = CloudStorageAccount.TryParse(updateMetadata.BlobConnectionString, out storageAccount);
+                if (!accountFound || storageAccount == null)
                 {
-                    return;
+                    throw new Exception("Could not connect to Azure storage while polling for " + updateMetadata.BlobName);
+                }
+                CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+                ICloudBlob blob = blobClient.GetBlobReferenceFromServer(new Uri(updateMetadata.BlobAddress),
+                    new AccessCondition { IfNoneMatchETag = updateMetadata.BlobEtag });
+
+                if (blob.Properties != null)
+                {
+                    updateMetadata.BlobEtag = blob.Properties.ETag;
                 }
 
-                try
+                // Write blob to file
+                if (!string.IsNullOrWhiteSpace(updateMetadata.BlobOutputDir))
                 {
-                    CloudStorageAccount storageAccount = null;
-                    bool accountFound = CloudStorageAccount.TryParse(this.updateMetadata.BlobConnectionString, out storageAccount);
-                    if (!accountFound || storageAccount == null)
-                    {
-                        throw new Exception("Could not connect to Azure storage while polling for " + this.updateMetadata.BlobName);
-                    }
-                    CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-                    ICloudBlob blob = blobClient.GetBlobReferenceFromServer(new Uri(this.updateMetadata.BlobAddress),
-                        new AccessCondition { IfNoneMatchETag = this.updateMetadata.BlobEtag });
-
-                    if (blob.Properties != null)
-                    {
-                        this.updateMetadata.BlobEtag = blob.Properties.ETag;
-                    }
-
-                    // Write blob to file
-                    if (!string.IsNullOrWhiteSpace(this.updateMetadata.BlobOutputDir))
-                    {
-                        Directory.CreateDirectory(Path.GetDirectoryName(this.updateMetadata.BlobOutputDir));
-                    }
-
-                    string blobFileName = Path.Combine(this.updateMetadata.BlobOutputDir, this.updateMetadata.BlobName + "-" + blob.Name);
-                    using (var ms = new MemoryStream())
-                    {
-                        blob.DownloadToStream(ms);
-                        File.WriteAllBytes(blobFileName, ms.ToArray());
-                    }
-
-                    Trace.TraceInformation("Retrieved new blob for {0}", this.updateMetadata.BlobName);
-
-                    // Notify caller of blob update
-                    if (this.updateMetadata.NotifyBlobUpdate != null)
-                    {
-                        this.updateMetadata.NotifyBlobUpdate(blobFileName);
-                    }
+                    Directory.CreateDirectory(Path.GetDirectoryName(updateMetadata.BlobOutputDir));
                 }
-                catch (Exception ex)
+
+                string blobFileName = Path.Combine(updateMetadata.BlobOutputDir, updateMetadata.BlobName + "-" + blob.Name);
+                using (var ms = new MemoryStream())
                 {
-                    var errorMessages = new List<string>(new string[]
+                    await blob.DownloadToStreamAsync(ms);
+                    File.WriteAllBytes(blobFileName, ms.ToArray());
+                }
+
+                Trace.TraceInformation("Retrieved new blob for {0}", updateMetadata.BlobName);
+
+                // Notify caller of blob update
+                if (updateMetadata.NotifyBlobUpdate != null)
+                {
+                    updateMetadata.NotifyBlobUpdate(blobFileName);
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorMessages = new List<string>(new string[]
                     {
-                        "Failed to retrieve new blob information for " + this.updateMetadata.BlobName + " at " + this.updateMetadata.BlobAddress,
+                        "Failed to retrieve new blob information for " + updateMetadata.BlobName + " at " + updateMetadata.BlobAddress,
                         ex.ToString()
                     });
 
-                    bool logErrors = true;
-                    if (ex is StorageException)
+                bool logErrors = true;
+                if (ex is StorageException)
+                {
+                    RequestResult result = ((StorageException)ex).RequestInformation;
+                    switch (result.HttpStatusCode)
                     {
-                        RequestResult result = ((StorageException)ex).RequestInformation;
-                        switch (result.HttpStatusCode)
-                        {
-                            case (int)HttpStatusCode.NotFound:
-                                logErrors = false;
-                                break;
-                            case (int)HttpStatusCode.NotModified:
-                                // Exception is raised for NotModified http response but this is expected.
-                                logErrors = false;
-                                break;
-                            default:
-                                errorMessages.Add(result.HttpStatusMessage);
-                                break;
-                        }
+                        case (int)HttpStatusCode.NotFound:
+                            logErrors = false;
+                            break;
+                        case (int)HttpStatusCode.NotModified:
+                            // Exception is raised for NotModified http response but this is expected.
+                            logErrors = false;
+                            break;
+                        default:
+                            errorMessages.Add(result.HttpStatusMessage);
+                            break;
                     }
-                    else if (ex is UnauthorizedAccessException)
+                }
+                else if (ex is UnauthorizedAccessException)
+                {
+                    Trace.TraceError("Unable to write blob to disk due to restricted access. Polling for {0} will stop", updateMetadata.BlobName);
+                    cancelToken.Cancel();
+                }
+                if (logErrors)
+                {
+                    foreach (string message in errorMessages)
                     {
-                        Trace.TraceError("Unable to write blob to disk due to restricted access. Polling for {0} will stop", this.updateMetadata.BlobName);
-                        cancelToken.Cancel();
+                        Trace.TraceError(message);
                     }
-                    if (logErrors)
-                    {
-                        foreach (string message in errorMessages)
-                        {
-                            Trace.TraceError(message);
-                        }
-                    }
+                }
 
-                    if (this.updateMetadata.NotifyPollFailure != null)
-                    {
-                        this.updateMetadata.NotifyPollFailure(ex);
-                    }
+                if (updateMetadata.NotifyPollFailure != null)
+                {
+                    updateMetadata.NotifyPollFailure(ex);
                 }
             }
         }

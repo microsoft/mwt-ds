@@ -74,7 +74,8 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         internal AzureBlobUpdateMetadata(
             string blobName, string blobAddress,
             string blobConnectionString, string blobOutputDir, TimeSpan pollDelay,
-            Action<string> notifyBlobUpdate, Action<Exception> notifyPollFailure)
+            Action<string> notifyBlobUpdate, Action<Exception> notifyPollFailure,
+            CancellationTokenSource cancelToken = null)
         {
             this.blobName = blobName;
             this.blobAddress = blobAddress;
@@ -86,7 +87,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             this.notifyBlobUpdate = notifyBlobUpdate;
             this.notifyPollFailure = notifyPollFailure;
 
-            this.cancelToken = new CancellationTokenSource();
+            this.cancelToken = cancelToken ?? new CancellationTokenSource();
         }
     }
 }

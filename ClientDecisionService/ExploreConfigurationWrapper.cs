@@ -1,6 +1,9 @@
 ﻿using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
 using System;
+using System.Diagnostics;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
@@ -43,6 +46,31 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         {
             this.InitialFullExplorer = initialExplorer;
             return DecisionService.CreatePolicyMode(this, recorder);
+        }
+
+        // TODO: add overload for DefaultAction mode?
+        public async Task<DecisionServiceClient<TContext, TAction, TPolicyValue>> LoadModelAsync(CancellationTokenSource cancelToken)
+        {
+            var client = DecisionService.CreatePolicyMode(this);
+
+            var modelMetadata = new AzureBlobUpdateMetadata(
+                "model", this.ContextMapper.Metadata.ModelBlobUri,
+                this.ContextMapper.Metadata.ConnectionString,
+                this.ContextMapper.Configuration.BlobOutputDir, TimeSpan.MinValue,
+                modelFile => 
+                {
+                    using (var modelStream = File.OpenRead(modelFile))
+                    {
+                        client.UpdateModel(modelStream);
+                        Trace.TraceInformation("Model download succeeded.");
+                    }
+                },
+                null,
+                cancelToken);
+
+            await AzureBlobUpdateTask.DownloadAsync(modelMetadata);
+
+            return client;
         }
     }
 
