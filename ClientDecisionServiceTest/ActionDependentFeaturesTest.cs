@@ -60,7 +60,10 @@ namespace ClientDecisionServiceTest
                 PollingForSettingsPeriod = TimeSpan.MinValue
             };
 
-            using (var ds = DecisionService.WithRanker<TestADFContextWithFeatures>(dsConfig).WithTopSlotEpsilonGreedy(.5f).ExploitUntilModel(new TestADFWithFeaturesPolicy()))
+            using (var ds = DecisionService
+                .WithRanker<TestADFContextWithFeatures, TestADFFeatures>(dsConfig, context => context.ActionDependentFeatures)
+                .WithTopSlotEpsilonGreedy(.5f)
+                .ExploitUntilModel(new TestADFWithFeaturesPolicy()))
             {
                 string uniqueKey = "eventid";
 
