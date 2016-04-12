@@ -43,7 +43,7 @@ namespace ClientDecisionServiceTest
                 using (var ds = 
                         DecisionService.WithJsonRanker(new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken))
                             .WithTopSlotEpsilonGreedy(0.3f)
-                            .ExploreUntilModel(new PermutationExplorer<string>(new JsonNumActionsProvider()), recorder))
+                            .ExploreUntilModel(new PermutationExplorer(), recorder))
                 {
                     var decision = ds.ChooseAction(new UniqueEventID() { Key = "abc", TimeStamp = DateTime.Now }, "{\"a\":1,\"_multi\":[{\"b\":2}]}");
 
@@ -67,14 +67,6 @@ namespace ClientDecisionServiceTest
         public void Setup()
         {
             MockCommandCenter.SetRedirectionBlobLocation();
-        }
-    }
-
-    class JsonNumActionsProvider : INumberOfActionsProvider<string>
-    {
-        public int GetNumberOfActions(string context)
-        {
-            return 3;
         }
     }
 }

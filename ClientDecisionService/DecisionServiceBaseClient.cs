@@ -33,7 +33,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             IExplorer<TAction, TPolicyValue> explorer,
             IContextMapper<TContext, TPolicyValue> internalPolicy,
             IContextMapper<TContext, TPolicyValue> initialPolicy = null,
-            IFullExplorer<TContext, TAction> initialExplorer = null,
+            IFullExplorer<TAction> initialExplorer = null,
             IRecorder<TContext, TAction> recorder = null)
         {
             if (config == null)
