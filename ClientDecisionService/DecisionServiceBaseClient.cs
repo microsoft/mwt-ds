@@ -105,10 +105,29 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
             if (initialExplorer != null && initialPolicy != null)
             {
-                // TODO: raise warning and use default policy (safer) instead of throwing exception?
                 throw new Exception("Initial Explorer and Default Policy are both specified but only one can be used.");
             }
-            this.mwtExplorer = MwtExplorer.Create(config.AuthorizationToken, this.recorder, explorer, initialExplorer);
+            INumberOfActionsProvider<TContext> numActionsProvider = null;
+            if (initialExplorer != null) // only needed when full exploration
+            {
+                numActionsProvider = internalPolicy as INumberOfActionsProvider<TContext>;
+                if (numActionsProvider == null)
+	            {
+                    var dsPolicy = internalPolicy as DecisionServicePolicy<TContext, TAction>;
+                    numActionsProvider = (dsPolicy != null) ? dsPolicy.NumActionsProvider : null;
+	            }
+                if (numActionsProvider == null)
+                {
+                    numActionsProvider = explorer as INumberOfActionsProvider<TContext>;
+                }
+                if (numActionsProvider == null)
+                {
+                    throw new ArgumentException("Explorer must implement INumberOfActionsProvider interface");
+                }
+            }
+
+            this.mwtExplorer = MwtExplorer.Create(config.AuthorizationToken,
+                this.recorder, explorer, initialExplorer, numActionsProvider);
             this.mwtExplorer.Policy = initialPolicy;
         }
 

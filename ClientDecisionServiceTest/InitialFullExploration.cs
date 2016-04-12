@@ -43,7 +43,8 @@ namespace ClientDecisionServiceTest
                 using (var ds = 
                         DecisionService.WithJsonRanker(new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken))
                             .WithTopSlotEpsilonGreedy(0.3f)
-                            .ExploreUntilModel(new PermutationExplorer(), recorder))
+                            .WithRecorder(recorder)
+                            .ExploreUntilModelReady(new PermutationExplorer()))
                 {
                     var decision = ds.ChooseAction(new UniqueEventID() { Key = "abc", TimeStamp = DateTime.Now }, "{\"a\":1,\"_multi\":[{\"b\":2}]}");
 

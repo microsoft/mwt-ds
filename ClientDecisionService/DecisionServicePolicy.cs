@@ -57,6 +57,14 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             }
         }
 
+        public INumberOfActionsProvider<TContext> NumActionsProvider 
+        { 
+            get
+            { 
+                return this.contextMapper as INumberOfActionsProvider<TContext>; 
+            }
+        }
+
         public PolicyDecision<TAction> MapContext(TContext context)
         {
             return this.contextMapper.MapContext(context);

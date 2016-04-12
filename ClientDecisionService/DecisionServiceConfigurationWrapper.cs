@@ -41,7 +41,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             WithEpsilonGreedy<TContext>(
                 this DecisionServiceConfigurationWrapper<TContext, int> mapper,
                 float epsilon,
-                int numActionsVariable = int.MaxValue)
+                int numActionsVariable)
         {
             return ExploreConfigurationWrapper.Create(mapper, new EpsilonGreedyExplorer(epsilon, numActionsVariable));
         }
@@ -49,10 +49,9 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         public static ExploreConfigurationWrapper<TContext, int[], int[]>
             WithTopSlotEpsilonGreedy<TContext>(
                 this DecisionServiceConfigurationWrapper<TContext, int[]> mapper,
-                float epsilon,
-                int numActionsVariable = int.MaxValue)
+                float epsilon)
         {
-            return ExploreConfigurationWrapper.Create(mapper, new TopSlotExplorer(new EpsilonGreedyExplorer(epsilon, numActionsVariable)));
+            return ExploreConfigurationWrapper.Create(mapper, new TopSlotExplorer(new EpsilonGreedyExplorer(epsilon)));
         }
     }
 }
