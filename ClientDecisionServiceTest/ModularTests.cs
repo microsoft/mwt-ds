@@ -15,7 +15,7 @@ namespace ClientDecisionServiceTest
             var dsConfig = new DecisionServiceConfiguration("my token") { OfflineMode = true };
             try
             {
-                using (var ds = DecisionService.WithPolicy<TestContext>(dsConfig).WithEpsilonGreedy(.2f, 2).ExploitUntilModel(new TestSingleActionPolicy()))
+                using (var ds = DecisionService.WithPolicy<TestContext>(dsConfig).WithEpsilonGreedy(.2f, 2).ExploitUntilModelReady(new TestSingleActionPolicy()))
                 { }
             }
             catch (ArgumentException ex)
@@ -31,7 +31,11 @@ namespace ClientDecisionServiceTest
 
             var recorder = new TestLogger();
             int numChooseAction = 100;
-            using (var ds = DecisionService.WithPolicy<TestContext>(dsConfig).WithEpsilonGreedy(.2f, Constants.NumberOfActions).ExploitUntilModel(new TestSingleActionPolicy(), recorder))
+            using (var ds = DecisionService
+                .WithPolicy<TestContext>(dsConfig)
+                .WithEpsilonGreedy(.2f, Constants.NumberOfActions)
+                .WithRecorder(recorder)
+                .ExploitUntilModelReady(new TestSingleActionPolicy()))
             {
                 for (int i = 0; i < numChooseAction; i++)
                 {
@@ -69,7 +73,11 @@ namespace ClientDecisionServiceTest
             var recorder = new TestLogger();
 
             int numChooseAction = 100;
-            using (var ds = DecisionService.WithPolicy<TestContext>(dsConfig).WithEpsilonGreedy(.2f, Constants.NumberOfActions).ExploitUntilModel(new TestSingleActionPolicy(), recorder))
+            using (var ds = DecisionService
+                .WithPolicy<TestContext>(dsConfig)
+                .WithEpsilonGreedy(.2f, Constants.NumberOfActions)
+                .WithRecorder(recorder)
+                .ExploitUntilModelReady(new TestSingleActionPolicy()))
             {
                 for (int i = 0; i < numChooseAction; i++)
                 {
@@ -111,7 +119,7 @@ namespace ClientDecisionServiceTest
             bool isExceptionExpected = false;
             try
             {
-                using (var ds = DecisionService.WithPolicy<TestContext>(dsConfig).WithEpsilonGreedy(.2f, Constants.NumberOfActions).ExploitUntilModel(new TestSingleActionPolicy()))
+                using (var ds = DecisionService.WithPolicy<TestContext>(dsConfig).WithEpsilonGreedy(.2f, Constants.NumberOfActions).ExploitUntilModelReady(new TestSingleActionPolicy()))
                 { }
             }
             catch (InvalidDataException)
@@ -127,7 +135,10 @@ namespace ClientDecisionServiceTest
             var dsConfig = new DecisionServiceConfiguration("my token") { OfflineMode = true };
             try
             {
-                using (var ds = DecisionService.WithRanker<TestContext>(dsConfig).WithTopSlotEpsilonGreedy(.2f, 2).ExploitUntilModel(new TestMultiActionPolicy()))
+                using (var ds = DecisionService
+                    .WithRanker<TestContext>(dsConfig)
+                    .WithTopSlotEpsilonGreedy(.2f)
+                    .ExploitUntilModelReady(new TestMultiActionPolicy()))
                 { }
             }
             catch (ArgumentException ex)
@@ -142,7 +153,11 @@ namespace ClientDecisionServiceTest
             var dsConfig = new DecisionServiceConfiguration("my token") { OfflineMode = true };
             var recorder = new TestLogger();
             int numChooseAction = 100;
-            using (var ds = DecisionService.WithRanker<TestContext>(dsConfig).WithTopSlotEpsilonGreedy(.2f, 2).ExploitUntilModel(new TestMultiActionPolicy(), recorder))
+            using (var ds = DecisionService
+                .WithRanker<TestContext>(dsConfig)
+                .WithTopSlotEpsilonGreedy(.2f)
+                .WithRecorder(recorder)
+                .ExploitUntilModelReady(new TestMultiActionPolicy()))
             {
                 for (int i = 0; i < numChooseAction; i++)
                 {
@@ -185,7 +200,11 @@ namespace ClientDecisionServiceTest
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
 
             int numChooseAction = 100;
-            using (var ds = DecisionService.WithRanker<TestContext>(dsConfig).WithTopSlotEpsilonGreedy(.2f, Constants.NumberOfActions).ExploitUntilModel(new TestMultiActionPolicy(), recorder))
+            using (var ds = DecisionService
+                .WithRanker<TestContext>(dsConfig)
+                .WithTopSlotEpsilonGreedy(.2f)
+                .WithRecorder(recorder)
+                .ExploitUntilModelReady(new TestMultiActionPolicy()))
             {
                 for (int i = 0; i < numChooseAction; i++)
                 {
@@ -227,7 +246,10 @@ namespace ClientDecisionServiceTest
             bool isExceptionExpected = false;
             try
             {
-                using (var ds = DecisionService.WithRanker<TestContext>(dsConfig).WithTopSlotEpsilonGreedy(.2f, Constants.NumberOfActions).ExploitUntilModel(new TestMultiActionPolicy()))
+                using (var ds = DecisionService
+                    .WithRanker<TestContext>(dsConfig)
+                    .WithTopSlotEpsilonGreedy(.2f)
+                    .ExploitUntilModelReady(new TestMultiActionPolicy()))
                 { }
             }
             catch (InvalidDataException)

@@ -33,6 +33,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         public EpsilonGreedySlateExplorer(float epsilon)
         {
             this.defaultEpsilon = epsilon;
+            this.explore = true;
         }
 
         public void EnableExplore(bool explore)

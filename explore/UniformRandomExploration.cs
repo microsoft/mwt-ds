@@ -7,18 +7,11 @@ using System.Threading.Tasks;
 namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
 
-    // IFullExplorer<int, MyMagicType> foo = new UniformRandomExploration();
+    // IFullExplorer<int> foo = new UniformRandomExploration();
 
-    public sealed class UniformRandomExploration : IFullExplorer<object, int>
+    public sealed class UniformRandomExploration : IFullExplorer<int>
     {
-        private int numActions;
-
-        public UniformRandomExploration(int numActions)
-        {
-            this.numActions = numActions;
-        }
-
-        public ExplorerDecision<int> Explore(ulong saltedSeed, object dummy)
+        public ExplorerDecision<int> Explore(ulong saltedSeed, int numActions)
         {
             return ExplorerDecision.Create(
                  new PRG(saltedSeed).UniformInt(1, numActions),

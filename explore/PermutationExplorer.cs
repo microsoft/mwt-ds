@@ -6,24 +6,17 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
-    public sealed class PermutationExplorer<TContext> : IFullExplorer<TContext, int[]>
+    public sealed class PermutationExplorer : IFullExplorer<int[]>
     {
-        private readonly INumberOfActionsProvider<TContext> numberOfActionsProvider;
         private readonly int maxPermutations;
 
-        public PermutationExplorer(INumberOfActionsProvider<TContext> numberOfActionsProvider, int maxPermutations = int.MaxValue)
+        public PermutationExplorer(int maxPermutations = int.MaxValue)
         {
-            if (numberOfActionsProvider == null)
-                throw new ArgumentNullException("numberOfActionsProvider");
-
-            this.numberOfActionsProvider = numberOfActionsProvider;
             this.maxPermutations = maxPermutations;
         }
 
-        public ExplorerDecision<int[]> Explore(ulong saltedSeed, TContext context)
+        public ExplorerDecision<int[]> Explore(ulong saltedSeed, int numActionsVariable)
         {
-            var numActionsVariable = this.numberOfActionsProvider.GetNumberOfActions(context);
-
             var ranking = Enumerable.Range(1, numActionsVariable).ToArray();
             var random = new PRG(saltedSeed);
 

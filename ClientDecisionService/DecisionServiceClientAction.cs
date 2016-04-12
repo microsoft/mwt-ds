@@ -3,15 +3,15 @@ using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    public class DecisionServiceClientAction<TContext, TAction, TPolicyValue> : DecisionServiceBaseClient<TContext, TAction, TPolicyValue>
+    public class DecisionServiceClientWithDefaultAction<TContext, TAction, TPolicyValue> : DecisionServiceBaseClient<TContext, TAction, TPolicyValue>
     {
-        public DecisionServiceClientAction(
+        public DecisionServiceClientWithDefaultAction(
             DecisionServiceConfiguration config,
             ApplicationTransferMetadata metaData,
             IExplorer<TAction, TPolicyValue> explorer,
             IContextMapper<TContext, TPolicyValue> internalPolicy,
             IContextMapper<TContext, TPolicyValue> initialPolicy = null,
-            IFullExplorer<TContext, TAction> initialExplorer = null,
+            IFullExplorer<TAction> initialExplorer = null,
             IRecorder<TContext, TAction> recorder = null)
             : base(config, metaData, explorer, internalPolicy, initialPolicy, initialExplorer, recorder) { }
 

@@ -16,13 +16,13 @@ namespace ClientDecisionServiceTest
     {
         private class MyRecorder : IRecorder<string, int[]>
         {
-            public EpsilonGreedyState LastExplorerState { get; set; }
+            public GenericExplorerState LastExplorerState { get; set; }
 
             public object LastMapperState { get; set; }
 
             public void Record(string context, int[] value, object explorerState, object mapperState, UniqueEventID uniqueKey)
             {
-                this.LastExplorerState = (EpsilonGreedyState)explorerState;
+                this.LastExplorerState = (GenericExplorerState)explorerState;
                 this.LastMapperState = mapperState;
             }
         }
@@ -43,7 +43,8 @@ namespace ClientDecisionServiceTest
                 using (var ds = 
                         DecisionService.WithJsonRanker(new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken))
                             .WithTopSlotEpsilonGreedy(0.3f)
-                            .ExploreUntilModel(new PermutationExplorer<string>(new JsonNumActionsProvider()), recorder))
+                            .WithRecorder(recorder)
+                            .ExploreUntilModelReady(new PermutationExplorer()))
                 {
                     var decision = ds.ChooseAction(new UniqueEventID() { Key = "abc", TimeStamp = DateTime.Now }, "{\"a\":1,\"_multi\":[{\"b\":2}]}");
 
@@ -53,7 +54,7 @@ namespace ClientDecisionServiceTest
                     model.Position = 0;
                     ds.UpdateModel(model);
 
-                    decision = ds.ChooseAction(new UniqueEventID() { Key = "abc", TimeStamp = DateTime.Now }, "{\"a\":1,\"_multi\":[{\"b\":2}]}");
+                    decision = ds.ChooseAction(new UniqueEventID() { Key = "abc", TimeStamp = DateTime.Now }, "{\"a\":1,\"_multi\":[{\"b\":2}, {\"b\":3}]}");
                     Assert.AreNotEqual(1f, recorder.LastExplorerState.Probability);
 
                     var vwState = recorder.LastMapperState as VWState;
@@ -67,14 +68,6 @@ namespace ClientDecisionServiceTest
         public void Setup()
         {
             MockCommandCenter.SetRedirectionBlobLocation();
-        }
-    }
-
-    class JsonNumActionsProvider : INumberOfActionsProvider<string>
-    {
-        public int GetNumberOfActions(string context)
-        {
-            return 3;
         }
     }
 }

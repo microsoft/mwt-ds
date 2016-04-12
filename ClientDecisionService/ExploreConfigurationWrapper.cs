@@ -19,9 +19,11 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
         internal IExplorer<TAction, TPolicyValue> Explorer { get; set; }
 
-        internal IFullExplorer<TContext, TAction> InitialFullExplorer { get; set; }
+        internal IFullExplorer<TAction> InitialFullExplorer { get; set; }
 
-        internal DecisionServiceConfigurationWrapper<TContext, TPolicyValue> ContextMapper { get; set; }
+        internal IRecorder<TContext, TAction> Recorder { get; set; }
+
+        internal DecisionServiceConfigurationWrapper<TContext, TPolicyValue> ConfigWrapper { get; set; }
 
         internal override void Receive(object sender, Stream model)
         {
@@ -31,21 +33,28 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             }
         }
 
-        public DecisionServiceClientAction<TContext, TAction, TPolicyValue> ExploitUntilModel(IRecorder<TContext, TAction> recorder = null)
+        public DecisionServiceClientWithDefaultAction<TContext, TAction, TPolicyValue> ExploitUntilModelReady()
         {
-            return DecisionService.CreateActionMode(this, recorder);
+            return DecisionService.CreateActionMode(this, this.Recorder);
         }
 
-        public DecisionServiceClient<TContext, TAction, TPolicyValue> ExploitUntilModel(IContextMapper<TContext, TPolicyValue> initialPolicy, IRecorder<TContext, TAction> recorder = null)
+        public DecisionServiceClient<TContext, TAction, TPolicyValue> ExploitUntilModelReady(IContextMapper<TContext, TPolicyValue> initialPolicy)
         {
-            this.ContextMapper.InitialPolicy = initialPolicy;
-            return DecisionService.CreatePolicyMode(this, recorder);
+            this.ConfigWrapper.InitialPolicy = initialPolicy;
+            return DecisionService.CreatePolicyMode(this, this.Recorder);
         }
 
-        public DecisionServiceClient<TContext, TAction, TPolicyValue> ExploreUntilModel(IFullExplorer<TContext, TAction> initialExplorer, IRecorder<TContext, TAction> recorder = null)
+        public DecisionServiceClient<TContext, TAction, TPolicyValue> ExploreUntilModelReady(IFullExplorer<TAction> initialExplorer)
         {
             this.InitialFullExplorer = initialExplorer;
-            return DecisionService.CreatePolicyMode(this, recorder);
+            return DecisionService.CreatePolicyMode(this, this.Recorder);
+        }
+
+        public ExploreConfigurationWrapper<TContext, TAction, TPolicyValue>
+            WithRecorder(IRecorder<TContext, TAction> recorder)
+        {
+            this.Recorder = recorder;
+            return this;
         }
 
         // TODO: add overload for DefaultAction mode?
@@ -54,9 +63,9 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             var client = DecisionService.CreatePolicyMode(this);
 
             var modelMetadata = new AzureBlobUpdateMetadata(
-                "model", this.ContextMapper.Metadata.ModelBlobUri,
-                this.ContextMapper.Metadata.ConnectionString,
-                this.ContextMapper.Configuration.BlobOutputDir, TimeSpan.MinValue,
+                "model", this.ConfigWrapper.Metadata.ModelBlobUri,
+                this.ConfigWrapper.Metadata.ConnectionString,
+                this.ConfigWrapper.Configuration.BlobOutputDir, TimeSpan.MinValue,
                 modelFile => 
                 {
                     using (var modelStream = File.OpenRead(modelFile))
@@ -81,7 +90,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             DecisionServiceConfigurationWrapper<TContext, TPolicyValue> unboundContextMapper,
             IExplorer<TAction, TPolicyValue> explorer)
         {
-            var unboundExplorer = new ExploreConfigurationWrapper<TContext, TAction, TPolicyValue> { Explorer = explorer, ContextMapper = unboundContextMapper };
+            var unboundExplorer = new ExploreConfigurationWrapper<TContext, TAction, TPolicyValue> { Explorer = explorer, ConfigWrapper = unboundContextMapper };
             unboundContextMapper.Subscribe(unboundExplorer);
             return unboundExplorer;
         }

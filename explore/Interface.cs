@@ -46,9 +46,9 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         void EnableExplore(bool explore);
     }
 
-    public interface IFullExplorer<in TContext, TAction>
+    public interface IFullExplorer<TAction>
     {
-        ExplorerDecision<TAction> Explore(ulong saltedSeed, TContext context); 
+        ExplorerDecision<TAction> Explore(ulong saltedSeed, int numActions); 
     }
 
     public interface IVariableActionExplorer<TAction, in TPolicyValue>

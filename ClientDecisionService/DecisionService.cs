@@ -20,29 +20,29 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 IRecorder<TContext, TAction> recorder = null)
         {
             var dsClient = new DecisionServiceClient<TContext, TAction, TPolicyValue>(
-                explorer.ContextMapper.Configuration,
-                explorer.ContextMapper.Metadata,
+                explorer.ConfigWrapper.Configuration,
+                explorer.ConfigWrapper.Metadata,
                 explorer.Explorer,
-                explorer.ContextMapper.InternalPolicy,
+                explorer.ConfigWrapper.InternalPolicy,
                 initialExplorer: explorer.InitialFullExplorer,
-                initialPolicy: explorer.ContextMapper.InitialPolicy,
+                initialPolicy: explorer.ConfigWrapper.InitialPolicy,
                 recorder: recorder);
             explorer.Subscribe(dsClient);
             return dsClient;
         }
 
-        public static DecisionServiceClientAction<TContext, TAction, TPolicyValue>
+        public static DecisionServiceClientWithDefaultAction<TContext, TAction, TPolicyValue>
             CreateActionMode<TContext, TAction, TPolicyValue>(
                 ExploreConfigurationWrapper<TContext, TAction, TPolicyValue> explorer,
                 IRecorder<TContext, TAction> recorder = null)
         {
-            var dsClient = new DecisionServiceClientAction<TContext, TAction, TPolicyValue>(
-                explorer.ContextMapper.Configuration,
-                explorer.ContextMapper.Metadata,
+            var dsClient = new DecisionServiceClientWithDefaultAction<TContext, TAction, TPolicyValue>(
+                explorer.ConfigWrapper.Configuration,
+                explorer.ConfigWrapper.Metadata,
                 explorer.Explorer,
-                explorer.ContextMapper.InternalPolicy,
+                explorer.ConfigWrapper.InternalPolicy,
                 initialExplorer: explorer.InitialFullExplorer,
-                initialPolicy: explorer.ContextMapper.InitialPolicy,
+                initialPolicy: explorer.ConfigWrapper.InitialPolicy,
                 recorder: recorder);
             explorer.Subscribe(dsClient);
             return dsClient;

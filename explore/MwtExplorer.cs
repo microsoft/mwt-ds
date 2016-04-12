@@ -8,9 +8,10 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             string appId, 
             IRecorder<TContext, TAction> recorder, 
             IExplorer<TAction, TPolicyValue> explorer,
-            IFullExplorer<TContext, TAction> initialExplorer = null)
+            IFullExplorer<TAction> initialExplorer = null,
+            INumberOfActionsProvider<TContext> numActionsProvider = null)
         {
-            return new MwtExplorer<TContext, TAction, TPolicyValue>(appId, recorder, explorer, initialExplorer);
+            return new MwtExplorer<TContext, TAction, TPolicyValue>(appId, recorder, explorer, initialExplorer, numActionsProvider);
         }
     }
 
@@ -23,7 +24,8 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 	{
         private ulong appId;
         private IRecorder<TContext, TAction> recorder;
-        private IFullExplorer<TContext, TAction> initialExplorer;
+        private IFullExplorer<TAction> initialExplorer;
+        private INumberOfActionsProvider<TContext> numActionsProvider;
 
 		/// <summary>
 		/// Constructor.
@@ -33,7 +35,8 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         public MwtExplorer(string appId, 
             IRecorder<TContext, TAction> recorder, 
             IExplorer<TAction, TPolicyValue> explorer,
-            IFullExplorer<TContext, TAction> initialExplorer = null)
+            IFullExplorer<TAction> initialExplorer = null,
+            INumberOfActionsProvider<TContext> numActionsProvider = null)
 		{
             this.appId = MurMurHash3.ComputeIdHash(appId);
             // TODO: check for null
@@ -41,6 +44,12 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.Explorer = explorer;
             // TODO: check for null
             this.initialExplorer = initialExplorer;
+            this.numActionsProvider = numActionsProvider;
+
+            if (this.initialExplorer != null && this.numActionsProvider == null)
+            {
+                throw new ArgumentNullException("numActionsProvider");
+            }
         }
 
         public IExplorer<TAction, TPolicyValue> Explorer { get; set; }
@@ -88,7 +97,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             PolicyDecision<TPolicyValue> policyDecision = null;
 
             if (policy == null)
-                explorerDecision = this.initialExplorer.Explore(saltedSeed, context);
+                explorerDecision = this.initialExplorer.Explore(saltedSeed, this.numActionsProvider.GetNumberOfActions(context));
             else
             {
                 policyDecision = policy.MapContext(context);
