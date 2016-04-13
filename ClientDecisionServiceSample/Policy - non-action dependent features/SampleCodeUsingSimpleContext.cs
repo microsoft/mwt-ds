@@ -55,39 +55,68 @@ namespace ClientDecisionServiceSample
                 }
             };
 
+            // .WithRanker() | .WithPolicy()
+            // .WithJson()   | .With<MyContext>() | .With<MyShared, MyADF>()
+            // TODO: other exploration strategies
+            // Default action
+
             // Create the main service object with above configurations.
             // Specify the exploration algorithm to use, here we will use Epsilon-Greedy.
             // For more details about this and other algorithms, refer to the MWT onboarding whitepaper.
-            using (var service = DecisionService.WithPolicy<SimpleContext>(serviceConfig).WithEpsilonGreedy(epsilon, numTopics).ExploitUntilModel(new SimplePolicy()))
-            {
-                var random = new Random();
-                for (int user = 0; user < numUsers; user++)
-                {
-                    // Generate a random GUID id for each user.
-                    var userId = Guid.NewGuid().ToString();
+            //DecisionService.WithJsonPolicy()
+            //    .WithEpsilonGreedy(.3f, 1)
+            //    .ExploitUntilModelReady() // <- default action, remove the other call on DecisionService
 
-                    // Generate random feature vector for each user.
-                    var features = Enumerable
-                        .Range(user, numFeatures)
-                        .Select(uid => (float)random.NextDouble())
-                        .ToArray();
+            //using (var service = DecisionService.WithPolicy(config).With<MyContext>())
+            //{
+            //    // service.WithTauFirst(5).WithEpsilonGreedy()
+            //}
 
-                    // Create the context object
-                    var userContext = new SimpleContext(features);
+            //// -> EpsilonGreedy 10%
+            //// -> ExploreUntilModelReady using UniformExploration
 
-                    // Perform exploration given user features.
-                    int topicId = service.ChooseAction(new UniqueEventID { Key = userId }, context: userContext);
+            //using (var service = DecisionService
+            //    .WithPolicy<SimpleContext>(serviceConfig, 5)
+            //    .WithJson() // <- with param
+            //    .WithPolicy<SimpleContext>(serviceConfig)
+            //    .WithADFPolicy() // <- ADF
+            //    .WithRanker<SimpleContext>()
+            //    // be able to remove WithEpsilonGreedy(), epsilon = .1f
+            //    .WithEpsilonGreedy(epsilon)
+            //    .
+            //    // be able to have ExploreUntilModelReady().UniformRandom() be the default
+            //    .ExploreUntilModelReady() //new UniformRandomExploration())
+            //    .UniformRandom() // .PermutationExplorer()
+            //    .ExploitUntilModelReady(new SimplePolicy()))
+            //{
+            //    var random = new Random();
+            //    for (int user = 0; user < numUsers; user++)
+            //    {
+            //        // Generate a random GUID id for each user.
+            //        var userId = Guid.NewGuid().ToString();
 
-                    // Display the news topic chosen by exploration process.
-                    DisplayNewsTopic(topicId, user + 1);
+            //        // Generate random feature vector for each user.
+            //        var features = Enumerable
+            //            .Range(user, numFeatures)
+            //            .Select(uid => (float)random.NextDouble())
+            //            .ToArray();
 
-                    // Report {0,1} reward as a simple float.
-                    // In a real scenario, one could associated a reward of 1 if user
-                    // clicks on the article and 0 otherwise.
-                    float reward = 1 - (user % 2);
-                    service.ReportReward(reward, new UniqueEventID { Key = userId });
-                }
-            }
+            //        // Create the context object
+            //        var userContext = new SimpleContext(features);
+
+            //        // Perform exploration given user features.
+            //        int topicId = service.ChooseAction(new UniqueEventID { Key = userId }, context: userContext);
+
+            //        // Display the news topic chosen by exploration process.
+            //        DisplayNewsTopic(topicId, user + 1);
+
+            //        // Report {0,1} reward as a simple float.
+            //        // In a real scenario, one could associated a reward of 1 if user
+            //        // clicks on the article and 0 otherwise.
+            //        float reward = 1 - (user % 2);
+            //        service.ReportReward(reward, new UniqueEventID { Key = userId });
+            //    }
+            //}
         }
 
         /// <summary>

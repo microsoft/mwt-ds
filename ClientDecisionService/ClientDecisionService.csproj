@@ -120,9 +120,10 @@
     <Compile Include="AzureBlobUpdater.cs" />
     <Compile Include="AzureBlobUpdateTask.cs" />
     <Compile Include="DecisionService.cs" />
-    <Compile Include="DecisionServiceBaseClient.cs" />
+    <Compile Include="DecisionService.Explorer.cs" />
+    <Compile Include="DecisionService.UntilModelReady.cs" />
     <Compile Include="DecisionServiceClient.cs" />
-    <Compile Include="DecisionServiceClientAction.cs" />
+    <Compile Include="DecisionServiceClientInternal.cs" />
     <Compile Include="DecisionServiceConfiguration.cs" />
     <Compile Include="DecisionServiceConstants.cs" />
     <Compile Include="DecisionServiceHttpModule.cs" />
@@ -143,6 +144,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <Compile Include="DecisionService.VowpalWabbit.cs" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>

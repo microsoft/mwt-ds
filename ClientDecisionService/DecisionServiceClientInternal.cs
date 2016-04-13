@@ -1,13 +1,17 @@
 ﻿using Microsoft.Research.MultiWorldTesting.Contract;
 using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
-using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    public class DecisionServiceBaseClient<TContext, TAction, TPolicyValue> : IDisposable, IModelSender
+    internal sealed class DecisionServiceClientInternal<TContext, TAction, TPolicyValue> : IDisposable, IModelSender
     {
         private readonly TimeSpan settingsBlobPollDelay;
 
@@ -17,8 +21,9 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         private readonly ILogger logger;
         private readonly IContextMapper<TContext, TPolicyValue> internalPolicy;
 
-        protected readonly DecisionServiceConfiguration config;
-        protected MwtExplorer<TContext, TAction, TPolicyValue> mwtExplorer;
+        private readonly DecisionServiceConfiguration config;
+        private readonly ApplicationTransferMetadata metaData;
+        private MwtExplorer<TContext, TAction, TPolicyValue> mwtExplorer;
 
         private event EventHandler<Stream> sendModelHandler;
         event EventHandler<Stream> IModelSender.Send
@@ -27,7 +32,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             remove { this.sendModelHandler -= value; }
         }
 
-        public DecisionServiceBaseClient(
+        public DecisionServiceClientInternal(
             DecisionServiceConfiguration config,
             ApplicationTransferMetadata metaData,
             IExplorer<TAction, TPolicyValue> explorer,
@@ -43,6 +48,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 throw new ArgumentNullException("explorer");
 
             this.config = config;
+            this.metaData = metaData;
 
             if (config.OfflineMode)
             {
@@ -131,12 +137,44 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             this.mwtExplorer.Policy = initialPolicy;
         }
 
+        internal async Task DownloadModelAndUpdate(CancellationToken cancellationToken)
+        {
+            var modelMetadata = new AzureBlobUpdateMetadata(
+               "model", metadata.ModelBlobUri,
+               metadata.ConnectionString,
+               config.BlobOutputDir, TimeSpan.MinValue,
+               modelFile =>
+               {
+                   using (var modelStream = File.OpenRead(modelFile))
+                   {
+                       UpdateModel(modelStream);
+                       Trace.TraceInformation("Model download succeeded.");
+                   }
+               },
+               null,
+               cancellationToken);
+
+            await AzureBlobUpdateTask.DownloadAsync(modelMetadata);
+        }
+
+        internal IExplorer<TAction, TPolicyValue> Explorer
+        {
+            get { return this.mwtExplorer.Explorer; }
+            set { this.mwtExplorer.Explorer = value; }
+        }
+
+        internal IFullExplorer<TAction> InitialExplorer
+        {
+            get { return this.mwtExplorer.InitialExplorer; }
+            set { this.mwtExplorer.InitialExplorer = value; }
+        }
+
         /// <summary>
         /// Report a simple float reward for the experimental unit identified by the given unique key.
         /// </summary>
         /// <param name="reward">The simple float reward.</param>
         /// <param name="uniqueKey">The unique key of the experimental unit.</param>
-        public void ReportReward(float reward, UniqueEventID uniqueKey)
+        internal void ReportReward(float reward, UniqueEventID uniqueKey)
         {
             if (this.logger != null)
                 this.logger.ReportReward(uniqueKey, reward);
@@ -150,7 +188,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         /// <remarks>
         /// Outcomes are general forms of observations that can be converted to simple float rewards as required by some ML algorithms for optimization.
         /// </remarks>
-        public void ReportOutcome(object outcome, UniqueEventID uniqueKey)
+        internal void ReportOutcome(object outcome, UniqueEventID uniqueKey)
         {
             if (this.logger != null)
                 logger.ReportOutcome(uniqueKey, outcome);
@@ -160,7 +198,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         /// TODO: Stream needs to be disposed by users
         /// </summary>
         /// <param name="model"></param>
-        public void UpdateModel(Stream model)
+        internal void UpdateModel(Stream model)
         {
             if (sendModelHandler != null)
             {
@@ -175,7 +213,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         /// <summary>
         /// Flush any pending data to be logged and request to stop all polling as appropriate.
         /// </summary>
-        public void Flush()
+        internal void Flush()
         {
             // stops all updates
             AzureBlobUpdater.Stop();

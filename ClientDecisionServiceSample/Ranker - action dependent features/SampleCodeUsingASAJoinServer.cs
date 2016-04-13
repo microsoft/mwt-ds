@@ -31,7 +31,7 @@ namespace ClientDecisionServiceSample
             using (var service = DecisionService
                 .WithRanker<FoodContext, FoodFeature>(serviceConfig, context => FoodContext.GetFeaturesFromContext(context))
                 .WithTopSlotEpsilonGreedy(epsilon: .8f)
-                .ExploitUntilModel(new FoodPolicy()))
+                .ExploitUntilModelReady(new FoodPolicy()))
             {
                 string uniqueKey = "scratch-key-";
                 string baseLocation = "Washington-";

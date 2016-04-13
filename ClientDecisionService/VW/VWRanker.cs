@@ -6,7 +6,7 @@ using System.Linq;
 using VW;
 using VW.Serializer;
 
-namespace Microsoft.Research.MultiWorldTesting.ClientLibrary.VW
+namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
     internal class VWRanker<TContext> :
         VWBaseContextMapper<VowpalWabbitThreadedPrediction<TContext>, VowpalWabbit<TContext>, TContext, int[]>,

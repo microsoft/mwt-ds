@@ -33,22 +33,22 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             }
         }
 
-        public DecisionServiceClientWithDefaultAction<TContext, TAction, TPolicyValue> ExploitUntilModelReady()
-        {
-            return DecisionService.CreateActionMode(this, this.Recorder);
-        }
+        //public DecisionServiceClientWithDefaultAction<TContext, TAction, TPolicyValue> ExploitUntilModelReady()
+        //{
+        //    return DecisionService.CreateActionMode(this, this.Recorder);
+        //}
 
-        public DecisionServiceClient<TContext, TAction, TPolicyValue> ExploitUntilModelReady(IContextMapper<TContext, TPolicyValue> initialPolicy)
-        {
-            this.ConfigWrapper.InitialPolicy = initialPolicy;
-            return DecisionService.CreatePolicyMode(this, this.Recorder);
-        }
+        //public DecisionServiceClient<TContext, TAction, TPolicyValue> ExploitUntilModelReady(IContextMapper<TContext, TPolicyValue> initialPolicy)
+        //{
+        //    this.ConfigWrapper.InitialPolicy = initialPolicy;
+        //    return DecisionService.CreatePolicyMode(this, this.Recorder);
+        //}
 
-        public DecisionServiceClient<TContext, TAction, TPolicyValue> ExploreUntilModelReady(IFullExplorer<TAction> initialExplorer)
-        {
-            this.InitialFullExplorer = initialExplorer;
-            return DecisionService.CreatePolicyMode(this, this.Recorder);
-        }
+        //public DecisionServiceClient<TContext, TAction, TPolicyValue> ExploreUntilModelReady(IFullExplorer<TAction> initialExplorer)
+        //{
+        //    this.InitialFullExplorer = initialExplorer;
+        //    return DecisionService.CreatePolicyMode(this, this.Recorder);
+        //}
 
         public ExploreConfigurationWrapper<TContext, TAction, TPolicyValue>
             WithRecorder(IRecorder<TContext, TAction> recorder)

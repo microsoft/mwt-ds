@@ -24,7 +24,6 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 	{
         private ulong appId;
         private IRecorder<TContext, TAction> recorder;
-        private IFullExplorer<TAction> initialExplorer;
         private INumberOfActionsProvider<TContext> numActionsProvider;
 
 		/// <summary>
@@ -43,16 +42,18 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.recorder = recorder;
             this.Explorer = explorer;
             // TODO: check for null
-            this.initialExplorer = initialExplorer;
+            this.InitialExplorer = initialExplorer;
             this.numActionsProvider = numActionsProvider;
 
-            if (this.initialExplorer != null && this.numActionsProvider == null)
+            if (this.InitialExplorer != null && this.numActionsProvider == null)
             {
                 throw new ArgumentNullException("numActionsProvider");
             }
         }
 
         public IExplorer<TAction, TPolicyValue> Explorer { get; set; }
+
+        public IFullExplorer<TAction> InitialExplorer { get; set; }
 
         public IContextMapper<TContext, TPolicyValue> Policy { get; set; }
 
@@ -97,7 +98,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             PolicyDecision<TPolicyValue> policyDecision = null;
 
             if (policy == null)
-                explorerDecision = this.initialExplorer.Explore(saltedSeed, this.numActionsProvider.GetNumberOfActions(context));
+                explorerDecision = this.InitialExplorer.Explore(saltedSeed, this.numActionsProvider.GetNumberOfActions(context));
             else
             {
                 policyDecision = policy.MapContext(context);

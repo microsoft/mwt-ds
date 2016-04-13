@@ -32,7 +32,7 @@ namespace ClientDecisionServiceSample
             using (var service = DecisionService
                 .WithRanker<FoodContext, FoodFeature>(serviceConfig, context => FoodContext.GetFeaturesFromContext(context))
                 .WithTopSlotEpsilonGreedy(epsilon: .2f)
-                .ExploitUntilModel(new FoodPolicy()))
+                .ExploitUntilModelReady(new FoodPolicy()))
             {
                 System.Threading.Thread.Sleep(10000);
 

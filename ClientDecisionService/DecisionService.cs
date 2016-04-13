@@ -1,5 +1,4 @@
-﻿using Microsoft.Research.MultiWorldTesting.ClientLibrary.VW;
-using Microsoft.Research.MultiWorldTesting.Contract;
+﻿using Microsoft.Research.MultiWorldTesting.Contract;
 using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
 using Newtonsoft.Json;
 using System;
@@ -10,77 +9,37 @@ using System.Net;
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
     /// <summary>
+    /// Incomplete decision service client, just a vehicle to transport TAction
+    /// </summary>
+    /// <typeparam name="TAction"></typeparam>
+    public class DecisionServiceClientSpecification<TAction>
+    {
+        internal int? NumberOfActions;
+
+        internal DecisionServiceConfiguration Config;
+    }
+
+    /// <summary>
     /// Factory class.
     /// </summary>
     public static class DecisionService
     {
-        public static DecisionServiceClient<TContext, TAction, TPolicyValue>
-            CreatePolicyMode<TContext, TAction, TPolicyValue>(
-                ExploreConfigurationWrapper<TContext, TAction, TPolicyValue> explorer,
-                IRecorder<TContext, TAction> recorder = null)
-        {
-            var dsClient = new DecisionServiceClient<TContext, TAction, TPolicyValue>(
-                explorer.ConfigWrapper.Configuration,
-                explorer.ConfigWrapper.Metadata,
-                explorer.Explorer,
-                explorer.ConfigWrapper.InternalPolicy,
-                initialExplorer: explorer.InitialFullExplorer,
-                initialPolicy: explorer.ConfigWrapper.InitialPolicy,
-                recorder: recorder);
-            explorer.Subscribe(dsClient);
-            return dsClient;
+        public static DecisionServiceClientSpecification<int> WithPolicy(DecisionServiceConfiguration config, int numberOfActions)
+        { 
+            return new DecisionServiceClientSpecification<int>()
+            {
+                Config = config,
+                NumberOfActions = numberOfActions
+            };
         }
 
-        public static DecisionServiceClientWithDefaultAction<TContext, TAction, TPolicyValue>
-            CreateActionMode<TContext, TAction, TPolicyValue>(
-                ExploreConfigurationWrapper<TContext, TAction, TPolicyValue> explorer,
-                IRecorder<TContext, TAction> recorder = null)
-        {
-            var dsClient = new DecisionServiceClientWithDefaultAction<TContext, TAction, TPolicyValue>(
-                explorer.ConfigWrapper.Configuration,
-                explorer.ConfigWrapper.Metadata,
-                explorer.Explorer,
-                explorer.ConfigWrapper.InternalPolicy,
-                initialExplorer: explorer.InitialFullExplorer,
-                initialPolicy: explorer.ConfigWrapper.InitialPolicy,
-                recorder: recorder);
-            explorer.Subscribe(dsClient);
-            return dsClient;
+        public static DecisionServiceClientSpecification<int[]> WithRanker(DecisionServiceConfiguration config)
+        { 
+            return new DecisionServiceClientSpecification<int[]>()
+            {
+                Config = config
+            };
         }
-
-        public static DecisionServiceConfigurationWrapper<string, int> WithJsonPolicy(DecisionServiceConfiguration config)
-        {
-            config.UseJsonContext = true;
-            return DecisionService.Wrap(config, new VWJsonPolicy(config.ModelStream));
-        }
-
-        public static DecisionServiceConfigurationWrapper<string, int[]> WithJsonRanker(DecisionServiceConfiguration config)
-        {
-            config.UseJsonContext = true;
-            return DecisionService.Wrap(config, new VWJsonRanker(config.ModelStream));
-        }
-
-        public static DecisionServiceConfigurationWrapper<TContext, int> WithPolicy<TContext>(DecisionServiceConfiguration config)
-        {
-            config.UseJsonContext = false;
-            return DecisionService.Wrap(config, new VWPolicy<TContext>(config.ModelStream, config.FeatureDiscovery));
-        }
-
-        public static DecisionServiceConfigurationWrapper<TContext, int[]> WithRanker<TContext>(DecisionServiceConfiguration config)
-        {
-            config.UseJsonContext = false;
-            return DecisionService.Wrap(config, new VWRanker<TContext>(config.ModelStream, config.FeatureDiscovery));
-        }
-
-        public static DecisionServiceConfigurationWrapper<TContext, int[]>
-            WithRanker<TContext, TActionDependentFeature>(
-                DecisionServiceConfiguration config,
-                Func<TContext, IReadOnlyCollection<TActionDependentFeature>> getContextFeaturesFunc)
-        {
-            config.UseJsonContext = false;
-            return DecisionService.Wrap(config, new VWRanker<TContext, TActionDependentFeature>(getContextFeaturesFunc, config.ModelStream, config.FeatureDiscovery));
-        }
-
 
         public static DecisionServiceConfigurationWrapper<TContext, TPolicyValue>
             Wrap<TContext, TPolicyValue>(
