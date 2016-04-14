@@ -15,7 +15,7 @@ namespace ClientDecisionServiceTest
             var dsConfig = new DecisionServiceConfiguration("my token") { OfflineMode = true };
             try
             {
-                using (var ds = DecisionService.WithPolicy<TestContext>(dsConfig).WithEpsilonGreedy(.2f, 2).ExploitUntilModelReady(new TestSingleActionPolicy()))
+                using (var ds = DecisionService.WithPolicy(dsConfig, 2).With<TestContext>())
                 { }
             }
             catch (ArgumentException ex)
@@ -32,8 +32,9 @@ namespace ClientDecisionServiceTest
             var recorder = new TestLogger();
             int numChooseAction = 100;
             using (var ds = DecisionService
-                .WithPolicy<TestContext>(dsConfig)
-                .WithEpsilonGreedy(.2f, Constants.NumberOfActions)
+                .WithPolicy(dsConfig, Constants.NumberOfActions)
+                .With<TestContext>()
+                .WithEpsilonGreedy(.2f)
                 .WithRecorder(recorder)
                 .ExploitUntilModelReady(new TestSingleActionPolicy()))
             {
@@ -69,13 +70,18 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         public void TestSingleActionOnlineModeCustomLogger()
         {
-            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken);
+            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken)
+            {
+                JoinServerType = JoinServerType.CustomSolution
+            };
+
             var recorder = new TestLogger();
 
             int numChooseAction = 100;
             using (var ds = DecisionService
-                .WithPolicy<TestContext>(dsConfig)
-                .WithEpsilonGreedy(.2f, Constants.NumberOfActions)
+                .WithPolicy(dsConfig, Constants.NumberOfActions)
+                .With<TestContext>()
+                .WithEpsilonGreedy(.2f)
                 .WithRecorder(recorder)
                 .ExploitUntilModelReady(new TestSingleActionPolicy()))
             {
@@ -119,7 +125,10 @@ namespace ClientDecisionServiceTest
             bool isExceptionExpected = false;
             try
             {
-                using (var ds = DecisionService.WithPolicy<TestContext>(dsConfig).WithEpsilonGreedy(.2f, Constants.NumberOfActions).ExploitUntilModelReady(new TestSingleActionPolicy()))
+                using (var ds = DecisionService
+                    .WithPolicy(dsConfig, Constants.NumberOfActions)
+                    .With<TestContext>()
+                    .ExploitUntilModelReady(new TestSingleActionPolicy()))
                 { }
             }
             catch (InvalidDataException)
@@ -130,20 +139,14 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
+        [ExpectedException(typeof(NotSupportedException))]
         public void TestMultiActionOfflineModeArgument()
         {
-            var dsConfig = new DecisionServiceConfiguration("my token") { OfflineMode = true };
-            try
+            using (var ds = DecisionService
+                .WithRanker(new DecisionServiceConfiguration("my token") { OfflineMode = true })
+                .WithJson())
             {
-                using (var ds = DecisionService
-                    .WithRanker<TestContext>(dsConfig)
-                    .WithTopSlotEpsilonGreedy(.2f)
-                    .ExploitUntilModelReady(new TestMultiActionPolicy()))
-                { }
-            }
-            catch (ArgumentException ex)
-            {
-                Assert.AreEqual("Recorder", ex.ParamName);
+                ds.ChooseAction(new UniqueEventID() { Key = "" }, "{}");
             }
         }
 
@@ -154,7 +157,8 @@ namespace ClientDecisionServiceTest
             var recorder = new TestLogger();
             int numChooseAction = 100;
             using (var ds = DecisionService
-                .WithRanker<TestContext>(dsConfig)
+                .WithRanker(dsConfig)
+                .With<TestContext>()
                 .WithTopSlotEpsilonGreedy(.2f)
                 .WithRecorder(recorder)
                 .ExploitUntilModelReady(new TestMultiActionPolicy()))
@@ -201,7 +205,8 @@ namespace ClientDecisionServiceTest
 
             int numChooseAction = 100;
             using (var ds = DecisionService
-                .WithRanker<TestContext>(dsConfig)
+                .WithRanker(dsConfig)
+                .With<TestContext>()
                 .WithTopSlotEpsilonGreedy(.2f)
                 .WithRecorder(recorder)
                 .ExploitUntilModelReady(new TestMultiActionPolicy()))
@@ -247,7 +252,8 @@ namespace ClientDecisionServiceTest
             try
             {
                 using (var ds = DecisionService
-                    .WithRanker<TestContext>(dsConfig)
+                    .WithRanker(dsConfig)
+                    .With<TestContext>()
                     .WithTopSlotEpsilonGreedy(.2f)
                     .ExploitUntilModelReady(new TestMultiActionPolicy()))
                 { }

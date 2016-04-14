@@ -124,6 +124,7 @@
     <Compile Include="Common.cs" />
     <Compile Include="EpsilonGreedySlateTest.cs" />
     <Compile Include="InitialFullExploration.cs" />
+    <Compile Include="MockCommandTestBase.cs" />
     <Compile Include="MockJoinServer.cs" />
     <Compile Include="MockCommandCenter.cs" />
     <Compile Include="MockHttpServer.cs" />

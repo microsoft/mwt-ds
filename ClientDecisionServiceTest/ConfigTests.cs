@@ -8,7 +8,7 @@ using System.Threading;
 namespace ClientDecisionServiceTest
 {
     [TestClass]
-    public class ConfigTests
+    public class ConfigTests : MockCommandTestBase
     {
         [TestMethod]
         public void TestSingleActionInvalidPathOutputDir()
@@ -35,7 +35,11 @@ namespace ClientDecisionServiceTest
                 }
             };
 
-            using (var ds = DecisionService.WithPolicy<TestContext>(dsConfig).WithEpsilonGreedy(.2f, 2).ExploitUntilModelReady(new TestSingleActionPolicy()))
+            using (var ds = DecisionService
+                .WithPolicy(dsConfig, 2)
+                .With<TestContext>()
+                .WithEpsilonGreedy(.2f)
+                .ExploitUntilModelReady(new TestSingleActionPolicy()))
             {
                 cancelTokenSource.Token.WaitHandle.WaitOne(5000);
             }
@@ -60,7 +64,11 @@ namespace ClientDecisionServiceTest
             dsConfig.BlobOutputDir = settingsPath;
             dsConfig.PollingForSettingsPeriod = TimeSpan.FromMilliseconds(500);
 
-            using (var ds = DecisionService.WithPolicy<TestContext>(dsConfig).WithEpsilonGreedy(.2f, 2).ExploitUntilModelReady(new TestSingleActionPolicy()))
+            using (var ds = DecisionService
+                .WithPolicy(dsConfig, 2)
+                .With<TestContext>()
+                .WithEpsilonGreedy(.2f)
+                .ExploitUntilModelReady(new TestSingleActionPolicy()))
             {
 
                 string settingsFile = Path.Combine(settingsPath, "settings-" + commandCenter.LocalAzureSettingsBlobName);
@@ -123,7 +131,8 @@ namespace ClientDecisionServiceTest
             };
 
             using (var ds = DecisionService
-                .WithRanker<TestContext>(dsConfig)
+                .WithRanker(dsConfig)
+                .With<TestContext>()
                 .WithTopSlotEpsilonGreedy(.2f)
                 .ExploitUntilModelReady(new TestMultiActionPolicy()))
             {
@@ -150,7 +159,8 @@ namespace ClientDecisionServiceTest
             dsConfig.PollingForSettingsPeriod = TimeSpan.FromMilliseconds(500);
 
             using (var ds = DecisionService
-                .WithRanker<TestContext>(dsConfig)
+                .WithRanker(dsConfig)
+                .With<TestContext>()
                 .WithTopSlotEpsilonGreedy(.2f)
                 .ExploitUntilModelReady(new TestMultiActionPolicy()))
             {
@@ -184,23 +194,5 @@ namespace ClientDecisionServiceTest
             }
             Directory.Delete(settingsPath, true);
         }
-
-        [TestInitialize]
-        public void Setup()
-        {
-            commandCenter = new MockCommandCenter(MockCommandCenter.AuthorizationToken);
-            joinServer = new MockJoinServer(MockJoinServer.MockJoinServerAddress);
-
-            joinServer.Run();
-        }
-
-        [TestCleanup]
-        public void CleanUp()
-        {
-            joinServer.Stop();
-        }
-
-        private MockJoinServer joinServer;
-        private MockCommandCenter commandCenter;
     }
 }

@@ -1,10 +1,6 @@
 ﻿using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using VW;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary

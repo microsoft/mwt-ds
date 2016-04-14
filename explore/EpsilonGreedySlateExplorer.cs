@@ -20,7 +20,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         public bool IsExplore { get; set; }
     }
 
-    public sealed class EpsilonGreedySlateExplorer<TContext> : IExplorer<int[], int[]>
+    public sealed class EpsilonGreedySlateExplorer : IExplorer<int[], int[]>
     {
         private bool explore;
         private readonly float defaultEpsilon;

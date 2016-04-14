@@ -81,5 +81,4 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             return adfs == null ? 0 : adfs.Count;
         }
     }
-
 }

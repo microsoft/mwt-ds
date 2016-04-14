@@ -115,7 +115,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AbstractModelListener.cs" />
     <Compile Include="AzureBlobUpdateMetadata.cs" />
     <Compile Include="AzureBlobUpdater.cs" />
     <Compile Include="AzureBlobUpdateTask.cs" />
@@ -123,19 +122,14 @@
     <Compile Include="DecisionService.Explorer.cs" />
     <Compile Include="DecisionService.UntilModelReady.cs" />
     <Compile Include="DecisionServiceClient.cs" />
-    <Compile Include="DecisionServiceClientInternal.cs" />
     <Compile Include="DecisionServiceConfiguration.cs" />
     <Compile Include="DecisionServiceConstants.cs" />
     <Compile Include="DecisionServiceHttpModule.cs" />
-    <Compile Include="DecisionServicePolicy.cs" />
     <Compile Include="DecisionServiceStaticClient.cs" />
-    <Compile Include="IModelSender.cs" />
     <Compile Include="JoinServerType.cs" />
     <Compile Include="JoinServiceLogger.cs" />
     <Compile Include="ILogger.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="DecisionServiceConfigurationWrapper.cs" />
-    <Compile Include="ExploreConfigurationWrapper.cs" />
     <Compile Include="VW\VWJson.cs" />
     <Compile Include="VW\VWPolicy.cs" />
     <Compile Include="VW\VWBaseContextMapper.cs" />

@@ -9,7 +9,7 @@ using Microsoft.Research.MultiWorldTesting.ClientLibrary;
 namespace ClientDecisionServiceTest
 {
     [TestClass]
-    public class ActionDependentFeaturesTest
+    public class ActionDependentFeaturesTest : MockCommandTestBase
     {
         [TestMethod]
         public void TestADFExplorationResult()
@@ -24,7 +24,11 @@ namespace ClientDecisionServiceTest
                 LoggingServiceAddress = MockJoinServer.MockJoinServerAddress
             };
 
-            using (var ds = DecisionService.WithRanker<TestADFContext>(dsConfig).WithTopSlotEpsilonGreedy(.5f).ExploitUntilModelReady(new TestADFPolicy()))
+            using (var ds = DecisionService
+                .WithRanker(dsConfig)
+                .With<TestADFContext>()
+                .WithTopSlotEpsilonGreedy(.5f)
+                .ExploitUntilModelReady(new TestADFPolicy()))
             {
                 string uniqueKey = "eventid";
 
@@ -61,7 +65,8 @@ namespace ClientDecisionServiceTest
             };
 
             using (var ds = DecisionService
-                .WithRanker<TestADFContextWithFeatures, TestADFFeatures>(dsConfig, context => context.ActionDependentFeatures)
+                .WithRanker(dsConfig)
+                .With<TestADFContextWithFeatures, TestADFFeatures>(context => context.ActionDependentFeatures)
                 .WithTopSlotEpsilonGreedy(.5f)
                 .ExploitUntilModelReady(new TestADFWithFeaturesPolicy()))
             {
@@ -101,29 +106,5 @@ namespace ClientDecisionServiceTest
             }
             Assert.AreEqual(200, joinServer.EventBatchList.Sum(b => b.ExperimentalUnitFragments.Count));
         }
-
-        [TestInitialize]
-        public void Setup()
-        {
-            joinServer = new MockJoinServer(MockJoinServer.MockJoinServerAddress);
-
-            joinServer.Run();
-
-            commandCenter = new MockCommandCenter(MockCommandCenter.AuthorizationToken);
-        }
-
-        [TestCleanup]
-        public void CleanUp()
-        {
-            joinServer.Stop();
-        }
-
-        private static IReadOnlyCollection<TestADFFeatures> GetFeaturesFromContext(TestADFContextWithFeatures context)
-        {
-            return context.ActionDependentFeatures;
-        }
-
-        private MockJoinServer joinServer;
-        private MockCommandCenter commandCenter;
     }
 }

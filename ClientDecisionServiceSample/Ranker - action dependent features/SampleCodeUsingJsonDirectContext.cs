@@ -25,12 +25,12 @@ namespace ClientDecisionServiceSample
             var serviceConfig = new DecisionServiceConfiguration(authorizationToken: MwtServiceToken)
             {
                 EventHubConnectionString = EventHubConnectionString,
-                EventHubInputName = EventHubInputName,
-                FeatureDiscovery = VowpalWabbitFeatureDiscovery.Json
+                EventHubInputName = EventHubInputName
             };
 
             using (var service = DecisionService
-                .WithRanker<FoodContext, FoodFeature>(serviceConfig, context => FoodContext.GetFeaturesFromContext(context))
+                .WithRanker(serviceConfig)
+                .With<FoodContext, FoodFeature>(context => FoodContext.GetFeaturesFromContext(context))
                 .WithTopSlotEpsilonGreedy(epsilon: .2f)
                 .ExploitUntilModelReady(new FoodPolicy()))
             {

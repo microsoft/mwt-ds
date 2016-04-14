@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace ClientDecisionServiceTest
 {
     [TestClass]
-    public class DecisionServiceUploadTests
+    public class DecisionServiceUploadTests : MockCommandTestBase
     {
         [TestMethod]
         public void TestSingleActionDSUploadSingleEvent()
@@ -26,7 +26,10 @@ namespace ClientDecisionServiceTest
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
 
-            using (var ds = DecisionService.WithPolicy<TestContext>(dsConfig).WithEpsilonGreedy(.2f, Constants.NumberOfActions).ExploitUntilModelReady(new TestSingleActionPolicy()))
+            using (var ds = DecisionService
+                .WithPolicy(dsConfig, Constants.NumberOfActions)
+                .With<TestContext>()
+                .ExploitUntilModelReady(new TestSingleActionPolicy()))
             {
                 int chosenAction = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
                 ds.Flush();
@@ -50,16 +53,21 @@ namespace ClientDecisionServiceTest
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
 
-            var ds = DecisionService.WithPolicy<TestContext>(dsConfig).WithEpsilonGreedy(.2f, Constants.NumberOfActions).ExploitUntilModelReady(new TestSingleActionPolicy());
+            using (var ds = DecisionService
+                .WithPolicy(dsConfig, Constants.NumberOfActions)
+                .With<TestContext>()
+                .ExploitUntilModelReady(new TestSingleActionPolicy()))
+            {
 
-            int chosenAction1 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
-            int chosenAction2 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
-            ds.ReportReward(1.0f, new UniqueEventID { Key = uniqueKey });
-            ds.ReportOutcome(JsonConvert.SerializeObject(new { value = "test outcome" }), new UniqueEventID { Key = uniqueKey });
+                int chosenAction1 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
+                int chosenAction2 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
+                ds.ReportReward(1.0f, new UniqueEventID { Key = uniqueKey });
+                ds.ReportOutcome(JsonConvert.SerializeObject(new { value = "test outcome" }), new UniqueEventID { Key = uniqueKey });
 
-            ds.Flush();
+                ds.Flush();
 
-            Assert.AreEqual(4, joinServer.EventBatchList.Sum(batch => batch.ExperimentalUnitFragments.Count));
+                Assert.AreEqual(4, joinServer.EventBatchList.Sum(batch => batch.ExperimentalUnitFragments.Count));
+            }
         }
 
         [TestMethod]
@@ -77,12 +85,16 @@ namespace ClientDecisionServiceTest
 
             int numEvents = 1000;
             var chosenActions = new ConcurrentBag<int>();
-            using (var ds = DecisionService.WithPolicy<TestContext>(dsConfig).WithEpsilonGreedy(.2f, Constants.NumberOfActions).ExploitUntilModelReady(new TestSingleActionPolicy()))
+            using (var ds = DecisionService
+                .WithPolicy(dsConfig, Constants.NumberOfActions)
+                .With<TestContext>()
+                .WithEpsilonGreedy(.2f)
+                .ExploitUntilModelReady(new TestSingleActionPolicy()))
             {
                 Parallel.For(0, numEvents, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, (i) =>
                 {
                     chosenActions.Add(ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext()));
-                    ds.ReportOutcome(new { value = createObservation(i) }, new UniqueEventID { Key = uniqueKey });
+                    ds.ReportOutcome(new { value = createObservation((int)i) }, new UniqueEventID { Key = uniqueKey });
                 });
             }
 
@@ -143,7 +155,8 @@ namespace ClientDecisionServiceTest
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
 
             using (var ds = DecisionService
-                .WithRanker<TestContext>(dsConfig)
+                .WithRanker(dsConfig)
+                .With<TestContext>()
                 .WithTopSlotEpsilonGreedy(.2f)
                 .ExploitUntilModelReady(new TestMultiActionPolicy()))
             {
@@ -169,7 +182,8 @@ namespace ClientDecisionServiceTest
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
 
             using (var ds = DecisionService
-                .WithRanker<TestContext>(dsConfig)
+                .WithRanker(dsConfig)
+                .With<TestContext>()
                 .WithTopSlotEpsilonGreedy(.2f)
                 .ExploitUntilModelReady(new TestMultiActionPolicy()))
             {
@@ -208,7 +222,8 @@ namespace ClientDecisionServiceTest
             };
 
             using (var ds = DecisionService
-                .WithRanker<TestContext>(dsConfig)
+                .WithRanker(dsConfig)
+                .With<TestContext>()
                 .WithTopSlotEpsilonGreedy(.2f)
                 .ExploitUntilModelReady(new TestMultiActionPolicy()))
             {
@@ -258,14 +273,15 @@ namespace ClientDecisionServiceTest
             int numEvents = 1000;
             var chosenActions = new ConcurrentBag<int[]>();
             using (var ds = DecisionService
-                .WithRanker<TestContext>(dsConfig)
+                .WithRanker(dsConfig)
+                .With<TestContext>()
                 .WithTopSlotEpsilonGreedy(.2f)
                 .ExploitUntilModelReady(new TestMultiActionPolicy()))
             {
                 Parallel.For(0, numEvents, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, (i) =>
                 {
                     chosenActions.Add(ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext()));
-                    ds.ReportOutcome(new { value = createObservation(i) }, new UniqueEventID { Key = uniqueKey });
+                    ds.ReportOutcome(new { value = createObservation((int)i) }, new UniqueEventID { Key = uniqueKey });
                 });
             }
             List<PartialDecisionServiceMessage> batchList = this.joinServer.EventBatchList;
@@ -311,23 +327,5 @@ namespace ClientDecisionServiceTest
                 Assert.AreEqual(JsonConvert.SerializeObject(new { value = createObservation(i) }), observations[i].Value);
             }
         }
-
-        [TestInitialize]
-        public void Setup()
-        {
-            commandCenter = new MockCommandCenter(MockCommandCenter.AuthorizationToken);
-            joinServer = new MockJoinServer(MockJoinServer.MockJoinServerAddress);
-
-            joinServer.Run();
-        }
-
-        [TestCleanup]
-        public void CleanUp()
-        {
-            joinServer.Stop();
-        }
-
-        private MockJoinServer joinServer;
-        private MockCommandCenter commandCenter;
     }
 }

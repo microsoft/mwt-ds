@@ -1,10 +1,5 @@
-﻿using Microsoft.Research.MultiWorldTesting.Contract;
-using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
+﻿using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
 using System.IO;
-using System.Net;
 using VW;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary

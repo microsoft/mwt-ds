@@ -12,7 +12,7 @@ using VW;
 namespace ClientDecisionServiceTest
 {
     [TestClass]
-    public class InitialFullExploration
+    public class InitialFullExploration : MockCommandTestBase
     {
         private class MyRecorder : IRecorder<string, int[]>
         {
@@ -40,11 +40,15 @@ namespace ClientDecisionServiceTest
                     vw.SaveModel(model);
                 }
 
-                using (var ds = 
-                        DecisionService.WithJsonRanker(new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken))
+                var config = new DecisionServiceConfiguration("") { OfflineMode = true };
+
+                using (var ds =
+                        DecisionService
+                            .WithRanker(config)
+                            .WithJson()
                             .WithTopSlotEpsilonGreedy(0.3f)
                             .WithRecorder(recorder)
-                            .ExploreUntilModelReady(new PermutationExplorer()))
+                            .ExploreTopSlotUniformRandomUntilModelReady())
                 {
                     var decision = ds.ChooseAction(new UniqueEventID() { Key = "abc", TimeStamp = DateTime.Now }, "{\"a\":1,\"_multi\":[{\"b\":2}]}");
 
@@ -62,12 +66,6 @@ namespace ClientDecisionServiceTest
                     Assert.AreEqual("123", vwState.ModelId);
                 }
             }
-        }
-
-        [TestInitialize]
-        public void Setup()
-        {
-            MockCommandCenter.SetRedirectionBlobLocation();
         }
     }
 }

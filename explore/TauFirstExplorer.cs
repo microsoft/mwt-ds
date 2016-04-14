@@ -21,7 +21,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 	/// exploration events, and then uses the default policy. 
 	/// </remarks>
 	/// <typeparam name="TContext">The Context type.</typeparam>
-    public sealed class TauFirstExplorer<TContext> : BaseVariableActionExplorer<int, int>
+    public sealed class TauFirstExplorer : BaseVariableActionExplorer<int, int>
 	{
         private int tau;
         private readonly object lockObject = new object();

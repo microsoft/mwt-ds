@@ -24,6 +24,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 	{
         private ulong appId;
         private IRecorder<TContext, TAction> recorder;
+        private IExplorer<TAction, TPolicyValue> explorer;
         private INumberOfActionsProvider<TContext> numActionsProvider;
 
 		/// <summary>
@@ -38,10 +39,15 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             INumberOfActionsProvider<TContext> numActionsProvider = null)
 		{
             this.appId = MurMurHash3.ComputeIdHash(appId);
-            // TODO: check for null
-            this.recorder = recorder;
+
+            if (recorder == null)
+                throw new ArgumentNullException("recorder");
+            this.Recorder = recorder;
+
+            if (explorer == null)
+                throw new ArgumentNullException("explorer");
             this.Explorer = explorer;
-            // TODO: check for null
+
             this.InitialExplorer = initialExplorer;
             this.numActionsProvider = numActionsProvider;
 
@@ -51,11 +57,41 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             }
         }
 
-        public IExplorer<TAction, TPolicyValue> Explorer { get; set; }
+        public IExplorer<TAction, TPolicyValue> Explorer
+        {
+            get
+            {
+                return this.explorer;
+            }
+
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException("Explorer");
+
+                this.explorer = value;
+            }
+        }
 
         public IFullExplorer<TAction> InitialExplorer { get; set; }
 
         public IContextMapper<TContext, TPolicyValue> Policy { get; set; }
+
+        public IRecorder<TContext, TAction> Recorder
+        {
+            get
+            {
+                return this.recorder;
+            }
+
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException("Recorder");
+
+                this.recorder = value;
+            }
+        }
 
 		/// <summary>
         /// Choose an action (or decision to take) given the exploration algorithm and context.

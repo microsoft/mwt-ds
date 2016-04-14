@@ -35,11 +35,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         internal bool UseJsonContext { get; set; }
 
         /// <summary>
-        /// Specify method of feature discovery on the context type.
-        /// </summary>
-        public VowpalWabbitFeatureDiscovery FeatureDiscovery { get; set; }
-
-        /// <summary>
         /// Indicates whether to operate in offline mode where polling and join service logging are turned off.
         /// </summary>
         /// <remarks>

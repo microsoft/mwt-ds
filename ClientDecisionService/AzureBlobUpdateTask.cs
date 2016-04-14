@@ -42,7 +42,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
         public static async Task DownloadAsync(AzureBlobUpdateMetadata updateMetadata)
         {
-            var cancelToken = updateMetadata.CancelToken;
+            var cancelToken = updateMetadata.CancellationToken;
             if (cancelToken.IsCancellationRequested)
             {
                 return;
@@ -115,7 +115,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 else if (ex is UnauthorizedAccessException)
                 {
                     Trace.TraceError("Unable to write blob to disk due to restricted access. Polling for {0} will stop", updateMetadata.BlobName);
-                    cancelToken.Cancel();
                 }
                 if (logErrors)
                 {

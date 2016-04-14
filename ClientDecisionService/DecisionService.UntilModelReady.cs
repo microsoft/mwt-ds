@@ -1,88 +1,45 @@
 ﻿using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
 using System.ComponentModel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Threading;
-using System.Diagnostics;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static class DecisionService_UntilModelReady
     {
-        private static DecisionServiceClient<TAction, TContext, TPolicyValue>
-            CreateClient<TAction, TContext, TPolicyValue, TClientType>(
-            DecisionServiceUntilModelReadySpecification<TAction, TContext, TPolicyValue, TClientType> spec,
-            IFullExplorer<TAction> fullExplorer)
+        public static DecisionServiceClient<TContext, TAction, TPolicyValue>
+            ExploitUntilModelReady<TContext, TAction, TPolicyValue>
+            (this DecisionServiceClient<TContext, TAction, TPolicyValue> that, IContextMapper<TContext, TAction> initialPolicy)
         {
-            var client = spec.Parent;
-            var newClient = new DecisionServiceClient<TAction, TContext, TPolicyValue>(client);
-            newClient.InitialExplorer = fullExplorer;
-
-            // remove ownership
-            client.client = null;
-
-            return client;
-        }
-
-        // Move into specification stage
-        public static DecisionServiceUntilModelReadySpecification<TAction, TContext, TPolicyValue, TClientType>
-            WithExploitUntilModelReady<TAction, TContext, TPolicyValue, TClientType>
-            (this DecisionServiceClientBase<TAction, TContext, TPolicyValue, TClientType> that) 
-        {
-            return new DecisionServiceUntilModelReadySpecification<TAction, TContext, TPolicyValue, TClientType> 
-            {
-                Parent = that
-            };
-        }
-
-        public static DecisionServiceClientWithDefaultAction<TContext, TAction, TPolicyValue>
-            WithDefaultAction<TContext, TAction, TPolicyValue, TClientType>
-            (this DecisionServiceUntilModelReadySpecification<TAction, TContext, TPolicyValue, TClientType> that)
-        {
-            var newClient = new DecisionServiceClientWithDefaultAction<TContext, TAction, TPolicyValue>(that.Parent);
-            
-            // invalidate the original object
-            that.Parent.client = null;
-
-            return newClient;
+            that.InitialPolicy = initialPolicy;
+            return that;
         }
 
         // Policy exploration strategies
 
-        public static DecisionServiceClient<int, TContext, TPolicyValue>
-            WithUniformRandomExploration<TContext, TPolicyValue, TClientType>
-            (this DecisionServiceUntilModelReadySpecification<int, TContext, TPolicyValue, TClientType> that)
+        public static DecisionServiceClient<TContext, int, TPolicyValue>
+            ExploreUniformRandomUntilModelReady<TContext, TPolicyValue>
+            (this DecisionServiceClient<TContext, int, TPolicyValue> that)
         {
-            return CreateClient(that, new UniformRandomExploration());
+            that.InitialExplorer = new UniformRandomExploration();
+            return that;
         }
 
         // Ranking exploration strategies
 
-        public static DecisionServiceClient<int[], TContext, TPolicyValue>
-            WithPermutationExploration<TContext, TPolicyValue, TClientType>
-            (this DecisionServiceUntilModelReadySpecification<int[], TContext, TPolicyValue, TClientType> that)
+        public static DecisionServiceClient<TContext, int[], TPolicyValue>
+            ExploreUniformPermutationsUntilModelReady<TContext, TPolicyValue>
+            (this DecisionServiceClient<TContext, int[], TPolicyValue> that)
         {
-            return CreateClient(that, new PermutationExplorer());
+            that.InitialExplorer = new PermutationExplorer();
+            return that;
         }
 
-        public static DecisionServiceClient<int[], TContext, TPolicyValue>
-            WithTopSlotExploration<TContext, TPolicyValue, TClientType>
-            (this DecisionServiceUntilModelReadySpecification<int[], TContext, TPolicyValue, TClientType> that)
+        public static DecisionServiceClient<TContext, int[], TPolicyValue>
+            ExploreTopSlotUniformRandomUntilModelReady<TContext, TPolicyValue>
+            (this DecisionServiceClient<TContext, int[], TPolicyValue> that)
         {
-            return CreateClient(that, new PermutationExplorer(1));
+            that.InitialExplorer = new PermutationExplorer(1);
+            return that;
         }
-    }
-
-    /// <summary>
-    /// Type to transport generic parameters and enable type specialization through extension methods.
-    /// </summary>
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public class DecisionServiceUntilModelReadySpecification<TAction, TContext, TPolicyValue, TClientType>
-    {
-        internal DecisionServiceClientBase<TAction, TContext, TPolicyValue, TClientType> Parent;
     }
 }

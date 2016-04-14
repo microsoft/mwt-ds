@@ -29,8 +29,10 @@ namespace ClientDecisionServiceSample
                 EventHubInputName = EventHubInputName,
             };
 
-            var explorer = DecisionService.WithJsonRanker(serviceConfig).WithTopSlotEpsilonGreedy(epsilon: 0.8f);
-            using (var service = DecisionService.CreatePolicyMode(explorer))
+            using (var service = DecisionService
+                .WithRanker(serviceConfig)
+                .WithJson()
+                .WithTopSlotEpsilonGreedy(epsilon: 0.8f))
             {
                 string uniqueKey = "json-key-";
 

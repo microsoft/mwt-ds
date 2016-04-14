@@ -13,7 +13,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         private readonly TimeSpan blobPollDelay;
         private readonly Action<string> notifyBlobUpdate;
         private readonly Action<Exception> notifyPollFailure;
-        private readonly CancellationTokenSource cancelToken;
+        private readonly CancellationToken cancellationToken;
 
         private string blobEtag;
 
@@ -66,16 +66,16 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             set { scheduler = value; }
         }
 
-        internal CancellationTokenSource CancelToken
+        internal CancellationToken CancellationToken
         {
-            get { return cancelToken; }
+            get { return cancellationToken; }
         } 
 
         internal AzureBlobUpdateMetadata(
             string blobName, string blobAddress,
             string blobConnectionString, string blobOutputDir, TimeSpan pollDelay,
             Action<string> notifyBlobUpdate, Action<Exception> notifyPollFailure,
-            CancellationTokenSource cancelToken = null)
+            CancellationToken? cancellationToken = null)
         {
             this.blobName = blobName;
             this.blobAddress = blobAddress;
@@ -87,7 +87,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             this.notifyBlobUpdate = notifyBlobUpdate;
             this.notifyPollFailure = notifyPollFailure;
 
-            this.cancelToken = cancelToken ?? new CancellationTokenSource();
+            this.cancellationToken = cancellationToken ?? new CancellationTokenSource().Token;
         }
     }
 }

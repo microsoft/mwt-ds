@@ -10,7 +10,7 @@ using System.Linq;
 namespace ClientDecisionServiceTest
 {
     [TestClass]
-    public class ModelUpdate
+    public class ModelUpdate : MockCommandTestBase
     {
         [TestMethod]
         public void TestRcv1ModelUpdateFromStream()
@@ -29,7 +29,11 @@ namespace ClientDecisionServiceTest
                 PollingForSettingsPeriod = TimeSpan.MinValue
             };
 
-            using (var ds = DecisionService.WithPolicy<TestRcv1Context>(dsConfig).WithEpsilonGreedy(.5f, numActions).ExploitUntilModelReady(new TestRcv1ContextPolicy()))
+            using (var ds = DecisionService
+                .WithPolicy(dsConfig, numActions)
+                .With<TestRcv1Context>()
+                .WithEpsilonGreedy(.5f)
+                .ExploitUntilModelReady(new TestRcv1ContextPolicy()))
             {
                 string uniqueKey = "eventid";
 
@@ -62,24 +66,5 @@ namespace ClientDecisionServiceTest
 
             Assert.AreEqual(200, joinServer.EventBatchList.Sum(b => b.ExperimentalUnitFragments.Count));
         }
-
-        [TestInitialize]
-        public void Setup()
-        {
-            joinServer = new MockJoinServer(MockJoinServer.MockJoinServerAddress);
-
-            joinServer.Run();
-
-            commandCenter = new MockCommandCenter(MockCommandCenter.AuthorizationToken);
-        }
-
-        [TestCleanup]
-        public void CleanUp()
-        {
-            joinServer.Stop();
-        }
-
-        private MockJoinServer joinServer;
-        private MockCommandCenter commandCenter;
     }
 }
