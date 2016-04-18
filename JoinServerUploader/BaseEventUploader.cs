@@ -231,18 +231,14 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         private bool DropEventRandomlyIfNeeded(IEvent e)
         {
             Interaction interaction = e as Interaction;
-            if (interaction != null &&
-                this.eventSource.InputCount >= this.batchConfig.MaxUploadQueueCapacity * this.batchConfig.DroppingPolicy.MaxQueueLevelBeforeDrop)
+            if (interaction != null && this.eventSource.InputCount >= this.batchConfig.MaxUploadQueueCapacity * this.batchConfig.DroppingPolicy.MaxQueueLevelBeforeDrop)
             {
+                // store probability of drop and actual prob will be computed server side
+                if (this.batchConfig.DroppingPolicy.ProbabilityOfDrop > 0)
+                    interaction.ProbabilityOfDrop = this.batchConfig.DroppingPolicy.ProbabilityOfDrop; 
+                    
                 if (this.random.NextDouble() <= this.batchConfig.DroppingPolicy.ProbabilityOfDrop)
-                {
                     return true;
-                }
-                else
-                {
-                    // store probability of drop and actual prob will be computed server side
-                    interaction.ProbabilityOfDrop = this.batchConfig.DroppingPolicy.ProbabilityOfDrop;
-                }
             }
             return false;
         }

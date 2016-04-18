@@ -35,6 +35,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
         public DecisionServiceClient(
             DecisionServiceConfiguration config,
+            ApplicationTransferMetadata metaData,
             IExplorer<TAction, TPolicyValue> explorer,
             IContextMapper<TContext, TPolicyValue> internalPolicy,
             IContextMapper<TContext, TAction> initialPolicy = null,
@@ -48,16 +49,12 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
             this.config = config;
 
-            var metaData = GetBlobLocations(config);
-            if (!config.OfflineMode && metaData == null)
-                throw new NotSupportedException("Meta data must be provided in online mode");
-
-            this.metaData = metaData;
-
             if (config.OfflineMode)
                 this.recorder = new OfflineRecorder();
             else
             {
+                this.metaData = metaData;
+
                 if (metaData == null)
                     throw new Exception("Unable to locate a registered MWT application.");
 
@@ -77,8 +74,8 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                         case JoinServerType.AzureStreamAnalytics:
                         default:
                             joinServerLogger.InitializeWithAzureStreamAnalyticsJoinServer(
-                                config.EventHubConnectionString,
-                                config.EventHubInputName,
+                                metaData.EventHubConnectionString,
+                                metaData.EventHubInputName,
                                 config.JoinServiceBatchConfiguration);
                             break;
                     }
@@ -302,27 +299,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             catch (JsonReaderException jrex)
             {
                 Trace.TraceWarning("Cannot read new settings: " + jrex.Message);
-            }
-        }
-
-        internal static ApplicationTransferMetadata GetBlobLocations(DecisionServiceConfiguration config)
-        {
-            if (config.OfflineMode)
-                return null;
-
-            string redirectionBlobLocation = string.Format(DecisionServiceConstants.RedirectionBlobLocation, config.AuthorizationToken);
-
-            try
-            {
-                using (var wc = new WebClient())
-                {
-                    string jsonMetadata = wc.DownloadString(redirectionBlobLocation);
-                    return JsonConvert.DeserializeObject<ApplicationTransferMetadata>(jsonMetadata);
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidDataException("Unable to retrieve blob locations from storage using the specified token", ex);
             }
         }
     }

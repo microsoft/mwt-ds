@@ -1,6 +1,5 @@
-﻿using System;
-using Microsoft.Research.MultiWorldTesting.JoinUploader;
-using VW;
+﻿using Microsoft.Research.MultiWorldTesting.JoinUploader;
+using System;
 using System.IO;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
@@ -91,16 +90,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 loggingServiceAddress = value;
             }
         }
-
-        /// <summary>
-        /// The ASA connection string to use if ASA-based Join Server is selected.
-        /// </summary>
-        public string EventHubConnectionString { get; set; }
-
-        /// <summary>
-        /// The EventHub input name to use if ASA-based Join Server is selected.
-        /// </summary>
-        public string EventHubInputName { get; set; }
 
         /// <summary>
         /// Specifies the polling period to check for updated application settings.

@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -49,7 +50,14 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
                     serializer.Serialize(writer, v.Context);
             }
 
-            if (v.ExplorerState != null)
+            // treat generic explorer specifically to keep the probability outside and a generic fallback
+            var genericExplorerState = v.ExplorerState as GenericExplorerState;
+            if (genericExplorerState != null)
+            {
+                writer.WritePropertyName("p");
+                serializer.Serialize(writer, genericExplorerState.Probability);
+            }
+            else if (v.ExplorerState != null)
             {
                 var exploreType = v.ExplorerState.GetType();
                 var jsonObjectAnnotation = (JsonObjectAttribute)exploreType
@@ -73,7 +81,7 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
 
             if (v.ProbabilityOfDrop != null)
             {
-                writer.WritePropertyName("p"); // TODO: change to pdrop?
+                writer.WritePropertyName("pdrop"); 
                 serializer.Serialize(writer, v.ProbabilityOfDrop);
             }
 

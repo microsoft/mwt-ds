@@ -36,7 +36,7 @@ namespace ClientDecisionServiceTest
             };
 
             using (var ds = DecisionService
-                .WithPolicy(dsConfig, 2)
+                .WithPolicy(dsConfig)
                 .With<TestContext>()
                 .WithEpsilonGreedy(.2f)
                 .ExploitUntilModelReady(new TestSingleActionPolicy()))
@@ -65,7 +65,7 @@ namespace ClientDecisionServiceTest
             dsConfig.PollingForSettingsPeriod = TimeSpan.FromMilliseconds(500);
 
             using (var ds = DecisionService
-                .WithPolicy(dsConfig, 2)
+                .WithPolicy(dsConfig)
                 .With<TestContext>()
                 .WithEpsilonGreedy(.2f)
                 .ExploitUntilModelReady(new TestSingleActionPolicy()))

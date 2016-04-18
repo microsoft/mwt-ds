@@ -4,10 +4,9 @@ using System.Collections.Generic;
 
 namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
-    [JsonObject(Id = "stgr")]
     public class GenericExplorerState
     {
-        [JsonProperty(PropertyName = "p")]
+        [JsonIgnore]
         public float Probability { get; set; }
     }
 

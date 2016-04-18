@@ -43,8 +43,6 @@ namespace ClientDecisionServiceSample
 
             var serviceConfig = new DecisionServiceConfiguration(authorizationToken: MwtServiceToken)
             {
-                EventHubConnectionString = EventHubConnectionString,
-                EventHubInputName = EventHubInputName,
                 JoinServiceBatchConfiguration = new BatchingConfiguration // Optionally configure batch upload
                 {
                     MaxBufferSizeInBytes = 4 * 1024,

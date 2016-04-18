@@ -14,18 +14,10 @@ namespace ClientDecisionServiceSample
         /***** Copy & Paste your authorization token here *****/
         static readonly string MwtServiceToken = "";
 
-        /***** Copy & Paste your EventHub configurations here *****/
-        static readonly string EventHubConnectionString = "";
-        static readonly string EventHubInputName = "";
-
         public static void SampleCodeUsingASAJoinServer()
         {
             // Create configuration for the decision service
-            var serviceConfig = new DecisionServiceConfiguration(authorizationToken: MwtServiceToken)
-            {
-                EventHubConnectionString = EventHubConnectionString,
-                EventHubInputName = EventHubInputName
-            };
+            var serviceConfig = new DecisionServiceConfiguration(authorizationToken: MwtServiceToken);
 
             using (var service = DecisionService
                 .WithRanker(serviceConfig)

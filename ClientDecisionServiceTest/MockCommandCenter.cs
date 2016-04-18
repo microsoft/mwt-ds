@@ -80,7 +80,8 @@ namespace ClientDecisionServiceTest
                     IsExplorationEnabled = true,
                     ModelBlobUri = this.localAzureModelBlobUri,
                     SettingsBlobUri = this.localAzureSettingsBlobUri,
-                    ModelId = "latest"
+                    ModelId = "latest",
+                    NumActions = 2
                 };
 
                 var locationBlob = locationContainer.GetBlockBlobReference(this.token);

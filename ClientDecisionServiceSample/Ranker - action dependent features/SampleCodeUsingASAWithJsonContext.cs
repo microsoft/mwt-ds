@@ -14,19 +14,13 @@ namespace ClientDecisionServiceSample
         /***** Copy & Paste your authorization token here *****/
         static readonly string MwtServiceToken = "";
 
-        /***** Copy & Paste your EventHub configurations here *****/
-        static readonly string EventHubConnectionString = "";
-        static readonly string EventHubInputName = "";
-
         public static void SampleCodeUsingASAWithJsonContext()
         {
             // Create configuration for the decision service
             var serviceConfig = new DecisionServiceConfiguration(authorizationToken: MwtServiceToken)
             {
                 PollingForModelPeriod = TimeSpan.MinValue,
-                PollingForSettingsPeriod = TimeSpan.MinValue,
-                EventHubConnectionString = EventHubConnectionString,
-                EventHubInputName = EventHubInputName,
+                PollingForSettingsPeriod = TimeSpan.MinValue
             };
 
             using (var service = DecisionService

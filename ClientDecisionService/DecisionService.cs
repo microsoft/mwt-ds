@@ -17,7 +17,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
     /// </summary>
     public static class DecisionService
     {
-        public static DecisionServiceClientSpecification<int> WithPolicy(DecisionServiceConfiguration config, int numberOfActions)
+        public static DecisionServiceClientSpecification<int> WithPolicy(DecisionServiceConfiguration config, int? numberOfActions = null)
         { 
             return new DecisionServiceClientSpecification<int>()
             {
