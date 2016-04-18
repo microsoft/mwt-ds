@@ -42,10 +42,8 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.defaultEpsilon = epsilon;
         }
 
-        public override ExplorerDecision<int> Explore(ulong saltedSeed, int policyAction, int numActionsVariable)
+        public override ExplorerDecision<int> Explore(PRG random, int policyAction, int numActionsVariable)
         {
-            var random = new PRG(saltedSeed);
-
             if (policyAction == 0 || policyAction > numActionsVariable)
                 throw new ArgumentException("Action chosen by default policy is not within valid range.");
 

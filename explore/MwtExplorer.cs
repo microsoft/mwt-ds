@@ -116,9 +116,10 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             }
 
             ulong saltedSeed = MurMurHash3.ComputeIdHash(uniqueKey.Key) + this.appId;
+            PRG random = new PRG(saltedSeed);
 
             var policyDecision = policy.MapContext(context);
-            var explorerDecision = this.Explorer.MapContext(saltedSeed, policyDecision.Value);
+            var explorerDecision = this.Explorer.MapContext(random, policyDecision.Value);
             
             this.Log(uniqueKey, context, explorerDecision, policyDecision);
 
@@ -128,17 +129,18 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         public TAction ChooseAction(UniqueEventID uniqueKey, TContext context)
         {
             ulong saltedSeed = MurMurHash3.ComputeIdHash(uniqueKey.Key) + this.appId;
+            PRG random = new PRG(saltedSeed);
 
             var policy = this.Policy;
             ExplorerDecision<TAction> explorerDecision;
             PolicyDecision<TPolicyValue> policyDecision = null;
 
             if (policy == null)
-                explorerDecision = this.InitialExplorer.Explore(saltedSeed, this.numActionsProvider.GetNumberOfActions(context));
+                explorerDecision = this.InitialExplorer.Explore(random, this.numActionsProvider.GetNumberOfActions(context));
             else
             {
                 policyDecision = policy.MapContext(context);
-                explorerDecision = this.Explorer.MapContext(saltedSeed, policyDecision.Value);
+                explorerDecision = this.Explorer.MapContext(random, policyDecision.Value);
             }
 
             this.Log(uniqueKey, context, explorerDecision, policyDecision != null ? policyDecision.MapperState : null);

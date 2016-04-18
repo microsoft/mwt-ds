@@ -21,12 +21,12 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.singleExplorer = variableActionExplorer;
         }
 
-        public override ExplorerDecision<int[]> MapContext(ulong saltedSeed, int[] ranking)
+        public override ExplorerDecision<int[]> MapContext(PRG prg, int[] ranking)
         {
             if (ranking == null || ranking.Length < 1)
                 throw new ArgumentException("Actions chosen by default policy must not be empty.");
 
-            var decision = this.singleExplorer.Explore(saltedSeed, ranking[0], ranking.Length);
+            var decision = this.singleExplorer.Explore(prg, ranking[0], ranking.Length);
             MultiActionHelper.PutActionToList(decision.Value, ranking);
 
             return ExplorerDecision.Create(ranking, decision.ExplorerState, decision.ShouldRecord);

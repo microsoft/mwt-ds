@@ -28,7 +28,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.lambda = lambda;
         }
 
-        public override ExplorerDecision<int> MapContext(ulong saltedSeed, float[] scores)
+        public override ExplorerDecision<int> MapContext(PRG random, float[] scores)
         {
             int numScores = scores.Length;
             if (this.numActionsFixed != int.MaxValue && numScores != this.numActionsFixed)
@@ -49,7 +49,6 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                 // case where the sum of the weights is < or > 1, by normalizing agains the sum.
                 float total = scores.Sum();
 
-                var random = new PRG(saltedSeed);
                 float draw = random.UniformUnitInterval();
 
                 float sum = 0f;
@@ -112,12 +111,12 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.explorer.EnableExplore(explore);
         }
 
-        public override ExplorerDecision<int[]> MapContext(ulong saltedSeed, float[] scores)
+        public override ExplorerDecision<int[]> MapContext(PRG random, float[] scores)
         {
             if (scores == null || scores.Length < 1)
                 throw new ArgumentException("Scores returned by default policy must not be empty.");
 
-            var decision = this.explorer.MapContext(saltedSeed, scores);
+            var decision = this.explorer.MapContext(random, scores);
 
             int numActionsVariable = scores.Length;
 
@@ -127,7 +126,6 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 
             if (this.explore)
             {
-                var random = new PRG(saltedSeed);
                 chosenActions = MultiActionHelper.SampleWithoutReplacement(scores, numActionsVariable, random, ref actionProbability);
             }
             else

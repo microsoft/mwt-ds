@@ -38,7 +38,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.tau = tau;
         }
 
-        public override ExplorerDecision<int> Explore(ulong saltedSeed, int policyAction, int numActionsVariable)
+        public override ExplorerDecision<int> Explore(PRG random, int policyAction, int numActionsVariable)
         {
             if (policyAction == 0 || policyAction > numActionsVariable)
                 throw new ArgumentException("Action chosen by default policy is not within valid range.");
@@ -55,7 +55,6 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                 {
                     this.tau--;
 
-                    var random = new PRG(saltedSeed);
                     chosenAction = random.UniformInt(1, numActionsVariable);
                     actionProbability = 1f / numActionsVariable;
                     isExplore = true;

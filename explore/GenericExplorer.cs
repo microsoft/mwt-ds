@@ -31,7 +31,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 		{
         }
 
-        public override ExplorerDecision<int> MapContext(ulong saltedSeed, float[] weights)
+        public override ExplorerDecision<int> MapContext(PRG random, float[] weights)
         {
             int numWeights = weights.Length;
             if (this.numActionsFixed != int.MaxValue && numWeights != this.numActionsFixed)
@@ -51,7 +51,6 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             if (total == 0)
                 throw new ArgumentException("At least one score must be positive.");
 
-            var random = new PRG(saltedSeed);
             float draw = random.UniformUnitInterval();
 
             float sum = 0f;
@@ -109,11 +108,9 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.explorer.EnableExplore(explore);
         }
 
-        public override ExplorerDecision<int[]> MapContext(ulong saltedSeed, float[] weights)
+        public override ExplorerDecision<int[]> MapContext(PRG random, float[] weights)
         {
-            var random = new PRG(saltedSeed);
-
-            var decision = this.explorer.MapContext(saltedSeed, weights);
+            var decision = this.explorer.MapContext(random, weights);
 
             float actionProbability = 0f;
             int[] chosenActions = MultiActionHelper.SampleWithoutReplacement(weights, weights.Length, random, ref actionProbability);

@@ -15,10 +15,9 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.maxPermutations = maxPermutations;
         }
 
-        public ExplorerDecision<int[]> Explore(ulong saltedSeed, int numActionsVariable)
+        public ExplorerDecision<int[]> Explore(PRG random, int numActionsVariable)
         {
             var ranking = Enumerable.Range(1, numActionsVariable).ToArray();
-            var random = new PRG(saltedSeed);
 
             for (int i = 0; i < ranking.Length - 1 && i < maxPermutations; i++)
             {
