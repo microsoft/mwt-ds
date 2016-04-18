@@ -31,11 +31,6 @@ namespace ClientDecisionServiceSample
 
             Trace.Listeners.Add(new ConsoleTraceListener());
 
-            int numTopics = 10; // number of different topic choices to show
-            float epsilon = 0.2f; // randomize the topics to show for 20% of traffic
-            int numUsers = 100; // number of users for the news site
-            int numFeatures = 20; // number of features for each user
-
             // Create configuration for the decision service.
             var serviceConfig = new DecisionServiceConfiguration(authorizationToken: MwtServiceToken)
             {

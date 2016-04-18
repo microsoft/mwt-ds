@@ -16,10 +16,6 @@ namespace ClientDecisionServiceSample
         /***** Copy & Paste your authorization token here *****/
         static readonly string MwtServiceToken = "";
 
-        /***** Copy & Paste your EventHub configurations here *****/
-        static readonly string EventHubConnectionString = "";
-        static readonly string EventHubInputName = "";
-
         /// <summary>
         /// Sample code simulating a news recommendation scenario. In this simple example, 
         /// the rendering server has to pick 1 out of 10 news topics to show to users (e.g. as featured article).
