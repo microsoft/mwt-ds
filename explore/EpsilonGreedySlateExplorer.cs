@@ -41,14 +41,12 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.explore = explore;
         }
 
-        public ExplorerDecision<int[]> MapContext(ulong saltedSeed, int[] policyAction)
+        public ExplorerDecision<int[]> MapContext(PRG random, int[] policyAction)
         {
             MultiActionHelper.ValidateActionList(policyAction);
 
             float epsilon = this.explore ? this.defaultEpsilon : 0f;
 
-            var random = new PRG(saltedSeed);
-            
             int[] chosenAction;
             bool isExplore;
 

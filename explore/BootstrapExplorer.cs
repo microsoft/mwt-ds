@@ -35,7 +35,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.explore = explore;
         }
 
-        public ExplorerDecision<TAction> MapContext(ulong saltedSeed, IReadOnlyCollection<TAction> policyActions)
+        public ExplorerDecision<TAction> MapContext(PRG random, IReadOnlyCollection<TAction> policyActions)
         {
             // Invoke the default policy function to get the action
             TAction chosenDecision = default(TAction);
@@ -43,8 +43,6 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 
             if (this.explore)
             {
-                var random = new PRG(saltedSeed);
-
                 // Select bag
                 int chosenBag = random.UniformInt(0, policyActions.Count - 1);
 

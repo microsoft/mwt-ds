@@ -41,20 +41,20 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         /// A <see cref="DecisionTuple"/> object including the action to take, the probability it was chosen, 
         /// and a flag indicating whether to record this decision.
         /// </returns>
-        ExplorerDecision<TAction> MapContext(ulong saltedSeed, TPolicyValue policyAction); 
+        ExplorerDecision<TAction> MapContext(PRG prg, TPolicyValue policyAction); 
 
         void EnableExplore(bool explore);
     }
 
     public interface IFullExplorer<TAction>
     {
-        ExplorerDecision<TAction> Explore(ulong saltedSeed, int numActions); 
+        ExplorerDecision<TAction> Explore(PRG random, int numActions); 
     }
 
     public interface IVariableActionExplorer<TAction, in TPolicyValue>
     {
         // TODO: review xml docs
-        ExplorerDecision<TAction> Explore(ulong saltedSeed, TPolicyValue policyAction, int numActions);
+        ExplorerDecision<TAction> Explore(PRG random, TPolicyValue policyAction, int numActions);
     }
     
     public interface INumberOfActionsProvider<in TContext>

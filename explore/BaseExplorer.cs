@@ -30,7 +30,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             return this.numActionsFixed;
         }
 
-        public abstract ExplorerDecision<TAction> MapContext(ulong saltedSeed, TPolicyValue policyAction);
+        public abstract ExplorerDecision<TAction> MapContext(PRG prg, TPolicyValue policyAction);
     }
 
 
@@ -41,11 +41,11 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         protected BaseVariableActionExplorer(int numActions = int.MaxValue)
             : base(numActions) { }
 
-        public override ExplorerDecision<TAction> MapContext(ulong saltedSeed, TPolicyValue policyAction)
+        public override ExplorerDecision<TAction> MapContext(PRG prg, TPolicyValue policyAction)
         {
-            return this.Explore(saltedSeed, policyAction, this.numActionsFixed);
+            return this.Explore(prg, policyAction, this.numActionsFixed);
         }
 
-        public abstract ExplorerDecision<TAction> Explore(ulong saltedSeed, TPolicyValue policyAction, int numActionsVariable);
+        public abstract ExplorerDecision<TAction> Explore(PRG prg, TPolicyValue policyAction, int numActionsVariable);
     }
 }
