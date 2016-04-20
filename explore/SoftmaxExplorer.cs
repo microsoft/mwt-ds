@@ -23,15 +23,15 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 		/// <param name="defaultScorer">A function which outputs a score for each action.</param>
 		/// <param name="lambda">lambda = 0 implies uniform distribution. Large lambda is equivalent to a max.</param>
 		/// <param name="numActions">The number of actions to randomize over.</param>
-        public SoftmaxExplorer(float lambda, int numActions) : base(numActions)
+        public SoftmaxExplorer(float lambda)
         {
             this.lambda = lambda;
         }
 
-        public override ExplorerDecision<int> MapContext(PRG random, float[] scores)
+        public override ExplorerDecision<int> MapContext(PRG random, float[] scores, int numActions)
         {
             int numScores = scores.Length;
-            if (this.numActionsFixed != int.MaxValue && numScores != this.numActionsFixed)
+            if (numActions != int.MaxValue && numScores != numActions)
                 throw new ArgumentException("The number of scores returned by the scorer must equal number of actions");
 
             int i = 0;
@@ -100,9 +100,8 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 		/// <param name="lambda">lambda = 0 implies uniform distribution. Large lambda is equivalent to a max.</param>
 		/// <param name="numActions">The number of actions to randomize over.</param>
         public SoftmaxSampleWithoutReplacementExplorer(float lambda)
-            : base(int.MaxValue)
         {
-            this.explorer = new SoftmaxExplorer(lambda, int.MaxValue);
+            this.explorer = new SoftmaxExplorer(lambda);
         }
 
         public override void EnableExplore(bool explore)
@@ -111,12 +110,12 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.explorer.EnableExplore(explore);
         }
 
-        public override ExplorerDecision<int[]> MapContext(PRG random, float[] scores)
+        public override ExplorerDecision<int[]> MapContext(PRG random, float[] scores, int numActions)
         {
             if (scores == null || scores.Length < 1)
                 throw new ArgumentException("Scores returned by default policy must not be empty.");
 
-            var decision = this.explorer.MapContext(random, scores);
+            var decision = this.explorer.MapContext(random, scores, numActions);
 
             int numActionsVariable = scores.Length;
 

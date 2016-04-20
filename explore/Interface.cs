@@ -41,7 +41,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         /// A <see cref="DecisionTuple"/> object including the action to take, the probability it was chosen, 
         /// and a flag indicating whether to record this decision.
         /// </returns>
-        ExplorerDecision<TAction> MapContext(PRG prg, TPolicyValue policyAction); 
+        ExplorerDecision<TAction> MapContext(PRG prg, TPolicyValue policyAction, int numActions); 
 
         void EnableExplore(bool explore);
     }
@@ -51,15 +51,24 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         ExplorerDecision<TAction> Explore(PRG random, int numActions); 
     }
 
-    public interface IVariableActionExplorer<TAction, in TPolicyValue>
-    {
-        // TODO: review xml docs
-        ExplorerDecision<TAction> Explore(PRG random, TPolicyValue policyAction, int numActions);
-    }
-    
     public interface INumberOfActionsProvider<in TContext>
     {
         int GetNumberOfActions(TContext context);
+    }
+
+    public class ConstantActionsProvider<TContext> : INumberOfActionsProvider<TContext>
+    {
+        private int numActions;
+
+        public ConstantActionsProvider(int numActions)
+        {
+            this.numActions = numActions;
+        }
+
+        public int GetNumberOfActions(TContext context)
+        {
+            return this.numActions;
+        }
     }
 
     public interface IContextMapper<in TContext, TPolicyValue>

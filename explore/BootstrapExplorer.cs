@@ -16,17 +16,14 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
     public abstract class BaseBootstrapExplorer<TAction> : IExplorer<TAction, IReadOnlyCollection<TAction>>
 	{
         private bool explore;
-	    private readonly int numActionsFixed;
 
 		/// <summary>
 		/// The constructor is the only public member, because this should be used with the MwtExplorer.
 		/// </summary>
 		/// <param name="defaultPolicies">A set of default policies to be uniform random over.</param>
 		/// <param name="numActions">The number of actions to randomize over.</param>
-        protected BaseBootstrapExplorer(int numActions = int.MaxValue)
+        protected BaseBootstrapExplorer()
 		{
-            VariableActionHelper.ValidateInitialNumberOfActions(numActions);
-            this.numActionsFixed = numActions;
             this.explore = true;
         }
 
@@ -35,7 +32,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.explore = explore;
         }
 
-        public ExplorerDecision<TAction> MapContext(PRG random, IReadOnlyCollection<TAction> policyActions)
+        public ExplorerDecision<TAction> MapContext(PRG random, IReadOnlyCollection<TAction> policyActions, int numActions)
         {
             // Invoke the default policy function to get the action
             TAction chosenDecision = default(TAction);
@@ -46,14 +43,14 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                 // Select bag
                 int chosenBag = random.UniformInt(0, policyActions.Count - 1);
 
-                int[] actionsSelected = Enumerable.Repeat<int>(0, this.numActionsFixed).ToArray();
+                int[] actionsSelected = Enumerable.Repeat<int>(0, numActions).ToArray();
 
                 int currentBag = 0;
                 foreach (var policyAction in policyActions)
                 {
                     var actionFromBag = this.GetTopAction(policyAction);
 
-                    if (actionFromBag == 0 || actionFromBag > this.numActionsFixed)
+                    if (actionFromBag == 0 || actionFromBag > numActions)
                         throw new ArgumentException("Action chosen by default policy is not within valid range.");
 
                     //this won't work if actions aren't 0 to Count
@@ -86,7 +83,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 
     public class BootstrapExplorer : BaseBootstrapExplorer<int>
     {
-        public BootstrapExplorer(int numActions = int.MaxValue) : base(numActions)
+        public BootstrapExplorer(int numActions = int.MaxValue)
         {
         }
 
@@ -98,7 +95,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 
     public class BootstrapTopSlotExplorer : BaseBootstrapExplorer<int[]>
     {
-        public BootstrapTopSlotExplorer(int numActions = int.MaxValue) : base(numActions)
+        public BootstrapTopSlotExplorer(int numActions = int.MaxValue)
         {
         }
 

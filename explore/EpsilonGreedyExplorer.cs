@@ -22,7 +22,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
     /// Epsilon greedy is also computationally cheap.
     /// </remarks>
     /// <typeparam name="TContext">The Context type.</typeparam>
-    public class EpsilonGreedyExplorer : BaseVariableActionExplorer<int, int>
+    public class EpsilonGreedyExplorer : BaseExplorer<int, int>
     {
         private readonly float defaultEpsilon;
 
@@ -32,8 +32,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         /// <param name="defaultPolicy">A default function which outputs an action given a context.</param>
         /// <param name="epsilon">The probability of a random exploration.</param>
         /// <param name="numActions">The number of actions to randomize over.</param>
-        public EpsilonGreedyExplorer(float epsilon, int numActions = int.MaxValue)
-            : base(numActions)
+        public EpsilonGreedyExplorer(float epsilon)
         {
             if (epsilon < 0 || epsilon > 1)
             {
@@ -42,7 +41,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.defaultEpsilon = epsilon;
         }
 
-        public override ExplorerDecision<int> Explore(PRG random, int policyAction, int numActionsVariable)
+        public override ExplorerDecision<int> MapContext(PRG random, int policyAction, int numActionsVariable)
         {
             if (policyAction == 0 || policyAction > numActionsVariable)
                 throw new ArgumentException("Action chosen by default policy is not within valid range.");
