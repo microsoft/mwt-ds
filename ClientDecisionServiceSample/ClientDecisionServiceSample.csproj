@@ -126,6 +126,7 @@
     <Compile Include="ADFContext.cs" />
     <Compile Include="ExpandedContext.cs" />
     <Compile Include="FoodContext.cs" />
+    <Compile Include="Policy - non-action dependent features\PaperSample.cs" />
     <Compile Include="Policy - non-action dependent features\SampleCodeUsingASAWithJsonContext.cs" />
     <Compile Include="Policy - non-action dependent features\SampleCodeUsingSimpleContext.cs" />
     <Compile Include="Policy - non-action dependent features\SampleNewsRecommendation.cs" />

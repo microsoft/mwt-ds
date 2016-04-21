@@ -68,7 +68,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 // Write blob to file
                 if (!string.IsNullOrWhiteSpace(updateMetadata.BlobOutputDir))
                 {
-                    Directory.CreateDirectory(Path.GetDirectoryName(updateMetadata.BlobOutputDir));
+                    Directory.CreateDirectory(updateMetadata.BlobOutputDir);
                 }
 
                 string blobFileName = Path.Combine(updateMetadata.BlobOutputDir, updateMetadata.BlobName + "-" + blob.Name);

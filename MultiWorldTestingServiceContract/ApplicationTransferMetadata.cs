@@ -79,6 +79,21 @@ namespace Microsoft.Research.MultiWorldTesting.Contract
         public string EventHubInputName { get; set; }
 
         /// <summary>
+        /// 
+        /// </summary>
+        public string EventHubListenConnectionString { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string EventHubOutputName { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string EventHubEvalConnectionString { get; set; }
+
+        /// <summary>
         /// The connection string for the provisioned Azure storage account.
         /// </summary>
         public string ConnectionString { get; set; }
