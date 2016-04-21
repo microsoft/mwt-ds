@@ -24,7 +24,7 @@ namespace ClientDecisionServiceTest
             for (int i = 0; i < runs; i++)
             {
                 var seed = (ulong)rnd.Next(1024);
-                var decision = explorer.MapContext(new PRG(seed), context);
+                var decision = explorer.MapContext(new PRG(seed), context, 0);
 
                 var index = decision.Value.Aggregate((input, value) => input * 10 + value);
 

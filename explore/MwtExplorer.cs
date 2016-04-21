@@ -6,12 +6,29 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
     {
         public static MwtExplorer<TContext, TAction, TPolicyValue> Create<TContext, TAction, TPolicyValue>(
             string appId, 
+            INumberOfActionsProvider<TContext> numActionsProvider,
             IRecorder<TContext, TAction> recorder, 
             IExplorer<TAction, TPolicyValue> explorer,
-            IFullExplorer<TAction> initialExplorer = null,
-            INumberOfActionsProvider<TContext> numActionsProvider = null)
+            IContextMapper<TContext, TPolicyValue> policy = null,
+            IFullExplorer<TAction> initialExplorer = null
+            )
         {
-            return new MwtExplorer<TContext, TAction, TPolicyValue>(appId, recorder, explorer, initialExplorer, numActionsProvider);
+            var mwt = new MwtExplorer<TContext, TAction, TPolicyValue>(appId, numActionsProvider, recorder, explorer, initialExplorer);
+            mwt.Policy = policy;
+            return mwt;
+        }
+
+        public static MwtExplorer<TContext, TAction, TPolicyValue> Create<TContext, TAction, TPolicyValue>(
+            string appId,
+            int numActions,
+            IRecorder<TContext, TAction> recorder,
+            IExplorer<TAction, TPolicyValue> explorer,
+            IContextMapper<TContext, TPolicyValue> policy = null,
+            IFullExplorer<TAction> initialExplorer = null)
+        {
+            var mwt = new MwtExplorer<TContext, TAction, TPolicyValue>(appId, new ConstantActionsProvider<TContext>(numActions), recorder, explorer, initialExplorer);
+            mwt.Policy = policy;
+            return mwt;
         }
     }
 
@@ -33,10 +50,11 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 		/// <param name="appId">This should be unique to each experiment to avoid correlation bugs.</param>
 		/// <param name="recorder">A user-specified class for recording the appropriate bits for use in evaluation and learning.</param>
         public MwtExplorer(string appId, 
+            INumberOfActionsProvider<TContext> numActionsProvider,
             IRecorder<TContext, TAction> recorder, 
             IExplorer<TAction, TPolicyValue> explorer,
-            IFullExplorer<TAction> initialExplorer = null,
-            INumberOfActionsProvider<TContext> numActionsProvider = null)
+            IFullExplorer<TAction> initialExplorer = null
+            )
 		{
             this.appId = MurMurHash3.ComputeIdHash(appId);
 
@@ -119,7 +137,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             PRG random = new PRG(saltedSeed);
 
             var policyDecision = policy.MapContext(context);
-            var explorerDecision = this.Explorer.MapContext(random, policyDecision.Value);
+            var explorerDecision = this.Explorer.MapContext(random, policyDecision.Value, this.numActionsProvider.GetNumberOfActions(context));
             
             this.Log(uniqueKey, context, explorerDecision, policyDecision);
 
@@ -140,7 +158,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             else
             {
                 policyDecision = policy.MapContext(context);
-                explorerDecision = this.Explorer.MapContext(random, policyDecision.Value);
+                explorerDecision = this.Explorer.MapContext(random, policyDecision.Value, this.numActionsProvider.GetNumberOfActions(context));
             }
 
             this.Log(uniqueKey, context, explorerDecision, policyDecision != null ? policyDecision.MapperState : null);

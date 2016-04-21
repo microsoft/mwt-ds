@@ -46,9 +46,10 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             return new DecisionServiceClient<TContext, int, int>(
                         spec.Config,
                         metaData,
-						new EpsilonGreedyExplorer(.1f, numberOfActions),
+						new EpsilonGreedyExplorer(.1f),
 						internalPolicy,
-						initialExplorer: new UniformRandomExploration());
+						initialExplorer: new UniformRandomExploration(),
+                        numActions: numberOfActions);
 		}
 
         private static DecisionServiceClient<TContext, int[], int[]> CreateClient<TContext>(

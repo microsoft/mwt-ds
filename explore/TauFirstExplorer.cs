@@ -21,7 +21,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 	/// exploration events, and then uses the default policy. 
 	/// </remarks>
 	/// <typeparam name="TContext">The Context type.</typeparam>
-    public sealed class TauFirstExplorer : BaseVariableActionExplorer<int, int>
+    public sealed class TauFirstExplorer : BaseExplorer<int, int>
 	{
         private int tau;
         private readonly object lockObject = new object();
@@ -32,13 +32,12 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 		/// <param name="defaultPolicy">A default policy after randomization finishes.</param>
 		/// <param name="tau">The number of events to be uniform over.</param>
 		/// <param name="numActions">The number of actions to randomize over.</param>
-        public TauFirstExplorer(int tau, int numActions = int.MaxValue)
-            : base(numActions)
+        public TauFirstExplorer(int tau)
         {
             this.tau = tau;
         }
 
-        public override ExplorerDecision<int> Explore(PRG random, int policyAction, int numActionsVariable)
+        public override ExplorerDecision<int> MapContext(PRG random, int policyAction, int numActionsVariable)
         {
             if (policyAction == 0 || policyAction > numActionsVariable)
                 throw new ArgumentException("Action chosen by default policy is not within valid range.");
@@ -64,7 +63,6 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                     chosenAction = policyAction;
 
                     actionProbability = 1f;
-                    shouldRecordDecision = false; // TODO: don't?
                     isExplore = false;
                 }
             }

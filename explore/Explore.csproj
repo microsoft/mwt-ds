@@ -50,6 +50,7 @@
     <Compile Include="PRG.cs" />
     <Compile Include="SimpleContext.cs" />
     <Compile Include="SoftmaxExplorer.cs" />
+    <Compile Include="StringRecorder.cs" />
     <Compile Include="TauFirstExplorer.cs" />
     <Compile Include="MultiActionHelper.cs" />
     <Compile Include="TopSlotExplorer.cs" />

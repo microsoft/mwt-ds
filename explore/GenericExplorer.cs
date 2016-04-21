@@ -25,15 +25,14 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 		/// </summary>
 		/// <param name="defaultScorer">A function which outputs the probability of each action.</param>
 		/// <param name="numActions">The number of actions to randomize over.</param>
-        public GenericExplorer(int numActions = int.MaxValue)
-            : base(numActions)
+        public GenericExplorer()
 		{
         }
 
-        public override ExplorerDecision<int> MapContext(PRG random, float[] weights)
+        public override ExplorerDecision<int> MapContext(PRG random, float[] weights, int numActions)
         {
             int numWeights = weights.Length;
-            if (this.numActionsFixed != int.MaxValue && numWeights != this.numActionsFixed)
+            if (numActions != int.MaxValue && numWeights != numActions)
                 throw new ArgumentException("The number of weights returned by the scorer must equal number of actions");
 
             // Create a discrete_distribution based on the returned weights. This class handles the
@@ -95,10 +94,9 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         /// </summary>
         /// <param name="defaultScorer">A function which outputs the probability of each action.</param>
         /// <param name="numActions">The number of actions to randomize over.</param>
-        public GenericExplorerSampleWithoutReplacement(int numActions = int.MaxValue)
-             : base(numActions)
+        public GenericExplorerSampleWithoutReplacement()
         {
-            this.explorer = new GenericExplorer(numActions);
+            this.explorer = new GenericExplorer();
         }
 
         public override void EnableExplore(bool explore)
@@ -107,9 +105,9 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.explorer.EnableExplore(explore);
         }
 
-        public override ExplorerDecision<int[]> MapContext(PRG random, float[] weights)
+        public override ExplorerDecision<int[]> MapContext(PRG random, float[] weights, int numActions)
         {
-            var decision = this.explorer.MapContext(random, weights);
+            var decision = this.explorer.MapContext(random, weights, numActions);
 
             float actionProbability = 0f;
             int[] chosenActions = MultiActionHelper.SampleWithoutReplacement(weights, weights.Length, random, ref actionProbability);

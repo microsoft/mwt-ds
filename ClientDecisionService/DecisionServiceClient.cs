@@ -39,7 +39,8 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             IExplorer<TAction, TPolicyValue> explorer,
             IContextMapper<TContext, TPolicyValue> internalPolicy,
             IContextMapper<TContext, TAction> initialPolicy = null,
-            IFullExplorer<TAction> initialExplorer = null)
+            IFullExplorer<TAction> initialExplorer = null,
+            int? numActions = null)
         {
             if (config == null)
                 throw new ArgumentNullException("config");
@@ -58,9 +59,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 if (metaData == null)
                     throw new Exception("Unable to locate a registered MWT application.");
 
-                if (recorder != null)
-                    this.recorder = recorder;
-                else
+                if (this.recorder == null)
                 {
                     var joinServerLogger = new JoinServiceLogger<TContext, TAction>();
                     switch (config.JoinServerType)
@@ -118,19 +117,27 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             if (initialExplorer != null && initialPolicy != null)
                 throw new Exception("Initial Explorer and Default Policy are both specified but only one can be used.");
 
-            INumberOfActionsProvider<TContext> numActionsProvider = null;
-            if (initialExplorer != null) // only needed when full exploration
+            if (numActions == null)
             {
-                numActionsProvider = internalPolicy as INumberOfActionsProvider<TContext>;
-                if (numActionsProvider == null)
-                    numActionsProvider = explorer as INumberOfActionsProvider<TContext>;
+                INumberOfActionsProvider<TContext> numActionsProvider = null;
+                if (initialExplorer != null) // only needed when full exploration
+                {
+                    numActionsProvider = internalPolicy as INumberOfActionsProvider<TContext>;
+                    if (numActionsProvider == null)
+                        numActionsProvider = explorer as INumberOfActionsProvider<TContext>;
 
-                if (numActionsProvider == null)
-                    throw new ArgumentException("Explorer must implement INumberOfActionsProvider interface");
+                    if (numActionsProvider == null)
+                        throw new ArgumentException("Explorer must implement INumberOfActionsProvider interface");
+                }
+
+                this.mwtExplorer = MwtExplorer.Create(config.AuthorizationToken,
+                    numActionsProvider, this.recorder, explorer, initialExplorer: initialExplorer);
             }
-
-            this.mwtExplorer = MwtExplorer.Create(config.AuthorizationToken,
-                this.recorder, explorer, initialExplorer, numActionsProvider);
+            else
+            {
+                this.mwtExplorer = MwtExplorer.Create(config.AuthorizationToken,
+                    (int)numActions, this.recorder, explorer, initialExplorer: initialExplorer);
+            }
         }
 
         private void UpdateContextMapperFromFile(string modelFile)

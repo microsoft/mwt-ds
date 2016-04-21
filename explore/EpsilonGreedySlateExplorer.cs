@@ -41,7 +41,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.explore = explore;
         }
 
-        public ExplorerDecision<int[]> MapContext(PRG random, int[] policyAction)
+        public ExplorerDecision<int[]> MapContext(PRG random, int[] policyAction, int numActions)
         {
             MultiActionHelper.ValidateActionList(policyAction);
 
