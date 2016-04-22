@@ -56,8 +56,11 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 {
                     throw new Exception("Could not connect to Azure storage while polling for " + updateMetadata.BlobName);
                 }
+
                 CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
                 ICloudBlob blob = blobClient.GetBlobReferenceFromServer(new Uri(updateMetadata.BlobAddress));
+                if (!await blob.ExistsAsync())
+                    return;
 
                 if (blob.Properties != null)
                 {
