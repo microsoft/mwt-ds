@@ -137,7 +137,14 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             PRG random = new PRG(saltedSeed);
 
             var policyDecision = policy.MapContext(context);
-            var explorerDecision = this.Explorer.MapContext(random, policyDecision.Value, this.numActionsProvider.GetNumberOfActions(context));
+
+            int numActionsVariable = this.numActionsProvider.GetNumberOfActions(context);
+            if (numActionsVariable <= 0)
+            {
+                throw new Exception("Could not determine number of actions from the provided context.");
+            }
+
+            var explorerDecision = this.Explorer.MapContext(random, policyDecision.Value, numActionsVariable);
             
             this.Log(uniqueKey, context, explorerDecision, policyDecision);
 
@@ -153,12 +160,18 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             ExplorerDecision<TAction> explorerDecision;
             PolicyDecision<TPolicyValue> policyDecision = null;
 
+            int numActionsVariable = this.numActionsProvider.GetNumberOfActions(context);
+            if (numActionsVariable <= 0)
+            {
+                throw new Exception("Could not determine number of actions from the provided context.");
+            }
+
             if (policy == null)
-                explorerDecision = this.InitialExplorer.Explore(random, this.numActionsProvider.GetNumberOfActions(context));
+                explorerDecision = this.InitialExplorer.Explore(random, numActionsVariable);
             else
             {
                 policyDecision = policy.MapContext(context);
-                explorerDecision = this.Explorer.MapContext(random, policyDecision.Value, this.numActionsProvider.GetNumberOfActions(context));
+                explorerDecision = this.Explorer.MapContext(random, policyDecision.Value, numActionsVariable);
             }
 
             this.Log(uniqueKey, context, explorerDecision, policyDecision != null ? policyDecision.MapperState : null);
