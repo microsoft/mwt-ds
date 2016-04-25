@@ -38,7 +38,7 @@ namespace ClientDecisionServiceSample
         internal FoodFeature(int numActions, int index)
         {
             Scores = Enumerable.Repeat(0f, numActions).ToArray();
-            Scores[index] = 1;
+            Scores[index] = index + 1;
         }
     }
 

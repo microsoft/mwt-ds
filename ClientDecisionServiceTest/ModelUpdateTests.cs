@@ -66,5 +66,58 @@ namespace ClientDecisionServiceTest
 
             Assert.AreEqual(200, joinServer.EventBatchList.Sum(b => b.ExperimentalUnitFragments.Count));
         }
+
+        [TestMethod]
+        public void TestNoModelFoundForImmediateDownload()
+        {
+            bool success = false;
+            try
+            {
+                var serviceConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken)
+                {
+                    JoinServerType = JoinServerType.CustomSolution,
+                    LoggingServiceAddress = MockJoinServer.MockJoinServerAddress,
+                };
+
+                using (var service = DecisionService
+                    .WithRanker(serviceConfig)
+                    .With<TestADFContextWithFeatures, TestADFFeatures>(context => context.ActionDependentFeatures)
+                    .WithTopSlotEpsilonGreedy(epsilon: .2f))
+                {
+                    service.DownloadModelAndUpdate(new System.Threading.CancellationToken()).Wait();
+                }
+            }
+            catch (AggregateException aex)
+            {
+                if (aex.InnerException is ModelNotFoundException)
+                {
+                    success = true;
+                }
+            }
+            Assert.IsTrue(success);
+        }
+
+        [TestMethod]
+        public void TestModelImmediateDownload()
+        {
+            // create mock blobs for settings and models
+            this.commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: true);
+
+            var serviceConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken)
+            {
+                JoinServerType = JoinServerType.CustomSolution,
+                LoggingServiceAddress = MockJoinServer.MockJoinServerAddress,
+            };
+
+            using (var service = DecisionService
+                .WithRanker(serviceConfig)
+                .With<TestADFContextWithFeatures, TestADFFeatures>(context => context.ActionDependentFeatures)
+                .WithTopSlotEpsilonGreedy(epsilon: .2f))
+            {
+                // download model right away
+                service.DownloadModelAndUpdate(new System.Threading.CancellationToken()).Wait();
+            }
+            // No exception if everything works
+        }
     }
 }

@@ -129,6 +129,7 @@
     <Compile Include="JoinServerType.cs" />
     <Compile Include="JoinServiceLogger.cs" />
     <Compile Include="ILogger.cs" />
+    <Compile Include="ModelNotFoundException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VW\VWJson.cs" />
     <Compile Include="VW\VWPolicy.cs" />

@@ -28,7 +28,7 @@ namespace ClientDecisionServiceTest
 
             dsConfig.SettingsPollFailureCallback = (ex) =>
             {
-                if (ex is ArgumentNullException && ((ArgumentNullException)ex).ParamName == "path")
+                if (ex is UnauthorizedAccessException)
                 {
                     exceptionIsExpected = true;
                     cancelTokenSource.Cancel();
@@ -123,7 +123,7 @@ namespace ClientDecisionServiceTest
 
             dsConfig.SettingsPollFailureCallback = (ex) =>
             {
-                if (ex is ArgumentNullException && ((ArgumentNullException)ex).ParamName == "path")
+                if (ex is UnauthorizedAccessException)
                 {
                     exceptionIsExpected = true;
                     cancelTokenSource.Cancel();

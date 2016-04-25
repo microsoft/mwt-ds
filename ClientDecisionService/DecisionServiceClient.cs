@@ -156,6 +156,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
         public async Task DownloadModelAndUpdate(CancellationToken cancellationToken)
         {
+            bool modelFound = false;
             var modelMetadata = new AzureBlobUpdateMetadata(
                "model", this.metaData.ModelBlobUri,
                this.metaData.ConnectionString,
@@ -165,6 +166,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                    using (var modelStream = File.OpenRead(modelFile))
                    {
                        UpdateModel(modelStream);
+                       modelFound = true;
                        Trace.TraceInformation("Model download succeeded.");
                    }
                },
@@ -172,6 +174,11 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                cancellationToken);
 
             await AzureBlobUpdateTask.DownloadAsync(modelMetadata);
+
+            if (!modelFound)
+            {
+                throw new ModelNotFoundException("No MWT model found for download.");
+            }
         }
 
         internal IExplorer<TAction, TPolicyValue> Explorer

@@ -57,7 +57,7 @@ namespace ClientDecisionServiceTest
                 if (createModelBlob)
                 {
                     var modelBlob = localContainer.GetBlockBlobReference(this.localAzureModelBlobName);
-                    byte[] modelContent = this.GetCBModelBlobContent(modelId);
+                    byte[] modelContent = this.GetCBADFModelBlobContent(5, 5);
                     modelBlob.UploadFromByteArray(modelContent, 0, modelContent.Length);
                     this.localAzureModelBlobUri = modelBlob.Uri.ToString();
                 }
@@ -93,18 +93,6 @@ namespace ClientDecisionServiceTest
         public byte[] GetSettingsBlobContent()
         {
             return new byte[3] { 1, 2, 3 };
-        }
-
-        public byte[] GetCBModelBlobContent(int modelId = 1)
-        {
-            string modelFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "vw" + modelId + ".model");
-            return File.ReadAllBytes(modelFile);
-        }
-
-        public byte[] GetCBADFModelBlobContent(int modelId = 1)
-        {
-            string modelFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestData", "vw" + modelId + ".model");
-            return File.ReadAllBytes(modelFile);
         }
 
         public byte[] GetCBModelBlobContent(int numExamples, int numFeatures, int numActions)
