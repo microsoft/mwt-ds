@@ -270,21 +270,20 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             }
         }
 
-        /// <summary>
-        /// Flush any pending data to be logged and request to stop all polling as appropriate.
-        /// </summary>
-        public void Flush()
+        public void Dispose()
         {
             // stops all updates
             AzureBlobUpdater.Stop();
 
-            if (this.logger != null)
-                logger.Flush();
-        }
+            if (this.recorder != null)
+            {
+                // Flush any pending data to be logged 
+                var disposable = this.recorder as IDisposable;
+                if (disposable != null)
+                    disposable.Dispose();
 
-        public void Dispose()
-        {
-            this.Flush();
+                recorder = null;
+            }
 
             if (this.mwtExplorer != null)
             {

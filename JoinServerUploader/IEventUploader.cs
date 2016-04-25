@@ -47,10 +47,5 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// <param name="events">The list of events to be uploaded</param>
         /// <returns>true if all events were accepted into the buffer queue for processing.</returns>
         bool TryUpload(List<IEvent> events);
-
-        /// <summary>
-        /// Flush the data buffer to upload all remaining events.
-        /// </summary>
-        void Flush();
     }
 }
