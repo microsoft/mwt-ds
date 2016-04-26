@@ -61,7 +61,9 @@ namespace ClientDecisionServiceTest
                     modelBlob.UploadFromByteArray(modelContent, 0, modelContent.Length);
                     this.localAzureModelBlobUri = modelBlob.Uri.ToString();
                 }
-
+                else
+                    this.localAzureModelBlobUri = "http://127.0.0.1:10000/devstoreaccount1/localtestcontainer/notfoundmodel";
+                        
                 var locationContainer = blobClient.GetContainerReference(this.localAzureBlobLocationContainerName);
                 locationContainer.CreateIfNotExists();
 
@@ -92,7 +94,7 @@ namespace ClientDecisionServiceTest
 
         public byte[] GetSettingsBlobContent()
         {
-            return new byte[3] { 1, 2, 3 };
+            return Encoding.UTF8.GetBytes("{}");
         }
 
         public byte[] GetCBModelBlobContent(int numExamples, int numFeatures, int numActions)

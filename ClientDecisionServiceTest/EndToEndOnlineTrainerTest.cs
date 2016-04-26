@@ -43,10 +43,10 @@ namespace ClientDecisionServiceTest
             //wc.DownloadString("http://mcapp3-trainer.cloudapp.net/onlineTrainer");
             //Thread.Sleep(5000);
 
-            using (var client = DecisionService.WithPolicy(config, numberOfActions: 4).With<MyContext>()
-                .WithEpsilonGreedy(1f))
+            while (true)
             {
-                while (true)
+                using (var client = DecisionService.WithPolicy(config, numberOfActions: 4).With<MyContext>()
+                    .WithEpsilonGreedy(1f))
                 {
                     for (int i = 0; i < 8 * 1024; i++)
                     {
@@ -72,9 +72,9 @@ namespace ClientDecisionServiceTest
                         else
                             freq.Add(stat, count);
                     }
-
-                    Console.WriteLine("abc");
                 }
+
+                Console.WriteLine("abc");
             }
 
             // 4 actions times 4 feature values
