@@ -16,20 +16,35 @@ namespace ClientDecisionServiceTest
         MultiAction
     }
 
-    class TestContext
+    public class TestContext
     {
         public int A { get; set; }
+
+        [JsonProperty(PropertyName = "_multi")]
+        public IReadOnlyList<TestContextFeatures> ActionDependentFeatures
+        {
+            get 
+            {
+                return new int[5].Select(_ => new TestContextFeatures()).ToArray();
+            }
+        }
+    }
+
+    public class TestContextFeatures
+    {
+        public string[] Features { get { return new string[] { "aa", "bb" }; } }
     }
 
     class DummyADFType { }
 
-    class TestADFContext
+    public class TestADFContext
     {
         public TestADFContext(int count)
         {
             this.count = count;
         }
 
+        [JsonProperty(PropertyName = "_multi")]
         public IReadOnlyList<string> ActionDependentFeatures
         {
             get

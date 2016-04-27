@@ -119,24 +119,15 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 		/// <param name="context">The context upon which a decision is made. See SimpleContext above for an example.</param>
         /// <param name="numActionsVariable">Optional; Number of actions available which may be variable across decisions.</param>
         /// <returns>An unsigned 32-bit integer representing the 1-based chosen action.</returns>
-        public TAction ChooseAction(UniqueEventID uniqueKey, TContext context, TAction initialAction)
+        public TAction ChooseAction(UniqueEventID uniqueKey, TContext context, TPolicyValue defaultPolicyDecision)
         {
             // Note: thread-safe atomic reference access
             var policy = this.Policy;
-            if (policy == null)
-            {
-                // policy not ready & initial action provided
-                this.Log(uniqueKey, 
-                    context, 
-                    ExplorerDecision.Create(initialAction, new GenericExplorerState { Probability = 1 }, true));
-
-                return initialAction;
-            }
 
             ulong saltedSeed = MurMurHash3.ComputeIdHash(uniqueKey.Key) + this.appId;
             PRG random = new PRG(saltedSeed);
 
-            var policyDecision = policy.MapContext(context);
+            var policyDecision = (policy != null) ? policy.MapContext(context) : defaultPolicyDecision;
 
             int numActionsVariable = this.numActionsProvider.GetNumberOfActions(context);
             if (numActionsVariable <= 0)

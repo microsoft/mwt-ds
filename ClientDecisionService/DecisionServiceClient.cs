@@ -18,7 +18,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
         private IRecorder<TContext, TAction> recorder;
         private ILogger logger;
-        private IContextMapper<TContext, TAction> initialPolicy;
+        private IContextMapper<TContext, TPolicyValue> initialPolicy;
 
         private readonly DecisionServiceConfiguration config;
         private readonly ApplicationTransferMetadata metaData;
@@ -39,7 +39,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             ApplicationTransferMetadata metaData,
             IExplorer<TAction, TPolicyValue> explorer,
             IContextMapper<TContext, TPolicyValue> internalPolicy,
-            IContextMapper<TContext, TAction> initialPolicy = null,
+            IContextMapper<TContext, TPolicyValue> initialPolicy = null,
             IFullExplorer<TAction> initialExplorer = null,
             int? numActions = null)
         {
@@ -213,7 +213,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             set { this.mwtExplorer.InitialExplorer = value; }
         }
 
-        internal IContextMapper<TContext, TAction> InitialPolicy
+        internal IContextMapper<TContext, TPolicyValue> InitialPolicy
         {
             get { return this.initialPolicy; }
             set { this.initialPolicy = value; }
@@ -239,9 +239,9 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             return this;
         }
 
-        public TAction ChooseAction(UniqueEventID uniqueKey, TContext context, TAction defaultAction)
+        public TAction ChooseAction(UniqueEventID uniqueKey, TContext context, TPolicyValue defaultPolicyDecision)
         {
-            return this.mwtExplorer.ChooseAction(uniqueKey, context, defaultAction);
+            return this.mwtExplorer.ChooseAction(uniqueKey, context, defaultPolicyDecision);
         }
 
         public TAction ChooseAction(UniqueEventID uniqueKey, TContext context)
