@@ -21,10 +21,10 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
     /// <summary>
     /// Uploader class to interface with the ASA-based Join Server provided by user applications.
     /// </summary>
-    public class EventUploaderASA : BaseEventUploader<IEvent>
+    public class EventUploaderASA : BaseEventUploader<EventData>
     {
-        private string connectionString;
-        private string eventHubInputName;
+        private readonly string connectionString;
+        private readonly string eventHubInputName;
         private EventHubClient client;
 
         /// <summary>
@@ -65,9 +65,15 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// </summary>
         /// <param name="sourceEvent">The source event to be transformed.</param>
         /// <returns>The transformed event to be uploaded.</returns>
-        public override IEvent TransformEvent(IEvent sourceEvent)
+        public override EventData TransformEvent(IEvent sourceEvent)
         {
-            return sourceEvent;
+            var json = JsonConvert.SerializeObject(sourceEvent);
+            var bytes = Encoding.UTF8.GetBytes(json);
+
+            var partitionKey = this.batchConfig.PartitionCount == null ?
+                sourceEvent.Key : (sourceEvent.Key.GetHashCode() % this.batchConfig.PartitionCount).ToString();
+
+            return new EventData(bytes) { PartitionKey = partitionKey };
         }
 
         /// <summary>
@@ -75,10 +81,9 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// </summary>
         /// <param name="transformedEvent">The transformed event.</param>
         /// <returns>The size in bytes of the transformed event.</returns>
-        public override int MeasureTransformedEvent(IEvent transformedEvent)
+        public override int MeasureTransformedEvent(EventData transformedEvent)
         {
-            // TODO: BuildJsonMessage is called twice, during measure and during upload.
-            return Encoding.UTF8.GetByteCount(BuildJsonMessage(transformedEvent));
+            return (int)transformedEvent.SerializedSizeInBytes;
         }
 
         /// <summary>
@@ -86,9 +91,12 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// </summary>
         /// <param name="transformedEvents">The list of events to upload.</param>
         /// <returns>A Task object.</returns>
-        public override Task UploadTransformedEvents(IList<IEvent> transformedEvents)
+        public override async Task UploadTransformedEvents(IList<EventData> transformedEvents)
         {
-            return Task.WhenAll(transformedEvents.Select(e => this.UploadToEventHubAsync(e)));
+            await Task.WhenAll(
+                transformedEvents.GroupBy(e => e.PartitionKey)
+                    .Select(evt => this.client.SendBatchAsync(evt))
+                );
         }
 
         /// <summary>
@@ -96,9 +104,9 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// </summary>
         /// <param name="events">The event to upload.</param>
         /// <returns>A Task object.</returns>
-        private Task UploadToEventHubAsync(IEvent events)
+        private Task UploadToEventHubAsync(EventData evt)
         {
-            return this.client.SendAsync(BuildEventHubData(events));
+            return this.client.SendAsync(evt);
         }
 
         /// <summary>
@@ -106,35 +114,15 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// </summary>
         protected override void Dispose(bool disposing)
         {
+            base.Dispose(disposing);
             if (disposing)
             {
-                this.client.Close();
+                if (this.client != null)
+                {
+                    this.client.Close();
+                    this.client = null;
+                }
             }
-            base.Dispose(disposing);
-        }
-
-        /// <summary>
-        /// Converts an event to JSON format that is expected from EventHub.
-        /// </summary>
-        /// <param name="e">The event to convert.</param>
-        /// <returns>Serialized JSON string.</returns>
-        private static string BuildJsonMessage(IEvent e)
-        {
-            return JsonConvert.SerializeObject(e);
-        }
-
-        /// <summary>
-        /// Builds a data object to send to EventHub.
-        /// </summary>
-        /// <param name="e">The original event.</param>
-        /// <returns>An EventData object.</returns>
-        private static EventData BuildEventHubData(IEvent e)
-        {
-            var serializedString = BuildJsonMessage(e);
-            return new EventData(Encoding.UTF8.GetBytes(serializedString))
-            {
-                PartitionKey = e.Key
-            };
         }
     }
 }

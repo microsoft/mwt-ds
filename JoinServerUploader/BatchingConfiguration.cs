@@ -1,8 +1,13 @@
 ﻿using Newtonsoft.Json.Serialization;
 using System;
+using System.Collections.Generic;
 
 namespace Microsoft.Research.MultiWorldTesting.JoinUploader
 {
+    public delegate void EventUploaderSuccessEventHandler(object source, int eventCount, int sumSize, int inputQueueSize);
+
+    public delegate void EventUploaderErrorEventHandler(object source, Exception e);
+
     /// <summary>
     /// Represents a collection of batching criteria.  
     /// </summary>
@@ -17,18 +22,15 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         public BatchingConfiguration()
         {
             this.MaxBufferSizeInBytes = 4 * 1024 * 1024;
-            this.MaxDuration = TimeSpan.FromMinutes(1);
-            this.MaxEventCount = 4*1024;
+            this.MaxDuration = TimeSpan.FromSeconds(5);
+            this.MaxEventCount = 1024;
             // the number of events buffered is MaxEventCount * MaxUploadQueueCapacity * MaxDegreeOfSerializationParallelism
-            this.MaxUploadQueueCapacity = 4;
+            this.MaxUploadQueueCapacity = 512;
+            this.PartitionCount = 16;
             this.UploadRetryPolicy = BatchUploadRetryPolicy.ExponentialRetry;
             this.MaxDegreeOfSerializationParallelism = Environment.ProcessorCount;
             this.DroppingPolicy = new DroppingPolicy();
             this.ReUseTcpConnection = true;
-            this.ErrorHandler = exp => { };
-#if DEBUG
-            this.SuccessHandler = count => { };
-#endif
         }
 
         /// <summary>
@@ -50,6 +52,9 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// Max size of queue for processing/uploading.
         /// </summary>
         public int MaxUploadQueueCapacity { get; set; }
+
+
+        public int? PartitionCount { get; set; }
 
         /// <summary>
         /// Gets or sets the retry policy in case of upload failure.
@@ -81,14 +86,26 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// <summary>
         /// Invoked if an error happened during the upload pipeline.
         /// </summary>
-        public Action<Exception> ErrorHandler { get; set; }
+        public event EventUploaderErrorEventHandler ErrorHandler;
 
-#if DEBUG
         /// <summary>
         /// Invoked after the batch was successfully uploaded.
         /// </summary>
-        public Action<int> SuccessHandler { get; set; }
-#endif
+        public event EventUploaderSuccessEventHandler SuccessHandler;
+
+        internal void FireErrorHandler(Exception e)
+        {
+            var handler = this.ErrorHandler;
+            if (handler != null)
+                handler(this, e);
+        }
+
+        internal void FireSuccessHandler(int eventCount, int sumSize, int inputQueueSize)
+        {
+            var handler = this.SuccessHandler;
+            if (handler != null)
+                handler(this, eventCount, sumSize, inputQueueSize);
+        }
     }
 
     /// <summary>

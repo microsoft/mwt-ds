@@ -77,7 +77,8 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
             }
             catch (Exception e)
             {
-                this.batchConfig.ErrorHandler(e);
+                this.batchConfig.FireErrorHandler(e);
+
                 throw e;
             }
         }
@@ -90,7 +91,8 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
             }
             catch (Exception e)
             {
-                this.batchConfig.ErrorHandler(e);
+                this.batchConfig.FireErrorHandler(e);
+
                 throw e;
             }
         }
@@ -100,13 +102,15 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
             try
             {
                 await this.UploadTransformedEvents(transformedEvents);
-#if DEBUG
-                this.batchConfig.SuccessHandler(transformedEvents.Count);
-#endif
+                this.batchConfig.FireSuccessHandler(
+                    transformedEvents.Count, 
+                    transformedEvents.Sum(e => this.MeasureTransformedEvent(e)),
+                    this.eventProcessor.InputCount);
             }
             catch (Exception e)
             {
-                this.batchConfig.ErrorHandler(e);
+                this.batchConfig.FireErrorHandler(e);
+
                 throw e;
             }
         }

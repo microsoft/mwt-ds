@@ -7,13 +7,22 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
     internal class JoinServiceLogger<TContext, TAction> : IRecorder<TContext, TAction>, ILogger, IDisposable
     {
+        private readonly PerformanceCounters perfCounters;
+        private readonly string authorizationToken;
+        private IEventUploader eventUploader;
+
+        internal JoinServiceLogger(string authorizationToken)
+        {
+            this.authorizationToken = authorizationToken;
+            this.perfCounters = new PerformanceCounters(authorizationToken);
+        }
+
         public void InitializeWithCustomAzureJoinServer(
-            string authorizationToken,
             string loggingServiceBaseAddress,
             BatchingConfiguration batchConfig)
         {
             var eventUploader = new EventUploader(batchConfig, loggingServiceBaseAddress);
-            eventUploader.InitializeWithToken(authorizationToken);
+            eventUploader.InitializeWithToken(this.authorizationToken);
 
             this.eventUploader = eventUploader;
         }
@@ -23,7 +32,15 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             string eventHubInputName,
             BatchingConfiguration batchConfig)
         {
+            batchConfig.SuccessHandler += batchConfig_SuccessHandler;
+
             this.eventUploader = new EventUploaderASA(eventHubConnectionString, eventHubInputName, batchConfig);
+        }
+
+        void batchConfig_SuccessHandler(object source, int eventCount, int sumSize, int inputQueueSize)
+        {
+            this.perfCounters.ReportExample(eventCount, sumSize);
+            this.perfCounters.ReportExampleQueue(inputQueueSize);
         }
 
         public void Record(TContext context, TAction value, object explorerState, object mapperState, UniqueEventID uniqueKey)
@@ -76,9 +93,5 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 }
             }
         }
-
-        #region Members
-        private IEventUploader eventUploader;
-        #endregion
     }
 }

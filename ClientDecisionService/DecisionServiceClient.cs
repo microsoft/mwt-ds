@@ -49,6 +49,9 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             if (explorer == null)
                 throw new ArgumentNullException("explorer");
 
+            if (config.JoinServiceBatchConfiguration == null)
+                config.JoinServiceBatchConfiguration = new JoinUploader.BatchingConfiguration();
+
             this.config = config;
 
             if (config.OfflineMode)
@@ -62,12 +65,11 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
                 if (this.recorder == null)
                 {
-                    var joinServerLogger = new JoinServiceLogger<TContext, TAction>();
+                    var joinServerLogger = new JoinServiceLogger<TContext, TAction>(config.AuthorizationToken);
                     switch (config.JoinServerType)
                     {
                         case JoinServerType.CustomSolution:
                             joinServerLogger.InitializeWithCustomAzureJoinServer(
-                                config.AuthorizationToken,
                                 config.LoggingServiceAddress,
                                 config.JoinServiceBatchConfiguration);
                             break;
