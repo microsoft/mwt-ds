@@ -64,11 +64,11 @@ namespace ClientDecisionServiceSample
                     }
                     var label = new ContextualBanditLabel
                     {
-                        Action = (uint)(action - 1),
+                        Action = (uint)action,
                         Cost = cost,
                         Probability = recorder.GetProb(key)
                     };
-                    vw.Learn(context, label);
+                    vw.Learn(context, label, index: (int)label.Action - 1);
 
                     stringExamplesTrain.Append(vw.Serializer.Create(vw.Native).SerializeToString(context, label, (int)label.Action));
                     stringExamplesTrain.Append("\r\n");
