@@ -43,35 +43,38 @@ namespace ClientDecisionServiceTest
             //wc.DownloadString("http://mcapp3-trainer.cloudapp.net/onlineTrainer");
             //Thread.Sleep(5000);
 
-            using (var client = DecisionService.WithPolicy(config, numberOfActions: 4).With<MyContext>()
-                .WithEpsilonGreedy(1f))
+            while (true)
             {
-                for (int i = 0; i < 8*1024; i++)
+                using (var client = DecisionService.WithPolicy(config, numberOfActions: 4).With<MyContext>()
+                    .WithEpsilonGreedy(1f))
                 {
-                    var key = new UniqueEventID() { Key = "key" + i, TimeStamp = DateTime.UtcNow };
+                    for (int i = 0; i < 8 * 1024; i++)
+                    {
+                        var key = new UniqueEventID() { Key = Guid.NewGuid().ToString(), TimeStamp = DateTime.UtcNow };
 
-                    var featureIndex = i % features.Length;
+                        var featureIndex = i % features.Length;
 
-                    var action = client.ChooseAction(key, new MyContext { Feature = features[featureIndex] });
+                        var action = client.ChooseAction(key, new MyContext { Feature = features[featureIndex] });
 
-                    // Feature | Action
-                    //    A   -->  1
-                    //    B   -->  2
-                    //    C   -->  3
-                    //    D   -->  4
-                    // only report in 50% of the cases
-                    if (rnd.NextDouble() < .75 && action - 1 == featureIndex)
-                        client.ReportReward(2, key);
+                        // Feature | Action
+                        //    A   -->  1
+                        //    B   -->  2
+                        //    C   -->  3
+                        //    D   -->  4
+                        // only report in 50% of the cases
+                        if (rnd.NextDouble() < .75 && action - 1 == featureIndex)
+                            client.ReportReward(2, key);
 
-                    var stat = string.Format("'{0}' '{1}' ", features[featureIndex], action);
-                    int count;
-                    if (freq.TryGetValue(stat, out count))
-                        freq[stat]++;
-                    else
-                        freq.Add(stat, count);
+                        var stat = string.Format("'{0}' '{1}' ", features[featureIndex], action);
+                        int count;
+                        if (freq.TryGetValue(stat, out count))
+                            freq[stat]++;
+                        else
+                            freq.Add(stat, count);
+                    }
                 }
 
-                client.Flush();
+                Console.WriteLine("abc");
             }
 
             // 4 actions times 4 feature values
@@ -122,3 +125,4 @@ namespace ClientDecisionServiceTest
         }
     }
 }
+

@@ -29,12 +29,13 @@ namespace ClientDecisionServiceTest
             string uniqueKey = "test interaction";
             int eventSentCount = 0;
 
-            var uploader = new EventUploader(null, MockJoinServer.MockJoinServerAddress);
-            uploader.InitializeWithToken(MockCommandCenter.AuthorizationToken);
-            uploader.PackageSent += (sender, e) => { eventSentCount += e.Records.Count(); };
-            uploader.Upload(new Interaction { Value = 1, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
-            uploader.Upload(new Interaction { Value = new int[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
-            uploader.Flush();
+            using (var uploader = new EventUploader(null, MockJoinServer.MockJoinServerAddress))
+            {
+                uploader.InitializeWithToken(MockCommandCenter.AuthorizationToken);
+                uploader.PackageSent += (sender, e) => { eventSentCount += e.Records.Count(); };
+                uploader.Upload(new Interaction { Value = 1, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
+                uploader.Upload(new Interaction { Value = new int[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
+            }
 
             Assert.AreEqual(2, eventSentCount);
             Assert.AreEqual(1, joinServer.RequestCount);
@@ -53,17 +54,17 @@ namespace ClientDecisionServiceTest
 
             string uniqueKey = "test interaction";
             int eventSentCount = 0;
-
-            var uploader = new EventUploader(null, MockJoinServer.MockJoinServerAddress);
             bool exceptionCaught = false;
 
-            uploader.InitializeWithToken("test");
-            uploader.PackageSent += (sender, e) => { eventSentCount += e.Records.Count(); };
-            uploader.PackageSendFailed += (sender, e) => { exceptionCaught = e.Exception != null; };
+            using (var uploader = new EventUploader(null, MockJoinServer.MockJoinServerAddress))
+            {
+                uploader.InitializeWithToken("test");
+                uploader.PackageSent += (sender, e) => { eventSentCount += e.Records.Count(); };
+                uploader.PackageSendFailed += (sender, e) => { exceptionCaught = e.Exception != null; };
 
-            uploader.Upload(new Interaction { Value = 1, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
-            uploader.Upload(new Interaction { Value = new int[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
-            uploader.Flush();
+                uploader.Upload(new Interaction { Value = 1, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
+                uploader.Upload(new Interaction { Value = new int[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
+            }
 
             Assert.AreEqual(1, joinServer.RequestCount);
             Assert.AreEqual(0, eventSentCount);
@@ -78,17 +79,17 @@ namespace ClientDecisionServiceTest
 
             string uniqueKey = "test interaction";
             int eventSentCount = 0;
-
-            var uploader = new EventUploader(null, "http://uploader.test");
             bool exceptionCaught = false;
 
-            uploader.InitializeWithToken(MockCommandCenter.AuthorizationToken);
-            uploader.PackageSent += (sender, e) => { eventSentCount += e.Records.Count(); };
-            uploader.PackageSendFailed += (sender, e) => { exceptionCaught = e.Exception != null; };
+            using (var uploader = new EventUploader(null, "http://uploader.test"))
+            {
+                uploader.InitializeWithToken(MockCommandCenter.AuthorizationToken);
+                uploader.PackageSent += (sender, e) => { eventSentCount += e.Records.Count(); };
+                uploader.PackageSendFailed += (sender, e) => { exceptionCaught = e.Exception != null; };
 
-            uploader.Upload(new Interaction { Value = 1, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
-            uploader.Upload(new Interaction { Value = new int[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
-            uploader.Flush();
+                uploader.Upload(new Interaction { Value = 1, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
+                uploader.Upload(new Interaction { Value = new int[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
+            }
 
             Assert.AreEqual(0, joinServer.RequestCount);
             Assert.AreEqual(0, eventSentCount);
@@ -104,16 +105,17 @@ namespace ClientDecisionServiceTest
             string uniqueKey = "test interaction";
             int eventSentCount = 0;
 
-            var uploader = new EventUploader(null, MockJoinServer.MockJoinServerAddress);
             bool exceptionCaught = false;
 
-            uploader.InitializeWithConnectionString("testconnectionstring", 15);
-            uploader.PackageSent += (sender, e) => { eventSentCount += e.Records.Count(); };
-            uploader.PackageSendFailed += (sender, e) => { exceptionCaught = e.Exception != null; };
+            using (var uploader = new EventUploader(null, MockJoinServer.MockJoinServerAddress))
+            {
+                uploader.InitializeWithConnectionString("testconnectionstring", 15);
+                uploader.PackageSent += (sender, e) => { eventSentCount += e.Records.Count(); };
+                uploader.PackageSendFailed += (sender, e) => { exceptionCaught = e.Exception != null; };
 
-            uploader.Upload(new Interaction { Value = 1, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
-            uploader.Upload(new Interaction { Value = new int[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
-            uploader.Flush();
+                uploader.Upload(new Interaction { Value = 1, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
+                uploader.Upload(new Interaction { Value = new int[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
+            }
 
             Assert.AreEqual(1, joinServer.RequestCount);
             Assert.AreEqual(0, eventSentCount);
@@ -150,23 +152,23 @@ namespace ClientDecisionServiceTest
             string uniqueKey = "test interaction";
             int eventSentCount = 0;
 
-            var uploader = new EventUploader(null, MockJoinServer.MockJoinServerAddress);
-            uploader.InitializeWithToken(MockCommandCenter.AuthorizationToken);
-            uploader.PackageSent += (sender, e) => { eventSentCount += e.Records.Count(); };
+            using (var uploader = new EventUploader(null, MockJoinServer.MockJoinServerAddress))
+            {
+                uploader.InitializeWithToken(MockCommandCenter.AuthorizationToken);
+                uploader.PackageSent += (sender, e) => { eventSentCount += e.Records.Count(); };
 
-            uploader.Upload(new Interaction { Value = 1, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
-            uploader.Upload(new Interaction { Value = 2, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .7f }, Key = uniqueKey });
-            uploader.Upload(new Interaction { Value = 0, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
+                uploader.Upload(new Interaction { Value = 1, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
+                uploader.Upload(new Interaction { Value = 2, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .7f }, Key = uniqueKey });
+                uploader.Upload(new Interaction { Value = 0, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
 
-            uploader.Upload(new Interaction { Value = new int[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
-            uploader.Upload(new Interaction { Value = new int[] { 2 }, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .7f }, Key = uniqueKey });
-            uploader.Upload(new Interaction { Value = new int[] { 0 }, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
+                uploader.Upload(new Interaction { Value = new int[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
+                uploader.Upload(new Interaction { Value = new int[] { 2 }, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .7f }, Key = uniqueKey });
+                uploader.Upload(new Interaction { Value = new int[] { 0 }, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
 
-            uploader.Upload(new Observation { Value = "1", Key = uniqueKey });
-            uploader.Upload(new Observation { Value = "2", Key = uniqueKey });
-            uploader.Upload(new Observation { Value = JsonConvert.SerializeObject(new { value = "test outcome" }), Key = uniqueKey });
-
-            uploader.Flush();
+                uploader.Upload(new Observation { Value = "1", Key = uniqueKey });
+                uploader.Upload(new Observation { Value = "2", Key = uniqueKey });
+                uploader.Upload(new Observation { Value = JsonConvert.SerializeObject(new { value = "test outcome" }), Key = uniqueKey });
+            }
 
             Assert.AreEqual(9, eventSentCount);
             Assert.AreEqual(9, joinServer.EventBatchList.Sum(batch => batch.ExperimentalUnitFragments.Count));
@@ -179,19 +181,20 @@ namespace ClientDecisionServiceTest
 
             string uniqueKey = "test interaction";
             int eventSentCount = 0;
-
-            var uploader = new EventUploader(null, MockJoinServer.MockJoinServerAddress);
-            uploader.InitializeWithToken(MockCommandCenter.AuthorizationToken);
-            uploader.PackageSent += (sender, e) => { Interlocked.Add(ref eventSentCount, e.Records.Count()); };
-
             int numEvents = 1000;
-            Parallel.For(0, numEvents, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, (i) =>
+
+            using (var uploader = new EventUploader(null, MockJoinServer.MockJoinServerAddress))
             {
-                uploader.Upload(new Interaction { Value = i, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = i / 1000.0f }, Key = uniqueKey });
-                uploader.Upload(new Interaction { Value = new int[] { i }, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = i / 1000.0f }, Key = uniqueKey });
-                uploader.Upload(new Observation { Value = JsonConvert.SerializeObject(new { value = "999" + i }), Key = uniqueKey });
-            });
-            uploader.Flush();
+                uploader.InitializeWithToken(MockCommandCenter.AuthorizationToken);
+                uploader.PackageSent += (sender, e) => { Interlocked.Add(ref eventSentCount, e.Records.Count()); };
+
+                Parallel.For(0, numEvents, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, (i) =>
+                {
+                    uploader.Upload(new Interaction { Value = i, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = i / 1000.0f }, Key = uniqueKey });
+                    uploader.Upload(new Interaction { Value = new int[] { i }, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = i / 1000.0f }, Key = uniqueKey });
+                    uploader.Upload(new Observation { Value = JsonConvert.SerializeObject(new { value = "999" + i }), Key = uniqueKey });
+                });
+            }
 
             Assert.AreEqual(numEvents * 3, eventSentCount);
             Assert.AreEqual(numEvents * 3, joinServer.EventBatchList.Sum(batch => batch.ExperimentalUnitFragments.Count));

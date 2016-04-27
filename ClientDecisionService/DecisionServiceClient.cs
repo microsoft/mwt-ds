@@ -1,5 +1,7 @@
 ﻿using Microsoft.Research.MultiWorldTesting.Contract;
 using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using System;
 using System.Diagnostics;
@@ -12,9 +14,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
     public sealed class DecisionServiceClient<TContext, TAction, TPolicyValue> : IDisposable
     {
-        private readonly string updateSettingsTaskId = "settings";
-        private readonly string updateModelTaskId = "model";
-
         private readonly IContextMapper<TContext, TPolicyValue> internalPolicy;
 
         private IRecorder<TContext, TAction> recorder;
@@ -24,6 +23,8 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         private readonly DecisionServiceConfiguration config;
         private readonly ApplicationTransferMetadata metaData;
         private MwtExplorer<TContext, TAction, TPolicyValue> mwtExplorer;
+        private AzureBlobBackgroundDownloader settingsDownloader;
+        private AzureBlobBackgroundDownloader modelDownloader;
 
         private class OfflineRecorder : IRecorder<TContext, TAction>
         {
@@ -84,30 +85,18 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 var settingsBlobPollDelay = config.PollingForSettingsPeriod == TimeSpan.Zero ? DecisionServiceConstants.PollDelay : config.PollingForSettingsPeriod;
                 if (settingsBlobPollDelay != TimeSpan.MinValue)
                 {
-                    AzureBlobUpdater.RegisterTask(
-                        this.updateSettingsTaskId,
-                        metaData.SettingsBlobUri,
-                        metaData.ConnectionString,
-                        config.BlobOutputDir,
-                        settingsBlobPollDelay,
-                        this.UpdateSettings,
-                        config.SettingsPollFailureCallback);
+                    this.settingsDownloader = new AzureBlobBackgroundDownloader(metaData.ConnectionString, metaData.SettingsBlobUri, settingsBlobPollDelay);
+                    this.settingsDownloader.Downloaded += this.UpdateSettings;
+                    this.settingsDownloader.Failed += settingsDownloader_Failed;
                 }
 
                 var modelBlobPollDelay = config.PollingForModelPeriod == TimeSpan.Zero ? DecisionServiceConstants.PollDelay : config.PollingForModelPeriod;
                 if (modelBlobPollDelay != TimeSpan.MinValue)
                 {
-                    AzureBlobUpdater.RegisterTask(
-                        this.updateModelTaskId,
-                        metaData.ModelBlobUri,
-                        metaData.ConnectionString,
-                        config.BlobOutputDir, 
-                        modelBlobPollDelay,
-                        this.UpdateContextMapperFromFile,
-                        config.ModelPollFailureCallback);
+                    this.modelDownloader = new AzureBlobBackgroundDownloader(metaData.ConnectionString, metaData.ModelBlobUri, modelBlobPollDelay);
+                    this.modelDownloader.Downloaded += this.UpdateContextMapper;
+                    this.modelDownloader.Failed += modelDownloader_Failed;
                 }
-
-                AzureBlobUpdater.Start();
             }
 
             this.logger = this.recorder as ILogger;
@@ -140,44 +129,73 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             }
         }
 
-        private void UpdateContextMapperFromFile(string modelFile)
+        void modelDownloader_Failed(object sender, Exception e)
+        {
+            if (this.config.ModelPollFailureCallback != null)
+                this.config.ModelPollFailureCallback(e);
+        }
+
+        void settingsDownloader_Failed(object sender, Exception e)
+        {
+            if (this.config.SettingsPollFailureCallback != null)
+                this.config.SettingsPollFailureCallback(e);
+        }
+
+        private void UpdateSettings(object sender, byte[] data)
+        {
+            try
+            {
+                using (var reader = new JsonTextReader(new StreamReader(new MemoryStream(data))))
+                {
+                    var jsonSerializer = new JsonSerializer();
+                    var metadata = jsonSerializer.Deserialize<ApplicationTransferMetadata>(reader);
+
+                    // TODO: not sure if we want to bypass or expose EnableExplore in MWT explorer?
+                    this.mwtExplorer.Explorer.EnableExplore(metadata.IsExplorationEnabled);
+                }
+
+                if (this.config.SettingsPollSuccessCallback != null)
+                    this.config.SettingsPollSuccessCallback(data);
+            }
+            catch (JsonReaderException jrex)
+            {
+                Trace.TraceWarning("Cannot read new settings: " + jrex.Message);
+            }
+        }
+
+        private void UpdateContextMapper(object sender, byte[] data)
         {
             var updatable = this.internalPolicy as IUpdatable<Stream>;
             if (updatable != null)
             {
-                using (var stream = File.OpenRead(modelFile))
+                using (var stream = new MemoryStream(data))
                 {
                     updatable.Update(stream);
 
                     Trace.TraceInformation("Model update succeeded.");
                 }
             }
+
+            if (this.config.ModelPollSuccessCallback != null)
+                this.config.ModelPollSuccessCallback(data);
         }
 
         public async Task DownloadModelAndUpdate(CancellationToken cancellationToken)
         {
-            bool modelFound = false;
-            var modelMetadata = new AzureBlobUpdateMetadata(
-               "model", this.metaData.ModelBlobUri,
-               this.metaData.ConnectionString,
-               config.BlobOutputDir, TimeSpan.MinValue,
-               modelFile =>
-               {
-                   using (var modelStream = File.OpenRead(modelFile))
-                   {
-                       UpdateModel(modelStream);
-                       modelFound = true;
-                       Trace.TraceInformation("Model download succeeded.");
-                   }
-               },
-               null,
-               cancellationToken);
+            CloudStorageAccount storageAccount;
+            var accountFound = CloudStorageAccount.TryParse(this.metaData.ConnectionString, out storageAccount);
+            if (!accountFound || storageAccount == null)
+                throw new ArgumentException("Invalid connection string '" + this.metaData.ConnectionString + "'", "blobConnectionString");
 
-            await AzureBlobUpdateTask.DownloadAsync(modelMetadata);
+            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+            ICloudBlob blob = await blobClient.GetBlobReferenceFromServerAsync(new Uri(this.metaData.ModelBlobUri), cancellationToken);
 
-            if (!modelFound)
+            using (var ms = new MemoryStream())
             {
-                throw new ModelNotFoundException("No MWT model found for download.");
+                await blob.DownloadToStreamAsync(ms, cancellationToken);
+
+                ms.Position = 0;
+                this.UpdateModel(ms);
             }
         }
 
@@ -277,42 +295,34 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             }
         }
 
-        /// <summary>
-        /// Flush any pending data to be logged and request to stop all polling as appropriate.
-        /// </summary>
-        public void Flush()
-        {
-            // stops all updates
-            AzureBlobUpdater.Stop();
-
-            if (this.logger != null)
-                logger.Flush();
-        }
-
         public void Dispose()
         {
-            this.Flush();
+            if (this.settingsDownloader != null)
+            {
+                this.settingsDownloader.Dispose();
+                this.settingsDownloader = null;
+            }
+
+            if (this.modelDownloader != null)
+            {        
+                this.modelDownloader.Dispose();
+                this.modelDownloader = null;
+            }
+
+            if (this.recorder != null)
+            {
+                // Flush any pending data to be logged 
+                var disposable = this.recorder as IDisposable;
+                if (disposable != null)
+                    disposable.Dispose();
+
+                recorder = null;
+            }
 
             if (this.mwtExplorer != null)
             {
                 this.mwtExplorer.Dispose();
                 this.mwtExplorer = null;
-            }
-        }
-
-        private void UpdateSettings(string settingsFile)
-        {
-            try
-            {
-                string metadataJson = File.ReadAllText(settingsFile);
-                var metadata = JsonConvert.DeserializeObject<ApplicationTransferMetadata>(metadataJson);
-
-                // TODO: not sure if we want to bypass or expose EnableExplore in MWT explorer?
-                this.mwtExplorer.Explorer.EnableExplore(metadata.IsExplorationEnabled);
-            }
-            catch (JsonReaderException jrex)
-            {
-                Trace.TraceWarning("Cannot read new settings: " + jrex.Message);
             }
         }
     }

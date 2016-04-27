@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.WindowsAzure.Storage;
 
 namespace ClientDecisionServiceTest
 {
@@ -68,33 +70,25 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
-        public void TestNoModelFoundForImmediateDownload()
+        [ExpectedException(typeof(StorageException))]
+        public async Task TestNoModelFoundForImmediateDownload()
         {
-            bool success = false;
-            try
-            {
-                var serviceConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken)
-                {
-                    JoinServerType = JoinServerType.CustomSolution,
-                    LoggingServiceAddress = MockJoinServer.MockJoinServerAddress,
-                };
+            // create mock blobs for settings and models
+            this.commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false);
 
-                using (var service = DecisionService
-                    .WithRanker(serviceConfig)
-                    .With<TestADFContextWithFeatures, TestADFFeatures>(context => context.ActionDependentFeatures)
-                    .WithTopSlotEpsilonGreedy(epsilon: .2f))
-                {
-                    service.DownloadModelAndUpdate(new System.Threading.CancellationToken()).Wait();
-                }
-            }
-            catch (AggregateException aex)
+            var serviceConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken)
             {
-                if (aex.InnerException is ModelNotFoundException)
-                {
-                    success = true;
-                }
+                JoinServerType = JoinServerType.CustomSolution,
+                LoggingServiceAddress = MockJoinServer.MockJoinServerAddress,
+            };
+
+            using (var service = DecisionService
+                .WithRanker(serviceConfig)
+                .With<TestADFContextWithFeatures, TestADFFeatures>(context => context.ActionDependentFeatures)
+                .WithTopSlotEpsilonGreedy(epsilon: .2f))
+            {
+                await service.DownloadModelAndUpdate(new System.Threading.CancellationToken());
             }
-            Assert.IsTrue(success);
         }
 
         [TestMethod]

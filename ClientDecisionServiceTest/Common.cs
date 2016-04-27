@@ -171,7 +171,7 @@ namespace ClientDecisionServiceTest
         }
     }
 
-    class TestLogger : ILogger, IRecorder<TestContext, int>, IRecorder<TestContext, int[]>
+    class TestLogger : ILogger, IRecorder<TestContext, int>, IRecorder<TestContext, int[]>, IDisposable
     {
         public TestLogger()
         {
@@ -190,7 +190,7 @@ namespace ClientDecisionServiceTest
             this.numOutcome++;
         }
 
-        public void Flush()
+        public void Dispose()
         {
             this.numRecord = 0;
             this.numReward = 0;

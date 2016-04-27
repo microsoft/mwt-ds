@@ -26,19 +26,20 @@ namespace ClientDecisionServiceTest
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
 
+            int chosenAction;
             using (var ds = DecisionService
                 .WithPolicy(dsConfig, Constants.NumberOfActions)
                 .With<TestContext>()
                 .ExploitUntilModelReady(new TestSingleActionPolicy()))
             {
-                int chosenAction = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
-                ds.Flush();
-                Assert.AreEqual(1, joinServer.RequestCount);
-                Assert.AreEqual(1, joinServer.EventBatchList.Count);
-                Assert.AreEqual(1, joinServer.EventBatchList[0].ExperimentalUnitFragments.Count);
-                Assert.AreEqual(uniqueKey, joinServer.EventBatchList[0].ExperimentalUnitFragments[0].Id);
-                Assert.IsTrue(joinServer.EventBatchList[0].ExperimentalUnitFragments[0].Value.ToLower().Contains("\"a\":" + chosenAction + ","));
+                chosenAction = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
             }
+
+            Assert.AreEqual(1, joinServer.RequestCount);
+            Assert.AreEqual(1, joinServer.EventBatchList.Count);
+            Assert.AreEqual(1, joinServer.EventBatchList[0].ExperimentalUnitFragments.Count);
+            Assert.AreEqual(uniqueKey, joinServer.EventBatchList[0].ExperimentalUnitFragments[0].Id);
+            Assert.IsTrue(joinServer.EventBatchList[0].ExperimentalUnitFragments[0].Value.ToLower().Contains("\"a\":" + chosenAction + ","));
         }
 
         [TestMethod]
@@ -63,11 +64,9 @@ namespace ClientDecisionServiceTest
                 int chosenAction2 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
                 ds.ReportReward(1.0f, new UniqueEventID { Key = uniqueKey });
                 ds.ReportOutcome(JsonConvert.SerializeObject(new { value = "test outcome" }), new UniqueEventID { Key = uniqueKey });
-
-                ds.Flush();
-
-                Assert.AreEqual(4, joinServer.EventBatchList.Sum(batch => batch.ExperimentalUnitFragments.Count));
             }
+
+            Assert.AreEqual(4, joinServer.EventBatchList.Sum(batch => batch.ExperimentalUnitFragments.Count));
         }
 
         [TestMethod]
@@ -154,20 +153,21 @@ namespace ClientDecisionServiceTest
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
 
+            int[] chosenActions;
             using (var ds = DecisionService
                 .WithRanker(dsConfig)
                 .With<TestContext>()
                 .WithTopSlotEpsilonGreedy(.2f)
                 .ExploitUntilModelReady(new TestMultiActionPolicy()))
             {
-                int[] chosenActions = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
-                ds.Flush();
-                Assert.AreEqual(1, joinServer.RequestCount);
-                Assert.AreEqual(1, joinServer.EventBatchList.Count);
-                Assert.AreEqual(1, joinServer.EventBatchList[0].ExperimentalUnitFragments.Count);
-                Assert.AreEqual(uniqueKey, joinServer.EventBatchList[0].ExperimentalUnitFragments[0].Id);
-                Assert.IsTrue(joinServer.EventBatchList[0].ExperimentalUnitFragments[0].Value.ToLower().Contains("\"a\":[" + string.Join(",", chosenActions) + "],"));
+                chosenActions = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
             }
+
+            Assert.AreEqual(1, joinServer.RequestCount);
+            Assert.AreEqual(1, joinServer.EventBatchList.Count);
+            Assert.AreEqual(1, joinServer.EventBatchList[0].ExperimentalUnitFragments.Count);
+            Assert.AreEqual(uniqueKey, joinServer.EventBatchList[0].ExperimentalUnitFragments[0].Id);
+            Assert.IsTrue(joinServer.EventBatchList[0].ExperimentalUnitFragments[0].Value.ToLower().Contains("\"a\":[" + string.Join(",", chosenActions) + "],"));
         }
 
         [TestMethod]

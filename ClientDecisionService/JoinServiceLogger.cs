@@ -58,12 +58,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 Value = outcome
             });
         }
-
-        public void Flush()
-        {
-            this.eventUploader.Flush();
-        }
-
+        
         public void Dispose()
         {
             this.Dispose(true);

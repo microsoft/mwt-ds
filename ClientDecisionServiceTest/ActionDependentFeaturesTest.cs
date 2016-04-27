@@ -101,8 +101,6 @@ namespace ClientDecisionServiceTest
 
                     ds.ReportReward(i / 100f, new UniqueEventID { Key = uniqueKey });
                 }
-
-                ds.Flush();
             }
             Assert.AreEqual(200, joinServer.EventBatchList.Sum(b => b.ExperimentalUnitFragments.Count));
         }

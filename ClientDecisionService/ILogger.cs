@@ -2,12 +2,10 @@
 {
     using MultiWorldTesting.ExploreLibrary;
 
-    public interface ILogger
+    public interface ILogger 
     {
         void ReportReward(UniqueEventID uniqueKey, float reward);
         
         void ReportOutcome(UniqueEventID uniqueKey, object outcome);
-
-        void Flush();
     }
 }

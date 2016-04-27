@@ -195,6 +195,7 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// </summary>
         protected override void Dispose(bool disposing)
         {
+            base.Dispose(disposing);
             if (disposing)
             {
                 if (this.httpClient != null)
@@ -203,7 +204,6 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
                     this.httpClient = null;
                 }
             }
-            base.Dispose(disposing);
         }
 
         private static string BuildJsonMessage(EventBatch batch, int? experimentalUnitDuration)

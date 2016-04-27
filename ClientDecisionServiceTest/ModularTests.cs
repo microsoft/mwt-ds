@@ -139,7 +139,7 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
-        [ExpectedException(typeof(NotSupportedException))]
+        [ExpectedException(typeof(Exception))]
         public void TestMultiActionOfflineModeArgument()
         {
             using (var ds = DecisionService

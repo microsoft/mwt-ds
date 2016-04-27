@@ -23,7 +23,7 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
     {
         private readonly Random random;
 
-        private readonly TransformBlock<IEvent, TTransformedEvent> eventSource;
+        private TransformBlock<IEvent, TTransformedEvent> eventSource;
         private readonly IObserver<IEvent> eventObserver;
         private readonly ActionBlock<IList<TTransformedEvent>> eventProcessor;
         private IDisposable eventUnsubscriber;
@@ -188,15 +188,6 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         }
 
         /// <summary>
-        /// Flush the data buffer to upload all remaining events.
-        /// </summary>
-        public void Flush()
-        {
-            this.eventSource.Complete();
-            this.eventProcessor.Completion.Wait();
-        }
-
-        /// <summary>
         /// Disposes the current object and all internal members.
         /// </summary>
         public void Dispose()
@@ -213,6 +204,15 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         {
             if (disposing)
             {
+                if (this.eventSource != null)
+                {
+                    // Flush the data buffer to upload all remaining events.
+                    this.eventSource.Complete();
+                    this.eventProcessor.Completion.Wait();
+
+                    this.eventSource = null;
+                }
+
                 if (this.eventUnsubscriber != null)
                 {
                     this.eventUnsubscriber.Dispose();

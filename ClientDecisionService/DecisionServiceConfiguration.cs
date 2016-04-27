@@ -42,19 +42,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         public bool OfflineMode { get; set; }
 
         /// <summary>
-        /// Specifies the output directory on disk for blob download (e.g. of settings or model files).
-        /// </summary>
-        public string BlobOutputDir
-        {
-            get { return blobOutputDir; }
-            set
-            {
-                if (value == null) throw new ArgumentNullException("Blob output directory cannot be null");
-                blobOutputDir = value;
-            }
-        }
-
-        /// <summary>
         /// Specifies the batching configuration when uploading data to join service.
         /// </summary>
         /// <remarks>
@@ -133,9 +120,12 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         /// </summary>
         public Action<Exception> SettingsPollFailureCallback { get; set; }
 
+        public Action<byte[]> ModelPollSuccessCallback { get; set; }
+
+        public Action<byte[]> SettingsPollSuccessCallback { get; set; }
+
         #endregion
 
-        private string blobOutputDir;
         private BatchingConfiguration batchConfig;
         private string loggingServiceAddress;
         private TimeSpan pollingForSettingsPeriod;
