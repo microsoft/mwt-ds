@@ -206,7 +206,7 @@ namespace ClientDecisionServiceTest
             int numChooseAction = 100;
             using (var ds = DecisionService
                 .WithRanker(dsConfig)
-                .With<TestContext>()
+                .With<TestContext>(VW.VowpalWabbitFeatureDiscovery.Json)
                 .WithTopSlotEpsilonGreedy(.2f)
                 .WithRecorder(recorder)
                 .ExploitUntilModelReady(new TestMultiActionPolicy()))

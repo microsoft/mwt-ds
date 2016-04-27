@@ -8,7 +8,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
     {
         public static DecisionServiceClient<TContext, TAction, TPolicyValue>
             ExploitUntilModelReady<TContext, TAction, TPolicyValue>
-            (this DecisionServiceClient<TContext, TAction, TPolicyValue> that, IContextMapper<TContext, TAction> initialPolicy)
+            (this DecisionServiceClient<TContext, TAction, TPolicyValue> that, IContextMapper<TContext, TPolicyValue> initialPolicy)
         {
             that.InitialPolicy = initialPolicy;
             return that;
