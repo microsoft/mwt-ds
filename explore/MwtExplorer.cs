@@ -111,6 +111,13 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             }
         }
 
+        public TAction ChooseAction(UniqueEventID uniqueKey, TContext context, IContextMapper<TContext, TPolicyValue> defaultPolicy)
+        {
+            var policy = this.Policy;
+            var policyDecision = (policy ?? defaultPolicy).MapContext(context);
+            return ChooseActionInternal(uniqueKey, context, policyDecision);
+        }
+
 		/// <summary>
         /// Choose an action (or decision to take) given the exploration algorithm and context.
 		/// </summary>
@@ -123,23 +130,8 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         {
             // Note: thread-safe atomic reference access
             var policy = this.Policy;
-
-            ulong saltedSeed = MurMurHash3.ComputeIdHash(uniqueKey.Key) + this.appId;
-            PRG random = new PRG(saltedSeed);
-
             var policyDecision = (policy != null) ? policy.MapContext(context) : defaultPolicyDecision;
-
-            int numActionsVariable = this.numActionsProvider.GetNumberOfActions(context);
-            if (numActionsVariable <= 0)
-            {
-                throw new Exception("Could not determine number of actions from the provided context.");
-            }
-
-            var explorerDecision = this.Explorer.MapContext(random, policyDecision.Value, numActionsVariable);
-            
-            this.Log(uniqueKey, context, explorerDecision, policyDecision);
-
-            return explorerDecision.Value;
+            return ChooseActionInternal(uniqueKey, context, policyDecision);
         }
 
         public TAction ChooseAction(UniqueEventID uniqueKey, TContext context)
@@ -170,14 +162,6 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             return explorerDecision.Value;
         }
 
-        private void Log(UniqueEventID uniqueKey, TContext context, ExplorerDecision<TAction> explorerDecision, object policyState = null)
-        {
-            if (explorerDecision.ShouldRecord)
-            {
-                this.recorder.Record(context, explorerDecision.Value, explorerDecision.ExplorerState, policyState, uniqueKey);
-            }
-        }
-
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
@@ -185,6 +169,32 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         {
             this.Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        private TAction ChooseActionInternal(UniqueEventID uniqueKey, TContext context, PolicyDecision<TPolicyValue> policyDecision)
+        {
+            ulong saltedSeed = MurMurHash3.ComputeIdHash(uniqueKey.Key) + this.appId;
+            PRG random = new PRG(saltedSeed);
+
+            int numActionsVariable = this.numActionsProvider.GetNumberOfActions(context);
+            if (numActionsVariable <= 0)
+            {
+                throw new Exception("Could not determine number of actions from the provided context.");
+            }
+
+            var explorerDecision = this.Explorer.MapContext(random, policyDecision.Value, numActionsVariable);
+
+            this.Log(uniqueKey, context, explorerDecision, policyDecision);
+
+            return explorerDecision.Value;
+        }
+
+        private void Log(UniqueEventID uniqueKey, TContext context, ExplorerDecision<TAction> explorerDecision, object policyState = null)
+        {
+            if (explorerDecision.ShouldRecord)
+            {
+                this.recorder.Record(context, explorerDecision.Value, explorerDecision.ExplorerState, policyState, uniqueKey);
+            }
         }
 
         private void Dispose(bool disposing)
