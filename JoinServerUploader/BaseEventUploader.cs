@@ -32,6 +32,8 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// The batching configuration used when uploading data.
         /// </summary>
         protected readonly BatchingConfiguration batchConfig;
+        private readonly CancellationTokenSource cancellationTokenSource;
+        protected CancellationToken cancellationToken;
 
         /// <summary>
         /// Constructs an uploader object.
@@ -39,6 +41,9 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// <param name="batchConfig">Optional; The batching configuration that controls the buffer size.</param>
         public BaseEventUploader(BatchingConfiguration batchConfig = null)
         {
+            this.cancellationTokenSource = new CancellationTokenSource();
+            this.cancellationToken = this.cancellationTokenSource.Token;
+
             this.batchConfig = batchConfig ?? new BatchingConfiguration();
 
             this.eventSource = new TransformBlock<IEvent, TTransformedEvent>(
@@ -48,6 +53,7 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
                     MaxDegreeOfParallelism = this.batchConfig.MaxDegreeOfSerializationParallelism,
                     BoundedCapacity = this.batchConfig.MaxUploadQueueCapacity
                 });
+
             this.eventObserver = this.eventSource.AsObserver();
 
             this.eventProcessor = new ActionBlock<IList<TTransformedEvent>>
@@ -208,6 +214,8 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         {
             if (disposing)
             {
+                this.cancellationTokenSource.Cancel();
+
                 if (this.eventSource != null)
                 {
                     // Flush the data buffer to upload all remaining events.

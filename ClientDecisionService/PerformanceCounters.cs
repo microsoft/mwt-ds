@@ -15,8 +15,9 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         {
             try
             {
-                if (PerformanceCounterCategory.Exists(category))
-                    PerformanceCounterCategory.Delete(category);
+                // only if the counters below are changed
+                //if (PerformanceCounterCategory.Exists(category))
+                //    PerformanceCounterCategory.Delete(category);
 
                 var counterCollection = new CounterCreationDataCollection();
 

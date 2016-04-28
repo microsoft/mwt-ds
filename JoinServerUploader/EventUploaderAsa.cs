@@ -93,10 +93,34 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// <returns>A Task object.</returns>
         public override async Task UploadTransformedEvents(IList<EventData> transformedEvents)
         {
-            await Task.WhenAll(
-                transformedEvents.GroupBy(e => e.PartitionKey)
-                    .Select(evt => this.client.SendBatchAsync(evt))
-                );
+            while (!this.cancellationToken.IsCancellationRequested)
+            {
+                try
+                {
+                    // group equal partition keys
+                    var tasks = transformedEvents
+                        .GroupBy(e => e.PartitionKey)
+                        .Select(evt => this.client.SendBatchAsync(evt));
+
+                    await Task.WhenAll(tasks);
+                    return;
+                }
+                catch (ServerBusyException e)
+                {
+                    if (!e.IsTransient)
+                    {
+                        this.batchConfig.FireErrorHandler(e);
+                        return;
+                    }
+                }
+                catch (Exception e)
+                {
+                    this.batchConfig.FireErrorHandler(e);
+                    return;
+                }
+
+                await Task.Delay(TimeSpan.FromSeconds(4));
+            }
         }
 
         /// <summary>
