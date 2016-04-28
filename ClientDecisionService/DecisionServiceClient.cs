@@ -167,15 +167,9 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
         private void UpdateContextMapper(object sender, byte[] data)
         {
-            var updatable = this.internalPolicy as IUpdatable<Stream>;
-            if (updatable != null)
+            using (var stream = new MemoryStream(data))
             {
-                using (var stream = new MemoryStream(data))
-                {
-                    updatable.Update(stream);
-
-                    Trace.TraceInformation("Model update succeeded.");
-                }
+                this.UpdateModel(stream);
             }
 
             if (this.config.ModelPollSuccessCallback != null)
@@ -249,8 +243,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             var initialPolicy = this.initialPolicy;
             if (initialPolicy != null)
             {
-                var defaultAction = initialPolicy.MapContext(context).Value;
-                return this.mwtExplorer.ChooseAction(uniqueKey, context, defaultAction);
+                return this.mwtExplorer.ChooseAction(uniqueKey, context, initialPolicy);
             }
 
             return this.mwtExplorer.ChooseAction(uniqueKey, context);
@@ -294,6 +287,8 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
                 // Swap out initial policy and use the internal policy to handle new model
                 this.mwtExplorer.Policy = this.internalPolicy;
+                
+                Trace.TraceInformation("Model update succeeded.");
             }
         }
 

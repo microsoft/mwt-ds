@@ -22,7 +22,7 @@ namespace ClientDecisionServiceSample
 
             using (var service = DecisionService
                 .WithRanker(serviceConfig)
-                .With<FoodContext, FoodFeature>(context => FoodContext.GetFeaturesFromContext(context))
+                .With<FoodContext>()
                 .WithTopSlotEpsilonGreedy(epsilon: .2f)
                 .ExploitUntilModelReady(new FoodPolicy()))
             {
