@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using VW.Labels;
-using VW.Interfaces;
 using VW.Serializer.Attributes;
 
 namespace ClientDecisionServiceTest
