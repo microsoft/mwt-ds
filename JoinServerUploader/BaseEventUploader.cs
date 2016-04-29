@@ -214,8 +214,6 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         {
             if (disposing)
             {
-                this.cancellationTokenSource.Cancel();
-
                 if (this.eventSource != null)
                 {
                     // Flush the data buffer to upload all remaining events.
@@ -230,6 +228,8 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
                     this.eventUnsubscriber.Dispose();
                     this.eventUnsubscriber = null;
                 }
+
+                this.cancellationTokenSource.Cancel();
             }
         }
 
