@@ -31,7 +31,9 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         
         private string blobEtag;
 
-        public AzureBlobBackgroundDownloader(string blobConnectionString, string blobAddress, TimeSpan interval)
+        private bool downloadImmediately;
+
+        public AzureBlobBackgroundDownloader(string blobConnectionString, string blobAddress, TimeSpan interval, bool downloadImmediately = false)
         {
             if (blobConnectionString == null)
                 throw new ArgumentNullException("blobConnectionString");
@@ -51,6 +53,8 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 .Replay();
 
             this.disposable = conn.Connect();
+
+            this.downloadImmediately = downloadImmediately;
         }
 
         private async Task Execute(CancellationToken cancellationToken)
@@ -76,7 +80,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                     this.blobEtag = blob.Properties.ETag;
 
                     // don't fire the first time...
-                    if (currentBlobEtag == null)
+                    if (currentBlobEtag == null && !this.downloadImmediately)
                         return;
                 }
 

@@ -95,7 +95,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 var modelBlobPollDelay = config.PollingForModelPeriod == TimeSpan.Zero ? DecisionServiceConstants.PollDelay : config.PollingForModelPeriod;
                 if (modelBlobPollDelay != TimeSpan.MinValue)
                 {
-                    this.modelDownloader = new AzureBlobBackgroundDownloader(metaData.ConnectionString, metaData.ModelBlobUri, modelBlobPollDelay);
+                    this.modelDownloader = new AzureBlobBackgroundDownloader(metaData.ConnectionString, metaData.ModelBlobUri, modelBlobPollDelay, downloadImmediately: true);
                     this.modelDownloader.Downloaded += this.UpdateContextMapper;
                     this.modelDownloader.Failed += modelDownloader_Failed;
                 }
