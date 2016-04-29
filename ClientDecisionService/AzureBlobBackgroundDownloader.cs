@@ -72,7 +72,12 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                     if (blob.Properties.ETag == this.blobEtag)
                         return;
 
+                    var currentBlobEtag = this.blobEtag;
                     this.blobEtag = blob.Properties.ETag;
+
+                    // don't fire the first time...
+                    if (currentBlobEtag == null)
+                        return;
                 }
 
                 // download

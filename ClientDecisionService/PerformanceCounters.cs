@@ -19,16 +19,19 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 //if (PerformanceCounterCategory.Exists(category))
                 //    PerformanceCounterCategory.Delete(category);
 
-                var counterCollection = new CounterCreationDataCollection();
+                if (!PerformanceCounterCategory.Exists(category))
+                {
+                    var counterCollection = new CounterCreationDataCollection();
 
-                counterCollection.Add(new CounterCreationData() { CounterName = "ExamplesQueue", CounterHelp = "", CounterType = PerformanceCounterType.NumberOfItems64 });
-                counterCollection.Add(new CounterCreationData() { CounterName = "ExamplesTotal", CounterHelp = "", CounterType = PerformanceCounterType.NumberOfItems64 });
-                counterCollection.Add(new CounterCreationData() { CounterName = "ExamplesSec", CounterHelp = "", CounterType = PerformanceCounterType.RateOfCountsPerSecond32 });
-                counterCollection.Add(new CounterCreationData() { CounterName = "ExamplesBytesSec", CounterHelp = "", CounterType = PerformanceCounterType.RateOfCountsPerSecond64 });
-                counterCollection.Add(new CounterCreationData() { CounterName = "AverageExampleSize", CounterHelp = "", CounterType = PerformanceCounterType.AverageCount64 });
-                counterCollection.Add(new CounterCreationData() { CounterName = "AverageExampleSizeBase", CounterHelp = "", CounterType = PerformanceCounterType.AverageBase });
+                    counterCollection.Add(new CounterCreationData() { CounterName = "ExamplesQueue", CounterHelp = "", CounterType = PerformanceCounterType.NumberOfItems64 });
+                    counterCollection.Add(new CounterCreationData() { CounterName = "ExamplesTotal", CounterHelp = "", CounterType = PerformanceCounterType.NumberOfItems64 });
+                    counterCollection.Add(new CounterCreationData() { CounterName = "ExamplesSec", CounterHelp = "", CounterType = PerformanceCounterType.RateOfCountsPerSecond32 });
+                    counterCollection.Add(new CounterCreationData() { CounterName = "ExamplesBytesSec", CounterHelp = "", CounterType = PerformanceCounterType.RateOfCountsPerSecond64 });
+                    counterCollection.Add(new CounterCreationData() { CounterName = "AverageExampleSize", CounterHelp = "", CounterType = PerformanceCounterType.AverageCount64 });
+                    counterCollection.Add(new CounterCreationData() { CounterName = "AverageExampleSizeBase", CounterHelp = "", CounterType = PerformanceCounterType.AverageBase });
 
-                PerformanceCounterCategory.Create(category, "Decision Service Client", PerformanceCounterCategoryType.MultiInstance, counterCollection);
+                    PerformanceCounterCategory.Create(category, "Decision Service Client", PerformanceCounterCategoryType.MultiInstance, counterCollection);
+                }
             }
             catch (Exception e)
             {
