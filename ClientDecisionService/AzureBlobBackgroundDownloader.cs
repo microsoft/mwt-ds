@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reactive.Linq;
 using System.Text;
 using System.Threading;
@@ -101,9 +102,13 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 if (ex is StorageException)
                 {
                     RequestResult result = ((StorageException)ex).RequestInformation;
-                    Trace.TraceError(
-                      "Failed to retrieve '{0}': {1}. {2}",
-                      uri, ex.Message, result.HttpStatusMessage);
+                    if (result.HttpStatusCode != (int)HttpStatusCode.NotFound)
+                    {
+                        Trace.TraceError(
+                          "Failed to retrieve '{0}': {1}. {2}",
+                          uri, ex.Message, result.HttpStatusMessage);
+                    }
+
                 }
                 else
                     Trace.TraceError("Failed to retrieve '{0}': {1}", uri, ex.Message);
