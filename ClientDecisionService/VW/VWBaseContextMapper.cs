@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using VW;
+using VW.Serializer;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
@@ -10,7 +11,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         where TPool : VowpalWabbitThreadedPredictionBase<TVowpalWabbit>, new()
         where TVowpalWabbit : class, IDisposable
     {
-        private VowpalWabbitFeatureDiscovery featureDiscovery;
+        private ITypeInspector typeInspector;
         protected TPool vwPool;
 
         /// <summary>
@@ -19,9 +20,11 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         /// <param name="vwModelStream">The VW model memory stream.</param>
         protected VWBaseContextMapper(
             Stream vwModelStream = null,
-            VowpalWabbitFeatureDiscovery featureDiscovery = VowpalWabbitFeatureDiscovery.Default)
+            ITypeInspector typeInspector = null)
         {
-            this.featureDiscovery = featureDiscovery;
+            if (typeInspector == null)
+                typeInspector = JsonTypeInspector.Default;
+            this.typeInspector = typeInspector;
             this.Update(vwModelStream);
         }
 
@@ -39,7 +42,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                     "--quiet -t",
                     modelStream: modelStream,
                     maxExampleCacheSize: 1024,
-                    featureDiscovery: this.featureDiscovery));
+                    typeInspector: this.typeInspector));
 
             if (this.vwPool == null)
             {

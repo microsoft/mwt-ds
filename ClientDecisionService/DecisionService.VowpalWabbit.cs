@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Net;
 using VW;
+using VW.Serializer;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
@@ -91,19 +92,19 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         /// <summary>
         /// User-defined type policy
         /// </summary>
-        public static DecisionServiceClient<TContext, int, int> With<TContext>(this DecisionServiceClientSpecification<int> spec, VowpalWabbitFeatureDiscovery featureDiscovery = VowpalWabbitFeatureDiscovery.Json)
+        public static DecisionServiceClient<TContext, int, int> With<TContext>(this DecisionServiceClientSpecification<int> spec, ITypeInspector typeInspector = null)
         {
             spec.Config.UseJsonContext = false;
-            return spec.CreateClient(new VWPolicy<TContext>(spec.Config.ModelStream, featureDiscovery));
+            return spec.CreateClient(new VWPolicy<TContext>(spec.Config.ModelStream, typeInspector));
         }
 
         /// <summary>
         /// User-defined type ranker
         /// </summary>
-        public static DecisionServiceClient<TContext, int[], int[]> With<TContext>(this DecisionServiceClientSpecification<int[]> spec, VowpalWabbitFeatureDiscovery featureDiscovery = VowpalWabbitFeatureDiscovery.Json)
+        public static DecisionServiceClient<TContext, int[], int[]> With<TContext>(this DecisionServiceClientSpecification<int[]> spec, ITypeInspector typeInspector = null)
         {
             spec.Config.UseJsonContext = false;
-            return spec.CreateClient(new VWRanker<TContext>(spec.Config.ModelStream, featureDiscovery));
+            return spec.CreateClient(new VWRanker<TContext>(spec.Config.ModelStream, typeInspector));
         }
 
         /// <summary>
@@ -111,15 +112,15 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         /// </summary>
         public static DecisionServiceClient<TContext, int[], int[]> With<TContext, TActionDependentFeature>(
             this DecisionServiceClientSpecification<int[]> spec,
-            Func<TContext, IReadOnlyCollection<TActionDependentFeature>> getContextFeaturesFunc, 
-            VowpalWabbitFeatureDiscovery featureDiscovery = VowpalWabbitFeatureDiscovery.Json)
+            Func<TContext, IReadOnlyCollection<TActionDependentFeature>> getContextFeaturesFunc,
+            ITypeInspector typeInspector = null)
         {
             spec.Config.UseJsonContext = false;
             return spec.CreateClient(
                     new VWRanker<TContext, TActionDependentFeature>(
 						getContextFeaturesFunc,
                         spec.Config.ModelStream, 
-                        featureDiscovery));
+                        typeInspector));
         }
 
         private static ApplicationTransferMetadata GetBlobLocations(DecisionServiceConfiguration config)

@@ -18,10 +18,10 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         /// Constructor using a memory stream.
         /// </summary>
         /// <param name="vwModelStream">The VW model memory stream.</param>
-        internal VWRanker(Stream vwModelStream = null, VowpalWabbitFeatureDiscovery featureDiscovery = VowpalWabbitFeatureDiscovery.Json)
-            : base(vwModelStream, featureDiscovery)
+        internal VWRanker(Stream vwModelStream = null, ITypeInspector typeInspector = null)
+            : base(vwModelStream, typeInspector)
         {
-            this.serializer = VowpalWabbitSerializerFactory.CreateSerializer<TContext>(new VowpalWabbitSettings(featureDiscovery: featureDiscovery))
+            this.serializer = VowpalWabbitSerializerFactory.CreateSerializer<TContext>(new VowpalWabbitSettings(typeInspector: typeInspector))
                 as IVowpalWabbitMultiExampleSerializerCompiler<TContext>;
         }
 
@@ -55,8 +55,8 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         internal VWRanker(
             Func<TContext, IReadOnlyCollection<TActionDependentFeature>> getContextFeaturesFunc,
             Stream vwModelStream = null,
-            VowpalWabbitFeatureDiscovery featureDiscovery = VowpalWabbitFeatureDiscovery.Default)
-            : base(vwModelStream, featureDiscovery)
+            ITypeInspector typeInspector = null)
+            : base(vwModelStream, typeInspector)
         {
             this.getContextFeaturesFunc = getContextFeaturesFunc;
         }

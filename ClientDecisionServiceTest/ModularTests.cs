@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
 using System;
 using System.IO;
+using VW.Serializer;
 
 namespace ClientDecisionServiceTest
 {
@@ -206,7 +207,7 @@ namespace ClientDecisionServiceTest
             int numChooseAction = 100;
             using (var ds = DecisionService
                 .WithRanker(dsConfig)
-                .With<TestContext>(VW.VowpalWabbitFeatureDiscovery.Json)
+                .With<TestContext>(JsonTypeInspector.Default)
                 .WithTopSlotEpsilonGreedy(.2f)
                 .WithRecorder(recorder)
                 .ExploitUntilModelReady(new TestMultiActionPolicy()))

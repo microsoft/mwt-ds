@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reactive;
-using System.Reactive.Subjects;
+using System.Reactive.Linq;
 
 namespace Microsoft.Research.MultiWorldTesting.JoinUploader
 {
@@ -9,36 +9,34 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
     {
         internal static IObservable<IList<T>> Buffer<T>(this IObservable<T> source, int maxCount, int maxSize, Func<T, int> measure)
         {
-            var subject = new Subject<IList<T>>();
-            var state = new List<T>();
-            var size = 0;
-
-            // TODO: handle IDisposable
-            source.Subscribe(Observer.Create<T>(
-                onNext: v =>
-                {
-                    size += measure(v);
-                    state.Add(v);
-
-                    if (size >= maxSize || state.Count >= maxCount)
+            return Observable.Create<IList<T>>(obs =>
+            {
+                var state = new List<T>();
+                var size = 0;
+                return source.Subscribe(
+                    onNext: v =>
                     {
-                        subject.OnNext(state);
+                        size += measure(v);
+                        state.Add(v);
 
-                        state = new List<T>();
-                        size = 0;
-                    }
-                },
-                onError: e => subject.OnError(e),
-                onCompleted: () =>
-                {
-                    if (state.Count > 0)
+                        if (size >= maxSize || state.Count >= maxCount)
+                        {
+                            obs.OnNext(state);
+
+                            state = new List<T>();
+                            size = 0;
+                        }
+                    },
+                    onError: e => obs.OnError(e),
+                    onCompleted: () =>
                     {
-                        subject.OnNext(state);
-                    }
-                    subject.OnCompleted();
-                }));
-
-            return subject;
+                        if (state.Count > 0)
+                        {
+                            obs.OnNext(state);
+                        }
+                        obs.OnCompleted();
+                    });
+            });
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
 using System.IO;
 using VW;
+using VW.Serializer;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
@@ -11,8 +12,8 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         /// Constructor using a memory stream.
         /// </summary>
         /// <param name="vwModelStream">The VW model memory stream.</param>
-        internal VWPolicy(Stream vwModelStream = null, VowpalWabbitFeatureDiscovery featureDiscovery = VowpalWabbitFeatureDiscovery.Json)
-            : base(vwModelStream, featureDiscovery)
+        internal VWPolicy(Stream vwModelStream = null, ITypeInspector typeInspector = null)
+            : base(vwModelStream, typeInspector)
         {
         }
 

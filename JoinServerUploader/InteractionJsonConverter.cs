@@ -28,6 +28,9 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
 
             writer.WriteStartObject();
 
+            writer.WritePropertyName("Version");
+            writer.WriteValue("1");
+
             writer.WritePropertyName("EventId");
             writer.WriteValue(v.Key);
 

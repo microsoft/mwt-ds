@@ -35,7 +35,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             }
             catch (Exception e)
             {
-                Trace.TraceError("Failed to initialize performance counters: {0}. {1}", e.Message, e.StackTrace);
+                Trace.TraceWarning("Failed to initialize performance counters. Run the process elevated. {0}.", e.Message);
             }
         }
 

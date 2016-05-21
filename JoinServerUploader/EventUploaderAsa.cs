@@ -46,7 +46,8 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
             
             var builder = new ServiceBusConnectionStringBuilder(this.connectionString)
             {
-                TransportType = TransportType.Amqp
+                TransportType = TransportType.Amqp,
+                EntityPath = null
             };
             
             if (this.batchConfig.ReUseTcpConnection)

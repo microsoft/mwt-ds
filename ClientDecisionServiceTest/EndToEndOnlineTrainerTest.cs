@@ -64,10 +64,11 @@ namespace ClientDecisionServiceTest
         private Random rnd;
 
         [TestMethod]
-        [Ignore]
         public void EndToEndOnlineTrainerTest()
         {
-            var token = "c609ecb2-80ff-4763-bb85-5e171567e067";
+            var token = "7ce3fc9e-88cb-44bf-8c9a-8c381e876a60";
+            // configure VW parameters: 
+
             // 4 Actions
             //var config = new DecisionServiceConfiguration("2fee5489-0b9f-4590-9cbe-eee9802e1e3c");
             var config = new DecisionServiceConfiguration(token)
@@ -82,12 +83,12 @@ namespace ClientDecisionServiceTest
             this.rnd = new Random(123);
 
             // reset the model
-            var wc = new WebClient();
-            wc.Headers.Add("Authorization: " + token);
-            wc.DownloadString("http://127.0.0.1:81/onlineTrainer");
+            //var wc = new WebClient();
+            //wc.Headers.Add("Authorization: " + token);
+            //wc.DownloadString("http://127.0.0.1:81/onlineTrainer");
 
-            Trace.TraceInformation("Waiting after reset...");
-            Thread.Sleep(10000);
+            //Trace.TraceInformation("Waiting after reset...");
+            //Thread.Sleep(10000);
             
             {
                 var expectedEvents = 0;
@@ -96,10 +97,10 @@ namespace ClientDecisionServiceTest
                     .WithEpsilonGreedy(1f))
                 {
                     // need to send events for at least experimental unit duration, so ASA is triggered
-                    for (int i = 0; i < 12; i++)
+                    for (int i = 0; i < 10; i++)
                     {
-                        expectedEvents += SendEvents(client, 1024);
-                        Thread.Sleep(1000);                        
+                        expectedEvents += SendEvents(client, 128);
+                        // Thread.Sleep(500);                        
                     }
                 }
 
@@ -123,14 +124,12 @@ namespace ClientDecisionServiceTest
             using (var client = DecisionService.WithPolicy(config, numberOfActions: 4).With<MyContext>()
                 .WithEpsilonGreedy(epsilon: 0))
             {
-                // TODO: this needs to block until the model is actually available (or at least loop and poll)
                 int i;
                 for (i = 0; i < 60; i++)
                 {
                     try
                     {
                         client.DownloadModelAndUpdate(new System.Threading.CancellationToken()).Wait();
-
                         break;
                     }
                     catch (Exception e)

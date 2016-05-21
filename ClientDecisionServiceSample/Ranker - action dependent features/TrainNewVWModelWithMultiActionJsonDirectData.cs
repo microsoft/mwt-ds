@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using VW;
 using VW.Labels;
+using VW.Serializer;
 
 namespace ClientDecisionServiceSample
 {
@@ -25,7 +26,7 @@ namespace ClientDecisionServiceSample
             using (var vw = new VowpalWabbit<FoodContext>(
                 new VowpalWabbitSettings(
                     "--cb_adf --rank_all --cb_type dr -q ::",
-                    featureDiscovery: VowpalWabbitFeatureDiscovery.Json,
+                    typeInspector: JsonTypeInspector.Default,
                     enableStringExampleGeneration: true,
                     enableStringFloatCompact: true)))
             {
