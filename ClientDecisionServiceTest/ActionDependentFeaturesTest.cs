@@ -16,6 +16,8 @@ namespace ClientDecisionServiceTest
         {
             joinServer.Reset();
 
+            commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false);
+
             var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken)
             {
                 PollingForModelPeriod = TimeSpan.MinValue,
@@ -55,6 +57,8 @@ namespace ClientDecisionServiceTest
         public void TestADFModelUpdateFromStream()
         {
             joinServer.Reset();
+
+            commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false);
 
             var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken)
             {
