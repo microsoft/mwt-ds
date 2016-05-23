@@ -11,7 +11,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         where TPool : VowpalWabbitThreadedPredictionBase<TVowpalWabbit>, new()
         where TVowpalWabbit : class, IDisposable
     {
-        private ITypeInspector typeInspector;
+        protected ITypeInspector typeInspector;
         protected TPool vwPool;
 
         /// <summary>
@@ -38,11 +38,12 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 return;
 
             var model = new VowpalWabbitModel(
-                new VowpalWabbitSettings(
-                    "--quiet -t",
-                    modelStream: modelStream,
-                    maxExampleCacheSize: 1024,
-                    typeInspector: this.typeInspector));
+                new VowpalWabbitSettings
+                    {
+                        ModelStream = modelStream,
+                        MaxExampleCacheSize = 1024,
+                        TypeInspector = this.typeInspector
+                    });
 
             if (this.vwPool == null)
             {

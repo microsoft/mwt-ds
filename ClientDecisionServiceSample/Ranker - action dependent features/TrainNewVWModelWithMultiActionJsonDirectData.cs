@@ -24,11 +24,12 @@ namespace ClientDecisionServiceSample
 
             var stringExamplesTrain = new StringBuilder();
             using (var vw = new VowpalWabbit<FoodContext>(
-                new VowpalWabbitSettings(
-                    "--cb_adf --rank_all --cb_type dr -q ::",
-                    typeInspector: JsonTypeInspector.Default,
-                    enableStringExampleGeneration: true,
-                    enableStringFloatCompact: true)))
+                new VowpalWabbitSettings("--cb_adf --rank_all --cb_type dr -q ::")
+                    {
+                        TypeInspector = JsonTypeInspector.Default,
+                        EnableStringExampleGeneration = true,
+                        EnableStringFloatCompact = true
+                    }))
             {
                 // Learn 
                 var rand = new Random(0);

@@ -62,9 +62,10 @@ namespace ClientDecisionServiceTest
 
                 dsConfig.SettingsPollSuccessCallback = data => settingsBytes = data;
 
-                for (int i = 0; i < 20 && settingsBytes == null; i++)
+                for (int i = 0; i < 50 && settingsBytes == null; i++)
                     Thread.Sleep(100);
 
+                Assert.IsNotNull(settingsBytes);
                 Assert.IsTrue(Enumerable.SequenceEqual(settingsBytes, commandCenter.GetSettingsBlobContent()));
             }
         }

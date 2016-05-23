@@ -21,7 +21,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         internal VWRanker(Stream vwModelStream = null, ITypeInspector typeInspector = null)
             : base(vwModelStream, typeInspector)
         {
-            this.serializer = VowpalWabbitSerializerFactory.CreateSerializer<TContext>(new VowpalWabbitSettings(typeInspector: typeInspector))
+            this.serializer = VowpalWabbitSerializerFactory.CreateSerializer<TContext>(new VowpalWabbitSettings { TypeInspector = this.typeInspector })
                 as IVowpalWabbitMultiExampleSerializerCompiler<TContext>;
         }
 

@@ -64,6 +64,7 @@ namespace ClientDecisionServiceTest
         private Random rnd;
 
         [TestMethod]
+        [Ignore]
         public void EndToEndOnlineTrainerTest()
         {
             var token = "7ce3fc9e-88cb-44bf-8c9a-8c381e876a60";
