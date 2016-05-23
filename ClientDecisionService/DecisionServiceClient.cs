@@ -87,7 +87,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 var settingsBlobPollDelay = config.PollingForSettingsPeriod == TimeSpan.Zero ? DecisionServiceConstants.PollDelay : config.PollingForSettingsPeriod;
                 if (settingsBlobPollDelay != TimeSpan.MinValue)
                 {
-                    this.settingsDownloader = new AzureBlobBackgroundDownloader(metaData.ConnectionString, metaData.SettingsBlobUri, settingsBlobPollDelay);
+                    this.settingsDownloader = new AzureBlobBackgroundDownloader(metaData.ConnectionString, metaData.SettingsBlobUri, settingsBlobPollDelay, downloadImmediately: true);
                     this.settingsDownloader.Downloaded += this.UpdateSettings;
                     this.settingsDownloader.Failed += settingsDownloader_Failed;
                 }

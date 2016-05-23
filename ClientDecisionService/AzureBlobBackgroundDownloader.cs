@@ -73,6 +73,12 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
                 if (blob.Properties != null)
                 {
+                    // if downloadImmediately is set to false, the downloader
+                    // will not download the blob on first check, and on second check
+                    // onwards, the blob must have changed before a download is triggered.
+                    // this is to support caller who manually downloads the blob first for
+                    // other purposes and do not want to redownload.
+
                     // avoid not modified exception
                     if (blob.Properties.ETag == this.blobEtag)
                         return;
