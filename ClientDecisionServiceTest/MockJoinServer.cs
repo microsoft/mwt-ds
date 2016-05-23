@@ -22,6 +22,8 @@ namespace ClientDecisionServiceTest
 
         protected override void Listen()
         {
+            this.cancelTokenSource.Token.ThrowIfCancellationRequested();
+
             while (!this.cancelTokenSource.Token.IsCancellationRequested)
             {
                 HttpListenerContext ccContext = listener.GetContext();

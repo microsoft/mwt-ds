@@ -33,7 +33,17 @@ namespace ClientDecisionServiceTest
             this.cancelTokenSource.Cancel();
             this.pollFinishedEvent.Wait(1000);
             this.listener.Stop();
-            this.backendTask.Wait();
+            try
+            {
+                this.backendTask.Wait();
+            }
+            catch (AggregateException ex)
+            {
+                if (!(ex.InnerException is TaskCanceledException))
+                {
+                    throw;
+                }
+            }
             this.backendTask.Dispose();
         }
 
