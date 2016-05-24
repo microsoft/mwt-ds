@@ -47,7 +47,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <DefineConstants>TRACE</DefineConstants>
-    <DocumentationFile>bin\Release\JoinServerUploader.XML</DocumentationFile>
+    <DocumentationFile>..\bin\x64\Release\Microsoft.Research.MultiWorldTesting.JoinUploader.XML</DocumentationFile>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>x64</PlatformTarget>

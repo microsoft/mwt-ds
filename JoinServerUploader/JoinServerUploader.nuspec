@@ -12,6 +12,18 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Library for uploading events to Multiworld Testing Join Server.</description>
     <copyright>Copyright (C) 2015-2016 Microsoft Corporation</copyright>
+    <dependencies>
+	<group>
+	    <dependency id="EnterpriseLibrary.TransientFaultHandling" version="6.0.1304.0" />
+	    <dependency id="Microsoft.Tpl.Dataflow" version="4.5.24" />
+	    <dependency id="Newtonsoft.Json" version="8.0.3" />
+	    <dependency id="Rx-Main" version="2.2.5" />
+	    <dependency id="WindowsAzure.ServiceBus" version="3.1.7" />
+	</group>
+    </dependencies>
   </metadata>
+  <files>
+    <file src="$SolutionDir$bin\x64\$Configuration$\Microsoft.Research.MultiWorldTesting.JoinUploader.pdb" target="lib\net45" />
+  </files>
 </package>
 

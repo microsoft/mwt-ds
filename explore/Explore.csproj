@@ -33,6 +33,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <DefineConstants>TRACE</DefineConstants>
+    <DocumentationFile>..\bin\AnyCPU\Release\Microsoft.Research.MultiWorldTesting.ExploreLibrary.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="BaseExplorer.cs" />

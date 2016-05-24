@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <title>Multiworld Testing Client Library</title>
-    <id>$id$</id>
+    <id>Microsoft.Research.MultiWorldTesting.ClientLibrary</id>
     <tags>Multiworld Testing</tags>
     <version>$version$</version>
     <authors>John Langford, Luong Hoang, Markus Cozowicz, Sarah Bird, Sid Sen (mwtdev@microsoft.com)</authors>
@@ -12,9 +12,26 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Official Multiworld Testing Client Library including C# interface</description>
     <copyright>Copyright (C) 2015-2016 Microsoft Corporation</copyright>
-    <dependencies />
+    <dependencies>
+	<group>
+	    <dependency id="EnterpriseLibrary.TransientFaultHandling" version="6.0.1304.0" />
+	    <dependency id="Rx-Main" version="2.2.5" />
+	    <dependency id="VowpalWabbit.JSON" version="8.0.0.56" />
+	    <dependency id="WindowsAzure.Storage" version="7.0.0" />
+	    <dependency id="Microsoft.Research.MultiWorldTesting.JoinUploader" version="$version$" />
+	    <dependency id="Microsoft.Research.MultiWorldTesting.Contract" version="$version$" />
+	</group>
+    </dependencies>
   </metadata>
   <files>
+    <file src="$SolutionDir$bin\x64\$Configuration$\Microsoft.Research.MultiWorldTesting.ClientLibrary.dll" target="lib\net45" />
+    <file src="$SolutionDir$bin\x64\$Configuration$\Microsoft.Research.MultiWorldTesting.ClientLibrary.pdb" target="lib\net45" />
+    <file src="$SolutionDir$bin\x64\$Configuration$\Microsoft.Research.MultiWorldTesting.ClientLibrary.xml" target="lib\net45" />
+
+    <file src="$SolutionDir$bin\AnyCPU\$Configuration$\Microsoft.Research.MultiWorldTesting.ExploreLibrary.dll" target="lib\net45" />
+    <file src="$SolutionDir$bin\AnyCPU\$Configuration$\Microsoft.Research.MultiWorldTesting.ExploreLibrary.pdb" target="lib\net45" />
+    <file src="$SolutionDir$bin\AnyCPU\$Configuration$\Microsoft.Research.MultiWorldTesting.ExploreLibrary.xml" target="lib\net45" />
+
     <file src="*.config.transform" target="content"/>
   </files>
 </package>

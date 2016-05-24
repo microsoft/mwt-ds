@@ -13,5 +13,8 @@
     <description>Binding contract between components of Multiworld Testing Service.</description>
     <copyright>Copyright (C) 2015-2016 Microsoft Corporation</copyright>
   </metadata>
+  <files>
+    <file src="$SolutionDir$bin\AnyCPU\$Configuration$\Microsoft.Research.MultiWorldTesting.Contract.pdb" target="lib\portable-net45+win+wpa81+wp80" />
+   </files>
 </package>
 
