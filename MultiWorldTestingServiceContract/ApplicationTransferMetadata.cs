@@ -31,7 +31,7 @@ namespace Microsoft.Research.MultiWorldTesting.Contract
         High
     }
 
-    public class ApplicationTransferMetadata
+    public class ApplicationClientMetadata
     {
         /// <summary>
         /// The name of the application as created on the Command Center.
@@ -39,45 +39,40 @@ namespace Microsoft.Research.MultiWorldTesting.Contract
         public string ApplicationID { get; set; }
 
         /// <summary>
-        /// The Id of the Azure subscription associated with this application.
-        /// </summary>
-        public string SubscriptionId { get; set; }
-
-        /// <summary>
-        /// The name of the Azure resource group provisioned for this application.
-        /// </summary>
-        public string AzureResourceGroupName { get; set; }
-
-        /// <summary>
-        /// The type of decision.
-        /// </summary>
-        public DecisionType DecisionType { get; set; }
-
-        /// <summary>
         /// Number of actions available at decision time, this is only relevant if decision type is single.
         /// </summary>
         public int? NumActions { get; set; }
 
         /// <summary>
-        /// The training frequency type.
-        /// </summary>
-        public TrainFrequency TrainFrequency { get; set; }
-
-        /// <summary>
-        /// Additional arguments to be used in training service.
-        /// </summary>
-        public string AdditionalTrainArguments { get; set; }
-
-        /// <summary>
         /// The EventHub connection string to which the client needs to send data.
         /// </summary>
-        public string EventHubConnectionString { get; set; }
+        public string EventHubConnectionString { get; set; } // TODO: change this to combine input name
 
         /// <summary>
         /// The input name of the EventHub.
         /// </summary>
         public string EventHubInputName { get; set; }
 
+        public string EventHubObservationConnectionString { get; set; } // combined with EH entity name
+
+        /// <summary>
+        /// Turn on/off exploration at client side.
+        /// </summary>
+        public bool IsExplorationEnabled { get; set; }
+
+        /// <summary>
+        /// The publicly accessible Uri of the model blob that clients can check for update.
+        /// </summary>
+        public string ModelBlobUri { get; set; }
+    }
+
+    public class ApplicationTrainerMetadata
+    {
+        /// <summary>
+        /// Additional arguments to be used in training service.
+        /// </summary>
+        public string AdditionalTrainArguments { get; set; }
+        
         /// <summary>
         /// 
         /// </summary>
@@ -97,30 +92,5 @@ namespace Microsoft.Research.MultiWorldTesting.Contract
         /// The connection string for the provisioned Azure storage account.
         /// </summary>
         public string ConnectionString { get; set; }
-
-        /// <summary>
-        /// The Id of the model to use in client library.
-        /// </summary>
-        public string ModelId { get; set; }
-
-        /// <summary>
-        /// The experimental unit duration for joining decisions with observations.
-        /// </summary>
-        public int ExperimentalUnitDuration { get; set; }
-
-        /// <summary>
-        /// Turn on/off exploration at client side.
-        /// </summary>
-        public bool IsExplorationEnabled { get; set; }
-
-        /// <summary>
-        /// The publicly accessible Uri of the model blob that clients can check for update.
-        /// </summary>
-        public string ModelBlobUri { get; set; }
-
-        /// <summary>
-        /// The publicly accessible Uri of the application settings blob that clients can check for update.
-        /// </summary>
-        public string SettingsBlobUri { get; set; }
     }
 }

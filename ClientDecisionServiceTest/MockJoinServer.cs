@@ -42,7 +42,7 @@ namespace ClientDecisionServiceTest
                     switch (auth.Type)
                     {
                         case AuthorizationType.DecisionService:
-                            if (auth.Token != MockCommandCenter.AuthorizationToken)
+                            if (auth.Token != MockCommandCenter.TestAppID)
                             {
                                 response.StatusCode = (int)HttpStatusCode.BadRequest;
                                 response.Close();

@@ -13,7 +13,7 @@ namespace ClientDecisionServiceSample
     public static class Sample2
     {
         /***** Copy & Paste your authorization token here *****/
-        static readonly string MwtServiceToken = "";
+        static readonly string SettingsBlobUri = "";
 
         /// <summary>
         /// Sample code simulating a news recommendation scenario. In this simple example, 
@@ -23,7 +23,7 @@ namespace ClientDecisionServiceSample
         /// </summary>
         public static void SampleCodeUsingSimpleContext()
         {
-            if (String.IsNullOrWhiteSpace(MwtServiceToken))
+            if (String.IsNullOrWhiteSpace(SettingsBlobUri))
             {
                 Console.WriteLine("Please specify a valid authorization token.");
                 return;
@@ -32,7 +32,7 @@ namespace ClientDecisionServiceSample
             Trace.Listeners.Add(new ConsoleTraceListener());
 
             // Create configuration for the decision service.
-            var serviceConfig = new DecisionServiceConfiguration(authorizationToken: MwtServiceToken)
+            var serviceConfig = new DecisionServiceConfiguration(settingsBlobUri: SettingsBlobUri)
             {
                 JoinServiceBatchConfiguration = new BatchingConfiguration // Optionally configure batch upload
                 {

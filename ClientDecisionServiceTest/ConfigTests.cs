@@ -17,7 +17,7 @@ namespace ClientDecisionServiceTest
 
             commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false);
 
-            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken);
+            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri);
 
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
@@ -47,7 +47,7 @@ namespace ClientDecisionServiceTest
 
             commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false);
 
-            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken);
+            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri);
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
             dsConfig.PollingForSettingsPeriod = TimeSpan.FromMilliseconds(500);

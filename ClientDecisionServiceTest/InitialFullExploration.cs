@@ -40,7 +40,7 @@ namespace ClientDecisionServiceTest
                     vw.SaveModel(model);
                 }
 
-                var config = new DecisionServiceConfiguration("") { OfflineMode = true };
+                var config = new DecisionServiceConfiguration("") { OfflineMode = true, OfflineApplicationID = "" };
 
                 using (var ds =
                         DecisionService

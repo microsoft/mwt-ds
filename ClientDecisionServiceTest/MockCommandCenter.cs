@@ -14,9 +14,8 @@ namespace ClientDecisionServiceTest
 {
     public class MockCommandCenter
     {
-        public MockCommandCenter(string token)
+        public MockCommandCenter()
         {
-            this.token = token;
             SetRedirectionBlobLocation();
         }
 
@@ -45,14 +44,11 @@ namespace ClientDecisionServiceTest
 
                 var localContainer = blobClient.GetContainerReference(this.localAzureContainerName);
                 localContainer.CreateIfNotExists();
-
-                if (createSettingsBlob)
+                var publicAccessPermission = new BlobContainerPermissions()
                 {
-                    var settingsBlob = localContainer.GetBlockBlobReference(this.localAzureSettingsBlobName);
-                    byte[] settingsContent = this.GetSettingsBlobContent();
-                    settingsBlob.UploadFromByteArray(settingsContent, 0, settingsContent.Length);
-                    this.localAzureSettingsBlobUri = settingsBlob.Uri.ToString();
-                }
+                    PublicAccess = BlobContainerPublicAccessType.Blob
+                };
+                localContainer.SetPermissions(publicAccessPermission);
 
                 if (createModelBlob)
                 {
@@ -63,38 +59,28 @@ namespace ClientDecisionServiceTest
                 }
                 else
                     this.localAzureModelBlobUri = "http://127.0.0.1:10000/devstoreaccount1/localtestcontainer/notfoundmodel";
-                        
-                var locationContainer = blobClient.GetContainerReference(this.localAzureBlobLocationContainerName);
-                locationContainer.CreateIfNotExists();
 
-                var publicAccessPermission = new BlobContainerPermissions()
+                if (createSettingsBlob)
                 {
-                    PublicAccess = BlobContainerPublicAccessType.Blob
-                };
+                    var settingsBlob = localContainer.GetBlockBlobReference(this.localAzureSettingsBlobName);
+                    byte[] settingsContent = this.GetSettingsBlobContent();
+                    settingsBlob.UploadFromByteArray(settingsContent, 0, settingsContent.Length);
+                    SettingsBlobUri = settingsBlob.Uri.ToString();
+                }
 
-                locationContainer.SetPermissions(publicAccessPermission);
-
-                var metadata = new ApplicationTransferMetadata
-                {
-                    ApplicationID = "test",
-                    ConnectionString = MockCommandCenter.StorageConnectionString,
-                    ExperimentalUnitDuration = 15,
-                    IsExplorationEnabled = true,
-                    ModelBlobUri = this.localAzureModelBlobUri,
-                    SettingsBlobUri = this.localAzureSettingsBlobUri,
-                    ModelId = "latest",
-                    NumActions = 2
-                };
-
-                var locationBlob = locationContainer.GetBlockBlobReference(this.token);
-                byte[] locationBlobContent = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(metadata));
-                locationBlob.UploadFromByteArray(locationBlobContent, 0, locationBlobContent.Length);
             }
         }
 
         public byte[] GetSettingsBlobContent()
         {
-            return Encoding.UTF8.GetBytes("{}");
+            var metadata = new ApplicationClientMetadata
+            {
+                ApplicationID = TestAppID,
+                IsExplorationEnabled = true,
+                ModelBlobUri = this.localAzureModelBlobUri,
+                NumActions = 2
+            };
+            return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(metadata));
         }
 
         public byte[] GetCBModelBlobContent(int numExamples, int numFeatures, int numActions)
@@ -173,17 +159,15 @@ namespace ClientDecisionServiceTest
             get { return localAzureModelBlobName; }
         }
 
-        private string token;
-        private string localAzureSettingsBlobUri;
         private string localAzureModelBlobUri;
 
-        private readonly string localAzureBlobLocationContainerName = "app-locations";
         private readonly string localAzureContainerName = "localtestcontainer";
         private readonly string localAzureSettingsBlobName = "localtestsettingsblob";
         private readonly string localAzureModelBlobName = "localtestmodelblob";
 
         public static readonly string StorageConnectionString = "UseDevelopmentStorage=true";
-        public static readonly string AuthorizationToken = "test token";
+        public static string SettingsBlobUri;
+        public static readonly string TestAppID = "test app";
 
         public static readonly string RedirectionBlobLocation = "http://127.0.0.1:10000/devstoreaccount1/app-locations/{0}";
     }

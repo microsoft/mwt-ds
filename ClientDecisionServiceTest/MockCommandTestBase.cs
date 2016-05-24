@@ -17,7 +17,7 @@ namespace ClientDecisionServiceTest
 
             joinServer.Run();
 
-            commandCenter = new MockCommandCenter(MockCommandCenter.AuthorizationToken);
+            commandCenter = new MockCommandCenter();
         }
 
         [TestCleanup]

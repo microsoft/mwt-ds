@@ -14,7 +14,7 @@ namespace ClientDecisionServiceSample
     public static class Sample1
     {
         /***** Copy & Paste your authorization token here *****/
-        static readonly string MwtServiceToken = "";
+        static readonly string SettingsBlobUri = "";
 
         /// <summary>
         /// Sample code simulating a news recommendation scenario. In this simple example, 
@@ -24,7 +24,7 @@ namespace ClientDecisionServiceSample
         /// </summary>
         public static void SampleCodeUsingASAWithJsonContext()
         {
-            if (String.IsNullOrWhiteSpace(MwtServiceToken))
+            if (String.IsNullOrWhiteSpace(SettingsBlobUri))
             {
                 Console.WriteLine("Please specify a valid authorization token.");
                 return;
@@ -37,7 +37,7 @@ namespace ClientDecisionServiceSample
             int numUsers = 10; // number of users for the news site
             int numFeatures = 20; // number of features for each user
 
-            var serviceConfig = new DecisionServiceConfiguration(authorizationToken: MwtServiceToken)
+            var serviceConfig = new DecisionServiceConfiguration(settingsBlobUri: SettingsBlobUri)
             {
                 JoinServiceBatchConfiguration = new BatchingConfiguration // Optionally configure batch upload
                 {

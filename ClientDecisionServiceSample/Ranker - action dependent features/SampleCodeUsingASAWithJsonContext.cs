@@ -12,12 +12,12 @@ namespace ClientDecisionServiceSample
     public static class SampleCodeUsingASAWithJsonContextClass
     {
         /***** Copy & Paste your authorization token here *****/
-        static readonly string MwtServiceToken = "";
+        static readonly string SettingsBlobUri = "";
 
         public static void SampleCodeUsingASAWithJsonContext()
         {
             // Create configuration for the decision service
-            var serviceConfig = new DecisionServiceConfiguration(authorizationToken: MwtServiceToken)
+            var serviceConfig = new DecisionServiceConfiguration(settingsBlobUri: SettingsBlobUri)
             {
                 PollingForModelPeriod = TimeSpan.MinValue,
                 PollingForSettingsPeriod = TimeSpan.MinValue

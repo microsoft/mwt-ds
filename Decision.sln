@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+VisualStudioVersion = 12.0.40629.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientDecisionService", "ClientDecisionService\ClientDecisionService.csproj", "{140FCD6F-077F-432D-A9E4-0D63B5DACD93}"
 EndProject
@@ -18,9 +18,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientDecisionServiceSample
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JoinServerUploader", "JoinServerUploader\JoinServerUploader.csproj", "{E2E33DE3-C3C4-47F4-AC39-5D10A0332189}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MultiWorldTestingServiceContract", "MultiWorldTestingServiceContract\MultiWorldTestingServiceContract.csproj", "{D10392B9-7F76-4D1F-8F38-B0B63AA63760}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Explore", "Explore\Explore.csproj", "{6D245816-6016-49B6-9E37-A0BF0D2A736A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MultiworldTestingServiceContract", "MultiworldTestingServiceContract\MultiworldTestingServiceContract.csproj", "{4830E9B5-64DE-4049-9602-7910FC4ABD6C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -62,14 +62,6 @@ Global
 		{E2E33DE3-C3C4-47F4-AC39-5D10A0332189}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E2E33DE3-C3C4-47F4-AC39-5D10A0332189}.Release|x64.ActiveCfg = Release|x64
 		{E2E33DE3-C3C4-47F4-AC39-5D10A0332189}.Release|x64.Build.0 = Release|x64
-		{D10392B9-7F76-4D1F-8F38-B0B63AA63760}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D10392B9-7F76-4D1F-8F38-B0B63AA63760}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D10392B9-7F76-4D1F-8F38-B0B63AA63760}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{D10392B9-7F76-4D1F-8F38-B0B63AA63760}.Debug|x64.Build.0 = Debug|Any CPU
-		{D10392B9-7F76-4D1F-8F38-B0B63AA63760}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D10392B9-7F76-4D1F-8F38-B0B63AA63760}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D10392B9-7F76-4D1F-8F38-B0B63AA63760}.Release|x64.ActiveCfg = Release|Any CPU
-		{D10392B9-7F76-4D1F-8F38-B0B63AA63760}.Release|x64.Build.0 = Release|Any CPU
 		{6D245816-6016-49B6-9E37-A0BF0D2A736A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6D245816-6016-49B6-9E37-A0BF0D2A736A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6D245816-6016-49B6-9E37-A0BF0D2A736A}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -78,6 +70,14 @@ Global
 		{6D245816-6016-49B6-9E37-A0BF0D2A736A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6D245816-6016-49B6-9E37-A0BF0D2A736A}.Release|x64.ActiveCfg = Release|Any CPU
 		{6D245816-6016-49B6-9E37-A0BF0D2A736A}.Release|x64.Build.0 = Release|Any CPU
+		{4830E9B5-64DE-4049-9602-7910FC4ABD6C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4830E9B5-64DE-4049-9602-7910FC4ABD6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4830E9B5-64DE-4049-9602-7910FC4ABD6C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4830E9B5-64DE-4049-9602-7910FC4ABD6C}.Debug|x64.Build.0 = Debug|Any CPU
+		{4830E9B5-64DE-4049-9602-7910FC4ABD6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4830E9B5-64DE-4049-9602-7910FC4ABD6C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4830E9B5-64DE-4049-9602-7910FC4ABD6C}.Release|x64.ActiveCfg = Release|Any CPU
+		{4830E9B5-64DE-4049-9602-7910FC4ABD6C}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

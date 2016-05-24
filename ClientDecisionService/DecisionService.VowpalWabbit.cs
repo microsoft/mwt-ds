@@ -18,12 +18,12 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             this DecisionServiceClientSpecification<int> spec,
             IContextMapper<TContext, int> internalPolicy)
         {
-            ApplicationTransferMetadata metaData = null;
+            ApplicationClientMetadata metaData = null;
             int numberOfActions;
 
             if (!spec.Config.OfflineMode)
             {
-                metaData = GetBlobLocations(spec.Config);
+                metaData = ApplicationUtil.DownloadMetadata<ApplicationClientMetadata>(spec.Config.SettingsBlobUri);
 
                 if (spec.NumberOfActions != null)
                     numberOfActions = (int)spec.NumberOfActions;
@@ -57,10 +57,10 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             this DecisionServiceClientSpecification<int[]> spec,
             IContextMapper<TContext, int[]> internalPolicy)
         {
-            ApplicationTransferMetadata metaData = null;
+            ApplicationClientMetadata metaData = null;
 
             if (!spec.Config.OfflineMode)
-                metaData = GetBlobLocations(spec.Config);
+                metaData = ApplicationUtil.DownloadMetadata<ApplicationClientMetadata>(spec.Config.SettingsBlobUri);
 
 			// have sensible defaults
             return new DecisionServiceClient<TContext, int[], int[]>(
@@ -121,27 +121,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 						getContextFeaturesFunc,
                         spec.Config.ModelStream, 
                         typeInspector));
-        }
-
-        private static ApplicationTransferMetadata GetBlobLocations(DecisionServiceConfiguration config)
-        {
-            if (config.OfflineMode)
-                return null;
-
-            string redirectionBlobLocation = string.Format(DecisionServiceConstants.RedirectionBlobLocation, config.AuthorizationToken);
-
-            try
-            {
-                using (var wc = new WebClient())
-                {
-                    string jsonMetadata = wc.DownloadString(redirectionBlobLocation);
-                    return JsonConvert.DeserializeObject<ApplicationTransferMetadata>(jsonMetadata);
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidDataException("Unable to retrieve blob locations from storage using the specified token", ex);
-            }
         }
     }
 }

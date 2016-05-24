@@ -8,13 +8,13 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
     internal class JoinServiceLogger<TContext, TAction> : IRecorder<TContext, TAction>, ILogger, IDisposable
     {
         private readonly PerformanceCounters perfCounters;
-        private readonly string authorizationToken;
+        private readonly string applicationID;
         private IEventUploader eventUploader;
 
-        internal JoinServiceLogger(string authorizationToken)
+        internal JoinServiceLogger(string applicationID)
         {
-            this.authorizationToken = authorizationToken;
-            this.perfCounters = new PerformanceCounters(authorizationToken);
+            this.applicationID = applicationID;
+            this.perfCounters = new PerformanceCounters(applicationID);
         }
 
         public void InitializeWithCustomAzureJoinServer(
@@ -22,7 +22,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             BatchingConfiguration batchConfig)
         {
             var eventUploader = new EventUploader(batchConfig, loggingServiceBaseAddress);
-            eventUploader.InitializeWithToken(this.authorizationToken);
+            eventUploader.InitializeWithToken(this.applicationID);
 
             this.eventUploader = eventUploader;
         }

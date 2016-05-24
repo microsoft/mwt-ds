@@ -34,17 +34,10 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
         private bool downloadImmediately;
 
-        public AzureBlobBackgroundDownloader(string blobConnectionString, string blobAddress, TimeSpan interval, bool downloadImmediately = false)
+        public AzureBlobBackgroundDownloader(string blobAddress, TimeSpan interval, bool downloadImmediately = false)
         {
-            if (blobConnectionString == null)
-                throw new ArgumentNullException("blobConnectionString");
-
             if (blobAddress == null)
                 throw new ArgumentNullException("blobAddress");
-
-            var accountFound = CloudStorageAccount.TryParse(blobConnectionString, out this.storageAccount);
-            if (!accountFound || storageAccount == null)
-                throw new ArgumentException("Invalid connection string '" + blobConnectionString + "'", "blobConnectionString");
 
             this.blobAddress = blobAddress;
 

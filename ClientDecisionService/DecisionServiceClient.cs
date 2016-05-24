@@ -21,7 +21,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         private IContextMapper<TContext, TPolicyValue> initialPolicy;
 
         private readonly DecisionServiceConfiguration config;
-        private readonly ApplicationTransferMetadata metaData;
+        private readonly ApplicationClientMetadata metaData;
         private MwtExplorer<TContext, TAction, TPolicyValue> mwtExplorer;
         private AzureBlobBackgroundDownloader settingsDownloader;
         private AzureBlobBackgroundDownloader modelDownloader;
@@ -36,7 +36,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
         public DecisionServiceClient(
             DecisionServiceConfiguration config,
-            ApplicationTransferMetadata metaData,
+            ApplicationClientMetadata metaData,
             IExplorer<TAction, TPolicyValue> explorer,
             IContextMapper<TContext, TPolicyValue> internalPolicy,
             IContextMapper<TContext, TPolicyValue> initialPolicy = null,
@@ -53,9 +53,17 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 config.JoinServiceBatchConfiguration = new JoinUploader.BatchingConfiguration();
 
             this.config = config;
+            string appId = string.Empty;
 
             if (config.OfflineMode)
+            {
                 this.recorder = new OfflineRecorder();
+                if (config.OfflineApplicationID == null)
+                {
+                    throw new ArgumentNullException("OfflineApplicationID", "Offline Application ID must be set explicitly in offline mode.");
+                }
+                appId = config.OfflineApplicationID;
+            }
             else
             {
                 this.metaData = metaData;
@@ -65,7 +73,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
                 if (this.recorder == null)
                 {
-                    var joinServerLogger = new JoinServiceLogger<TContext, TAction>(config.AuthorizationToken);
+                    var joinServerLogger = new JoinServiceLogger<TContext, TAction>(metaData.ApplicationID); // TODO: check token remove
                     switch (config.JoinServerType)
                     {
                         case JoinServerType.CustomSolution:
@@ -87,7 +95,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 var settingsBlobPollDelay = config.PollingForSettingsPeriod == TimeSpan.Zero ? DecisionServiceConstants.PollDelay : config.PollingForSettingsPeriod;
                 if (settingsBlobPollDelay != TimeSpan.MinValue)
                 {
-                    this.settingsDownloader = new AzureBlobBackgroundDownloader(metaData.ConnectionString, metaData.SettingsBlobUri, settingsBlobPollDelay, downloadImmediately: true);
+                    this.settingsDownloader = new AzureBlobBackgroundDownloader(config.SettingsBlobUri, settingsBlobPollDelay, downloadImmediately: true);
                     this.settingsDownloader.Downloaded += this.UpdateSettings;
                     this.settingsDownloader.Failed += settingsDownloader_Failed;
                 }
@@ -95,10 +103,12 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 var modelBlobPollDelay = config.PollingForModelPeriod == TimeSpan.Zero ? DecisionServiceConstants.PollDelay : config.PollingForModelPeriod;
                 if (modelBlobPollDelay != TimeSpan.MinValue)
                 {
-                    this.modelDownloader = new AzureBlobBackgroundDownloader(metaData.ConnectionString, metaData.ModelBlobUri, modelBlobPollDelay, downloadImmediately: true);
+                    this.modelDownloader = new AzureBlobBackgroundDownloader(metaData.ModelBlobUri, modelBlobPollDelay, downloadImmediately: true);
                     this.modelDownloader.Downloaded += this.UpdateContextMapper;
                     this.modelDownloader.Failed += modelDownloader_Failed;
                 }
+
+                appId = metaData.ApplicationID;
             }
 
             this.logger = this.recorder as ILogger;
@@ -121,12 +131,12 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                         throw new ArgumentException("Explorer must implement INumberOfActionsProvider interface");
                 }
 
-                this.mwtExplorer = MwtExplorer.Create(config.AuthorizationToken,
+                this.mwtExplorer = MwtExplorer.Create(appId,
                     numActionsProvider, this.recorder, explorer, initialExplorer: initialExplorer);
             }
             else
             {
-                this.mwtExplorer = MwtExplorer.Create(config.AuthorizationToken,
+                this.mwtExplorer = MwtExplorer.Create(appId,
                     (int)numActions, this.recorder, explorer, initialExplorer: initialExplorer);
             }
         }
@@ -150,7 +160,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 using (var reader = new JsonTextReader(new StreamReader(new MemoryStream(data))))
                 {
                     var jsonSerializer = new JsonSerializer();
-                    var metadata = jsonSerializer.Deserialize<ApplicationTransferMetadata>(reader);
+                    var metadata = jsonSerializer.Deserialize<ApplicationClientMetadata>(reader);
 
                     // TODO: not sure if we want to bypass or expose EnableExplore in MWT explorer?
                     this.mwtExplorer.Explorer.EnableExplore(metadata.IsExplorationEnabled);
@@ -178,20 +188,14 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
         public async Task DownloadModelAndUpdate(CancellationToken cancellationToken)
         {
-            CloudStorageAccount storageAccount;
-            var accountFound = CloudStorageAccount.TryParse(this.metaData.ConnectionString, out storageAccount);
-            if (!accountFound || storageAccount == null)
-                throw new ArgumentException("Invalid connection string '" + this.metaData.ConnectionString + "'", "blobConnectionString");
-
-            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-            ICloudBlob blob = await blobClient.GetBlobReferenceFromServerAsync(new Uri(this.metaData.ModelBlobUri), cancellationToken);
-
-            using (var ms = new MemoryStream())
+            using (var wc = new WebClient())
             {
-                await blob.DownloadToStreamAsync(ms, cancellationToken);
-
-                ms.Position = 0;
-                this.UpdateModel(ms);
+                byte[] modelData = await wc.DownloadDataTaskAsync(this.metaData.ModelBlobUri);
+                using (var ms = new MemoryStream(modelData))
+                {
+                    ms.Position = 0;
+                    this.UpdateModel(ms);
+                }
             }
         }
 

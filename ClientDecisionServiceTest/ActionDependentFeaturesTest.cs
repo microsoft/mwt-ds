@@ -18,7 +18,7 @@ namespace ClientDecisionServiceTest
 
             commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false);
 
-            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken)
+            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri)
             {
                 PollingForModelPeriod = TimeSpan.MinValue,
                 PollingForSettingsPeriod = TimeSpan.MinValue,
@@ -60,7 +60,7 @@ namespace ClientDecisionServiceTest
 
             commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false);
 
-            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken)
+            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri)
             {
                 JoinServerType = JoinServerType.CustomSolution,
                 LoggingServiceAddress = MockJoinServer.MockJoinServerAddress,

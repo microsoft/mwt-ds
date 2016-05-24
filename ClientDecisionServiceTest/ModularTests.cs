@@ -71,7 +71,7 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         public void TestSingleActionOnlineModeCustomLogger()
         {
-            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken)
+            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri)
             {
                 JoinServerType = JoinServerType.CustomSolution
             };
@@ -120,7 +120,7 @@ namespace ClientDecisionServiceTest
         {
             MockCommandCenter.UnsetRedirectionBlobLocation();
 
-            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken);
+            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri);
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
 
             bool isExceptionExpected = false;
@@ -197,7 +197,7 @@ namespace ClientDecisionServiceTest
         {
             joinServer.Reset();
 
-            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken);
+            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri);
 
             var recorder = new TestLogger();
             dsConfig.PollingForModelPeriod = TimeSpan.MinValue;
@@ -246,7 +246,7 @@ namespace ClientDecisionServiceTest
             MockCommandCenter.UnsetRedirectionBlobLocation();
 
             /*** This test requires real value of RedirectionBlobLocation set in DecisionServiceConstants.cs file ***/
-            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken);
+            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri);
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
 
             bool isExceptionExpected = false;

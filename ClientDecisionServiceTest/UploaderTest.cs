@@ -31,7 +31,7 @@ namespace ClientDecisionServiceTest
 
             using (var uploader = new EventUploader(null, MockJoinServer.MockJoinServerAddress))
             {
-                uploader.InitializeWithToken(MockCommandCenter.AuthorizationToken);
+                uploader.InitializeWithToken(MockCommandCenter.SettingsBlobUri);
                 uploader.PackageSent += (sender, e) => { eventSentCount += e.Records.Count(); };
                 uploader.Upload(new Interaction { Value = 1, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
                 uploader.Upload(new Interaction { Value = new int[] { 1 }, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
@@ -83,7 +83,7 @@ namespace ClientDecisionServiceTest
 
             using (var uploader = new EventUploader(null, "http://uploader.test"))
             {
-                uploader.InitializeWithToken(MockCommandCenter.AuthorizationToken);
+                uploader.InitializeWithToken(MockCommandCenter.SettingsBlobUri);
                 uploader.PackageSent += (sender, e) => { eventSentCount += e.Records.Count(); };
                 uploader.PackageSendFailed += (sender, e) => { exceptionCaught = e.Exception != null; };
 
@@ -154,7 +154,7 @@ namespace ClientDecisionServiceTest
 
             using (var uploader = new EventUploader(null, MockJoinServer.MockJoinServerAddress))
             {
-                uploader.InitializeWithToken(MockCommandCenter.AuthorizationToken);
+                uploader.InitializeWithToken(MockCommandCenter.SettingsBlobUri);
                 uploader.PackageSent += (sender, e) => { eventSentCount += e.Records.Count(); };
 
                 uploader.Upload(new Interaction { Value = 1, Context = JsonConvert.SerializeObject(new TestContext()), ExplorerState = new GenericExplorerState { Probability = .5f }, Key = uniqueKey });
@@ -185,7 +185,7 @@ namespace ClientDecisionServiceTest
 
             using (var uploader = new EventUploader(null, MockJoinServer.MockJoinServerAddress))
             {
-                uploader.InitializeWithToken(MockCommandCenter.AuthorizationToken);
+                uploader.InitializeWithToken(MockCommandCenter.SettingsBlobUri);
                 uploader.PackageSent += (sender, e) => { Interlocked.Add(ref eventSentCount, e.Records.Count()); };
 
                 Parallel.For(0, numEvents, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, (i) =>

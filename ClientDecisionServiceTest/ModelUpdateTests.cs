@@ -22,7 +22,7 @@ namespace ClientDecisionServiceTest
             int numActions = 10;
             int numFeatures = 1024;
 
-            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken)
+            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri)
             //explorer: new EpsilonGreedyExplorer<TestRcv1Context>(new TestRcv1ContextPolicy(), epsilon: 0.5f, numActions: (int)numActions))
             {
                 JoinServerType = JoinServerType.CustomSolution,
@@ -76,7 +76,7 @@ namespace ClientDecisionServiceTest
             // create mock blobs for settings and models
             this.commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false);
 
-            var serviceConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken)
+            var serviceConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri)
             {
                 JoinServerType = JoinServerType.CustomSolution,
                 LoggingServiceAddress = MockJoinServer.MockJoinServerAddress,
@@ -97,7 +97,7 @@ namespace ClientDecisionServiceTest
             // create mock blobs for settings and models
             this.commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: true);
 
-            var serviceConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken)
+            var serviceConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri)
             {
                 JoinServerType = JoinServerType.CustomSolution,
                 LoggingServiceAddress = MockJoinServer.MockJoinServerAddress,

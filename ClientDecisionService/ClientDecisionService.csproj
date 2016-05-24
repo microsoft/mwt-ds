@@ -170,9 +170,9 @@
       <Project>{e2e33de3-c3c4-47f4-ac39-5d10a0332189}</Project>
       <Name>JoinServerUploader</Name>
     </ProjectReference>
-    <ProjectReference Include="..\MultiWorldTestingServiceContract\MultiWorldTestingServiceContract.csproj">
-      <Project>{d10392b9-7f76-4d1f-8f38-b0b63aa63760}</Project>
-      <Name>MultiWorldTestingServiceContract</Name>
+    <ProjectReference Include="..\MultiworldTestingServiceContract\MultiworldTestingServiceContract.csproj">
+      <Project>{4830e9b5-64de-4049-9602-7910fc4abd6c}</Project>
+      <Name>MultiworldTestingServiceContract</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -13,12 +13,12 @@ namespace ClientDecisionServiceSample
     public static class SampleCodeUsingJsonDirectContextClass
     {
         /***** Copy & Paste your authorization token here *****/
-        static readonly string MwtServiceToken = "";
+        static readonly string SettingsBlobUri = "";
 
         public static void SampleCodeUsingJsonDirectContext()
         {
             // Create configuration for the decision service
-            var serviceConfig = new DecisionServiceConfiguration(authorizationToken: MwtServiceToken);
+            var serviceConfig = new DecisionServiceConfiguration(settingsBlobUri: SettingsBlobUri);
 
             using (var service = DecisionService
                 .WithRanker(serviceConfig)

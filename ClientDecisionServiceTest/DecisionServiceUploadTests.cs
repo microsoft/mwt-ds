@@ -21,7 +21,7 @@ namespace ClientDecisionServiceTest
 
             string uniqueKey = "test interaction";
 
-            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken);
+            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri);
 
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
@@ -49,7 +49,7 @@ namespace ClientDecisionServiceTest
 
             string uniqueKey = "test interaction";
 
-            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken);
+            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri);
 
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
@@ -78,7 +78,7 @@ namespace ClientDecisionServiceTest
 
             var createObservation = (Func<int, string>)((i) => { return string.Format("00000", i); });
 
-            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken);
+            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri);
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
 
@@ -148,7 +148,7 @@ namespace ClientDecisionServiceTest
 
             string uniqueKey = "test interaction";
 
-            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken);
+            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri);
 
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
@@ -177,7 +177,7 @@ namespace ClientDecisionServiceTest
 
             string uniqueKey = "test interaction";
 
-            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken);
+            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri);
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
 
@@ -202,7 +202,7 @@ namespace ClientDecisionServiceTest
 
             string uniqueKey = "test interaction";
 
-            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken);
+            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri);
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
             dsConfig.JoinServiceBatchConfiguration = new BatchingConfiguration();
@@ -256,7 +256,7 @@ namespace ClientDecisionServiceTest
 
             var createObservation = (Func<int, string>)((i) => { return string.Format("00000", i); });
 
-            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.AuthorizationToken);
+            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri);
             dsConfig.JoinServiceBatchConfiguration = new Microsoft.Research.MultiWorldTesting.JoinUploader.BatchingConfiguration
             {
                 MaxBufferSizeInBytes = 4 * 1024 * 1024,

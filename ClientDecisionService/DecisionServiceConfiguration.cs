@@ -6,20 +6,20 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
     public class DecisionServiceConfiguration
     {
-        public DecisionServiceConfiguration(string authorizationToken)
+        public DecisionServiceConfiguration(string settingsBlobUri)
         {
-            if (authorizationToken == null)
+            if (settingsBlobUri == null)
             {
-                throw new ArgumentNullException("authorizationToken", "Authorization token cannot be null");
+                throw new ArgumentNullException("settingsBlobUri", "Settings blob Uri cannot be null");
             }
 
-            this.AuthorizationToken = authorizationToken;
+            this.SettingsBlobUri = settingsBlobUri;
         }
 
         /// <summary>
-        /// The authorization token that is used for request authentication.
+        /// The settings blob uri for this application.
         /// </summary>
-        public string AuthorizationToken { get; private set; }
+        public string SettingsBlobUri { get; private set; }
 
         /// <summary>
         ///  TODO: comment
@@ -40,6 +40,8 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         /// In offline mode, a custom <see cref="IRecorder{TContext}"/> object must be defined.
         /// </remarks>
         public bool OfflineMode { get; set; }
+
+        public string OfflineApplicationID { get; set; }
 
         /// <summary>
         /// Specifies the batching configuration when uploading data to join service.
