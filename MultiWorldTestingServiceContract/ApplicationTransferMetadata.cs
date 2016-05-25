@@ -98,4 +98,37 @@ namespace Microsoft.Research.MultiWorldTesting.Contract
         /// </summary>
         public string ConnectionString { get; set; }
     }
+
+    public class ApplicationExtraMetadata
+    {
+        /// <summary>
+        /// The Id of the Azure subscription associated with this application.
+        /// </summary>
+        public string SubscriptionId { get; set; }
+
+        /// <summary>
+        /// The name of the Azure resource group provisioned for this application.
+        /// </summary>
+        public string AzureResourceGroupName { get; set; }
+
+        /// <summary>
+        /// The type of decision.
+        /// </summary>
+        public DecisionType DecisionType { get; set; }
+        
+        /// <summary>
+        /// The training frequency type.
+        /// </summary>
+        public TrainFrequency TrainFrequency { get; set; }
+
+        /// <summary>
+        /// The Id of the model to use in client library.
+        /// </summary>
+        public string ModelId { get; set; }
+
+        /// <summary>
+        /// The experimental unit duration for joining decisions with observations.
+        /// </summary>
+        public int ExperimentalUnitDuration { get; set; }
+    }
 }
