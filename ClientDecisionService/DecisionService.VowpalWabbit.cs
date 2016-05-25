@@ -23,7 +23,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
             if (!spec.Config.OfflineMode)
             {
-                metaData = ApplicationUtil.DownloadMetadata<ApplicationClientMetadata>(spec.Config.SettingsBlobUri);
+                metaData = ApplicationMetadataUtil.DownloadMetadata<ApplicationClientMetadata>(spec.Config.SettingsBlobUri);
 
                 if (spec.NumberOfActions != null)
                     numberOfActions = (int)spec.NumberOfActions;
@@ -60,7 +60,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             ApplicationClientMetadata metaData = null;
 
             if (!spec.Config.OfflineMode)
-                metaData = ApplicationUtil.DownloadMetadata<ApplicationClientMetadata>(spec.Config.SettingsBlobUri);
+                metaData = ApplicationMetadataUtil.DownloadMetadata<ApplicationClientMetadata>(spec.Config.SettingsBlobUri);
 
 			// have sensible defaults
             return new DecisionServiceClient<TContext, int[], int[]>(

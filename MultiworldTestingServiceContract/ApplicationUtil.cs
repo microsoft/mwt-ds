@@ -5,7 +5,7 @@ using System.Net;
 
 namespace Microsoft.Research.MultiWorldTesting.Contract
 {
-    public static class ApplicationUtil
+    public static class ApplicationMetadataUtil
     {
         public static TMetadata DownloadMetadata<TMetadata>(string blobUri)
         {
