@@ -28,8 +28,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
         private readonly string blobAddress;
 
-        private readonly CloudStorageAccount storageAccount;
-        
         private string blobEtag;
 
         private bool downloadImmediately;
@@ -56,8 +54,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             var uri = string.Empty;
             try
             {
-                CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-                ICloudBlob blob = await blobClient.GetBlobReferenceFromServerAsync(new Uri(this.blobAddress), cancellationToken);
+                ICloudBlob blob = new CloudBlockBlob(new Uri(this.blobAddress));
                 uri = blob.Uri.ToString();
 
                 // avoid not found exception

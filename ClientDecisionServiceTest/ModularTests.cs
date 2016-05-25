@@ -13,7 +13,7 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         public void TestSingleActionOfflineModeArgument()
         {
-            var dsConfig = new DecisionServiceConfiguration("my token") { OfflineMode = true };
+            var dsConfig = new DecisionServiceConfiguration("") { OfflineMode = true, OfflineApplicationID = "" };
             try
             {
                 using (var ds = DecisionService.WithPolicy(dsConfig, 2).With<TestContext>())
@@ -28,7 +28,7 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         public void TestSingleActionOfflineModeCustomLogger()
         {
-            var dsConfig = new DecisionServiceConfiguration("my token") { OfflineMode = true };
+            var dsConfig = new DecisionServiceConfiguration("") { OfflineMode = true, OfflineApplicationID = "" };
 
             var recorder = new TestLogger();
             int numChooseAction = 100;
@@ -116,35 +116,11 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
-        public void TestSingleActionOnlineModeInvalidToken()
-        {
-            MockCommandCenter.UnsetRedirectionBlobLocation();
-
-            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri);
-            dsConfig.JoinServerType = JoinServerType.CustomSolution;
-
-            bool isExceptionExpected = false;
-            try
-            {
-                using (var ds = DecisionService
-                    .WithPolicy(dsConfig, Constants.NumberOfActions)
-                    .With<TestContext>()
-                    .ExploitUntilModelReady(new TestSingleActionPolicy()))
-                { }
-            }
-            catch (InvalidDataException)
-            {
-                isExceptionExpected = true;
-            }
-            Assert.AreEqual(true, isExceptionExpected);
-        }
-
-        [TestMethod]
         [ExpectedException(typeof(Exception))]
         public void TestMultiActionOfflineModeArgument()
         {
             using (var ds = DecisionService
-                .WithRanker(new DecisionServiceConfiguration("my token") { OfflineMode = true })
+                .WithRanker(new DecisionServiceConfiguration("") { OfflineMode = true, OfflineApplicationID = "" })
                 .WithJson())
             {
                 ds.ChooseAction(new UniqueEventID() { Key = "" }, "{}");
@@ -154,7 +130,7 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         public void TestMultiActionOfflineModeCustomLogger()
         {
-            var dsConfig = new DecisionServiceConfiguration("my token") { OfflineMode = true };
+            var dsConfig = new DecisionServiceConfiguration("") { OfflineMode = true, OfflineApplicationID = "" };
             var recorder = new TestLogger();
             int numChooseAction = 100;
             using (var ds = DecisionService
@@ -238,32 +214,6 @@ namespace ClientDecisionServiceTest
             Assert.AreEqual(0, recorder.NumRecord);
             Assert.AreEqual(0, recorder.NumReward);
             Assert.AreEqual(0, recorder.NumOutcome);
-        }
-
-        [TestMethod]
-        public void TestMultiActionOnlineModeInvalidToken()
-        {
-            MockCommandCenter.UnsetRedirectionBlobLocation();
-
-            /*** This test requires real value of RedirectionBlobLocation set in DecisionServiceConstants.cs file ***/
-            var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri);
-            dsConfig.JoinServerType = JoinServerType.CustomSolution;
-
-            bool isExceptionExpected = false;
-            try
-            {
-                using (var ds = DecisionService
-                    .WithRanker(dsConfig)
-                    .With<TestContext>()
-                    .WithTopSlotEpsilonGreedy(.2f)
-                    .ExploitUntilModelReady(new TestMultiActionPolicy()))
-                { }
-            }
-            catch (InvalidDataException)
-            {
-                isExceptionExpected = true;
-            }
-            Assert.AreEqual(true, isExceptionExpected);
         }
 
         [TestInitialize]

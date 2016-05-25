@@ -34,14 +34,21 @@ namespace ClientDecisionServiceTest
                 dsConfig.SettingsPollSuccessCallback = data => settingsBytes = data;
 
                 for (int i = 0; i < 20 && settingsBytes == null; i++)
+                {
                     Thread.Sleep(100);
+                    if (i % 2 == 0)
+                    {
+                        // change the settings blob's etag frequently to make sure polling detects it
+                        commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false);
+                    }
+                }
 
                 Assert.IsTrue(Enumerable.SequenceEqual(settingsBytes, commandCenter.GetSettingsBlobContent()));
             }
         }
 
         [TestMethod]
-        public void TestMultiActionSettingsBlobOutput()
+        public void TestSettingsBlobPolling()
         {
             joinServer.Reset();
 
@@ -63,7 +70,14 @@ namespace ClientDecisionServiceTest
                 dsConfig.SettingsPollSuccessCallback = data => settingsBytes = data;
 
                 for (int i = 0; i < 50 && settingsBytes == null; i++)
+                {
                     Thread.Sleep(100);
+                    if (i % 2 == 0)
+                    {
+                        // change the settings blob's etag frequently to make sure polling detects it
+                        commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false);
+                    }
+                }
 
                 Assert.IsNotNull(settingsBytes);
                 Assert.IsTrue(Enumerable.SequenceEqual(settingsBytes, commandCenter.GetSettingsBlobContent()));

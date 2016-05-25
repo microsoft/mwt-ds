@@ -70,7 +70,7 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
-        [ExpectedException(typeof(StorageException))]
+        [ExpectedException(typeof(System.Net.WebException))]
         public async Task TestNoModelFoundForImmediateDownload()
         {
             // create mock blobs for settings and models
