@@ -74,11 +74,11 @@ namespace ClientDecisionServiceTest
             //var config = new DecisionServiceConfiguration("2fee5489-0b9f-4590-9cbe-eee9802e1e3c");
             var config = new DecisionServiceConfiguration(token)
             {
-                JoinServiceBatchConfiguration = new Microsoft.Research.MultiWorldTesting.JoinUploader.BatchingConfiguration()
+                InteractionUploadConfiguration = new Microsoft.Research.MultiWorldTesting.JoinUploader.BatchingConfiguration()
             };
             
-            config.JoinServiceBatchConfiguration.ErrorHandler +=JoinServiceBatchConfiguration_ErrorHandler;
-            config.JoinServiceBatchConfiguration.SuccessHandler +=JoinServiceBatchConfiguration_SuccessHandler;
+            config.InteractionUploadConfiguration.ErrorHandler +=JoinServiceBatchConfiguration_ErrorHandler;
+            config.InteractionUploadConfiguration.SuccessHandler +=JoinServiceBatchConfiguration_SuccessHandler;
             this.features = new string[] { "a", "b", "c", "d" };
             this.freq = new Dictionary<string, int>();
             this.rnd = new Random(123);

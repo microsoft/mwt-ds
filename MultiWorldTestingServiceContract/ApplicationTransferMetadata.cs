@@ -44,16 +44,14 @@ namespace Microsoft.Research.MultiWorldTesting.Contract
         public int? NumActions { get; set; }
 
         /// <summary>
-        /// The EventHub connection string to which the client needs to send data.
+        /// The EventHub connection string to which the client needs to send interaction data.
         /// </summary>
-        public string EventHubConnectionString { get; set; } // TODO: change this to combine input name
+        public string EventHubInteractionConnectionString { get; set; }
 
         /// <summary>
-        /// The input name of the EventHub.
+        /// The EventHub connection string to which the client needs to send interaction data.
         /// </summary>
-        public string EventHubInputName { get; set; }
-
-        public string EventHubObservationConnectionString { get; set; } // combined with EH entity name
+        public string EventHubObservationConnectionString { get; set; }
 
         /// <summary>
         /// Turn on/off exploration at client side.
@@ -82,11 +80,6 @@ namespace Microsoft.Research.MultiWorldTesting.Contract
         /// 
         /// </summary>
         public string EventHubListenConnectionString { get; set; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public string EventHubOutputName { get; set; }
 
         /// <summary>
         /// 

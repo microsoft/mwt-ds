@@ -44,17 +44,33 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         public string OfflineApplicationID { get; set; }
 
         /// <summary>
-        /// Specifies the batching configuration when uploading data to join service.
+        /// Specifies the batching configuration when uploading interaction data to join service.
         /// </summary>
         /// <remarks>
         /// In offline mode, batching configuration will not be used since the join service recorder is turned off.
         /// </remarks>
-        public BatchingConfiguration JoinServiceBatchConfiguration
+        public BatchingConfiguration InteractionUploadConfiguration
         {
             get { return batchConfig; }
             set
             {
-                if (value == null) throw new ArgumentNullException("Batch configuration cannot be null");
+                if (value == null) throw new ArgumentNullException("Interaction upload configuration cannot be null");
+                batchConfig = value;
+            }
+        }
+
+        /// <summary>
+        /// Specifies the batching configuration when uploading observation data to join service.
+        /// </summary>
+        /// <remarks>
+        /// In offline mode, batching configuration will not be used since the join service recorder is turned off.
+        /// </remarks>
+        public BatchingConfiguration ObservationUploadConfiguration
+        {
+            get { return batchConfig; }
+            set
+            {
+                if (value == null) throw new ArgumentNullException("Observation upload configuration cannot be null");
                 batchConfig = value;
             }
         }

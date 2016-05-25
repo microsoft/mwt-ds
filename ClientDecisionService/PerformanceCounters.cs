@@ -23,12 +23,19 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 {
                     var counterCollection = new CounterCreationDataCollection();
 
-                    counterCollection.Add(new CounterCreationData() { CounterName = "ExamplesQueue", CounterHelp = "", CounterType = PerformanceCounterType.NumberOfItems64 });
-                    counterCollection.Add(new CounterCreationData() { CounterName = "ExamplesTotal", CounterHelp = "", CounterType = PerformanceCounterType.NumberOfItems64 });
-                    counterCollection.Add(new CounterCreationData() { CounterName = "ExamplesSec", CounterHelp = "", CounterType = PerformanceCounterType.RateOfCountsPerSecond32 });
-                    counterCollection.Add(new CounterCreationData() { CounterName = "ExamplesBytesSec", CounterHelp = "", CounterType = PerformanceCounterType.RateOfCountsPerSecond64 });
-                    counterCollection.Add(new CounterCreationData() { CounterName = "AverageExampleSize", CounterHelp = "", CounterType = PerformanceCounterType.AverageCount64 });
-                    counterCollection.Add(new CounterCreationData() { CounterName = "AverageExampleSizeBase", CounterHelp = "", CounterType = PerformanceCounterType.AverageBase });
+                    counterCollection.Add(new CounterCreationData() { CounterName = "InteractionExamplesQueue", CounterHelp = "", CounterType = PerformanceCounterType.NumberOfItems64 });
+                    counterCollection.Add(new CounterCreationData() { CounterName = "InteractionExamplesTotal", CounterHelp = "", CounterType = PerformanceCounterType.NumberOfItems64 });
+                    counterCollection.Add(new CounterCreationData() { CounterName = "InteractionExamplesSec", CounterHelp = "", CounterType = PerformanceCounterType.RateOfCountsPerSecond32 });
+                    counterCollection.Add(new CounterCreationData() { CounterName = "InteractionExamplesBytesSec", CounterHelp = "", CounterType = PerformanceCounterType.RateOfCountsPerSecond64 });
+                    counterCollection.Add(new CounterCreationData() { CounterName = "AverageInteractionExampleSize", CounterHelp = "", CounterType = PerformanceCounterType.AverageCount64 });
+                    counterCollection.Add(new CounterCreationData() { CounterName = "AverageInteractionExampleSizeBase", CounterHelp = "", CounterType = PerformanceCounterType.AverageBase });
+
+                    counterCollection.Add(new CounterCreationData() { CounterName = "ObservationExamplesQueue", CounterHelp = "", CounterType = PerformanceCounterType.NumberOfItems64 });
+                    counterCollection.Add(new CounterCreationData() { CounterName = "ObservationExamplesTotal", CounterHelp = "", CounterType = PerformanceCounterType.NumberOfItems64 });
+                    counterCollection.Add(new CounterCreationData() { CounterName = "ObservationExamplesSec", CounterHelp = "", CounterType = PerformanceCounterType.RateOfCountsPerSecond32 });
+                    counterCollection.Add(new CounterCreationData() { CounterName = "ObservationExamplesBytesSec", CounterHelp = "", CounterType = PerformanceCounterType.RateOfCountsPerSecond64 });
+                    counterCollection.Add(new CounterCreationData() { CounterName = "AverageObservationExampleSize", CounterHelp = "", CounterType = PerformanceCounterType.AverageCount64 });
+                    counterCollection.Add(new CounterCreationData() { CounterName = "AverageObservationExampleSizeBase", CounterHelp = "", CounterType = PerformanceCounterType.AverageBase });
 
                     PerformanceCounterCategory.Create(category, "Decision Service Client", PerformanceCounterCategoryType.MultiInstance, counterCollection);
                 }
@@ -41,26 +48,44 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
         private readonly bool initialized;
 
-        private PerformanceCounter examplesQueue;
-        private PerformanceCounter examplesTotal;
-        private PerformanceCounter examplesPerSec;
-        private PerformanceCounter examplesBytesPerSec;
-        private PerformanceCounter averageExampleSize;
-        private PerformanceCounter averageExampleSizeBase;
+        private PerformanceCounter interactionExamplesQueue;
+        private PerformanceCounter interactionExamplesTotal;
+        private PerformanceCounter interactionExamplesPerSec;
+        private PerformanceCounter interactionExamplesBytesPerSec;
+        private PerformanceCounter averageInteractionExampleSize;
+        private PerformanceCounter averageInteractionExampleSizeBase;
+
+        private PerformanceCounter observationExamplesQueue;
+        private PerformanceCounter observationExamplesTotal;
+        private PerformanceCounter observationExamplesPerSec;
+        private PerformanceCounter observationExamplesBytesPerSec;
+        private PerformanceCounter averageObservationExampleSize;
+        private PerformanceCounter averageObservationExampleSizeBase;
+
 
         internal PerformanceCounters(string mwtToken)
         {
             try 
 	        {	        
-		        this.examplesQueue = new PerformanceCounter(category, "ExamplesQueue", mwtToken, false);
-                this.examplesTotal = new PerformanceCounter(category, "ExamplesTotal", mwtToken, false);
-                this.examplesPerSec = new PerformanceCounter(category, "ExamplesSec", mwtToken, false);
-                this.examplesBytesPerSec = new PerformanceCounter(category, "ExamplesBytesSec", mwtToken, false);
-                this.averageExampleSize = new PerformanceCounter(category, "AverageExampleSize", mwtToken, false);
-                this.averageExampleSizeBase = new PerformanceCounter(category, "AverageExampleSizeBase", mwtToken, false);
+		        this.interactionExamplesQueue = new PerformanceCounter(category, "InteractionExamplesQueue", mwtToken, false);
+                this.interactionExamplesTotal = new PerformanceCounter(category, "InteractionExamplesTotal", mwtToken, false);
+                this.interactionExamplesPerSec = new PerformanceCounter(category, "InteractionExamplesSec", mwtToken, false);
+                this.interactionExamplesBytesPerSec = new PerformanceCounter(category, "InteractionExamplesBytesSec", mwtToken, false);
+                this.averageInteractionExampleSize = new PerformanceCounter(category, "AverageInteractionExampleSize", mwtToken, false);
+                this.averageInteractionExampleSizeBase = new PerformanceCounter(category, "AverageInteractionExampleSizeBase", mwtToken, false);
                 
-                this.examplesQueue.RawValue = 0;
-                this.examplesTotal.RawValue = 0;
+                this.interactionExamplesQueue.RawValue = 0;
+                this.interactionExamplesTotal.RawValue = 0;
+
+                this.observationExamplesQueue = new PerformanceCounter(category, "ObservationExamplesQueue", mwtToken, false);
+                this.observationExamplesTotal = new PerformanceCounter(category, "ObservationExamplesTotal", mwtToken, false);
+                this.observationExamplesPerSec = new PerformanceCounter(category, "ObservationExamplesSec", mwtToken, false);
+                this.observationExamplesBytesPerSec = new PerformanceCounter(category, "ObservationExamplesBytesSec", mwtToken, false);
+                this.averageObservationExampleSize = new PerformanceCounter(category, "AverageObservationExampleSize", mwtToken, false);
+                this.averageObservationExampleSizeBase = new PerformanceCounter(category, "AverageObservationExampleSizeBase", mwtToken, false);
+
+                this.observationExamplesQueue.RawValue = 0;
+                this.observationExamplesTotal.RawValue = 0;
 
                 this.initialized = true;
 	        }
@@ -71,27 +96,51 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 	        }
         }
 
-        internal void ReportExample(int eventCount, int sumSize)
+        internal void ReportInteraction(int eventCount, int sumSize)
         {
             if (this.initialized)
             {
-                this.examplesQueue.IncrementBy(-eventCount);
+                this.interactionExamplesQueue.IncrementBy(-eventCount);
 
-                this.examplesTotal.IncrementBy(eventCount);
-                this.examplesPerSec.IncrementBy(eventCount);
+                this.interactionExamplesTotal.IncrementBy(eventCount);
+                this.interactionExamplesPerSec.IncrementBy(eventCount);
 
-                this.examplesBytesPerSec.IncrementBy(sumSize);
+                this.interactionExamplesBytesPerSec.IncrementBy(sumSize);
 
-                this.averageExampleSize.IncrementBy(sumSize);
-                this.averageExampleSizeBase.IncrementBy(eventCount);
+                this.averageInteractionExampleSize.IncrementBy(sumSize);
+                this.averageInteractionExampleSizeBase.IncrementBy(eventCount);
             }
         }
 
-        internal void ReportExampleQueue(int queueSize)
+        internal void ReportObservation(int eventCount, int sumSize)
         {
             if (this.initialized)
             {
-                this.examplesQueue.RawValue = queueSize;
+                this.observationExamplesQueue.IncrementBy(-eventCount);
+
+                this.observationExamplesTotal.IncrementBy(eventCount);
+                this.observationExamplesPerSec.IncrementBy(eventCount);
+
+                this.observationExamplesBytesPerSec.IncrementBy(sumSize);
+
+                this.averageObservationExampleSize.IncrementBy(sumSize);
+                this.averageObservationExampleSizeBase.IncrementBy(eventCount);
+            }
+        }
+
+        internal void ReportInteractionExampleQueue(int queueSize)
+        {
+            if (this.initialized)
+            {
+                this.interactionExamplesQueue.RawValue = queueSize;
+            }
+        }
+
+        internal void ReportObservationExampleQueue(int queueSize)
+        {
+            if (this.initialized)
+            {
+                this.observationExamplesQueue.RawValue = queueSize;
             }
         }
     }

@@ -205,15 +205,15 @@ namespace ClientDecisionServiceTest
             var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri);
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
-            dsConfig.JoinServiceBatchConfiguration = new BatchingConfiguration();
-            dsConfig.JoinServiceBatchConfiguration.MaxDuration = TimeSpan.FromMinutes(10); // allow enough time for queue to buffer events
-            dsConfig.JoinServiceBatchConfiguration.MaxDegreeOfSerializationParallelism = 1; // single-threaded for easy verification
+            dsConfig.InteractionUploadConfiguration = new BatchingConfiguration();
+            dsConfig.InteractionUploadConfiguration.MaxDuration = TimeSpan.FromMinutes(10); // allow enough time for queue to buffer events
+            dsConfig.InteractionUploadConfiguration.MaxDegreeOfSerializationParallelism = 1; // single-threaded for easy verification
 
             int numEvents = 100;
 
             // Set queue capacity to same number of events so selective dropping starts at 50% full
-            dsConfig.JoinServiceBatchConfiguration.MaxUploadQueueCapacity = numEvents;
-            dsConfig.JoinServiceBatchConfiguration.DroppingPolicy = new DroppingPolicy
+            dsConfig.InteractionUploadConfiguration.MaxUploadQueueCapacity = numEvents;
+            dsConfig.InteractionUploadConfiguration.DroppingPolicy = new DroppingPolicy
             {
                 MaxQueueLevelBeforeDrop = .5f,
 
@@ -257,7 +257,7 @@ namespace ClientDecisionServiceTest
             var createObservation = (Func<int, string>)((i) => { return string.Format("00000", i); });
 
             var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri);
-            dsConfig.JoinServiceBatchConfiguration = new Microsoft.Research.MultiWorldTesting.JoinUploader.BatchingConfiguration
+            dsConfig.InteractionUploadConfiguration = new Microsoft.Research.MultiWorldTesting.JoinUploader.BatchingConfiguration
             {
                 MaxBufferSizeInBytes = 4 * 1024 * 1024,
                 MaxDuration = TimeSpan.FromMinutes(1),

@@ -13,7 +13,7 @@ namespace ClientDecisionServiceSample
     {
         public static void SampleCodeUsingEventHubUploader()
         {
-            var uploader = new EventUploaderASA("", "");
+            var uploader = new EventUploaderASA("");
 
             Stopwatch sw = new Stopwatch();
 

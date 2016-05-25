@@ -42,7 +42,7 @@ namespace ClientDecisionServiceSample
                 // EventHubConnectionString = EventHubConnectionString,
                 // EventHubInputName = EventHubInputName,
                 // Optional: set the configuration for how often data is uploaded to the join server.
-                JoinServiceBatchConfiguration = new BatchingConfiguration
+                InteractionUploadConfiguration = new BatchingConfiguration
                 {
                     MaxBufferSizeInBytes = 4 * 1024,
                     MaxDuration = TimeSpan.FromSeconds(5),

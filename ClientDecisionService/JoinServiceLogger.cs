@@ -9,7 +9,8 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
     {
         private readonly PerformanceCounters perfCounters;
         private readonly string applicationID;
-        private IEventUploader eventUploader;
+        private IEventUploader interactionEventUploader;
+        private IEventUploader observationEventUploader;
 
         internal JoinServiceLogger(string applicationID)
         {
@@ -24,28 +25,37 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             var eventUploader = new EventUploader(batchConfig, loggingServiceBaseAddress);
             eventUploader.InitializeWithToken(this.applicationID);
 
-            this.eventUploader = eventUploader;
+            this.interactionEventUploader = eventUploader;
         }
 
         public void InitializeWithAzureStreamAnalyticsJoinServer(
-            string eventHubConnectionString,
-            string eventHubInputName,
-            BatchingConfiguration batchConfig)
+            string interactionEventHubConnectionString,
+            string observationEventHubConnectionString,
+            BatchingConfiguration interactionBatchConfig,
+            BatchingConfiguration observationsBatchConfig)
         {
-            batchConfig.SuccessHandler += batchConfig_SuccessHandler;
+            interactionBatchConfig.SuccessHandler += interactionBatchConfig_SuccessHandler;
+            observationsBatchConfig.SuccessHandler += observationBatchConfig_SuccessHandler;
 
-            this.eventUploader = new EventUploaderASA(eventHubConnectionString, eventHubInputName, batchConfig);
+            this.interactionEventUploader = new EventUploaderASA(interactionEventHubConnectionString, interactionBatchConfig);
+            this.observationEventUploader = new EventUploaderASA(observationEventHubConnectionString, observationsBatchConfig);
         }
 
-        void batchConfig_SuccessHandler(object source, int eventCount, int sumSize, int inputQueueSize)
+        void interactionBatchConfig_SuccessHandler(object source, int eventCount, int sumSize, int inputQueueSize)
         {
-            this.perfCounters.ReportExample(eventCount, sumSize);
-            this.perfCounters.ReportExampleQueue(inputQueueSize);
+            this.perfCounters.ReportInteraction(eventCount, sumSize);
+            this.perfCounters.ReportInteractionExampleQueue(inputQueueSize);
+        }
+
+        void observationBatchConfig_SuccessHandler(object source, int eventCount, int sumSize, int inputQueueSize)
+        {
+            this.perfCounters.ReportObservation(eventCount, sumSize);
+            this.perfCounters.ReportObservationExampleQueue(inputQueueSize);
         }
 
         public void Record(TContext context, TAction value, object explorerState, object mapperState, UniqueEventID uniqueKey)
         {
-            this.eventUploader.Upload(new Interaction
+            this.interactionEventUploader.Upload(new Interaction
             {
                 Key = uniqueKey.Key,
                 TimeStamp = uniqueKey.TimeStamp,
@@ -58,7 +68,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
         public void ReportReward(UniqueEventID uniqueKey, float reward)
         {
-            this.eventUploader.Upload(new Observation
+            (this.observationEventUploader ?? this.interactionEventUploader).Upload(new Observation
             {
                 Key = uniqueKey.Key,
                 TimeStamp = uniqueKey.TimeStamp,
@@ -68,7 +78,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
         public void ReportOutcome(UniqueEventID uniqueKey, object outcome)
         {
-            this.eventUploader.Upload(new Observation
+            (this.observationEventUploader ?? this.interactionEventUploader).Upload(new Observation
             {
                 Key = uniqueKey.Key,
                 TimeStamp = uniqueKey.TimeStamp,
@@ -86,10 +96,16 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         {
             if (disposing)
             {
-                if (this.eventUploader != null)
+                if (this.interactionEventUploader != null)
                 {
-                    this.eventUploader.Dispose();
-                    this.eventUploader = null;
+                    this.interactionEventUploader.Dispose();
+                    this.interactionEventUploader = null;
+                }
+
+                if (this.observationEventUploader != null)
+                {
+                    this.observationEventUploader.Dispose();
+                    this.observationEventUploader = null;
                 }
             }
         }

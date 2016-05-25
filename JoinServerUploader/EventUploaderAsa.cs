@@ -24,40 +24,38 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
     public class EventUploaderASA : BaseEventUploader<EventData>
     {
         private readonly string connectionString;
-        private readonly string eventHubInputName;
         private EventHubClient client;
 
         /// <summary>
         /// Constructs an uploader object.
         /// </summary>
         /// <param name="eventHubConnectionString">The Azure Stream Analytics connection string.</param>
-        /// <param name="eventHubInputName">The EventHub input name where data are sent to.</param>
         /// <param name="batchConfig">Optional; The batching configuration to used when uploading data.</param>
         public EventUploaderASA
         (
             string eventHubConnectionString, 
-            string eventHubInputName, 
             BatchingConfiguration batchConfig = null
         ) 
         : base(batchConfig)
         {
             this.connectionString = eventHubConnectionString;
-            this.eventHubInputName = eventHubInputName;
             
             var builder = new ServiceBusConnectionStringBuilder(this.connectionString)
             {
                 TransportType = TransportType.Amqp,
-                EntityPath = null
             };
+
+            var eventHubInputName = builder.EntityPath;
+            builder.EntityPath = null;
             
             if (this.batchConfig.ReUseTcpConnection)
             {
-                this.client = EventHubClient.CreateFromConnectionString(builder.ToString(), this.eventHubInputName);
+                this.client = EventHubClient.CreateFromConnectionString(builder.ToString(), eventHubInputName);
             }
             else
             {
                 var factory = MessagingFactory.CreateFromConnectionString(builder.ToString());
-                this.client = factory.CreateEventHubClient(this.eventHubInputName);
+                this.client = factory.CreateEventHubClient(eventHubInputName);
             }
         }
 

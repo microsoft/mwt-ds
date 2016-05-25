@@ -34,7 +34,7 @@ namespace ClientDecisionServiceSample
             // Create configuration for the decision service.
             var serviceConfig = new DecisionServiceConfiguration(settingsBlobUri: SettingsBlobUri)
             {
-                JoinServiceBatchConfiguration = new BatchingConfiguration // Optionally configure batch upload
+                InteractionUploadConfiguration = new BatchingConfiguration // Optionally configure batch upload
                 {
                     MaxBufferSizeInBytes = 4 * 1024,
                     MaxDuration = TimeSpan.FromSeconds(5),

@@ -49,8 +49,11 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             if (explorer == null)
                 throw new ArgumentNullException("explorer");
 
-            if (config.JoinServiceBatchConfiguration == null)
-                config.JoinServiceBatchConfiguration = new JoinUploader.BatchingConfiguration();
+            if (config.InteractionUploadConfiguration == null)
+                config.InteractionUploadConfiguration = new JoinUploader.BatchingConfiguration();
+
+            if (config.ObservationUploadConfiguration == null)
+                config.ObservationUploadConfiguration = new JoinUploader.BatchingConfiguration();
 
             this.config = config;
             string appId = string.Empty;
@@ -79,14 +82,15 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                         case JoinServerType.CustomSolution:
                             joinServerLogger.InitializeWithCustomAzureJoinServer(
                                 config.LoggingServiceAddress,
-                                config.JoinServiceBatchConfiguration);
+                                config.InteractionUploadConfiguration);
                             break;
                         case JoinServerType.AzureStreamAnalytics:
                         default:
                             joinServerLogger.InitializeWithAzureStreamAnalyticsJoinServer(
-                                metaData.EventHubConnectionString,
-                                metaData.EventHubInputName,
-                                config.JoinServiceBatchConfiguration);
+                                metaData.EventHubInteractionConnectionString,
+                                metaData.EventHubObservationConnectionString,
+                                config.InteractionUploadConfiguration,
+                                config.ObservationUploadConfiguration);
                             break;
                     }
                     this.recorder = (IRecorder<TContext, TAction>)joinServerLogger;
