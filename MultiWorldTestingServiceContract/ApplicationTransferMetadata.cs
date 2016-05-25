@@ -69,6 +69,11 @@ namespace Microsoft.Research.MultiWorldTesting.Contract
     public class ApplicationTrainerMetadata
     {
         /// <summary>
+        /// The name of the application as created on the Command Center.
+        /// </summary>
+        public string ApplicationID { get; set; }
+
+        /// <summary>
         /// Additional arguments to be used in training service.
         /// </summary>
         public string AdditionalTrainArguments { get; set; }
