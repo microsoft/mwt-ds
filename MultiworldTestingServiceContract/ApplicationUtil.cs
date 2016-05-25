@@ -9,17 +9,18 @@ namespace Microsoft.Research.MultiWorldTesting.Contract
     {
         public static TMetadata DownloadMetadata<TMetadata>(string blobUri)
         {
+            string jsonMetadata = "";
             try
             {
                 using (var wc = new WebClient())
                 {
-                    string jsonMetadata = wc.DownloadString(blobUri);
+                    jsonMetadata = wc.DownloadString(blobUri);
                     return JsonConvert.DeserializeObject<TMetadata>(jsonMetadata);
                 }
             }
             catch (Exception ex)
             {
-                throw new InvalidDataException("Unable to download metadata from specified blob uri " + blobUri, ex);
+                throw new InvalidDataException("Unable to download metadata from specified blob uri " + blobUri + ", JSON: " + jsonMetadata, ex);
             }
         }
     }
