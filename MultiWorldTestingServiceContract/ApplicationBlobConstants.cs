@@ -14,6 +14,7 @@ namespace Microsoft.Research.MultiWorldTesting.Contract
 
         // Settings blobs
         public static readonly string SettingsContainerName = "mwt-settings";
-        public static readonly string LatestSettingsBlobName = "current";
+        public static readonly string LatestClientSettingsBlobName = "client";
+        public static readonly string LatestTrainerSettingsBlobName = "trainer";
     }
 }
