@@ -14,7 +14,7 @@
     <copyright>Copyright (C) 2015-2016 Microsoft Corporation</copyright>
   </metadata>
   <files>
-    <file src="$SolutionDir$bin\AnyCPU\$Configuration$\Microsoft.Research.MultiWorldTesting.Contract.pdb" target="lib\net45" />
+    <file src="$SolutionDir$bin\x64\$Configuration$\Microsoft.Research.MultiWorldTesting.Contract.pdb" target="lib\net45" />
    </files>
 </package>
 
