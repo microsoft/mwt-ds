@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Net;
+using System.Web;
 using System.Web.Mvc;
 
 namespace DecisionServicePrivateWeb.Controllers
@@ -27,7 +28,7 @@ namespace DecisionServicePrivateWeb.Controllers
 
         public ActionResult Index()
         {
-            return View(new IndexViewModel { Authenticated = this.IsAuthenticated() });
+            return View(new IndexViewModel { Authenticated = IsAuthenticated(Session) });
         }
 
         [HttpPost]
@@ -53,9 +54,21 @@ namespace DecisionServicePrivateWeb.Controllers
             return View(new IndexViewModel { Authenticated = false, Error = "Invalid Password" });
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult LogOff()
+        {
+            Session.Clear();
+            return RedirectToAction("Index");
+        }
+
         [AllowAnonymous]
         public ActionResult Settings()
         {
+            if (!IsAuthenticated(Session))
+            {
+                return RedirectToAction("Index");
+            }
             string userName = User.Identity.Name;
             ApplicationClientMetadata clientApp = null;
             ApplicationTrainerMetadata trainerApp = null;
@@ -130,6 +143,17 @@ namespace DecisionServicePrivateWeb.Controllers
             }
         }
 
+        [AllowAnonymous]
+        public ActionResult Evaluation()
+        {
+            if (!IsAuthenticated(Session))
+            {
+                return RedirectToAction("Index");
+            }
+
+            return View();
+        }
+
         public static string GetDecisionTypeString(DecisionType decisionType)
         {
             switch (decisionType)
@@ -143,7 +167,7 @@ namespace DecisionServicePrivateWeb.Controllers
             }
         }
 
-        private bool IsAuthenticated()
+        public static bool IsAuthenticated(HttpSessionStateBase Session)
         {
             return (Session[SKAuthenticated] != null && (bool)Session[SKAuthenticated]);
         }
