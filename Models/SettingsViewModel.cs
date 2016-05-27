@@ -16,8 +16,8 @@ namespace DecisionServicePrivateWeb.Models
         public TrainFrequency TrainFrequency { get; set; }
         public string AdditionalTrainArguments { get; set; }
         public string AzureStorageConnectionString { get; set; }
-        public string EventHubConnectionString { get; set; }
-        public string EventHubInputName { get; set; }
+        public string EventHubInteractionConnectionString { get; set; }
+        public string EventHubObservationConnectionString { get; set; }
         public int ExperimentalUnitDuration { get; set; }
         public List<BlobModelViewModel> ModelIdList { get; set; }
         public string SelectedModelId { get; set; }
