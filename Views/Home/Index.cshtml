@@ -1,0 +1,58 @@
+﻿@using DecisionServicePrivateWeb.Models
+@model IndexViewModel
+@{
+    ViewBag.Title = "Management Portal";
+}
+
+<div class="jumbotron" style="background-color:transparent; margin-bottom:0; padding-bottom:20px;">
+    <h1>Management Portal</h1>
+    <p class="lead">
+        The Management Portal is a simple tool for modifying various properties of your Multiworld Testing Decision Service.
+    </p>
+    <p style="text-align:center;">
+        @if (!Model.Authenticated)
+        {
+            <p class="lead">
+                To get started, enter the password below (which can be found in the Application Settings of this site in Azure portal):
+            </p>
+            using (Html.BeginForm("Index", "Home", FormMethod.Post, new { role = "form" }))
+            {
+                @Html.AntiForgeryToken()
+                <div class="form-group row">
+                    <div style="text-align: center">
+                        <input type="password" class="form-control" id="password" name="password" placeholder="Password" style="display:inline">
+                    </div>
+                    <div style="text-align: center">
+                        <button class="btn btn-primary">Log In</button>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(Model.Error))
+                    {
+                        <div style="text-align: center">
+                            <label class="ds-error-message">@Model.Error</label>
+                        </div>
+                    }
+                </div>
+            }
+        }
+        else
+        {
+            <p class="lead">
+                Click below to manage your application:
+            </p>
+            <div style="text-align: center">
+                <a href="@Url.Action("Settings", "Home")" class="btn btn-primary">Manage Decision Service &raquo;</a>
+            </div>
+        }
+    </p>
+
+</div>
+<hr class="fancy-line" />
+<div class="row">
+    <div class="col-md-12" style="text-align:right;">
+        <div class="card">
+            <p class="text-muted" style="font-size: 14px;">
+                contact us at mwtservice@microsoft.com
+            </p>
+        </div>
+    </div>
+</div>

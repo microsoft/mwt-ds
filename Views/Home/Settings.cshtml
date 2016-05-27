@@ -1,0 +1,111 @@
+﻿@using DecisionServicePrivateWeb.Models
+@using DecisionServicePrivateWeb.Controllers
+@using Microsoft.Research.MultiWorldTesting.Contract
+@model SettingsViewModel
+@{
+    ViewBag.Title = "Settings";
+}
+<h2 class="ds-title">@ViewBag.Title</h2>
+
+<div class="container-fluid">
+    @using (Html.BeginForm("Settings", "Home", FormMethod.Post, new { @class = "form-horizontal ds-form", role = "form" }))
+    {
+        var svm = Model;
+
+        @Html.AntiForgeryToken()
+
+        <div class="form-group">
+            <label for="sttTxtApplicationId" class="col-sm-2 control-label ds-label">application id</label>
+            <div class="col-sm-10">
+                <input type="text" readonly="readonly" style="display:inline;" class="form-control" id="sttTxtApplicationId" value="@svm.ApplicationId" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="sttTxtAzureRG" class="col-sm-2 control-label ds-label">azure resource group</label>
+            <div class="col-sm-10">
+                <a class="btn btn-primary outline form-control" href="@string.Format("https://ms.portal.azure.com/#asset/HubsExtension/ResourceGroups/subscriptions/{0}/resourceGroups/{1}", svm.AzureSubscriptionId, svm.AzureResourceGroupName)" target="_blank">@svm.AzureResourceGroupName</a>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="sttTxtConnectionString" class="col-sm-2 control-label ds-label">azure storage connection string</label>
+            <div class="col-sm-10">
+                <input type="text" readonly="readonly" style="display:inline;" class="form-control" id="sttTxtConnectionString" value="@svm.AzureStorageConnectionString" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="sttTxtEventHubConnectionString" class="col-sm-2 control-label ds-label">event hub connection string</label>
+            <div class="col-sm-10">
+                <input type="text" readonly="readonly" style="display:inline;" class="form-control" id="sttTxtEventHubConnectionString" value="@svm.EventHubConnectionString" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="sttTxtEventHubInputName" class="col-sm-2 control-label ds-label">event hub input name</label>
+            <div class="col-sm-10">
+                <input type="text" readonly="readonly" style="display:inline;" class="form-control" id="sttTxtEventHubInputName" value="@svm.EventHubInputName" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="sttTxtDecisionType" class="col-sm-2 control-label ds-label">decision type</label>
+            <div class="col-sm-10">
+                <input type="text" readonly="readonly" style="display:inline;" class="form-control" id="sttTxtDecisionType" value="@HomeController.GetDecisionTypeString(svm.DecisionType)" />
+            </div>
+        </div>
+        if (svm.DecisionType == DecisionType.SingleAction)
+        {
+            <div class="form-group">
+                <label for="sttTxtNumActions" class="col-sm-2 control-label ds-label">Number of Actions</label>
+                <div class="col-sm-10">
+                    <input type="text" readonly="readonly" style="display:inline;" class="form-control" id="sttTxtNumActions" value="@svm.NumActions.Value" />
+                </div>
+            </div>
+        }
+        <div class="form-group">
+            <label for="sttTxtTrainFrequency" class="col-sm-2 control-label ds-label">Training Frequency</label>
+            <div class="col-sm-10">
+                <input type="text" readonly="readonly" style="display:inline;" class="form-control" id="sttTxtTrainFrequency" value="@svm.TrainFrequency.ToString()" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="sttTxtTrainArgs" class="col-sm-2 control-label ds-label">VW Training Arguments</label>
+            <div class="col-sm-10">
+                @Html.TextBoxFor(m => m.AdditionalTrainArguments, new { @class = "form-control", @style = "display:inline" })
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="sttDdlModel" class="col-sm-2 control-label ds-label">trained models</label>
+            <div class="col-sm-10">
+                @Html.DropDownListFor(m => m.SelectedModelId,
+                    svm.ModelIdList.Select(m => new SelectListItem
+                    {
+                        Value = m.Name,
+                        Text = String.IsNullOrEmpty(m.LastModifiedRelativeTime) ? m.Name : m.Name + " - " + m.LastModifiedRelativeTime,
+                        Selected = m.Name == svm.SelectedModelId
+                    }),
+                    "Select a model",
+                    new { @id = "sttDdlModel", @class = "form-control", @style = "display:inline" })
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="sttCbExploration" class="col-sm-2 control-label ds-label">Enable Exploration</label>
+            <div class="col-sm-10">
+                @Html.CheckBoxFor(m => m.IsExplorationEnabled, new { @style = "display:inline" })
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="sttTxtExpUnitDuration" class="col-sm-2 control-label ds-label">experimental unit duration (seconds)</label>
+            <div class="col-sm-10">
+                <input type="text" readonly="readonly" style="display:inline;" class="form-control" id="sttTxtExpUnitDuration" value="@svm.ExperimentalUnitDuration" />
+            </div>
+        </div>
+        @Html.Hidden("hidEventHubConnectionString", svm.EventHubConnectionString)
+        @Html.Hidden("hidEventHubInputName", svm.EventHubInputName)
+        @Html.Hidden("hidAzureSubscriptionId", svm.AzureSubscriptionId)
+        <div class="form-group">
+            <div class="col-sm-12" style="text-align:left;">
+                <div style="padding: 0 10px 0 10px;">
+                    <button class="btn btn-primary sttBtnSave">Save</button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
