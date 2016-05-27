@@ -6,8 +6,8 @@
 
 namespace Microsoft.Research.MultiWorldTesting.Contract
 {
-    public static class ApplicationSettingConstants
+    public class ApplicationSettingConstants
     {
-        public static readonly string UseLatestModelSetting = "latest";
+        public const string UseLatestModelSetting = "latest";
     }
 }

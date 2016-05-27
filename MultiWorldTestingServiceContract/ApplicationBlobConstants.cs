@@ -6,16 +6,18 @@
 
 namespace Microsoft.Research.MultiWorldTesting.Contract
 {
-    public static class ApplicationBlobConstants
+    public class ApplicationBlobConstants
     {
         // Model blobs
-        public static readonly string ModelContainerName = "mwt-models";
-        public static readonly string LatestModelBlobName = "current";
+        public const string ModelContainerName = "mwt-models";
+        public const string LatestModelBlobName = "current";
 
         // Settings blobs
-        public static readonly string SettingsContainerName = "mwt-settings";
-        public static readonly string LatestClientSettingsBlobName = "client";
-        public static readonly string LatestTrainerSettingsBlobName = "trainer";
-        public static readonly string LatestExtraSettingsBlobName = "extra";
+        public const string SettingsContainerName = "mwt-settings";
+        public const string LatestClientSettingsBlobName = "client";
+        public const string LatestTrainerSettingsBlobName = "trainer";
+        public const string LatestExtraSettingsBlobName = "extra";
+
+        public const string OfflineEvalContainerName = "mwt-offline-eval";
     }
 }

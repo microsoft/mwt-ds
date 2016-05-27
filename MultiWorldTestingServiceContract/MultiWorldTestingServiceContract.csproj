@@ -70,7 +70,7 @@
     <Compile Include="ApplicationBlobConstants.cs" />
     <Compile Include="ApplicationSettingConstants.cs" />
     <Compile Include="ApplicationTransferMetadata.cs" />
-    <Compile Include="ApplicationUtil.cs" />
+    <Compile Include="ApplicationMetadataUtil.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ServiceConstants.cs" />
   </ItemGroup>
