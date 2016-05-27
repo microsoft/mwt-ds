@@ -48,7 +48,7 @@ namespace DecisionServicePrivateWeb.Controllers
                 Session[SKTrainerSettingsBlob] = blobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestTrainerSettingsBlobName);
                 Session[SKExtraSettingsBlob] = blobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestExtraSettingsBlobName);
 
-                return Redirect(Url.Action(SKClientSettings));
+                return Redirect(Url.Action("Settings"));
             }
             return View(new IndexViewModel { Authenticated = false, Error = "Invalid Password" });
         }
