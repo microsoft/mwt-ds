@@ -1,12 +1,16 @@
-﻿using DecisionServicePrivateWeb.Models;
+﻿using DecisionServicePrivateWeb.Classes;
+using DecisionServicePrivateWeb.Models;
 using Microsoft.Research.MultiWorldTesting.Contract;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Linq;
 using System.Net;
+using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Mvc;
 
@@ -21,6 +25,7 @@ namespace DecisionServicePrivateWeb.Controllers
         const string SKClientSettingsBlob = "ClientSettingsBlob";
         const string SKTrainerSettingsBlob = "TrainerSettingsBlob";
         const string SKExtraSettingsBlob = "ExtraSettingsBlob";
+        const string SKEvalContainer = "EvalContainer";
 
         const string SKClientSettings = "ClientSettings";
         const string SKTrainerSettings = "TrainerSettings";
@@ -48,6 +53,8 @@ namespace DecisionServicePrivateWeb.Controllers
                 Session[SKClientSettingsBlob] = blobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestClientSettingsBlobName);
                 Session[SKTrainerSettingsBlob] = blobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestTrainerSettingsBlobName);
                 Session[SKExtraSettingsBlob] = blobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestExtraSettingsBlobName);
+
+                Session[SKEvalContainer] = blobClient.GetContainerReference(ApplicationBlobConstants.OfflineEvalContainerName);
 
                 return Redirect(Url.Action("Settings"));
             }
@@ -151,14 +158,73 @@ namespace DecisionServicePrivateWeb.Controllers
                 return RedirectToAction("Index");
             }
 
-            return View();
+            return View(new EvaluationViewModel { WindowFilters = new List<string>(new string[] { "1h", "3h", "6h" }), SelectedFilter = "3h" });
         }
 
         [AllowAnonymous]
-        public ActionResult EvalJson()
+        public ActionResult EvalJson(string windowType = "3h", int maxNumPolicies = 5)
         {
-            string json = System.IO.File.ReadAllText(Server.MapPath("~/App_Data/sample-policy-eval.json"));
-            return Content(json, "application/json; charset=utf-8");
+            var policyRegex = "Policy (.*)";
+            var regex = new Regex(policyRegex);
+
+            if (!IsAuthenticated(Session))
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.Unauthorized);
+            }
+
+            try
+            {
+                var evalContainer = (CloudBlobContainer)Session[SKEvalContainer];
+                var evalBlobs = evalContainer.ListBlobs(useFlatBlobListing: true);
+                var evalData = new Dictionary<string, EvalD3>();
+                foreach (var evalBlob in evalBlobs)
+                {
+                    // TODO: cache or optimize perf
+                    var evalBlockBlob = (CloudBlockBlob)evalBlob;
+                    if (evalBlockBlob != null)
+                    {
+                        var evalTextData = evalBlockBlob.DownloadText();
+                        var evalLines = evalTextData.Split(new string[] { "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+                        foreach (var l in evalLines)
+                        {
+                            var evalResult = JsonConvert.DeserializeObject<EvalResult>(l);
+                            if (evalResult.WindowType != windowType)
+                            {
+                                continue;
+                            }
+                            if (Convert.ToInt32(regex.Match(evalResult.PolicyName).Groups[1].Value) > maxNumPolicies)
+                            {
+                                continue;
+                            }
+
+                            if (evalData.ContainsKey(evalResult.PolicyName))
+                            {
+                                var timeToCost = evalData[evalResult.PolicyName].values;
+                                    //.Add(new object[] { evalResult.LastWindowTime, evalResult.AverageCost });
+
+                                if (timeToCost.ContainsKey(evalResult.LastWindowTime))
+                                {
+                                    timeToCost[evalResult.LastWindowTime] = evalResult.AverageCost;
+                                }
+                                else
+                                {
+                                    timeToCost.Add(evalResult.LastWindowTime, evalResult.AverageCost);
+                                }
+                            }
+                            else
+                            {
+                                evalData.Add(evalResult.PolicyName, new EvalD3 { key = evalResult.PolicyName, values = new Dictionary<DateTime, float>() });
+                            }
+                        }
+                    }
+                }
+
+                return Json(evalData.Values.Select(a => new { key = a.key, values = a.values.Select(v => new object[] { v.Key, v.Value }) }), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, $"Unable to load evaluation result: {ex.ToString()}");
+            }
         }
 
         public static string GetDecisionTypeString(DecisionType decisionType)
