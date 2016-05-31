@@ -1,0 +1,143 @@
+﻿{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "InstrumentationKey": { "type": "string" },
+    "UserStorageConnectionString": { "type": "string" },
+    "ManagementPassword": { "type": "string" },
+    "sku": {
+      "type": "string",
+      "allowedValues": [
+        "F1",
+        "D1",
+        "B1",
+        "B2",
+        "B3",
+        "S1",
+        "S2",
+        "S3",
+        "P1",
+        "P2",
+        "P3",
+        "P4"
+      ],
+      "defaultValue": "S1",
+      "metadata": {
+        "description": "The pricing tier for the hosting plan."
+      }
+    },
+    "workerSize": {
+      "type": "string",
+      "allowedValues": [
+        "0",
+        "1",
+        "2"
+      ],
+      "defaultValue": "0",
+      "metadata": {
+        "description": "The instance size of the hosting plan (small, medium, or large)."
+      }
+    },
+    "repoURL": {
+      "type": "string",
+      "defaultValue": "https://github.com/multiworldtesting/ds-management-center.git",
+      "metadata": {
+        "description": "The URL for the GitHub repository that contains the project to deploy."
+      }
+    },
+    "branch": {
+      "type": "string",
+      "defaultValue": "master",
+      "metadata": {
+        "description": "The branch of the GitHub repository to use."
+      }
+    }
+  },
+  "variables": {
+    "hostingPlanName": "ManagementPlan",
+    "siteName": "[concat(resourceGroup().name, '-mc')]"
+  },
+  "resources": [
+    {
+      "apiVersion": "2015-08-01",
+      "name": "[variables('hostingPlanName')]",
+      "type": "Microsoft.Web/serverfarms",
+      "location": "[resourceGroup().location]",
+      "sku": {
+        "name": "[parameters('sku')]",
+        "capacity": "[parameters('workerSize')]"
+      },
+      "properties": {
+        "name": "[variables('hostingPlanName')]"
+      }
+    },
+    {
+      "apiVersion": "2015-08-01",
+      "name": "[variables('siteName')]",
+      "type": "Microsoft.Web/sites",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]"
+      ],
+      "properties": {
+        "serverFarmId": "[variables('hostingPlanName')]"
+      },
+      "resources": [
+        {
+          "apiVersion": "2015-08-01",
+          "name": "web",
+          "type": "config",
+          "dependsOn": [
+            "[concat('Microsoft.Web/sites/', variables('siteName'))]"
+          ],
+          "tags": {
+            "displayName": "WebAppConfig"
+          },
+          "properties": {
+            "phpVersion": "5.6",
+            "netFrameworkVersion": "v4.6",
+            "use32BitWorkerProcess": false,
+            "webSocketsEnabled": true,
+            "alwaysOn": false,
+            "remoteDebuggingEnabled": true,
+            "remoteDebuggingVersion": "VS2015"
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "name": "web",
+          "type": "sourcecontrols",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', variables('siteName'))]",
+            "[resourceId('Microsoft.Web/Sites/config', variables('siteName'), 'appsettings')]"
+          ],
+          "properties": {
+            "RepoUrl": "[parameters('repoURL')]",
+            "branch": "[parameters('branch')]",
+            // https://azure.microsoft.com/en-us/documentation/articles/app-service-deploy-complex-application-predictably/
+            "IsManualIntegration": true
+          }
+        },
+        {
+          "apiVersion": "2016-03-01",
+          "name": "appsettings",
+          "type": "config",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', variables('siteName'))]"
+          ],
+          "properties": {
+            "Password": "[parameters('ManagementPassword')]",
+            "APPINSIGHTS_INSTRUMENTATIONKEY": "[parameters('InstrumentationKey')]",
+            "AzureStorageConnectionString": "[parameters('UserStorageConnectionString')]"
+          }
+        }
+      ]
+    }
+  ],
+  "outputs": {
+    "ManagementUrl": {
+      "type": "string",
+      "value": "[concat('http://', variables('siteName'), '.azurewebsites.net')]"
+    }
+  }
+}

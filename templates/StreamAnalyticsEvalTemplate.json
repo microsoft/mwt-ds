@@ -1,0 +1,124 @@
+﻿{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "UserStorageAccountName": { "type": "string" },
+    "UserStorageAccountKey": { "type": "string" },
+    "SystemStorageBaseUri": { "type": "string" },
+    "serviceBusName": { "type": "string" },
+
+    "messageRetentionInDays": { "type": "int" },
+    "partitionCount": { "type": "int" },
+
+    "evalQuery": { "type": "string" },
+
+    "streamingUnits": {
+      "type": "int",
+      "defaultValue": 1
+    }
+  },
+  "resources": [
+    // Event Hub: Eval
+    {
+      "apiVersion": "2015-01-01",
+      "name": "eval",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "incremental",
+        "templateLink": { "uri": "[concat(parameters('SystemStorageBaseUri'), '/templates/EventHubTemplate.json')]" },
+        "parameters": {
+          "ehName": { "value": "eval" },
+          "serviceBusName": { "value": "[parameters('serviceBusName')]" },
+          "messageRetentionInDays": { "value": "[parameters('messageRetentionInDays')]" },
+          "partitionCount": { "value": "[parameters('partitionCount')]" }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-10-01",
+      "type": "Microsoft.StreamAnalytics/streamingjobs",
+      "name": "[concat(resourceGroup().name, '-eval')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/eval"
+      ],
+      "properties": {
+        "sku": {
+          "name": "standard"
+        },
+        "OutputStartMode": "JobStartTime",
+        "EventsOutOfOrderMaxDelayInSeconds": 0,
+        "EventsLateArrivalMaxDelayInSeconds": 0,
+        "EventsOutOfOrderPolicy": "adjust",
+        "Inputs": [
+          {
+            "Name": "eval",
+            "Properties": {
+              "DataSource": {
+                "Properties": {
+                  "ServiceBusNamespace": "[parameters('serviceBusName')]",
+                  "eventHubName": "eval",
+                  "sharedAccessPolicyName": "ListenOnly",
+                  "sharedAccessPolicyKey": "[reference('Microsoft.Resources/deployments/eval', '2015-01-01').outputs.ListenKey.value]"
+                },
+                "Type": "Microsoft.ServiceBus/EventHub"
+              },
+              "Serialization": {
+                "Properties": {
+                  "Encoding": "UTF8"
+                },
+                "Type": "Json"
+              },
+              "Type": "Stream"
+            }
+          }
+        ],
+        "Outputs": [
+          { // extra output for diagnostics
+            "Name": "outBlob",
+            "Properties": {
+              "DataSource": {
+                "Properties": {
+                  "Container": "mwt-offline-eval",
+                  "DateFormat": "yyyy/MM/dd",
+                  "TimeFormat": "HH",
+                  "PathPattern": "{date}/{time}",
+                  "StorageAccounts": [
+                    {
+                      "AccountName": "[parameters('UserStorageAccountName')]",
+                      "AccountKey": "[parameters('UserStorageAccountKey')]"
+                    }
+                  ]
+                },
+                "Type": "Microsoft.Storage/Blob"
+              },
+              "Serialization": {
+                "Properties": {
+                  "Encoding": "UTF8"
+                },
+                "Type": "Json"
+              }
+            }
+          }
+        ],
+        "Transformation": {
+          "Name": "theEvalQuery",
+          "Properties": {
+            "Query": "[parameters('evalQuery')]",
+            "StreamingUnits": "[parameters('streamingUnits')]"
+          }
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "EvalEventHubSendConnectionString": {
+      "type": "string",
+      "value": "[reference('Microsoft.Resources/deployments/eval').outputs.SendConnectionString.value]"
+    },
+    "EvalEventHubSendKey": {
+      "type": "string",
+      "value": "[reference('Microsoft.Resources/deployments/eval').outputs.SendKey.value]"
+    }
+  }
+}

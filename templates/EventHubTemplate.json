@@ -1,0 +1,89 @@
+﻿{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "serviceBusName": { "type": "string" },
+    "ehName": { "type": "string" },
+    "messageRetentionInDays": {
+      "type": "int",
+      "metadata": {
+        "description": "how long to keep messages before purging"
+      }
+    },
+    "partitionCount": {
+      "type": "int",
+      "metadata": {
+        "description": "degree of parallelism"
+      }
+    }
+  },
+  "variables": {
+    "location": "[resourceGroup().location]",
+    "apiVersion": "2015-08-01",
+    "EHResourceId": "[concat(resourceId('Microsoft.ServiceBus/namespaces', parameters('serviceBusName')), '/eventHubs/', parameters('ehName'))]",
+    "SendRuleResourceId": "[resourceId('Microsoft.ServiceBus/namespaces/eventhubs/authorizationRules', parameters('serviceBusName'), parameters('ehName'), 'SendOnly')]",
+    "ListenRuleResourceId": "[resourceId('Microsoft.ServiceBus/namespaces/eventhubs/authorizationRules', parameters('serviceBusName'), parameters('ehName'), 'ListenOnly')]"
+  },
+  "resources": [
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "name": "[concat(parameters('serviceBusName'), '/', parameters('ehName'))]",
+      "type": "Microsoft.ServiceBus/namespaces/eventHubs",
+      "location": "[variables('location')]",
+      "properties": {
+        "path": "[parameters('ehName')]",
+        "MessageRetentionInDays": "[parameters('messageRetentionInDays')]",
+        "PartitionCount": "[parameters('partitionCount')]"
+      },
+      "resources": [
+        {
+          "apiVersion": "[variables('apiVersion')]",
+          "name": "ListenOnly",
+          "type": "AuthorizationRules",
+          "dependsOn": [
+            "[variables('EHResourceId')]"
+          ],
+          "properties": {
+            "keyName": "ListenOnly",
+            "claimType": "SharedAccessKey",
+            "claimValue": "None",
+            "rights": [ "Listen" ]
+          }
+        },
+        {
+          "apiVersion": "[variables('apiVersion')]",
+          "name": "SendOnly",
+          "type": "AuthorizationRules",
+          "dependsOn": [
+            "[variables('EHResourceId')]",
+            "[variables('ListenRuleResourceId')]"
+          ],
+          "properties": {
+            "keyName": "SendOnly",
+            "claimType": "SharedAccessKey",
+            "claimValue": "None",
+            "rights": [ "Send" ]
+          }
+        }
+      ]
+    }
+  ],
+  "outputs": {
+    "SendConnectionString": {
+      "type": "string",
+      "value": "[listkeys(variables('SendRuleResourceId'), variables('apiVersion')).primaryConnectionString]"
+    },
+    "SendKey": {
+      "type": "string",
+      "value": "[listkeys(variables('SendRuleResourceId'), variables('apiVersion')).primaryKey]"
+    },
+    "ListenConnectionString": {
+      "type": "string",
+      "value": "[listkeys(variables('ListenRuleResourceId'), variables('apiVersion')).primaryConnectionString]"
+    },
+    "ListenKey": {
+      "type": "string",
+      "value": "[listkeys(variables('ListenRuleResourceId'), variables('apiVersion')).primaryKey]"
+    }
+  }
+}

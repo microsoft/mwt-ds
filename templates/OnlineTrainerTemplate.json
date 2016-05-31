@@ -1,0 +1,40 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentTemplate.json",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "SystemStorageBaseUri": { "type": "string" },
+    "servicePackageLink": { "type": "string" },
+    "serviceConfigurationLink": { "type": "string" }
+  },
+  "variables": {
+    "name": "[concat(resourceGroup().name,'-trainer')]"
+  },
+  "resources": [
+    {
+      "apiVersion": "2014-06-01",
+      "type": "Microsoft.ClassicCompute/domainNames",
+      "name": "[variables('name')]",
+      "location": "[resourceGroup().location]",
+      "resources": [
+        {
+          "apiVersion": "2014-06-01",
+          "name": "production",
+          "type": "deploymentSlots",
+          "dependsOn": [
+            "[resourceId('Microsoft.ClassicCompute/domainNames', variables('name'))]"
+          ],
+          "properties": {
+            "packageLink": {
+              "uri": "[parameters('servicePackageLink')]"
+            },
+            "deploymentLabel": "[variables('name')]",
+            "ConfigurationLink": {
+              "uri": "[parameters('serviceConfigurationLink')]"
+            },
+            "deploymentOptions": "StartDeployment"
+          }
+        }
+      ]
+    }
+  ]
+}
