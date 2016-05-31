@@ -8,7 +8,7 @@
   "secrets": {
     "TargetReference": "ServiceConfigurationLink",
     "Replacements": {
-      "__UserStorageConnectionString__": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageConnectionString.value]"
+      "UserStorageConnectionString": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageConnectionString.value]"
     }
   }
 }
