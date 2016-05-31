@@ -6,5 +6,47 @@
 <h2 class="ds-title">@ViewBag.Title</h2>
 
 <div class="container-fluid">
-   
+   <div id="chart">
+       <svg style="height: 600px;"></svg>
+   </div>
 </div>
+
+@section styles {
+    <link rel="stylesheet" type="text/css" href="https://cdn.rawgit.com/novus/nvd3/v1.8.1/build/nv.d3.css">
+}
+
+@section scripts {
+    <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src="https://cdn.rawgit.com/novus/nvd3/v1.8.1/build/nv.d3.min.js" charset="utf-8"></script>
+
+    <script>
+        d3.json('/Home/EvalJson', function (error, response) {
+            nv.addGraph(function () {
+                var chart = nv.models.cumulativeLineChart()
+                              .x(function (d) { return d[0] })
+                              .y(function (d) { return d[1] / 100 }) //adjusting, 100% is 1.00, not 100 as it is in the data
+                              .color(d3.scale.category10().range())
+                              .useInteractiveGuideline(true)
+                ;
+
+                chart.xAxis
+                   .tickValues([1078030800000, 1122782400000, 1167541200000, 1251691200000])
+                   .tickFormat(function (d) {
+                       return d3.time.format('%x')(new Date(d))
+                   });
+
+                chart.yAxis
+                    .tickFormat(d3.format(',.1%'));
+
+                d3.select('#chart svg')
+                    .datum(response)
+                    .call(chart);
+
+                //TODO: Figure out a good way to do this automatically
+                nv.utils.windowResize(chart.update);
+
+                return chart;
+            });
+        });
+    </script>
+}

@@ -154,6 +154,13 @@ namespace DecisionServicePrivateWeb.Controllers
             return View();
         }
 
+        [AllowAnonymous]
+        public ActionResult EvalJson()
+        {
+            string json = System.IO.File.ReadAllText(Server.MapPath("~/App_Data/sample-policy-eval.json"));
+            return Content(json, "application/json; charset=utf-8");
+        }
+
         public static string GetDecisionTypeString(DecisionType decisionType)
         {
             switch (decisionType)

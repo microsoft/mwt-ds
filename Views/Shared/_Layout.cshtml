@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewBag.Title - Decision Service</title>
     @Styles.Render("~/Content/css")
+    @RenderSection("styles", required: false)
     @Scripts.Render("~/bundles/modernizr")
 
 </head>
@@ -36,7 +37,6 @@
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
-    @Scripts.Render("~/signalr/hubs")
     @RenderSection("scripts", required: false)
 </body>
 </html>
