@@ -1,8 +1,8 @@
 ﻿{
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
-  "parameters": {
-    "assetLocation": { "type": "string" }
+  "variables": {
+    "assetLocation": { "value": "https://raw.githubusercontent.com/multiworldtesting/ds-provisioning/master/" }
   },
   "resources": [
     {
@@ -12,7 +12,7 @@
       "properties": {
         "mode": "incremental",
         "templateLink": {
-          "uri": "[concat(parameters('assetLocation'), 'templates/StorageTemplate.json')]",
+          "uri": "[concat(variables('assetLocation'), 'templates/StorageTemplate.json')]",
           "contentVersion": "1.0.0.0"
         }
       }
@@ -27,7 +27,11 @@
       "properties": {
         "mode": "incremental",
         "templateLink": {
-          "uri": "[concat(parameters('assetLocation'), 'templates/OnlineTrainerTemplate.json')]",
+          "uri": "[concat(variables('assetLocation'), 'templates/OnlineTrainerTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parametersLink": {
+          "uri": "[concat(variables('assetLocation'), 'templates/OnlineTrainerTemplate.parameters.json')]",
           "contentVersion": "1.0.0.0"
         }
       }
