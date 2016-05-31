@@ -23,7 +23,6 @@
     "UserToken": { "type": "string" }
   },
   "resources": [
-    // Storage
     {
       "apiVersion": "2015-01-01",
       "name": "Storage",
