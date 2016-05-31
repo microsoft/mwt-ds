@@ -2,25 +2,6 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "SystemStorageBaseUri": { "type": "string" },
-    "messageRetentionInDays": {
-      "type": "int",
-      "metadata": {
-        "description": "how long to keep messages before purging"
-      }
-    },
-    "partitionCount": {
-      "type": "int",
-      "metadata": {
-        "description": "degree of parallelism"
-      }
-    },
-    "joinQuery": { "type": "string" },
-    "joinEventsLateArrivalMaxDelayInSeconds": { "type": "int" },
-
-    "evalQuery": { "type": "string" },
-    "ManagementPassword": { "type": "string" },
-    "UserToken": { "type": "string" }
   },
   "resources": [
     {
@@ -31,6 +12,21 @@
         "mode": "incremental",
         "templateLink": {
           "uri": "templates/StorageTemplate.json",
+          "contentVersion": "1.0.0.0"
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "Storage",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/Storage"
+      ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": {
+          "uri": "templates/OnlineTrainerTemplate.json",
           "contentVersion": "1.0.0.0"
         }
       }

@@ -2,9 +2,8 @@
   "$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentTemplate.json",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "SystemStorageBaseUri": { "type": "string" },
-    "servicePackageLink": { "type": "string" },
-    "serviceConfigurationLink": { "type": "string" }
+    "ServicePackageLink": { "type": "string" },
+    "ServiceConfigurationLink": { "type": "string" }
   },
   "variables": {
     "name": "[concat(resourceGroup().name,'-trainer')]"
@@ -25,11 +24,11 @@
           ],
           "properties": {
             "packageLink": {
-              "uri": "[parameters('servicePackageLink')]"
+              "uri": "[parameters('ServicePackageLink')]"
             },
             "deploymentLabel": "[variables('name')]",
             "ConfigurationLink": {
-              "uri": "[parameters('serviceConfigurationLink')]"
+              "uri": "[parameters('ServiceConfigurationLink')]"
             },
             "deploymentOptions": "StartDeployment"
           }

@@ -1,0 +1,14 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "ServicePackageLink": { "value": "https://dmcodetest.blob.core.windows.net/high-frequency-train/OnlineTraining.cspkg?sr=b&sv=2015-02-21&st=2016-05-31T14%3A51%3A07Z&se=2099-05-31T15%3A51%3A00Z&sp=r&sig=bLD3apu0e2z%2FpFrC7jE4yVd7HA4b6LGFwxrt9FE%2BCuk%3D" },
+    "ServiceConfigurationLink": { "value": "https://dmcodetest.blob.core.windows.net/high-frequency-train/ServiceConfiguration.ARM.cscfg" }
+  },
+  "secrets": {
+    "TargetReference": "ServiceConfigurationLink",
+    "Replacements": {
+      "__UserStorageConnectionString__": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageConnectionString.value]"
+    }
+  }
+}
