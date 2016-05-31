@@ -2,7 +2,7 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "variables": {
-    "assetLocation": { "value": "https://raw.githubusercontent.com/multiworldtesting/ds-provisioning/master/" }
+    "assetLocation": "https://raw.githubusercontent.com/multiworldtesting/ds-provisioning/master/"
   },
   "resources": [
     {
