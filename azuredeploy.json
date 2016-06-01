@@ -300,7 +300,6 @@
         },
         "parameters": {
           "binaryStorageAccountName": { "value": "[variables('binaryStorageAccountName')]" },
-          "userStorage": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs]" },
           "instrumentationKey": { "value": "[reference('Microsoft.Resources/deployments/AppInsights').outputs.instrumentationKey.value]" },
           "onlineTrainerCspkgToken": { "value": "[variables('onlineTrainerCspkgToken')]" },
 
