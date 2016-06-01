@@ -2,10 +2,11 @@
   "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "SystemStorageBaseUri": { "type": "string" },
-    "instrumentationKey": { "type": "string" },
+    "assetLocation": { "type": "string" },
+    "binaryStorageAccountName": { "type": "string" },
+    "InstrumentationKey": { "type": "string" },
     "UserStorageAccountName": { "type": "string" },
-    "userToken": { "type": "string" }
+    "UserToken": { "type": "string" }
   },
   "variables": {
     "siteExtName": "MSDeploy",
@@ -53,7 +54,7 @@
             "[concat('Microsoft.Web/sites/', variables('webSiteName'))]"
           ],
           "properties": {
-            "packageUri": "[concat(parameters('SystemStorageBaseUri'), '/web-api/DecisionServiceWebAPI.zip')]",
+            "packageUri": "[concat('https://', parameters('binaryStorageAccountName'), '.blob.core.windows.net/web-api/DecisionServiceWebAPI.zip')]",
             "dbType": "None",
             "setParameters": {
               "IIS Web Application Name": "[variables('webSiteName')]"
@@ -101,10 +102,10 @@
             "[resourceId('Microsoft.Web/Sites', variables('webSiteName'))]"
           ],
           "properties": {
-            "APPINSIGHTS_INSTRUMENTATIONKEY": "[parameters('instrumentationKey')]",
+            "APPINSIGHTS_INSTRUMENTATIONKEY": "[parameters('InstrumentationKey')]",
             "DecisionServiceSettingsUrl": "[concat('http://', parameters('UserStorageAccountName'), '.blob.core.windows.net/mwt-settings/client')]",
             "DecisionServiceTrainerSettingsUrl": "[concat('http://', parameters('UserStorageAccountName'), '.blob.core.windows.net/mwt-settings/trainer')]",
-            "userToken": "[parameters('userToken')]"
+            "UserToken": "[parameters('UserToken')]"
           }
         },
         {

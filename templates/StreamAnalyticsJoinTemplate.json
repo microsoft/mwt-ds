@@ -159,7 +159,7 @@
               "Type": "Stream"
             }
           },
-          { // extra output for diagnostics
+          {
             "Name": "outBlob",
             "Properties": {
               "DataSource": {
@@ -189,7 +189,7 @@
         "Transformation": {
           "Name": "theJoinQuery",
           "Properties": {
-            "Query": "[replace('','$ExperimentalDurationInMicrosecond$', string(mul(parameters('joinEventsLateArrivalMaxDelayInSeconds'), 1000000)))]",
+            "Query": "[replace(variables('joinQuery'),'$ExperimentalDurationInMicrosecond$', string(mul(parameters('joinEventsLateArrivalMaxDelayInSeconds'), 1000000)))]",
             "StreamingUnits": "[parameters('streamingUnits')]"
           }
         }
