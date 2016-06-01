@@ -62,10 +62,7 @@
       "type": "Microsoft.Resources/deployments",
       "properties": {
         "mode": "incremental",
-        "templateLink": {
-          "uri": "[concat(variables('assetLocation'), 'templates/StorageTemplate.json')]",
-          "contentVersion": "1.0.0.0"
-        }
+        "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/StorageTemplate.json')]" }
       }
     },
     {
@@ -74,8 +71,7 @@
       "type": "Microsoft.Resources/deployments",
       "properties": {
         "mode": "incremental",
-        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/AppInsightsTemplate.json')]" },
-        "contentVersion": "1.0.0.0"
+        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/AppInsightsTemplate.json')]" }
       }
     },
     {
@@ -140,7 +136,7 @@
         "mode": "incremental",
         "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/StreamAnalyticsEvalTemplate.json')]" },
         "parameters": {
-          "SystemStorageBaseUri": { "value": "[variables('assetLocation')]" },
+          "assetLocation": { "value": "[variables('assetLocation')]" },
           "userStorageAccountName": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountName.value]" },
           "userStorageAccountKey": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value]" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },

@@ -189,7 +189,7 @@
         "Transformation": {
           "Name": "theJoinQuery",
           "Properties": {
-            "Query": "[replace('','$ExperimentalDurationInMicrosecond$',mul(parameters('joinEventsLateArrivalMaxDelayInSeconds'), 1000000))]",
+            "Query": "[replace('','$ExperimentalDurationInMicrosecond$', string(mul(parameters('joinEventsLateArrivalMaxDelayInSeconds'), 1000000)))]",
             "StreamingUnits": "[parameters('streamingUnits')]"
           }
         }
