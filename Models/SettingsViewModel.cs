@@ -14,7 +14,7 @@ namespace DecisionServicePrivateWeb.Models
         public DecisionType DecisionType { get; set; }
         public int? NumActions { get; set; }
         public TrainFrequency TrainFrequency { get; set; }
-        public string AdditionalTrainArguments { get; set; }
+        public string TrainArguments { get; set; }
         public string AzureStorageConnectionString { get; set; }
         public string EventHubInteractionConnectionString { get; set; }
         public string EventHubObservationConnectionString { get; set; }

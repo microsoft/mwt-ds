@@ -48,7 +48,8 @@ namespace DecisionServicePrivateWeb.Classes
                     EventHubInteractionConnectionString = appSettings.InterEventHubSendConnectionString,
                     EventHubObservationConnectionString = appSettings.ObserEventHubSendConnectionString,
                     IsExplorationEnabled = appSettings.IsExplorationEnabled,
-                    ModelBlobUri = appSettings.ModelBlobUri
+                    ModelBlobUri = appSettings.ModelBlobUri,
+                    TrainArguments = appSettings.TrainArguments
                 },
                 new ApplicationExtraMetadata
                 {

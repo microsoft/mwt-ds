@@ -143,6 +143,7 @@ namespace DecisionServicePrivateWeb.Controllers
             {
                 var clientMeta = (ApplicationClientMetadata)Session[SKClientSettings];
                 clientMeta.IsExplorationEnabled = model.IsExplorationEnabled;
+                clientMeta.TrainArguments = model.TrainArguments;
                 var clientSettingsBlob = (CloudBlockBlob)Session[SKClientSettingsBlob];
                 clientSettingsBlob.UploadText(JsonConvert.SerializeObject(clientMeta));
 
@@ -277,7 +278,7 @@ namespace DecisionServicePrivateWeb.Controllers
                 DecisionType = extraMetadata.DecisionType,
                 NumActions = clientMetadata.NumActions,
                 TrainFrequency = extraMetadata.TrainFrequency,
-                AdditionalTrainArguments = clientMetadata.TrainArguments,
+                TrainArguments = clientMetadata.TrainArguments,
                 AzureStorageConnectionString = ConfigurationManager.AppSettings[AKConnectionString],
                 AzureResourceGroupName = extraMetadata.AzureResourceGroupName,
                 EventHubInteractionConnectionString = clientMetadata.EventHubInteractionConnectionString,
