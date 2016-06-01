@@ -3,7 +3,7 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "binaryStorageAccountName": { "type": "string" },
-    "userStorageAccountName": { "type": "string" },
+    "userStorage": { "type": "object" },
     "instrumentationKey": { "type": "string" },
     "onlineTrainerCspkgToken": { "type": "string" },
     "joinQuery": { "type": "object" },
@@ -15,7 +15,8 @@
     "cscfg": {
       "joinedEventHubConnectionString": "[parameters('joinquery').joinedEventHub.value.listenConnectionString.value]",
       "evalEventHubConnectionString": "[parameters('evalquery').evalEventHub.value.sendConnectionString.value]",
-      "userStorageAccountName": "[parameters('userStorageAccountName')]",
+      "userStorageAccountName": "[parameters('userStorage').userStorageAccountName.value]",
+      "userStorageConnectionString": "[parameters('userStorage').userStorageConnectionString.value]",
       "instrumentationKey": "[parameters('instrumentationKey')]",
       "adminToken": "[parameters('adminToken')]"
     }
