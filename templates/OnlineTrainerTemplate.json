@@ -3,29 +3,12 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "binaryStorageAccountName": { "type": "string" },
-    "userStorage": { "type": "object" },
     "instrumentationKey": { "type": "string" },
-
-    "joinedEventHub": { "type": "object" },
-    "evalEventHub": { "type": "object" },
-
     "onlineTrainerCspkgToken": { "type": "string" },
-    "onlineTrainerCheckpointInterval": { "type": "string" },
-    "onlineTrainerCheckpointCount": { "type": "int" },
-
-    "adminToken": { "type": "string" }
+    "cscfg": { "type": "object" }
   },
   "variables": {
-    "name": "[concat(resourceGroup().name,'-trainer')]",
-    "cscfg": {
-      "joinedEventHubConnectionString": "[parameters('joinedEventHub').listenConnectionString.value]",
-      "evalEventHubConnectionString": "[parameters('evalEventHub').sendConnectionString.value]",
-      "userStorageConnectionString": "[parameters('userStorage').userStorageConnectionString.value]",
-      "instrumentationKey": "[parameters('instrumentationKey')]",
-      "adminToken": "[parameters('adminToken')]",
-      "checkpointInterval": "[parameters('onlineTrainerCheckpointInterval')]",
-      "checkpointCount": "[parameters('onlineTrainerCheckpointCount')]"
-    }
+    "name": "[concat(resourceGroup().name,'-trainer')]"
   },
   "resources": [
     {
@@ -47,7 +30,7 @@
             },
             "deploymentLabel": "[variables('name')]",
             "ConfigurationLink": {
-              "uri": "[concat('https://serviceconfiguration.azurewebsites.net/', parameters('binaryStorageAccountName'), '/', base64(string(variables('cscfg'))), '/high-frequency-train/ServiceConfiguration.cscfg')]"
+              "uri": "[concat('https://serviceconfiguration.azurewebsites.net/', parameters('binaryStorageAccountName'), '/', base64(string(parameters('cscfg'))), '/high-frequency-train/ServiceConfiguration.cscfg')]"
             },
             "deploymentOptions": "StartDeployment"
           }

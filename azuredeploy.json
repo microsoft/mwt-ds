@@ -303,15 +303,19 @@
           "binaryStorageAccountName": { "value": "[variables('binaryStorageAccountName')]" },
           "userStorage": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs]" },
           "instrumentationKey": { "value": "[reference('Microsoft.Resources/deployments/AppInsights').outputs.instrumentationKey.value]" },
-
-          "joinedEventHub": { "value": "[reference('Microsoft.Resources/deployments/joined').outputs]" },
-          "evalEventHub": { "value": "[reference('Microsoft.Resources/deployments/eval').outputs]" },
-
           "onlineTrainerCspkgToken": { "value": "[variables('onlineTrainerCspkgToken')]" },
-          "onlineTrainerCheckpointInterval": { "value": "[parameters('onlineTrainerCheckpointInterval')]" },
-          "onlineTrainerCheckpointCount": { "value": "[parameters('onlineTrainerCheckpointCount')]" },
 
-          "adminToken": { "value": "[parameters('adminToken')]" }
+          "cscfg": {
+            "value": {
+              "joinedEventHubConnectionString": "[reference('Microsoft.Resources/deployments/joined').outputs.listenConnectionString.value]",
+              "evalEventHubConnectionString": "[reference('Microsoft.Resources/deployments/eval').outputs.sendConnectionString.value]",
+              "userStorageConnectionString": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageConnectionString.value]",
+              "instrumentationKey": "[reference('Microsoft.Resources/deployments/AppInsights').outputs.instrumentationKey.value]",
+              "adminToken": "[parameters('adminToken')]",
+              "checkpointInterval": "[parameters('onlineTrainerCheckpointInterval')]",
+              "checkpointCount": "[parameters('onlineTrainerCheckpointCount')]"
+            }
+          }
         }
       }
     }
