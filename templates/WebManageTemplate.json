@@ -5,9 +5,10 @@
     "instrumentationKey": { "type": "string" },
     "userStorageConnectionString": { "type": "string" },
     "managementPassword": { "type": "string" },
-    "adminToken": { "type": "string" },
-    "userToken": { "type": "string" },
-    "joinQuery": { "type": "object" },
+
+    "interactionEventHub": { "type": "object" },
+    "observationEventHub": { "type": "object" },
+
     "experimentalUnitDurationInSeconds": { "type": "string" },
     "vowpalWabbitTrainArguments": { "type": "string" },
     "numberOfActions": { "type": "int" },
@@ -138,8 +139,8 @@
             "vowpalWabbitTrainArguments": "[parameters('vowpalWabbitTrainArguments')]",
             "numberOfActions": "[parameters('numberOfActions')]",
             "resourceGroupName": "[resourceGroup().name]",
-            "interactionEventHubSendConnectionString": "[parameters('joinquery').interactionEventHub.value.sendConnectionString.value]",
-            "observationEventHubSendConnectionString": "[parameters('joinquery').observationEventHub.value.sendConnectionString.value]",
+            "interactionEventHubSendConnectionString": "[parameters('interactionEventHub').sendConnectionString.value]",
+            "observationEventHubSendConnectionString": "[parameters('observationEventHub').sendConnectionString.value]",
             "subscriptionId": "[subscription().subscriptionId]"
           }
         }

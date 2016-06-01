@@ -3,8 +3,10 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "assetLocation": { "type": "string" },
-    "userStorageAccountName": { "type": "string" },
-    "userStorageAccountKey": { "type": "string" },
+    "userStorage": { "type": "object" },
+    "interactionEventHub": { "type": "object" },
+    "observationEventHub": { "type": "object" },
+    "joinedEventHub": { "type": "object" },
     "serviceBusName": { "type": "string" },
 
     "messageRetentionInDays": { "type": "int" },
@@ -21,70 +23,11 @@
     "joinQuery": "WITH matched AS ( \n   SELECT interaction.EventId, interaction.PartitionId, *\n   FROM interaction TIMESTAMP BY EventEnqueuedUtcTime PARTITION BY PartitionId\n   -- always output interaction events, regardless if there is an observation or not\n   LEFT OUTER JOIN\n   -- shift observation time line before interaction (thus interaction comes later)\n   -- the output event timestamp is defined as the maximum of (interaction event, observation event) --> always interaction event timestamp\n    observation TIMESTAMP BY DATEADD(Microsecond, -$ExperimentalDurationInMicrosecond$, EventEnqueuedUtcTime) PARTITION BY PartitionId\n   -- MUST use Microsecond due to rounding issue in DATEDIFF, otherwise observation events are moved forward by 1 time unit\n        ON DATEDIFF(Microsecond, observation, interaction) BETWEEN 0 AND $ExperimentalDurationInMicrosecond$ \n        AND interaction.EventId = observation.EventId\n        AND interaction.PartitionId = observation.PartitionId\n),\njoined AS (\n    SELECT EventId, PartitionId, System.Timestamp Timestamp, Collect() Data\n    FROM matched PARTITION BY PartitionId\n    GROUP BY EventId, PartitionId, System.Timestamp\n)\n \nSELECT * INTO outHubStream FROM Joined PARTITION BY PartitionId \nSELECT * INTO outBlob FROM Joined PARTITION BY PartitionId"
   },
   "resources": [
-    { 
-      "apiVersion": "2015-01-01",
-      "name": "interaction",
-      "type": "Microsoft.Resources/deployments",
-      "properties": {
-        "mode": "incremental",
-        "templateLink": {
-          "uri": "[concat(parameters('assetLocation'), '/templates/EventHubTemplate.json')]",
-          "contentVersion": "1.0.0.0"
-        },
-        "parameters": {
-          "ehName": { "value": "interaction" },
-          "serviceBusName": { "value": "[parameters('serviceBusName')]" },
-          "messageRetentionInDays": { "value": "[parameters('messageRetentionInDays')]" },
-          "partitionCount": { "value": "[parameters('partitionCount')]" }
-        }
-      }
-    },
-    { 
-      "apiVersion": "2015-01-01",
-      "name": "observation",
-      "type": "Microsoft.Resources/deployments",
-      "properties": {
-        "mode": "incremental",
-        "templateLink": {
-          "uri": "[concat(parameters('assetLocation'), '/templates/EventHubTemplate.json')]",
-          "contentVersion": "1.0.0.0"
-        },
-        "parameters": {
-          "ehName": { "value": "observation" },
-          "serviceBusName": { "value": "[parameters('serviceBusName')]" },
-          "messageRetentionInDays": { "value": "[parameters('messageRetentionInDays')]" },
-          "partitionCount": { "value": "[parameters('partitionCount')]" }
-        }
-      }
-    },
-    { 
-      "apiVersion": "2015-01-01",
-      "name": "joined",
-      "type": "Microsoft.Resources/deployments",
-      "properties": {
-        "mode": "incremental",
-        "templateLink": {
-          "uri": "[concat(parameters('assetLocation'), '/templates/EventHubTemplate.json')]",
-          "contentVersion": "1.0.0.0"
-        },
-        "parameters": {
-          "ehName": { "value": "joined" },
-          "serviceBusName": { "value": "[parameters('serviceBusName')]" },
-          "messageRetentionInDays": { "value": "[parameters('messageRetentionInDays')]" },
-          "partitionCount": { "value": "[parameters('partitionCount')]" }
-        }
-      }
-    },
     {
       "apiVersion": "2015-10-01",
       "type": "Microsoft.StreamAnalytics/streamingjobs",
       "name": "[concat(resourceGroup().name, '-join')]",
       "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "Microsoft.Resources/deployments/interaction",
-        "Microsoft.Resources/deployments/observation",
-        "Microsoft.Resources/deployments/joined"
-      ],
       "properties": {
         "sku": {
           "name": "standard"
@@ -102,7 +45,7 @@
                   "ServiceBusNamespace": "[parameters('serviceBusName')]",
                   "eventHubName": "interaction",
                   "sharedAccessPolicyName": "ListenOnly",
-                  "sharedAccessPolicyKey": "[reference('Microsoft.Resources/deployments/interaction', '2015-01-01').outputs.ListenKey.value]"
+                  "sharedAccessPolicyKey": "[parameters('interactionEventHub').ListenKey.value]"
                 },
                 "Type": "Microsoft.ServiceBus/EventHub"
               },
@@ -123,7 +66,7 @@
                   "ServiceBusNamespace": "[parameters('serviceBusName')]",
                   "eventHubName": "observation",
                   "sharedAccessPolicyName": "ListenOnly",
-                  "sharedAccessPolicyKey": "[reference('Microsoft.Resources/deployments/observation', '2015-01-01').outputs.ListenKey.value]"
+                  "sharedAccessPolicyKey": "[parameters('observationEventHub').ListenKey.value]"
                 },
                 "Type": "Microsoft.ServiceBus/EventHub"
               },
@@ -146,7 +89,7 @@
                   "ServiceBusNamespace": "[parameters('serviceBusName')]",
                   "eventHubName": "joined",
                   "sharedAccessPolicyName": "SendOnly",
-                  "sharedAccessPolicyKey": "[reference('Microsoft.Resources/deployments/joined', '2015-01-01').outputs.SendKey.value]"
+                  "sharedAccessPolicyKey": "[parameters('joinedEventHub').SendKey.value]"
                 },
                 "Type": "Microsoft.ServiceBus/EventHub"
               },
@@ -170,8 +113,8 @@
                   "PathPattern": "{date}/{time}",
                   "StorageAccounts": [
                     {
-                      "AccountName": "[parameters('userStorageAccountName')]",
-                      "AccountKey": "[parameters('userStorageAccountKey')]"
+                      "AccountName": "[parameters('userStorage').userStorageAccountName.value]",
+                      "AccountKey": "[parameters('userStorage').userStorageAccountKey.value]"
                     }
                   ]
                 },
@@ -195,19 +138,5 @@
         }
       }
     }
-  ],
-  "outputs": {
-    "interactionEventHub": {
-      "type": "object",
-      "value": "[reference(concat('Microsoft.Resources/deployments/interaction')).outputs]"
-    },
-    "observationEventHub": {
-      "type": "object",
-      "value": "[reference(concat('Microsoft.Resources/deployments/observation')).outputs]"
-    },
-    "joinedEventHub": {
-      "type": "object",
-      "value": "[reference(concat('Microsoft.Resources/deployments/joined')).outputs]"
-    }
-  }
+  ]
 }

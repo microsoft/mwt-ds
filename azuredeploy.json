@@ -75,7 +75,7 @@
     },
     "onlineTrainerCheckpointCount": {
       "type": "int",
-      "defaultValue": "",
+      "defaultValue": "0",
       "metadata": {
         "description": "Checkpoint interval in event time used to checkpoint"
       }
@@ -116,6 +116,78 @@
     },
     {
       "apiVersion": "2015-01-01",
+      "name": "interaction",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [ "Microsoft.Resources/deployments/ServiceBus" ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": {
+          "uri": "[concat(variables('assetLocation'), '/templates/EventHubTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "ehName": { "value": "interaction" },
+          "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
+          "messageRetentionInDays": { "value": "[parameters('messageRetentionInDays')]" },
+          "partitionCount": { "value": "[parameters('partitionCount')]" }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "observation",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [ "Microsoft.Resources/deployments/ServiceBus" ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": {
+          "uri": "[concat(variables('assetLocation'), '/templates/EventHubTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "ehName": { "value": "observation" },
+          "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
+          "messageRetentionInDays": { "value": "[parameters('messageRetentionInDays')]" },
+          "partitionCount": { "value": "[parameters('partitionCount')]" }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "joined",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [ "Microsoft.Resources/deployments/ServiceBus" ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": {
+          "uri": "[concat(variables('assetLocation'), '/templates/EventHubTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "ehName": { "value": "joined" },
+          "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
+          "messageRetentionInDays": { "value": "[parameters('messageRetentionInDays')]" },
+          "partitionCount": { "value": "[parameters('partitionCount')]" }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "eval",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "incremental",
+        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/EventHubTemplate.json')]" },
+        "parameters": {
+          "ehName": { "value": "eval" },
+          "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
+          "messageRetentionInDays": { "value": "[parameters('messageRetentionInDays')]" },
+          "partitionCount": { "value": "[parameters('partitionCount')]" }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
       "name": "WebAPI",
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [
@@ -139,17 +211,21 @@
       "name": "JoinQuery",
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [
-        "Microsoft.Resources/deployments/ServiceBus",
-        "Microsoft.Resources/deployments/Storage"
+        "Microsoft.Resources/deployments/Storage",
+        "Microsoft.Resources/deployments/interaction",
+        "Microsoft.Resources/deployments/observation",
+        "Microsoft.Resources/deployments/joined"
       ],
       "properties": {
         "mode": "incremental",
         "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/StreamAnalyticsJoinTemplate.json')]" },
         "parameters": {
           "assetLocation": { "value": "[variables('assetLocation')]" },
-          "userStorageAccountName": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountName.value]" },
-          "userStorageAccountKey": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value]" },
+          "userStorage": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs]" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
+          "interactionEventHub": { "value": "[reference('Microsoft.Resources/deployments/interaction').outputs]" },
+          "observationEventHub": { "value": "[reference('Microsoft.Resources/deployments/observation').outputs]" },
+          "joinedEventHub": { "value": "[reference('Microsoft.Resources/deployments/joined').outputs]" },
           "messageRetentionInDays": { "value": "[parameters('messageRetentionInDays')]" },
           "partitionCount": { "value": "[parameters('partitionCount')]" },
           "experimentalUnitDurationInSeconds": { "value": "[parameters('experimentalUnitDurationInSeconds')]" }
@@ -172,6 +248,7 @@
           "userStorageAccountName": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountName.value]" },
           "userStorageAccountKey": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value]" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
+          "evalEventHub": { "value": "[reference('Microsoft.Resources/deployments/eval').outputs]" },
           "messageRetentionInDays": { "value": "[parameters('messageRetentionInDays')]" },
           "partitionCount": { "value": "[parameters('partitionCount')]" }
         }
@@ -184,8 +261,8 @@
       "dependsOn": [
         "Microsoft.Resources/deployments/Storage",
         "Microsoft.Resources/deployments/AppInsights",
-        "Microsoft.Resources/deployments/JoinQuery",
-        "Microsoft.Resources/deployments/EvalQuery"
+        "Microsoft.Resources/deployments/interaction",
+        "Microsoft.Resources/deployments/observation"
       ],
       "properties": {
         "mode": "incremental",
@@ -194,8 +271,10 @@
           "instrumentationKey": { "value": "[reference('Microsoft.Resources/deployments/AppInsights').outputs.instrumentationKey.value]" },
           "userStorageConnectionString": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageConnectionString.value]" },
           "managementPassword": { "value": "[parameters('managementPassword')]" },
-          "joinQuery": { "value": "[reference('Microsoft.Resources/deployments/JoinQuery').outputs]" },
-          "evalQuery": { "value": "[reference('Microsoft.Resources/deployments/EvalQuery').outputs]" },
+
+          "interactionEventHub": { "value": "[reference('Microsoft.Resources/deployments/interaction').outputs]" },
+          "observationEventHub": { "value": "[reference('Microsoft.Resources/deployments/observation').outputs]" },
+
           "experimentalUnitDurationInSeconds": { "value": "[parameters('experimentalUnitDurationInSeconds')]" },
           "vowpalWabbitTrainArguments": { "value": "[parameters('vowpalWabbitTrainArguments')]" },
           "numberOfActions": { "value": "[parameters('numberOfActions')]" }
@@ -209,8 +288,8 @@
       "dependsOn": [
         "Microsoft.Resources/deployments/Storage",
         "Microsoft.Resources/deployments/AppInsights",
-        "Microsoft.Resources/deployments/JoinQuery",
-        "Microsoft.Resources/deployments/EvalQuery"
+        "Microsoft.Resources/deployments/joined",
+        "Microsoft.Resources/deployments/eval"
       ],
       "properties": {
         "mode": "incremental",
@@ -222,11 +301,15 @@
           "binaryStorageAccountName": { "value": "[variables('binaryStorageAccountName')]" },
           "userStorage": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs]" },
           "instrumentationKey": { "value": "[reference('Microsoft.Resources/deployments/AppInsights').outputs.instrumentationKey.value]" },
-          "joinQuery": { "value": "[reference('Microsoft.Resources/deployments/JoinQuery').outputs]" },
-          "evalQuery": { "value": "[reference('Microsoft.Resources/deployments/EvalQuery').outputs]" },
+
+          "joinedEventHub": { "value": "[reference('Microsoft.Resources/deployments/join').outputs]" },
+          "evalEventHub": { "value": "[reference('Microsoft.Resources/deployments/eval').outputs]" },
+
           "onlineTrainerCspkgToken": { "value": "[variables('onlineTrainerCspkgToken')]" },
           "onlineTrainerCheckpointInterval": { "value": "[parameters('onlineTrainerCheckpointInterval')]" },
-          "onlineTrainerCheckpointCount": { "value": "[parameters('onlineTrainerCheckpointCount')]" }
+          "onlineTrainerCheckpointCount": { "value": "[parameters('onlineTrainerCheckpointCount')]" },
+
+          "adminToken": { "value": "[parameters('adminToken')]" }
         }
       }
     }

@@ -5,18 +5,21 @@
     "binaryStorageAccountName": { "type": "string" },
     "userStorage": { "type": "object" },
     "instrumentationKey": { "type": "string" },
+
+    "joinedEventHub": { "type": "object" },
+    "evalEventHub": { "type": "object" },
+
     "onlineTrainerCspkgToken": { "type": "string" },
-    "joinQuery": { "type": "object" },
-    "evalQuery": { "type": "object" },
-    "adminToken": { "type": "string" },
     "onlineTrainerCheckpointInterval": { "type": "string" },
-    "onlineTrainerCheckpointCount": { "type": "int" }
+    "onlineTrainerCheckpointCount": { "type": "int" },
+
+    "adminToken": { "type": "string" }
   },
   "variables": {
     "name": "[concat(resourceGroup().name,'-trainer')]",
     "cscfg": {
-      "joinedEventHubConnectionString": "[parameters('joinquery').joinedEventHub.value.listenConnectionString.value]",
-      "evalEventHubConnectionString": "[parameters('evalquery').evalEventHub.value.sendConnectionString.value]",
+      "joinedEventHubConnectionString": "[parameters('joinedEventHub').listenConnectionString.value]",
+      "evalEventHubConnectionString": "[parameters('evalEventHub').sendConnectionString.value]",
       "userStorageConnectionString": "[parameters('userStorage').userStorageConnectionString.value]",
       "instrumentationKey": "[parameters('instrumentationKey')]",
       "adminToken": "[parameters('adminToken')]",

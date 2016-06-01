@@ -6,6 +6,7 @@
     "userStorageAccountName": { "type": "string" },
     "userStorageAccountKey": { "type": "string" },
     "serviceBusName": { "type": "string" },
+    "evalEventHub": { "type": "object" },
 
     "messageRetentionInDays": { "type": "int" },
     "partitionCount": { "type": "int" },
@@ -15,21 +16,6 @@
     }
   },
   "resources": [
-    {
-      "apiVersion": "2015-01-01",
-      "name": "eval",
-      "type": "Microsoft.Resources/deployments",
-      "properties": {
-        "mode": "incremental",
-        "templateLink": { "uri": "[concat(parameters('assetLocation'), '/templates/EventHubTemplate.json')]" },
-        "parameters": {
-          "ehName": { "value": "eval" },
-          "serviceBusName": { "value": "[parameters('serviceBusName')]" },
-          "messageRetentionInDays": { "value": "[parameters('messageRetentionInDays')]" },
-          "partitionCount": { "value": "[parameters('partitionCount')]" }
-        }
-      }
-    },
     {
       "apiVersion": "2015-10-01",
       "type": "Microsoft.StreamAnalytics/streamingjobs",
@@ -55,7 +41,7 @@
                   "ServiceBusNamespace": "[parameters('serviceBusName')]",
                   "eventHubName": "eval",
                   "sharedAccessPolicyName": "ListenOnly",
-                  "sharedAccessPolicyKey": "[reference('Microsoft.Resources/deployments/eval').outputs.ListenKey.value]"
+                  "sharedAccessPolicyKey": "[parameters('evalEventHub').ListenKey.value]"
                 },
                 "Type": "Microsoft.ServiceBus/EventHub"
               },
