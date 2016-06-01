@@ -148,7 +148,7 @@
     }
   ],
   "outputs": {
-    "ManagementUrl": {
+    "url": {
       "type": "string",
       "value": "[concat('http://', variables('siteName'), '.azurewebsites.net')]"
     }

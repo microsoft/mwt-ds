@@ -21,9 +21,6 @@
       "type": "Microsoft.StreamAnalytics/streamingjobs",
       "name": "[concat(resourceGroup().name, '-eval')]",
       "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "Microsoft.Resources/deployments/eval"
-      ],
       "properties": {
         "sku": {
           "name": "standard"
@@ -92,11 +89,5 @@
         }
       }
     }
-  ],
-  "outputs": {
-    "EvalEventHub": {
-      "type": "object",
-      "value": "[reference('Microsoft.Resources/deployments/eval').outputs]"
-    }
-  }
+  ]
 }
