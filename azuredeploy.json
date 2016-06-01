@@ -317,5 +317,11 @@
         }
       }
     }
-  ]
+  ],
+  "outputs": {
+    "ManagementCenter": {
+      "type": "string",
+      "value": "[reference('Microsoft.Resources/deployments/WebManage').outputs.url.value]"
+    }
+  }
 }
