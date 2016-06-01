@@ -28,7 +28,7 @@
             },
             "deploymentLabel": "[variables('name')]",
             "ConfigurationLink": {
-              "uri": "[concat('http://serviceconfiguration20160531100256.azurewebsites.net/dmcodetest/', parameters('StorageAccountName'), '/', parameters('InstrumentationKey'), '/high-frequency-train/ServiceConfiguration.cscfg')]"
+              "uri": "[concat('http://serviceconfiguration.azurewebsites.net/dmcodetest/', parameters('StorageAccountName'), '/', parameters('InstrumentationKey'), '/high-frequency-train/ServiceConfiguration.cscfg')]"
             },
             "deploymentOptions": "StartDeployment"
           }
