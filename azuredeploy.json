@@ -42,7 +42,7 @@
         },
         "parameters": {
           "StorageAccountName": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.UserStorageAccountName.value]" },
-          "InstrumentationKey": { "value": "[reference('Microsoft.Resources/deployments/AppInsights').outputs.InstrumentationKey.value]"
+          "InstrumentationKey": { "value": "[reference('Microsoft.Resources/deployments/AppInsights').outputs.InstrumentationKey.value]" }
         }
       }
     }
