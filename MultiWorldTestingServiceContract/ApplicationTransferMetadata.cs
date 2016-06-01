@@ -44,9 +44,9 @@ namespace Microsoft.Research.MultiWorldTesting.Contract
         public int? NumActions { get; set; }
 
         /// <summary>
-        /// Additional arguments to be used in training service.
+        /// Training arguments to be used in training service.
         /// </summary>
-        public string AdditionalTrainArguments { get; set; }
+        public string TrainArguments { get; set; }
 
         /// <summary>
         /// The EventHub connection string to which the client needs to send interaction data.
@@ -67,34 +67,6 @@ namespace Microsoft.Research.MultiWorldTesting.Contract
         /// The publicly accessible Uri of the model blob that clients can check for update.
         /// </summary>
         public string ModelBlobUri { get; set; }
-    }
-
-    public class ApplicationTrainerMetadata
-    {
-        /// <summary>
-        /// The name of the application as created on the Command Center.
-        /// </summary>
-        public string ApplicationID { get; set; }
-
-        /// <summary>
-        /// Additional arguments to be used in training service.
-        /// </summary>
-        public string AdditionalTrainArguments { get; set; }
-        
-        /// <summary>
-        /// 
-        /// </summary>
-        public string EventHubListenConnectionString { get; set; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public string EventHubEvalConnectionString { get; set; }
-
-        /// <summary>
-        /// The connection string for the provisioned Azure storage account.
-        /// </summary>
-        public string ConnectionString { get; set; }
     }
 
     public class ApplicationExtraMetadata
