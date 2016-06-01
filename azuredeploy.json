@@ -175,6 +175,7 @@
       "apiVersion": "2015-01-01",
       "name": "eval",
       "type": "Microsoft.Resources/deployments",
+      "dependsOn": [ "Microsoft.Resources/deployments/ServiceBus" ],
       "properties": {
         "mode": "incremental",
         "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/EventHubTemplate.json')]" },
@@ -238,7 +239,8 @@
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [
         "Microsoft.Resources/deployments/ServiceBus",
-        "Microsoft.Resources/deployments/Storage"
+        "Microsoft.Resources/deployments/Storage",
+        "Microsoft.Resources/deployments/eval"
       ],
       "properties": {
         "mode": "incremental",
