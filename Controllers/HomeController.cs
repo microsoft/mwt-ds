@@ -158,7 +158,7 @@ namespace DecisionServicePrivateWeb.Controllers
                 return RedirectToAction("Index");
             }
 
-            return View(new EvaluationViewModel { WindowFilters = new List<string>(new string[] { "1h", "3h", "6h" }), SelectedFilter = "3h" });
+            return View(new EvaluationViewModel { WindowFilters = new List<string>(new string[] { "5m", "20m", "1h", "3h", "6h" }), SelectedFilter = "5m" });
         }
 
         [AllowAnonymous]
