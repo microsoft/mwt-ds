@@ -135,13 +135,9 @@
             "userToken": "[parameters('userToken')]",
             "adminToken": "[parameters('adminToken')]",
             "interactionEventHubSendConnectionString": "[parameters('joinquery').interactionEventHub.value.sendConnectionString.value]",
-            "interactionEventHubSendKey": "[parameters('joinquery').interactionEventHub.value.sendKey.value]",
             "observationEventHubSendConnectionString": "[parameters('joinquery').observationEventHub.value.sendConnectionString.value]",
-            "observationEventHubSendKey": "[parameters('joinquery').observationEventHub.value.sendKey.value]",
             "joinedEventHubListenConnectionString": "[parameters('joinquery').observationEventHub.value.listenConnectionString.value]",
-            "joinedEventHubListenKey": "[parameters('joinquery').observationEventHub.value.listenKey.value]",
-            "evalEventHubListenConnectionString": "[parameters('evalquery').evalEventHub.value.sendConnectionString.value]",
-            "evalEventHubListenKey": "[parameters('evalquery').evalEventHub.value.sendKey.value]"
+            "evalEventHubListenConnectionString": "[parameters('evalquery').evalEventHub.value.sendConnectionString.value]"
           }
         }
       ]
