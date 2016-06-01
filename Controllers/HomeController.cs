@@ -1,10 +1,10 @@
 ﻿using DecisionServicePrivateWeb.Classes;
 using DecisionServicePrivateWeb.Models;
+using Microsoft.ApplicationInsights;
 using Microsoft.Research.MultiWorldTesting.Contract;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -18,17 +18,23 @@ namespace DecisionServicePrivateWeb.Controllers
 {
     public class HomeController : Controller
     {
+        const string AKAzureResourceGroup = "resourceGroupName";
         const string AKConnectionString = "AzureStorageConnectionString";
         const string AKPassword = "Password";
+        const string AKInterEHSendConnString = "interactionEventHubSendConnectionString";
+        const string AKObserEHSendConnString = "observationEventHubSendConnectionString";
+        const string AKTrainArguments = "vowpalWabbitTrainArguments";
+        const string AKNumActions = "numberOfActions";
+        const string AKSubscriptionId = "subscriptionId";
+        const string AKExpUnitDuration = "experimentalUnitDurationInSeconds";
+
         const string SKAuthenticated = "Authenticated";
 
         const string SKClientSettingsBlob = "ClientSettingsBlob";
-        const string SKTrainerSettingsBlob = "TrainerSettingsBlob";
         const string SKExtraSettingsBlob = "ExtraSettingsBlob";
         const string SKEvalContainer = "EvalContainer";
 
         const string SKClientSettings = "ClientSettings";
-        const string SKTrainerSettings = "TrainerSettings";
         const string SKExtraSettings = "ExtraSettings";
 
         public ActionResult Index()
@@ -40,6 +46,7 @@ namespace DecisionServicePrivateWeb.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Index(string password)
         {
+            var telemetry = new TelemetryClient();
             string correctPassword = ConfigurationManager.AppSettings[AKPassword];
             if (string.Equals(password, correctPassword))
             {
@@ -48,12 +55,43 @@ namespace DecisionServicePrivateWeb.Controllers
                 string azureStorageConnectionString = ConfigurationManager.AppSettings[AKConnectionString];
                 var storageAccount = CloudStorageAccount.Parse(azureStorageConnectionString);
                 var blobClient = storageAccount.CreateCloudBlobClient();
-                var blobContainer = blobClient.GetContainerReference(ApplicationBlobConstants.SettingsContainerName);
+                var settingsBlobContainer = blobClient.GetContainerReference(ApplicationBlobConstants.SettingsContainerName);
+                var modelBlobContainer = blobClient.GetContainerReference(ApplicationBlobConstants.ModelContainerName);
 
-                Session[SKClientSettingsBlob] = blobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestClientSettingsBlobName);
-                Session[SKTrainerSettingsBlob] = blobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestTrainerSettingsBlobName);
-                Session[SKExtraSettingsBlob] = blobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestExtraSettingsBlobName);
+                var clientSettingsBlob = settingsBlobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestClientSettingsBlobName);
+                var extraSettingsBlob = settingsBlobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestExtraSettingsBlobName);
+                if (!clientSettingsBlob.Exists() || !extraSettingsBlob.Exists())
+                {
+                    telemetry.TrackTrace("Settings blob not found, creating new one.");
 
+                    settingsBlobContainer.CreateIfNotExists();
+                    modelBlobContainer.CreateIfNotExists();
+
+                    var appSettings = new ApplicationSettings
+                    {
+                        ApplicationID = ConfigurationManager.AppSettings[AKAzureResourceGroup],
+                        AzureResourceGroupName = ConfigurationManager.AppSettings[AKAzureResourceGroup],
+                        ConnectionString = ConfigurationManager.AppSettings[AKConnectionString],
+                        ExperimentalUnitDuration = Convert.ToInt32(ConfigurationManager.AppSettings[AKExpUnitDuration]),
+                        InterEventHubSendConnectionString = ConfigurationManager.AppSettings[AKInterEHSendConnString],
+                        ObserEventHubSendConnectionString = ConfigurationManager.AppSettings[AKObserEHSendConnString],
+                        IsExplorationEnabled = true,
+                        SubscriptionId = ConfigurationManager.AppSettings[AKSubscriptionId],
+                        DecisionType = DecisionType.MultiActions, // TODO: update depending on deployment option
+                        ModelId = ApplicationBlobConstants.LatestModelBlobName,
+                        NumActions = Convert.ToInt32(ConfigurationManager.AppSettings[AKNumActions]),
+                        TrainArguments = ConfigurationManager.AppSettings[AKTrainArguments],
+                        TrainFrequency = TrainFrequency.High, // TODO: update depending on deployment option
+                        ModelBlobUri = modelBlobContainer.Uri.ToString() + "/" + ApplicationBlobConstants.LatestModelBlobName,
+                        SettingsBlobUri = settingsBlobContainer.Uri.ToString() + "/" + ApplicationBlobConstants.LatestClientSettingsBlobName
+                    };
+                    ApplicationMetadataStore.UpdateMetadata(clientSettingsBlob, extraSettingsBlob, appSettings);
+
+                    telemetry.TrackTrace($"Model blob uri: {appSettings.ModelBlobUri}");
+                    telemetry.TrackTrace($"Settings blob uri: {appSettings.SettingsBlobUri}");
+                }
+                Session[SKClientSettingsBlob] = clientSettingsBlob;
+                Session[SKExtraSettingsBlob] = extraSettingsBlob;
                 Session[SKEvalContainer] = blobClient.GetContainerReference(ApplicationBlobConstants.OfflineEvalContainerName);
 
                 return Redirect(Url.Action("Settings"));
@@ -78,17 +116,12 @@ namespace DecisionServicePrivateWeb.Controllers
             }
             string userName = User.Identity.Name;
             ApplicationClientMetadata clientApp = null;
-            ApplicationTrainerMetadata trainerApp = null;
             ApplicationExtraMetadata extraApp = null;
             try
             {
                 var clientSettingsBlob = (CloudBlockBlob)Session[SKClientSettingsBlob];
                 clientApp = JsonConvert.DeserializeObject<ApplicationClientMetadata>(clientSettingsBlob.DownloadText());
                 Session[SKClientSettings] = clientApp;
-
-                var trainerSettingsBlob = (CloudBlockBlob)Session[SKTrainerSettingsBlob];
-                trainerApp = JsonConvert.DeserializeObject<ApplicationTrainerMetadata>(trainerSettingsBlob.DownloadText());
-                Session[SKTrainerSettings] = trainerApp;
 
                 var extraSettingsBlob = (CloudBlockBlob)Session[SKExtraSettingsBlob];
                 extraApp = JsonConvert.DeserializeObject<ApplicationExtraMetadata>(extraSettingsBlob.DownloadText());
@@ -99,7 +132,7 @@ namespace DecisionServicePrivateWeb.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, $"Unable to load application metadata: {ex.ToString()}");
             }
 
-            return View(CreateAppView(clientApp, trainerApp, extraApp));
+            return View(CreateAppView(clientApp, extraApp));
         }
 
         [HttpPost]
@@ -113,11 +146,6 @@ namespace DecisionServicePrivateWeb.Controllers
                 var clientSettingsBlob = (CloudBlockBlob)Session[SKClientSettingsBlob];
                 clientSettingsBlob.UploadText(JsonConvert.SerializeObject(clientMeta));
 
-                var trainerMeta = (ApplicationTrainerMetadata)Session[SKTrainerSettings];
-                trainerMeta.AdditionalTrainArguments = model.AdditionalTrainArguments;
-                var trainerSettingsBlob = (CloudBlockBlob)Session[SKTrainerSettingsBlob];
-                trainerSettingsBlob.UploadText(JsonConvert.SerializeObject(trainerMeta));
-
                 var extraMeta = (ApplicationExtraMetadata)Session[SKExtraSettings];
                 extraMeta.ModelId = model.SelectedModelId;
                 var extraSettingsBlob = (CloudBlockBlob)Session[SKExtraSettingsBlob];
@@ -126,29 +154,21 @@ namespace DecisionServicePrivateWeb.Controllers
                 try
                 {
                     // copy selected model file to the latest file
-                    string azureStorageConnectionString = ConfigurationManager.AppSettings[AKConnectionString];
-                    var storageAccount = CloudStorageAccount.Parse(azureStorageConnectionString);
-                    var blobClient = storageAccount.CreateCloudBlobClient();
-                    var modelContainer = blobClient.GetContainerReference(ApplicationBlobConstants.ModelContainerName);
-                    var selectedModelBlob = this.GetSelectedModelBlob(modelContainer, model.SelectedModelId);
-                    if (selectedModelBlob != null && modelContainer != null)
-                    {
-                        var currentModelBlob = modelContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestModelBlobName);
-                        currentModelBlob.StartCopy(selectedModelBlob);
-                    }
+                    ApplicationMetadataStore.UpdateModel(model.SelectedModelId, ConfigurationManager.AppSettings[AKConnectionString]);
                 }
                 catch (Exception ex)
                 {
                     return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, $"Unable to update model: {ex.ToString()}");
                 }
 
-                return View(CreateAppView(clientMeta, trainerMeta, extraMeta));
+                return View(CreateAppView(clientMeta, extraMeta));
             }
             catch (Exception ex)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, $"Unable to update application metadata: {ex.ToString()}");
             }
         }
+
 
         [AllowAnonymous]
         public ActionResult Evaluation()
@@ -245,49 +265,9 @@ namespace DecisionServicePrivateWeb.Controllers
             return (Session[SKAuthenticated] != null && (bool)Session[SKAuthenticated]);
         }
 
-        private CloudBlockBlob GetSelectedModelBlob(CloudBlobContainer blobContainer, string modelId, bool forceLatest = false)
-        {
-            CloudBlockBlob blockBlob = null;
-
-            bool useLatestModel = forceLatest | String.Equals(modelId, ApplicationSettingConstants.UseLatestModelSetting, StringComparison.OrdinalIgnoreCase);
-
-            if (!useLatestModel) // If not latest, use the selected model
-            {
-                if (!String.IsNullOrWhiteSpace(modelId))
-                {
-                    blockBlob = blobContainer.GetBlockBlobReference(modelId);
-                }
-            }
-            else
-            {
-                DateTimeOffset lastBlobDate = new DateTimeOffset();
-                IEnumerable<IListBlobItem> blobs = blobContainer.ListBlobs();
-                foreach (IListBlobItem blobItem in blobs)
-                {
-                    if (blobItem is CloudBlockBlob && !IsLatestModelBlob(blobItem))
-                    {
-                        var bbItem = (CloudBlockBlob)blobItem;
-                        DateTimeOffset bbDate = bbItem.Properties.LastModified.GetValueOrDefault();
-                        if (bbDate >= lastBlobDate)
-                        {
-                            blockBlob = bbItem;
-                            lastBlobDate = bbDate;
-                        }
-                    }
-                }
-            }
-
-            return blockBlob;
-        }
-
-        private static bool IsLatestModelBlob(IListBlobItem blob)
-        {
-            return blob is CloudBlockBlob && string.Compare(((CloudBlockBlob)blob).Name, ApplicationBlobConstants.LatestModelBlobName, StringComparison.OrdinalIgnoreCase) == 0;
-        }
 
         private static SettingsViewModel CreateAppView(
             ApplicationClientMetadata clientMetadata,
-            ApplicationTrainerMetadata trainerMetadata,
             ApplicationExtraMetadata extraMetadata)
         {
             var svm = new SettingsViewModel
@@ -297,8 +277,8 @@ namespace DecisionServicePrivateWeb.Controllers
                 DecisionType = extraMetadata.DecisionType,
                 NumActions = clientMetadata.NumActions,
                 TrainFrequency = extraMetadata.TrainFrequency,
-                AdditionalTrainArguments = trainerMetadata.AdditionalTrainArguments,
-                AzureStorageConnectionString = trainerMetadata.ConnectionString,
+                AdditionalTrainArguments = clientMetadata.TrainArguments,
+                AzureStorageConnectionString = ConfigurationManager.AppSettings[AKConnectionString],
                 AzureResourceGroupName = extraMetadata.AzureResourceGroupName,
                 EventHubInteractionConnectionString = clientMetadata.EventHubInteractionConnectionString,
                 EventHubObservationConnectionString = clientMetadata.EventHubObservationConnectionString,
