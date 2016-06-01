@@ -54,8 +54,8 @@
   },
   "variables": {
     "assetLocation": "https://raw.githubusercontent.com/multiworldtesting/ds-provisioning/master/",
-    "binaryStorageAccountName": "dmcodetest",
-    "onlineTrainerCspkgToken": "sr=b&sv=2015-02-21&st=2016-05-31T14%3A51%3A07Z&se=2099-05-31T15%3A51%3A00Z&sp=r&sig=bLD3apu0e2z%2FpFrC7jE4yVd7HA4b6LGFwxrt9FE%2BCuk%3D"
+    "binaryStorageAccountName": "dscode",
+    "onlineTrainerCspkgToken": "sr=b&sv=2015-02-21&st=2016-06-01T17%3A00%3A25Z&se=2099-06-01T18%3A00%3A00Z&sp=r&sig=BzvUAAilAs%2B0NYmnPUsc2TtdNzkQILH3bbFrgQcZ3x4%3D"
   },
   "resources": [
     {
