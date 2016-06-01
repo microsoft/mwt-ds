@@ -39,6 +39,10 @@
         "templateLink": {
           "uri": "[concat(variables('assetLocation'), 'templates/OnlineTrainerTemplate.json')]",
           "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "StorageAccountName": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.UserStorageAccountName.value]" },
+          "InstrumentationKey": { "value": "[reference('Microsoft.Resources/deployments/AppInsights').outputs.InstrumentationKey.value]"
         }
       }
     }

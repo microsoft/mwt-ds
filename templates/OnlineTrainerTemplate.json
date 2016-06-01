@@ -1,10 +1,12 @@
 {
   "$schema": "http://schema.management.azure.com/schemas/2015-01-01-preview/deploymentTemplate.json",
   "contentVersion": "1.0.0.0",
+  "parameters": {
+    "StorageAccountName": { "type": "string" },
+    "InstrumentationKey": { "type": "string" }
+  },
   "variables": {
-    "name": "[concat(resourceGroup().name,'-trainer')]",
-    "StorageAccountName": "[reference('Microsoft.Resources/deployments/Storage').outputs.UserStorageAccountName.value]",
-    "InstrumentationKey": "[reference('Microsoft.Resources/deployments/AppInsights').outputs.InstrumentationKey.value]"
+    "name": "[concat(resourceGroup().name,'-trainer')]"
   },
   "resources": [
     {
@@ -26,7 +28,7 @@
             },
             "deploymentLabel": "[variables('name')]",
             "ConfigurationLink": {
-              "uri": "[concat('http://serviceconfiguration20160531100256.azurewebsites.net/', variables('StorageAccountName'), '/', variables('InstrumentationKey'), '/high-frequency-train/ServiceConfiguration.cscfg')]"
+              "uri": "[concat('http://serviceconfiguration20160531100256.azurewebsites.net/', parameters('StorageAccountName'), '/', parameters('InstrumentationKey'), '/high-frequency-train/ServiceConfiguration.cscfg')]"
             },
             "deploymentOptions": "StartDeployment"
           }
