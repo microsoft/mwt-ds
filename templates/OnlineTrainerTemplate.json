@@ -1,10 +1,6 @@
 {
   "$schema": "http://schema.management.azure.com/schemas/2015-01-01-preview/deploymentTemplate.json",
   "contentVersion": "1.0.0.0",
-  "parameters": {
-    "ServicePackageLink": { "type": "string" },
-    "ServiceConfigurationLink": { "type": "string" }
-  },
   "variables": {
     "name": "[concat(resourceGroup().name,'-trainer')]",
     "StorageAccountName": "[reference('Microsoft.Resources/deployments/Storage').outputs.UserStorageAccountName.value]",
