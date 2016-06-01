@@ -304,7 +304,7 @@
           "userStorage": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs]" },
           "instrumentationKey": { "value": "[reference('Microsoft.Resources/deployments/AppInsights').outputs.instrumentationKey.value]" },
 
-          "joinedEventHub": { "value": "[reference('Microsoft.Resources/deployments/join').outputs]" },
+          "joinedEventHub": { "value": "[reference('Microsoft.Resources/deployments/joined').outputs]" },
           "evalEventHub": { "value": "[reference('Microsoft.Resources/deployments/eval').outputs]" },
 
           "onlineTrainerCspkgToken": { "value": "[variables('onlineTrainerCspkgToken')]" },
