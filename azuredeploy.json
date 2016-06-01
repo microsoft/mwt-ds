@@ -98,7 +98,7 @@
         "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/WebAPITemplate.json')]" },
         "parameters": {
           "assetLocation": { "value": "[variables('assetLocation')]" },
-          "binaryStorageAccountName": { "value": "[variables('binaryStorageAccountName')]" }
+          "binaryStorageAccountName": { "value": "[variables('binaryStorageAccountName')]" },
           "instrumentationKey": { "value": "[reference('Microsoft.Resources/deployments/AppInsights').outputs.instrumentationKey.value]" },
           "userStorageAccountName": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountName.value]" },
           "userToken": { "value": "[parameters('userToken')]" }
