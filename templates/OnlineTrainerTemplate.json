@@ -5,13 +5,24 @@
     "binaryStorageAccountName": { "type": "string" },
     "userStorageAccountName": { "type": "string" },
     "instrumentationKey": { "type": "string" },
-    "onlineTrainerCspkgToken": { "type": "string" }
+    "onlineTrainerCspkgToken": { "type": "string" },
+    "joinQuery": { "type": "object" },
+    "evalQuery": { "type": "object" },
+    "adminToken": { "type": "string" }
   },
   "variables": {
-    "name": "[concat(resourceGroup().name,'-trainer')]"
+    "name": "[concat(resourceGroup().name,'-trainer')]",
+    "cscfg": {
+      "joinedEventHubConnectionString": "[parameters('joinquery').joinedEventHub.value.listenConnectionString.value]",
+      "evalEventHubConnectionString": "[parameters('evalquery').evalEventHub.value.sendConnectionString.value]",
+      "userStorageAccountName": "[parameters('userStorageAccountName')]",
+      "instrumentationKey": "[parameters('instrumentationKey')]",
+      "adminToken": "[parameters('adminToken')]"
+    }
   },
   "resources": [
     {
+      // object -> string -> base64 / replace
       "apiVersion": "2014-06-01",
       "type": "Microsoft.ClassicCompute/domainNames",
       "name": "[variables('name')]",
@@ -30,7 +41,7 @@
             },
             "deploymentLabel": "[variables('name')]",
             "ConfigurationLink": {
-              "uri": "[concat('http://serviceconfiguration.azurewebsites.net/', parameters('binaryStorageAccountName'), '/', parameters('userStorageAccountName'), '/', parameters('instrumentationKey'), '/high-frequency-train/ServiceConfiguration.cscfg')]"
+              "uri": "[concat('http://serviceconfiguration.azurewebsites.net/', parameters('binaryStorageAccountName'), '/', base64(string(variables('cscfg'))), '/high-frequency-train/ServiceConfiguration.cscfg')]"
             },
             "deploymentOptions": "StartDeployment"
           }

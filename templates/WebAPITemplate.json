@@ -70,12 +70,12 @@
           ],
           "properties": {
             "phpVersion": "5.5",
-            "netFrameworkVersion": "v4.0",
+            "netFrameworkVersion": "v4.6",
             "use32BitWorkerProcess": false, /* 64-bit platform */
             "webSocketsEnabled": true,
             "alwaysOn": true,
             "remoteDebuggingEnabled": true,
-            "remoteDebuggingVersion": "VS2013",
+            "remoteDebuggingVersion": "VS2015",
 
             "virtualApplications": [
               {

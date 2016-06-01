@@ -43,12 +43,27 @@
         "description": "Degree of parallelism"
       }
     },
-    "joinEventsLateArrivalMaxDelayInSeconds": {
+    "experimentalUnitDurationInSeconds": {
       "type": "int",
       "minValue": 5,
       "defaultValue": 30,
       "metadata": {
-        "description":  "Experimental unit duration (TODO)"
+        "description": "Experimental unit duration (TODO)"
+      }
+    },
+    "vowpalWabbitTrainArguments": {
+      "type": "string",
+      "defaultValue": "-cb_adf --rank_all --cb_type dr",
+      "metadata": {
+        "description": "Vowpal wabbit train arguments (TODO)"
+      }
+    },
+    "numberOfActions": {
+      "type": "int",
+      "defaultValue": "0",
+      "minValue": 0,
+      "metadata": {
+        "description": "Number of actions"
       }
     }
   },
@@ -123,7 +138,7 @@
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
           "messageRetentionInDays": { "value": "[parameters('messageRetentionInDays')]" },
           "partitionCount": { "value": "[parameters('partitionCount')]" },
-          "joinEventsLateArrivalMaxDelayInSeconds": { "value": "[parameters('joinEventsLateArrivalMaxDelayInSeconds')]" }
+          "experimentalUnitDurationInSeconds": { "value": "[parameters('experimentalUnitDurationInSeconds')]" }
         }
       }
     },
@@ -165,10 +180,11 @@
           "instrumentationKey": { "value": "[reference('Microsoft.Resources/deployments/AppInsights').outputs.instrumentationKey.value]" },
           "userStorageConnectionString": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageConnectionString.value]" },
           "managementPassword": { "value": "[parameters('managementPassword')]" },
-          "adminToken": { "value": "[parameters('adminToken')]" },
-          "userToken": { "value": "[parameters('userToken')]" },
           "joinQuery": { "value": "[reference('Microsoft.Resources/deployments/JoinQuery').outputs]" },
-          "evalQuery": { "value": "[reference('Microsoft.Resources/deployments/EvalQuery').outputs]" }
+          "evalQuery": { "value": "[reference('Microsoft.Resources/deployments/EvalQuery').outputs]" },
+          "experimentalUnitDurationInSeconds": { "value": "[parameters('experimentalUnitDurationInSeconds')]" },
+          "vowpalWabbitTrainArguments": { "value": "[parameters('vowpalWabbitTrainArguments')]" },
+          "numberOfActions": { "value": "[parameters('numberOfActions')]" }
         }
       }
     },

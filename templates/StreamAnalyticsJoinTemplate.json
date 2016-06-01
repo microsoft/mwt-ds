@@ -10,7 +10,7 @@
     "messageRetentionInDays": { "type": "int" },
     "partitionCount": { "type": "int" },
 
-    "joinEventsLateArrivalMaxDelayInSeconds": { "type": "int" },
+    "experimentalUnitDurationInSeconds": { "type": "int" },
 
     "streamingUnits": {
       "type": "int",
@@ -91,7 +91,7 @@
         },
         "OutputStartMode": "JobStartTime",
         "EventsOutOfOrderMaxDelayInSeconds": 0,
-        "EventsLateArrivalMaxDelayInSeconds": "[parameters('joinEventsLateArrivalMaxDelayInSeconds')]",
+        "EventsLateArrivalMaxDelayInSeconds": "5",
         "EventsOutOfOrderPolicy": "adjust",
         "Inputs": [
           {
@@ -189,7 +189,7 @@
         "Transformation": {
           "Name": "theJoinQuery",
           "Properties": {
-            "Query": "[replace(variables('joinQuery'),'$ExperimentalDurationInMicrosecond$', string(mul(parameters('joinEventsLateArrivalMaxDelayInSeconds'), 1000000)))]",
+            "Query": "[replace(variables('joinQuery'),'$ExperimentalDurationInMicrosecond$', string(mul(parameters('experimentalUnitDurationInSeconds'), 1000000)))]",
             "StreamingUnits": "[parameters('streamingUnits')]"
           }
         }
