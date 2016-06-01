@@ -9,7 +9,7 @@
     "interactionEventHub": { "type": "object" },
     "observationEventHub": { "type": "object" },
 
-    "experimentalUnitDurationInSeconds": { "type": "string" },
+    "experimentalUnitDurationInSeconds": { "type": "int" },
     "vowpalWabbitTrainArguments": { "type": "string" },
     "numberOfActions": { "type": "int" },
     "sku": {
