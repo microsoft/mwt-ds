@@ -19,10 +19,20 @@
     },
     {
       "apiVersion": "2015-01-01",
+      "name": "AppInsights",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "incremental",
+        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/AppInsightsTemplate.json')]" }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
       "name": "OnlineTrainer",
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [
-        "Microsoft.Resources/deployments/Storage"
+        "Microsoft.Resources/deployments/Storage",
+        "Microsoft.Resources/deployments/AppInsights"
       ],
       "properties": {
         "mode": "incremental",
