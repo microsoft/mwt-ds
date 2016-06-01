@@ -92,11 +92,5 @@
         }
       }
     }
-  ],
-  "outputs": {
-    "EvalEventHub": {
-      "type": "object",
-      "value": "[reference('Microsoft.Resources/deployments/eval').outputs]"
-    }
-  }
+  ]
 }
