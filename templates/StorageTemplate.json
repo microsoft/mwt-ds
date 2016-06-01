@@ -32,15 +32,15 @@
     }
   ],
   "outputs": {
-    "UserStorageAccountName": {
+    "userStorageAccountName": {
       "type": "string",
       "value": "[variables('name')]"
     },
-    "UserStorageAccountKey": {
+    "userStorageAccountKey": {
       "type": "string",
       "value": "[listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('name')), variables('apiVersion')).key1]"
     },
-    "UserStorageConnectionString": {
+    "userStorageConnectionString": {
       "type": "string",
       "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('name'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('name')), variables('apiVersion')).key1)]"
     }

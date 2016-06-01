@@ -2,9 +2,13 @@
   "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "InstrumentationKey": { "type": "string" },
-    "UserStorageConnectionString": { "type": "string" },
-    "ManagementPassword": { "type": "string" },
+    "instrumentationKey": { "type": "string" },
+    "userStorageConnectionString": { "type": "string" },
+    "managementPassword": { "type": "string" },
+    "adminToken": { "type": "string" },
+    "userToken": { "type": "string" },
+    "joinQuery": { "type": "object" },
+    "evalQuery": { "type": "object" },
     "sku": {
       "type": "string",
       "allowedValues": [
@@ -114,7 +118,6 @@
           "properties": {
             "RepoUrl": "[parameters('repoURL')]",
             "branch": "[parameters('branch')]",
-            // https://azure.microsoft.com/en-us/documentation/articles/app-service-deploy-complex-application-predictably/
             "IsManualIntegration": true
           }
         },
@@ -126,9 +129,19 @@
             "[resourceId('Microsoft.Web/Sites', variables('siteName'))]"
           ],
           "properties": {
-            "Password": "[parameters('ManagementPassword')]",
-            "APPINSIGHTS_INSTRUMENTATIONKEY": "[parameters('InstrumentationKey')]",
-            "AzureStorageConnectionString": "[parameters('UserStorageConnectionString')]"
+            "Password": "[parameters('managementPassword')]",
+            "APPINSIGHTS_INSTRUMENTATIONKEY": "[parameters('instrumentationKey')]",
+            "AzureStorageConnectionString": "[parameters('userStorageConnectionString')]",
+            "userToken": "[parameters('userToken')]",
+            "adminToken": "[parameters('adminToken')]",
+            "interactionEventHubSendConnectionString": "[parameters('joinquery').interactionEventHub.value.sendConnectionString.value]",
+            "interactionEventHubSendKey": "[parameters('joinquery').interactionEventHub.value.sendKey.value]",
+            "observationEventHubSendConnectionString": "[parameters('joinquery').observationEventHub.value.sendConnectionString.value]",
+            "observationEventHubSendKey": "[parameters('joinquery').observationEventHub.value.sendKey.value]",
+            "joinedEventHubListenConnectionString": "[parameters('joinquery').observationEventHub.value.listenConnectionString.value]",
+            "joinedEventHubListenKey": "[parameters('joinquery').observationEventHub.value.listenKey.value]",
+            "evalEventHubListenConnectionString": "[parameters('evalquery').observationEventHub.value.sendConnectionString.value]",
+            "evalEventHubListenKey": "[parameters('evalquery').observationEventHub.value.sendKey.value]"
           }
         }
       ]

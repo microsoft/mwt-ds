@@ -3,9 +3,9 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "SystemStorageBaseUri": { "type": "string" },
-    "InstrumentationKey": { "type": "string" },
+    "instrumentationKey": { "type": "string" },
     "UserStorageAccountName": { "type": "string" },
-    "UserToken": { "type": "string" }
+    "userToken": { "type": "string" }
   },
   "variables": {
     "siteExtName": "MSDeploy",
@@ -101,10 +101,10 @@
             "[resourceId('Microsoft.Web/Sites', variables('webSiteName'))]"
           ],
           "properties": {
-            "APPINSIGHTS_INSTRUMENTATIONKEY": "[parameters('InstrumentationKey')]",
+            "APPINSIGHTS_INSTRUMENTATIONKEY": "[parameters('instrumentationKey')]",
             "DecisionServiceSettingsUrl": "[concat('http://', parameters('UserStorageAccountName'), '.blob.core.windows.net/mwt-settings/client')]",
             "DecisionServiceTrainerSettingsUrl": "[concat('http://', parameters('UserStorageAccountName'), '.blob.core.windows.net/mwt-settings/trainer')]",
-            "UserToken": "[parameters('UserToken')]"
+            "userToken": "[parameters('userToken')]"
           }
         },
         {

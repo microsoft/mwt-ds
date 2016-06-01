@@ -1,6 +1,57 @@
 ﻿{
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
+  "parameters": {
+    "managementPassword": {
+      "type": "string",
+      "defaultValue": "GEN-PASSWORD",
+      "minLength": 1,
+      "metadata": {
+        "description": "Password for management center."
+      }
+    },
+    "userToken": {
+      "type": "string",
+      "defaultValue": "GEN-UNIQUE-32",
+      "minLength": 1,
+      "metadata": {
+        "description": "Authentication token for WebAPI trainer."
+      }
+    },
+    "adminToken": {
+      "type": "string",
+      "defaultValue": "GEN-UNIQUE-32",
+      "minLength": 1,
+      "metadata": {
+        "description": "Authentication token for online trainer."
+      }
+    },
+    "messageRetentionInDays": {
+      "type": "int",
+      "defaultValue": 1,
+      "minValue": 1,
+      "maxValue": 7,
+      "metadata": {
+        "description": "How long to keep messages before purging"
+      }
+    },
+    "partitionCount": {
+      "type": "int",
+      "defaultValue": 16,
+      "minValue": 1,
+      "metadata": {
+        "description": "Degree of parallelism"
+      }
+    },
+    "joinEventsLateArrivalMaxDelayInSeconds": {
+      "type": "int",
+      "minValue": 5,
+      "defaultValue": 30,
+      "metadata": {
+        "description":  "Experimental unit duration (TODO)"
+      }
+    }
+  },
   "variables": {
     "assetLocation": "https://raw.githubusercontent.com/multiworldtesting/ds-provisioning/master/"
   },
@@ -23,7 +74,103 @@
       "type": "Microsoft.Resources/deployments",
       "properties": {
         "mode": "incremental",
-        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/AppInsightsTemplate.json')]" }
+        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/AppInsightsTemplate.json')]" },
+        "contentVersion": "1.0.0.0"
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "ServiceBus",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "incremental",
+        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/ServiceBusTemplate.json')]" }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "WebAPI",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/Storage",
+        "Microsoft.Resources/deployments/AppInsights"
+      ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/WebAPITemplate.json')]" },
+        "parameters": {
+          "SystemStorageBaseUri": { "value": "[variables('assetLocation')]" },
+          "instrumentationKey": { "value": "[reference('Microsoft.Resources/deployments/AppInsights').outputs.instrumentationKey.value]" },
+          "userStorageAccountName": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountName.value]" },
+          "userToken": { "value": "[parameters('userToken')]" }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "JoinQuery",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/ServiceBus",
+        "Microsoft.Resources/deployments/Storage"
+      ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/StreamAnalyticsJoinTemplate.json')]" },
+        "parameters": {
+          "assetLocation": { "value": "[variables('assetLocation')]" },
+          "userStorageAccountName": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountName.value]" },
+          "userStorageAccountKey": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value]" },
+          "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
+          "messageRetentionInDays": { "value": "[parameters('messageRetentionInDays')]" },
+          "partitionCount": { "value": "[parameters('partitionCount')]" },
+          "joinEventsLateArrivalMaxDelayInSeconds": { "value": "[parameters('joinEventsLateArrivalMaxDelayInSeconds')]" }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "EvalQuery",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/ServiceBus",
+        "Microsoft.Resources/deployments/Storage"
+      ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/StreamAnalyticsEvalTemplate.json')]" },
+        "parameters": {
+          "SystemStorageBaseUri": { "value": "[variables('assetLocation')]" },
+          "userStorageAccountName": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountName.value]" },
+          "userStorageAccountKey": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value]" },
+          "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
+          "messageRetentionInDays": { "value": "[parameters('messageRetentionInDays')]" },
+          "partitionCount": { "value": "[parameters('partitionCount')]" }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "WebManage",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/Storage",
+        "Microsoft.Resources/deployments/AppInsights",
+        "Microsoft.Resources/deployments/JoinQuery",
+        "Microsoft.Resources/deployments/EvalQuery"
+      ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/WebManageTemplate.json')]" },
+        "parameters": {
+          "instrumentationKey": { "value": "[reference('Microsoft.Resources/deployments/AppInsights').outputs.instrumentationKey.value]" },
+          "userStorageConnectionString": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageConnectionString.value]" },
+          "managementPassword": { "value": "[parameters('managementPassword')]" },
+          "adminToken": { "value": "[parameters('adminToken')]" },
+          "userToken": { "value": "[parameters('userToken')]" },
+          "joinQuery": { "value": "[reference('Microsoft.Resources/deployments/JoinQuery').outputs]" },
+          "evalQuery": { "value": "[reference('Microsoft.Resources/deployments/EvalQuery').outputs]" }
+        }
       }
     },
     {
@@ -41,8 +188,8 @@
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
-          "StorageAccountName": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.UserStorageAccountName.value]" },
-          "InstrumentationKey": { "value": "[reference('Microsoft.Resources/deployments/AppInsights').outputs.InstrumentationKey.value]" }
+          "userStorageAccountName": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountName.value]" },
+          "instrumentationKey": { "value": "[reference('Microsoft.Resources/deployments/AppInsights').outputs.instrumentationKey.value]" }
         }
       }
     }

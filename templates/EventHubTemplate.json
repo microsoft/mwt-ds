@@ -69,19 +69,19 @@
     }
   ],
   "outputs": {
-    "SendConnectionString": {
+    "sendConnectionString": {
       "type": "string",
       "value": "[listkeys(variables('SendRuleResourceId'), variables('apiVersion')).primaryConnectionString]"
     },
-    "SendKey": {
+    "sendKey": {
       "type": "string",
       "value": "[listkeys(variables('SendRuleResourceId'), variables('apiVersion')).primaryKey]"
     },
-    "ListenConnectionString": {
+    "listenConnectionString": {
       "type": "string",
       "value": "[listkeys(variables('ListenRuleResourceId'), variables('apiVersion')).primaryConnectionString]"
     },
-    "ListenKey": {
+    "listenKey": {
       "type": "string",
       "value": "[listkeys(variables('ListenRuleResourceId'), variables('apiVersion')).primaryKey]"
     }

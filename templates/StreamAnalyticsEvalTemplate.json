@@ -2,30 +2,26 @@
   "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "UserStorageAccountName": { "type": "string" },
-    "UserStorageAccountKey": { "type": "string" },
-    "SystemStorageBaseUri": { "type": "string" },
+    "assetLocation": { "type": "string" },
+    "userStorageAccountName": { "type": "string" },
+    "userStorageAccountKey": { "type": "string" },
     "serviceBusName": { "type": "string" },
 
     "messageRetentionInDays": { "type": "int" },
     "partitionCount": { "type": "int" },
-
-    "evalQuery": { "type": "string" },
-
     "streamingUnits": {
       "type": "int",
       "defaultValue": 1
     }
   },
   "resources": [
-    // Event Hub: Eval
     {
       "apiVersion": "2015-01-01",
       "name": "eval",
       "type": "Microsoft.Resources/deployments",
       "properties": {
         "mode": "incremental",
-        "templateLink": { "uri": "[concat(parameters('SystemStorageBaseUri'), '/templates/EventHubTemplate.json')]" },
+        "templateLink": { "uri": "[concat(parameters('assetLocation'), '/templates/EventHubTemplate.json')]" },
         "parameters": {
           "ehName": { "value": "eval" },
           "serviceBusName": { "value": "[parameters('serviceBusName')]" },
@@ -59,7 +55,7 @@
                   "ServiceBusNamespace": "[parameters('serviceBusName')]",
                   "eventHubName": "eval",
                   "sharedAccessPolicyName": "ListenOnly",
-                  "sharedAccessPolicyKey": "[reference('Microsoft.Resources/deployments/eval', '2015-01-01').outputs.ListenKey.value]"
+                  "sharedAccessPolicyKey": "[reference('Microsoft.Resources/deployments/eval').outputs.ListenKey.value]"
                 },
                 "Type": "Microsoft.ServiceBus/EventHub"
               },
@@ -74,7 +70,7 @@
           }
         ],
         "Outputs": [
-          { // extra output for diagnostics
+          { 
             "Name": "outBlob",
             "Properties": {
               "DataSource": {
@@ -85,8 +81,8 @@
                   "PathPattern": "{date}/{time}",
                   "StorageAccounts": [
                     {
-                      "AccountName": "[parameters('UserStorageAccountName')]",
-                      "AccountKey": "[parameters('UserStorageAccountKey')]"
+                      "AccountName": "[parameters('userStorageAccountName')]",
+                      "AccountKey": "[parameters('userStorageAccountKey')]"
                     }
                   ]
                 },
@@ -104,7 +100,7 @@
         "Transformation": {
           "Name": "theEvalQuery",
           "Properties": {
-            "Query": "[parameters('evalQuery')]",
+            "Query": "WITH alleval AS (\n    SELECT Name, System.Timestamp LastEnqueuedTime, AVG(cost) AverageCost, '5m' Window \n    FROM eval TIMESTAMP BY EventEnqueuedUtcTime \n    GROUP BY Name, HOPPINGWINDOW (Minute, 5, 1)\n    UNION\n    SELECT Name, System.Timestamp LastEnqueuedTime, AVG(cost) AverageCost, '20m' Window \n    FROM eval TIMESTAMP BY EventEnqueuedUtcTime \n    GROUP BY Name, HOPPINGWINDOW (Minute, 20, 1)\n    UNION\n    SELECT Name, System.Timestamp LastEnqueuedTime, AVG(cost) AverageCost, '1h' Window \n    FROM eval TIMESTAMP BY EventEnqueuedUtcTime \n    GROUP BY Name, HOPPINGWINDOW (Minute, 60, 1)\n    UNION\n    SELECT Name, System.Timestamp LastEnqueuedTime, AVG(cost) AverageCost, '3h' Window \n    FROM eval TIMESTAMP BY EventEnqueuedUtcTime \n    GROUP BY Name, HOPPINGWINDOW (Minute, 180, 1)\n    UNION\n    SELECT Name, System.Timestamp LastEnqueuedTime, AVG(cost) AverageCost, '6h' Window \n    FROM eval TIMESTAMP BY EventEnqueuedUtcTime \n    GROUP BY Name, HOPPINGWINDOW (Minute, 360, 1)\n)\n\nSELECT * INTO outBlob FROM alleval",
             "StreamingUnits": "[parameters('streamingUnits')]"
           }
         }
@@ -112,13 +108,9 @@
     }
   ],
   "outputs": {
-    "EvalEventHubSendConnectionString": {
-      "type": "string",
-      "value": "[reference('Microsoft.Resources/deployments/eval').outputs.SendConnectionString.value]"
-    },
-    "EvalEventHubSendKey": {
-      "type": "string",
-      "value": "[reference('Microsoft.Resources/deployments/eval').outputs.SendKey.value]"
+    "EvalEventHub": {
+      "type": "object",
+      "value": "[reference('Microsoft.Resources/deployments/eval').outputs]"
     }
   }
 }

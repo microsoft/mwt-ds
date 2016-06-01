@@ -2,8 +2,8 @@
   "$schema": "http://schema.management.azure.com/schemas/2015-01-01-preview/deploymentTemplate.json",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "StorageAccountName": { "type": "string" },
-    "InstrumentationKey": { "type": "string" }
+    "userStorageAccountName": { "type": "string" },
+    "instrumentationKey": { "type": "string" }
   },
   "variables": {
     "name": "[concat(resourceGroup().name,'-trainer')]"
@@ -28,7 +28,7 @@
             },
             "deploymentLabel": "[variables('name')]",
             "ConfigurationLink": {
-              "uri": "[concat('http://serviceconfiguration.azurewebsites.net/dmcodetest/', parameters('StorageAccountName'), '/', parameters('InstrumentationKey'), '/high-frequency-train/ServiceConfiguration.cscfg')]"
+              "uri": "[concat('http://serviceconfiguration.azurewebsites.net/dmcodetest/', parameters('userStorageAccountName'), '/', parameters('instrumentationKey'), '/high-frequency-train/ServiceConfiguration.cscfg')]"
             },
             "deploymentOptions": "StartDeployment"
           }

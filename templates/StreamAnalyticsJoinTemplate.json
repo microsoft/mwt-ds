@@ -2,18 +2,14 @@
   "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "UserStorageAccountName": { "type": "string" },
-    "UserStorageAccountKey": { "type": "string" },
-    "SystemStorageBaseUri": { "type": "string" },
+    "assetLocation": { "type": "string" },
+    "userStorageAccountName": { "type": "string" },
+    "userStorageAccountKey": { "type": "string" },
     "serviceBusName": { "type": "string" },
 
     "messageRetentionInDays": { "type": "int" },
     "partitionCount": { "type": "int" },
 
-    "joinQuery": {
-      "type": "string",
-      "defaultValue": ""
-    },
     "joinEventsLateArrivalMaxDelayInSeconds": { "type": "int" },
 
     "streamingUnits": {
@@ -21,15 +17,18 @@
       "defaultValue": 1
     }
   },
+  "variables": {
+    "joinQuery": "WITH matched AS ( \n   SELECT interaction.EventId, interaction.PartitionId, *\n   FROM interaction TIMESTAMP BY EventEnqueuedUtcTime PARTITION BY PartitionId\n   -- always output interaction events, regardless if there is an observation or not\n   LEFT OUTER JOIN\n   -- shift observation time line before interaction (thus interaction comes later)\n   -- the output event timestamp is defined as the maximum of (interaction event, observation event) --> always interaction event timestamp\n    observation TIMESTAMP BY DATEADD(Microsecond, -$ExperimentalDurationInMicrosecond$, EventEnqueuedUtcTime) PARTITION BY PartitionId\n   -- MUST use Microsecond due to rounding issue in DATEDIFF, otherwise observation events are moved forward by 1 time unit\n        ON DATEDIFF(Microsecond, observation, interaction) BETWEEN 0 AND $ExperimentalDurationInMicrosecond$ \n        AND interaction.EventId = observation.EventId\n        AND interaction.PartitionId = observation.PartitionId\n),\njoined AS (\n    SELECT EventId, PartitionId, System.Timestamp Timestamp, Collect() Data\n    FROM matched PARTITION BY PartitionId\n    GROUP BY EventId, PartitionId, System.Timestamp\n)\n \nSELECT * INTO outHubStream FROM Joined PARTITION BY PartitionId \nSELECT * INTO outBlob FROM Joined PARTITION BY PartitionId"
+  },
   "resources": [
-    { // Interaction Event Hub (input)
+    { 
       "apiVersion": "2015-01-01",
       "name": "interaction",
       "type": "Microsoft.Resources/deployments",
       "properties": {
         "mode": "incremental",
         "templateLink": {
-          "uri": "[concat(parameters('SystemStorageBaseUri'), '/templates/EventHubTemplate.json')]",
+          "uri": "[concat(parameters('assetLocation'), '/templates/EventHubTemplate.json')]",
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
@@ -40,14 +39,14 @@
         }
       }
     },
-    { // Observation Event Hub (input)
+    { 
       "apiVersion": "2015-01-01",
       "name": "observation",
       "type": "Microsoft.Resources/deployments",
       "properties": {
         "mode": "incremental",
         "templateLink": {
-          "uri": "[concat(parameters('SystemStorageBaseUri'), '/templates/EventHubTemplate.json')]",
+          "uri": "[concat(parameters('assetLocation'), '/templates/EventHubTemplate.json')]",
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
@@ -58,14 +57,14 @@
         }
       }
     },
-    { // Joined Event Hub (output)
+    { 
       "apiVersion": "2015-01-01",
       "name": "joined",
       "type": "Microsoft.Resources/deployments",
       "properties": {
         "mode": "incremental",
         "templateLink": {
-          "uri": "[concat(parameters('SystemStorageBaseUri'), '/templates/EventHubTemplate.json')]",
+          "uri": "[concat(parameters('assetLocation'), '/templates/EventHubTemplate.json')]",
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
@@ -171,8 +170,8 @@
                   "PathPattern": "{date}/{time}",
                   "StorageAccounts": [
                     {
-                      "AccountName": "[parameters('UserStorageAccountName')]",
-                      "AccountKey": "[parameters('UserStorageAccountKey')]"
+                      "AccountName": "[parameters('userStorageAccountName')]",
+                      "AccountKey": "[parameters('userStorageAccountKey')]"
                     }
                   ]
                 },
@@ -190,7 +189,7 @@
         "Transformation": {
           "Name": "theJoinQuery",
           "Properties": {
-            "Query": "[parameters('joinQuery')]",
+            "Query": "[replace('','$ExperimentalDurationInMicrosecond$',mul(parameters('joinEventsLateArrivalMaxDelayInSeconds'), 1000000))]",
             "StreamingUnits": "[parameters('streamingUnits')]"
           }
         }
@@ -198,29 +197,17 @@
     }
   ],
   "outputs": {
-    "InteractionEventHubSendConnectionString": {
-      "type": "string",
-      "value": "[reference(concat('Microsoft.Resources/deployments/interaction'), '2015-01-01').outputs.SendConnectionString.value]"
+    "interactionEventHub": {
+      "type": "object",
+      "value": "[reference(concat('Microsoft.Resources/deployments/interaction')).outputs]"
     },
-    "InteractionEventHubSendKey": {
-      "type": "string",
-      "value": "[reference(concat('Microsoft.Resources/deployments/interaction'), '2015-01-01').outputs.SendKey.value]"
+    "observationEventHub": {
+      "type": "object",
+      "value": "[reference(concat('Microsoft.Resources/deployments/observation')).outputs]"
     },
-    "ObservationEventHubSendConnectionString": {
-      "type": "string",
-      "value": "[reference(concat('Microsoft.Resources/deployments/observation'), '2015-01-01').outputs.SendConnectionString.value]"
-    },
-    "ObservationEventHubSendKey": {
-      "type": "string",
-      "value": "[reference(concat('Microsoft.Resources/deployments/observation'), '2015-01-01').outputs.SendKey.value]"
-    },
-    "JoinedEventHubListenConnectionString": {
-      "type": "string",
-      "value": "[reference(concat('Microsoft.Resources/deployments/joined'), '2015-01-01').outputs.ListenConnectionString.value]"
-    },
-    "JoinedEventHubListenKey": {
-      "type": "string",
-      "value": "[reference(concat('Microsoft.Resources/deployments/joined'), '2015-01-01').outputs.ListenKey.value]"
+    "joinedEventHub": {
+      "type": "object",
+      "value": "[reference(concat('Microsoft.Resources/deployments/joined')).outputs]"
     }
   }
 }
