@@ -10,69 +10,82 @@
 <div class="container-fluid">
     @using (Html.BeginForm("Settings", "Home", FormMethod.Post, new { @class = "form-horizontal ds-form", role = "form" }))
     {
+        string[] cidAppId = { "sv-app-id", "Application Id" };
+        string[] cidAzureRg = { "sv-azure-rg", "Azure Resource Group" };
+        string[] cidStorageConnString = { "sv-conn-string", "Azure Storage Connection String" };
+        string[] cidEhInterConnString = { "sv-eh-inter-conn-string", "Event Hub Interaction Connection String" };
+        string[] cidEhObserConnString = { "sv-eh-obser-conn-string", "Event Hub Observation Connection String" };
+        string[] cidDecisionType = { "sv-decision-type", "Decision Type" };
+        string[] cidNumActions = { "sv-num-actions", "Number of Actions" };
+        string[] cidTrainFreq = { "sv-train-freq", "Training Frequency" };
+        string[] cidTrainArgs = { "sv-train-args", "VW Training Arguments" };
+        string[] cidSelectedModel = { "sv-selected-model", "Trained Models" };
+        string[] cidEnableExplore = { "sv-enable-explore", "Enable Exploration" };
+        string[] cidExpDuration = { "sv-exp-duration", "Join Timeout (in seconds)" };
+
         var svm = Model;
 
         @Html.AntiForgeryToken()
 
         <div class="form-group">
-            <label for="sttTxtApplicationId" class="col-sm-2 control-label ds-label">application id</label>
+            <label for="@cidAppId[0]" class="col-sm-2 control-label ds-label">@cidAppId[1]</label>
             <div class="col-sm-10">
-                <input type="text" readonly="readonly" style="display:inline;" class="form-control" id="sttTxtApplicationId" value="@svm.ApplicationId" />
+                <input type="text" readonly="readonly" style="display:inline;" class="form-control helptext-on-interaction" id="@cidAppId[0]" value="@svm.ApplicationId" />
             </div>
         </div>
         <div class="form-group">
-            <label for="sttTxtAzureRG" class="col-sm-2 control-label ds-label">azure resource group</label>
+            <label for="@cidAzureRg[0]" class="col-sm-2 control-label ds-label">@cidAzureRg[1]</label>
             <div class="col-sm-10">
-                <a class="btn btn-primary outline form-control" href="@string.Format("https://ms.portal.azure.com/#asset/HubsExtension/ResourceGroups/subscriptions/{0}/resourceGroups/{1}", svm.AzureSubscriptionId, svm.AzureResourceGroupName)" target="_blank">@svm.AzureResourceGroupName</a>
+                <a id="@cidAzureRg[0]" class="btn btn-primary outline form-control helptext-on-interaction" href="@string.Format("https://ms.portal.azure.com/#asset/HubsExtension/ResourceGroups/subscriptions/{0}/resourceGroups/{1}", svm.AzureSubscriptionId, svm.AzureResourceGroupName)" target="_blank">@svm.AzureResourceGroupName</a>
             </div>
         </div>
         <div class="form-group">
-            <label for="sttTxtConnectionString" class="col-sm-2 control-label ds-label">azure storage connection string</label>
+            <label for="@cidStorageConnString[0]" class="col-sm-2 control-label ds-label">@cidStorageConnString[1]</label>
             <div class="col-sm-10">
-                <input type="text" readonly="readonly" style="display:inline;" class="form-control" id="sttTxtConnectionString" value="@svm.AzureStorageConnectionString" />
+                <input type="text" readonly="readonly" style="display:inline;" class="form-control helptext-on-interaction" id="@cidStorageConnString[0]" value="@svm.AzureStorageConnectionString" />
             </div>
         </div>
         <div class="form-group">
-            <label for="sttTxtEventHubInterConnectionString" class="col-sm-2 control-label ds-label">event hub interaction connection string</label>
+            <label for="@cidEhInterConnString[0]" class="col-sm-2 control-label ds-label">@cidEhInterConnString[1]</label>
             <div class="col-sm-10">
-                <input type="text" readonly="readonly" style="display:inline;" class="form-control" id="sttTxtEventHubInterConnectionString" value="@svm.EventHubInteractionConnectionString" />
+                <input type="text" readonly="readonly" style="display:inline;" class="form-control helptext-on-interaction" id="@cidEhInterConnString[0]" value="@svm.EventHubInteractionConnectionString" />
             </div>
         </div>
         <div class="form-group">
-            <label for="sttTxtEventHubObserConnectionString" class="col-sm-2 control-label ds-label">event hub observation connection string</label>
+            <label for="@cidEhObserConnString[0]" class="col-sm-2 control-label ds-label">@cidEhObserConnString[1]</label>
             <div class="col-sm-10">
-                <input type="text" readonly="readonly" style="display:inline;" class="form-control" id="sttTxtEventHubObserConnectionString" value="@svm.EventHubObservationConnectionString" />
+                <input type="text" readonly="readonly" style="display:inline;" class="form-control helptext-on-interaction" id="@cidEhObserConnString[0]" value="@svm.EventHubObservationConnectionString" />
             </div>
         </div>
         <div class="form-group">
-            <label for="sttTxtDecisionType" class="col-sm-2 control-label ds-label">decision type</label>
+            <label for="@cidDecisionType[0]" class="col-sm-2 control-label ds-label">@cidDecisionType[1]</label>
             <div class="col-sm-10">
-                <input type="text" readonly="readonly" style="display:inline;" class="form-control" id="sttTxtDecisionType" value="@HomeController.GetDecisionTypeString(svm.DecisionType)" />
+                <input type="text" readonly="readonly" style="display:inline;" class="form-control helptext-on-interaction" id="@cidDecisionType[0]" value="@HomeController.GetDecisionTypeString(svm.DecisionType)" />
             </div>
         </div>
         if (svm.DecisionType == DecisionType.SingleAction)
         {
             <div class="form-group">
-                <label for="sttTxtNumActions" class="col-sm-2 control-label ds-label">Number of Actions</label>
+                <label for="@cidNumActions[0]" class="col-sm-2 control-label ds-label">@cidNumActions[1]</label>
                 <div class="col-sm-10">
-                    <input type="text" readonly="readonly" style="display:inline;" class="form-control" id="sttTxtNumActions" value="@svm.NumActions.Value" />
+                    <input type="text" readonly="readonly" style="display:inline;" class="form-control helptext-on-interaction" id="@cidNumActions[0]" value="@svm.NumActions.Value" />
                 </div>
             </div>
         }
         <div class="form-group">
-            <label for="sttTxtTrainFrequency" class="col-sm-2 control-label ds-label">Training Frequency</label>
+            <label for="@cidTrainFreq[0]" class="col-sm-2 control-label ds-label">@cidTrainFreq[1]</label>
             <div class="col-sm-10">
-                <input type="text" readonly="readonly" style="display:inline;" class="form-control" id="sttTxtTrainFrequency" value="@svm.TrainFrequency.ToString()" />
+                <input type="text" readonly="readonly" style="display:inline;" class="form-control helptext-on-interaction" id="@cidTrainFreq[0]" value="@svm.TrainFrequency.ToString()" />
             </div>
         </div>
         <div class="form-group">
-            <label for="sttTxtTrainArgs" class="col-sm-2 control-label ds-label">VW Training Arguments</label>
+            <label for="@cidTrainArgs[0]" class="col-sm-2 control-label ds-label">@cidTrainArgs[1]</label>
             <div class="col-sm-10">
-                @Html.TextBoxFor(m => m.AdditionalTrainArguments, new { @class = "form-control", @style = "display:inline" })
+                @Html.TextBoxFor(m => m.AdditionalTrainArguments, new { @id = cidTrainArgs[0], @class = "form-control helptext-on-interaction", @style = "display:inline" })
             </div>
         </div>
         <div class="form-group">
-            <label for="sttDdlModel" class="col-sm-2 control-label ds-label">trained models</label>
+            <label for="@cidSelectedModel[0]" class="col-sm-2 control-label ds-label">@cidSelectedModel[1]</label>
             <div class="col-sm-10">
                 @Html.DropDownListFor(m => m.SelectedModelId,
                     svm.ModelIdList.Select(m => new SelectListItem
@@ -82,27 +95,139 @@
                         Selected = m.Name == svm.SelectedModelId
                     }),
                     "Select a model",
-                    new { @id = "sttDdlModel", @class = "form-control", @style = "display:inline" })
+                    new { @id = cidSelectedModel[0], @class = "form-control helptext-on-interaction", @style = "display:inline" })
             </div>
         </div>
         <div class="form-group">
-            <label for="sttCbExploration" class="col-sm-2 control-label ds-label">Enable Exploration</label>
+            <label for="@cidEnableExplore[0]" class="col-sm-2 control-label ds-label">@cidEnableExplore[1]</label>
             <div class="col-sm-10">
-                @Html.CheckBoxFor(m => m.IsExplorationEnabled, new { @style = "display:inline" })
+                @Html.CheckBoxFor(m => m.IsExplorationEnabled, new { @id = cidEnableExplore[0], @style = "display:inline", @class = "helptext-on-interaction" })
             </div>
         </div>
         <div class="form-group">
-            <label for="sttTxtExpUnitDuration" class="col-sm-2 control-label ds-label">experimental unit duration (seconds)</label>
+            <label for="@cidExpDuration[0]" class="col-sm-2 control-label ds-label">@cidExpDuration[1]</label>
             <div class="col-sm-10">
-                <input type="text" readonly="readonly" style="display:inline;" class="form-control" id="sttTxtExpUnitDuration" value="@svm.ExperimentalUnitDuration" />
+                <input type="text" readonly="readonly" style="display:inline;" class="form-control helptext-on-interaction" id="@cidExpDuration[0]" value="@svm.ExperimentalUnitDuration" />
             </div>
         </div>
         @Html.Hidden("hidAzureSubscriptionId", svm.AzureSubscriptionId)
         <div class="form-group">
-            <label for="sttTxtExpUnitDuration" class="col-sm-2 control-label ds-label"></label>
+            <label class="col-sm-2 control-label ds-label"></label>
             <div class="col-sm-10" style="text-align:left;">
                 <button class="btn btn-primary outline">Save</button>
             </div>
         </div>
+
+        /* HELP TEXT */
+
+        <div id="div-@cidAppId[0]" class="row" style="display:none;">
+            <div class="col-md-12 glossary">
+                <h4 class="ds-title">@cidAppId[1]</h4>
+                <p>
+                    The name of this application. This is used to choose an appropriate 10-character long Azure Resource Group name.
+                    TODO: Finalize Description
+                </p>
+            </div>
+        </div>
+        <div id="div-@cidAzureRg[0]" class="row" style="display:none;">
+            <div class="col-md-12 glossary">
+                <h4 class="ds-title">@cidAzureRg[1]</h4>
+                <p>
+                    The Azure subscription to use for this deployment.
+                    TODO: Finalize Description
+                </p>
+            </div>
+        </div>
+        <div id="div-@cidStorageConnString[0]" class="row" style="display:none;">
+            <div class="col-md-12 glossary">
+                <h4 class="ds-title">@cidStorageConnString[1]</h4>
+                <p>
+                    Whether the decision uses regular features or action-dependent features.
+                    TODO: Finalize Description
+                </p>
+            </div>
+        </div>
+        <div id="div-@cidEhInterConnString[0]" class="row" style="display:none;">
+            <div class="col-md-12 glossary">
+                <h4 class="ds-title">@cidEhInterConnString[1]</h4>
+                <p>
+                    Whether the decision uses regular features or action-dependent features.
+                    TODO: Finalize Description
+                </p>
+            </div>
+        </div>
+        <div id="div-@cidEhObserConnString[0]" class="row" style="display:none;">
+            <div class="col-md-12 glossary">
+                <h4 class="ds-title">@cidEhObserConnString[1]</h4>
+                <p>
+                    Whether the decision uses regular features or action-dependent features.
+                    TODO: Finalize Description
+                </p>
+            </div>
+        </div>
+        <div id="div-@cidDecisionType[0]" class="row" style="display:none;">
+            <div class="col-md-12 glossary">
+                <h4 class="ds-title">@cidDecisionType[1]</h4>
+                <p>
+                    The login password to the Registration Center.
+                    TODO: Finalize Description
+                </p>
+            </div>
+        </div>
+        <div id="div-@cidNumActions[0]" class="row" style="display:none;">
+            <div class="col-md-12 glossary">
+                <h4 class="ds-title">@cidNumActions[1]</h4>
+                <p>
+                    The login password to the Registration Center.
+                    TODO: Finalize Description
+                </p>
+            </div>
+        </div>
+        <div id="div-@cidTrainFreq[0]" class="row" style="display:none;">
+            <div class="col-md-12 glossary">
+                <h4 class="ds-title">@cidTrainFreq[1]</h4>
+                <p>
+                    The login password to the Registration Center.
+                    TODO: Finalize Description
+                </p>
+            </div>
+        </div>
+        <div id="div-@cidTrainArgs[0]" class="row" style="display:none;">
+            <div class="col-md-12 glossary">
+                <h4 class="ds-title">@cidTrainArgs[1]</h4>
+                <p>
+                    The login password to the Registration Center.
+                    TODO: Finalize Description
+                </p>
+            </div>
+        </div>
+        <div id="div-@cidSelectedModel[0]" class="row" style="display:none;">
+            <div class="col-md-12 glossary">
+                <h4 class="ds-title">@cidSelectedModel[1]</h4>
+                <p>
+                    Whether to create a REST endpoint for the decision service where events can be sent to.
+                    TODO: Finalize Description
+                </p>
+            </div>
+        </div>
+        <div id="div-@cidEnableExplore[0]" class="row" style="display:none;">
+            <div class="col-md-12 glossary">
+                <h4 class="ds-title">@cidEnableExplore[1]</h4>
+                <p>
+                    The frequency of training service.
+                    TODO: Finalize Description
+                </p>
+            </div>
+        </div>
+        <div id="div-@cidExpDuration[0]" class="row" style="display:none;">
+            <div class="col-md-12 glossary">
+                <h4 class="ds-title">@cidExpDuration[1]</h4>
+                <p>
+                    The duration of the experimental unit.
+                    TODO: Finalize Description
+                </p>
+            </div>
+        </div>
+
     }
 </div>

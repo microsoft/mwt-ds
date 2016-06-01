@@ -2,7 +2,6 @@
     padding-top: 50px;
     padding-bottom: 20px;
 }
-
 /* Set padding to keep content from hitting the edges */
 .body-content {
     padding-left: 15px;
@@ -299,4 +298,13 @@ hr.fancy-line, hr.fancy-line:before {
 }
 .btn:focus, .btn:active:focus, .btn.active:focus {
 	outline: 0 none;
+}
+
+div.glossary {
+    margin-top:20px;
+	position: relative;
+	background-color: white;
+	border: 1px solid #71b1d1;
+    border-radius: 10px;
+    box-shadow: 2px 2px 1px gainsboro;
 }
