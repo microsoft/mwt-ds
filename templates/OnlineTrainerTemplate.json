@@ -22,7 +22,6 @@
   },
   "resources": [
     {
-      // object -> string -> base64 / replace
       "apiVersion": "2014-06-01",
       "type": "Microsoft.ClassicCompute/domainNames",
       "name": "[variables('name')]",
@@ -41,7 +40,7 @@
             },
             "deploymentLabel": "[variables('name')]",
             "ConfigurationLink": {
-              "uri": "[concat('http://serviceconfiguration.azurewebsites.net/', parameters('binaryStorageAccountName'), '/', base64(string(variables('cscfg'))), '/high-frequency-train/ServiceConfiguration.cscfg')]"
+              "uri": "[concat('https://serviceconfiguration.azurewebsites.net/', parameters('binaryStorageAccountName'), '/', base64(string(variables('cscfg'))), '/high-frequency-train/ServiceConfiguration.cscfg')]"
             },
             "deploymentOptions": "StartDeployment"
           }
