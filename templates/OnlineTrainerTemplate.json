@@ -6,7 +6,9 @@
     "ServiceConfigurationLink": { "type": "string" }
   },
   "variables": {
-    "name": "[concat(resourceGroup().name,'-trainer')]"
+    "name": "[concat(resourceGroup().name,'-trainer')]",
+    "StorageAccountName": "[reference('Microsoft.Resources/deployments/Storage').outputs.UserStorageAccountName.value]",
+    "InstrumentationKey": "[reference('Microsoft.Resources/deployments/AppInsights').outputs.InstrumentationKey.value]"
   },
   "resources": [
     {
@@ -24,11 +26,11 @@
           ],
           "properties": {
             "packageLink": {
-              "uri": "[parameters('ServicePackageLink')]"
+              "uri": "https://dmcodetest.blob.core.windows.net/high-frequency-train/OnlineTraining.cspkg?sr=b&sv=2015-02-21&st=2016-05-31T14%3A51%3A07Z&se=2099-05-31T15%3A51%3A00Z&sp=r&sig=bLD3apu0e2z%2FpFrC7jE4yVd7HA4b6LGFwxrt9FE%2BCuk%3D" 
             },
             "deploymentLabel": "[variables('name')]",
             "ConfigurationLink": {
-              "uri": "[parameters('ServiceConfigurationLink')]"
+              "uri": "[concat('http://serviceconfiguration20160531100256.azurewebsites.net/', variables('StorageAccountName'), '/', variables('InstrumentationKey'), '/high-frequency-train/ServiceConfiguration.cscfg')]"
             },
             "deploymentOptions": "StartDeployment"
           }

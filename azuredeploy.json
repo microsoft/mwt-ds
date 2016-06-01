@@ -39,10 +39,6 @@
         "templateLink": {
           "uri": "[concat(variables('assetLocation'), 'templates/OnlineTrainerTemplate.json')]",
           "contentVersion": "1.0.0.0"
-        },
-        "parametersLink": {
-          "uri": "[concat(variables('assetLocation'), 'templates/OnlineTrainerTemplate.parameters.json')]",
-          "contentVersion": "1.0.0.0"
         }
       }
     }
