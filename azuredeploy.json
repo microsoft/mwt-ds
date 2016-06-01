@@ -65,6 +65,20 @@
       "metadata": {
         "description": "Number of actions"
       }
+    },
+    "onlineTrainerCheckpointInterval": {
+      "type": "string",
+      "defaultValue": "5:00",
+      "metadata": {
+        "description": "Checkpoint interval in event time used to checkpoint"
+      }
+    },
+    "onlineTrainerCheckpointCount": {
+      "type": "int",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Checkpoint interval in event time used to checkpoint"
+      }
     }
   },
   "variables": {
@@ -194,7 +208,9 @@
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [
         "Microsoft.Resources/deployments/Storage",
-        "Microsoft.Resources/deployments/AppInsights"
+        "Microsoft.Resources/deployments/AppInsights",
+        "Microsoft.Resources/deployments/JoinQuery",
+        "Microsoft.Resources/deployments/EvalQuery"
       ],
       "properties": {
         "mode": "incremental",
@@ -206,7 +222,11 @@
           "binaryStorageAccountName": { "value": "[variables('binaryStorageAccountName')]" },
           "userStorage": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs]" },
           "instrumentationKey": { "value": "[reference('Microsoft.Resources/deployments/AppInsights').outputs.instrumentationKey.value]" },
-          "onlineTrainerCspkgToken": { "value": "[variables('onlineTrainerCspkgToken')]" }
+          "joinQuery": { "value": "[reference('Microsoft.Resources/deployments/JoinQuery').outputs]" },
+          "evalQuery": { "value": "[reference('Microsoft.Resources/deployments/EvalQuery').outputs]" },
+          "onlineTrainerCspkgToken": { "value": "[variables('onlineTrainerCspkgToken')]" },
+          "onlineTrainerCheckpointInterval": { "value": "[parameters('onlineTrainerCheckpointInterval')]" },
+          "onlineTrainerCheckpointCount": { "value": "[parameters('onlineTrainerCheckpointCount')]" }
         }
       }
     }

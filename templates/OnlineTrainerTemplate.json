@@ -8,17 +8,20 @@
     "onlineTrainerCspkgToken": { "type": "string" },
     "joinQuery": { "type": "object" },
     "evalQuery": { "type": "object" },
-    "adminToken": { "type": "string" }
+    "adminToken": { "type": "string" },
+    "onlineTrainerCheckpointInterval": { "type": "string" },
+    "onlineTrainerCheckpointCount": { "type": "int" }
   },
   "variables": {
     "name": "[concat(resourceGroup().name,'-trainer')]",
     "cscfg": {
       "joinedEventHubConnectionString": "[parameters('joinquery').joinedEventHub.value.listenConnectionString.value]",
       "evalEventHubConnectionString": "[parameters('evalquery').evalEventHub.value.sendConnectionString.value]",
-      "userStorageAccountName": "[parameters('userStorage').userStorageAccountName.value]",
       "userStorageConnectionString": "[parameters('userStorage').userStorageConnectionString.value]",
       "instrumentationKey": "[parameters('instrumentationKey')]",
-      "adminToken": "[parameters('adminToken')]"
+      "adminToken": "[parameters('adminToken')]",
+      "checkpointInterval": "[parameters('onlineTrainerCheckpointInterval')]",
+      "checkpointCount": "[parameters('onlineTrainerCheckpointCount')]"
     }
   },
   "resources": [

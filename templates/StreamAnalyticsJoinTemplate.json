@@ -91,7 +91,7 @@
         },
         "OutputStartMode": "JobStartTime",
         "EventsOutOfOrderMaxDelayInSeconds": 0,
-        "EventsLateArrivalMaxDelayInSeconds": "5",
+        "EventsLateArrivalMaxDelayInSeconds": 5,
         "EventsOutOfOrderPolicy": "adjust",
         "Inputs": [
           {
