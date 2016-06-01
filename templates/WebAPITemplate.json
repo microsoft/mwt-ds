@@ -45,19 +45,17 @@
       },
       "resources": [
         {
-          "name": "[variables('siteExtName')]",
-          "type": "extensions",
-          "location": "[resourceGroup().location]",
           "apiVersion": "2015-08-01",
+          "name": "web",
+          "type": "sourcecontrols",
           "dependsOn": [
-            "[concat('Microsoft.Web/sites/', variables('webSiteName'))]"
+            "[resourceId('Microsoft.Web/Sites', variables('webSiteName'))]",
+            "[resourceId('Microsoft.Web/Sites/config', variables('webSiteName'), 'appsettings')]"
           ],
           "properties": {
-            "packageUri": "[concat('https://', parameters('binaryStorageAccountName'), '.blob.core.windows.net/web-api/DecisionServiceWebAPI.zip')]",
-            "dbType": "None",
-            "setParameters": {
-              "IIS Web Application Name": "[variables('webSiteName')]"
-            }
+            "RepoUrl": "https://github.com/multiworldtesting/ds-web-api.git",
+            "branch": "master",
+            "IsManualIntegration": true
           }
         },
         {
