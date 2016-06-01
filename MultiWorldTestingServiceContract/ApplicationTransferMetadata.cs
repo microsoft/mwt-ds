@@ -44,6 +44,11 @@ namespace Microsoft.Research.MultiWorldTesting.Contract
         public int? NumActions { get; set; }
 
         /// <summary>
+        /// Additional arguments to be used in training service.
+        /// </summary>
+        public string AdditionalTrainArguments { get; set; }
+
+        /// <summary>
         /// The EventHub connection string to which the client needs to send interaction data.
         /// </summary>
         public string EventHubInteractionConnectionString { get; set; }
