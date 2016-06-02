@@ -24,6 +24,9 @@
                     .tickFormat(d3.format(',.1'))
                     .showMaxMin(false);
 
+                if (response == null) {
+                    response = [];
+                }
                 d3.select('#chart svg')
                     .datum(response)
                     .call(chart);
