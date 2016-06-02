@@ -57,18 +57,14 @@
             <label for="@cidStorageConnString[0]" class="col-sm-2 control-label ds-label">@cidStorageConnString[1]</label>
             <div class="col-sm-10">
                 <input type="text" readonly="readonly" style="display:inline;" class="form-control helptext-on-interaction" id="@cidStorageConnString[0]" value="@svm.AzureStorageConnectionString" />
-                <a href="@azureStorageBlobLink" target="_blank" title="View Data">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="azure-icon" role="img" viewBox="0 0 16 16" focusable="false" xmlns:NS1="" NS1:xmlns:svg="http://www.w3.org/2000/svg"><path d="M 4.99164 9.81903 L 13.0101 1.8277 L 13.0101 5.83333 L 14 5.83333 L 14 0 L 8.16667 0 L 8.16667 1.00055 L 12.2052 1.00055 L 4.23181 8.98627 L 4.99164 9.81903 Z" /><path d="M 12.9928 13.0301 L 1.00958 13.0301 L 1.00958 1.02777 L 5.83333 1.02777 L 5.83333 0 L 5.21155 0 L 0 0 L 0 14 L 14 14 L 14 8.16667 L 12.9928 8.16667 L 12.9928 13.0301 Z" /></svg>
-                </a>
+                <a href="@azureStorageBlobLink" target="_blank" title="View Data">@Html.Partial("_OpenSvg")</a>
             </div>
         </div>
         <div class="form-group">
             <label for="@cidAppInsights[0]" class="col-sm-2 control-label ds-label">@cidAppInsights[1]</label>
             <div class="col-sm-10">
                 <input type="text" readonly="readonly" style="display:inline;" class="form-control helptext-on-interaction" id="@cidAppInsights[0]" value="@svm.ApplicationInsightsName" />
-                <a href="@appInsightsLink" target="_blank" title="View Application Logs">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="azure-icon" role="img" viewBox="0 0 16 16" focusable="false" xmlns:NS1="" NS1:xmlns:svg="http://www.w3.org/2000/svg"><path d="M 4.99164 9.81903 L 13.0101 1.8277 L 13.0101 5.83333 L 14 5.83333 L 14 0 L 8.16667 0 L 8.16667 1.00055 L 12.2052 1.00055 L 4.23181 8.98627 L 4.99164 9.81903 Z" /><path d="M 12.9928 13.0301 L 1.00958 13.0301 L 1.00958 1.02777 L 5.83333 1.02777 L 5.83333 0 L 5.21155 0 L 0 0 L 0 14 L 14 14 L 14 8.16667 L 12.9928 8.16667 L 12.9928 13.0301 Z" /></svg>
-                </a>
+                <a href="@appInsightsLink" target="_blank" title="View Application Logs">@Html.Partial("_OpenSvg")</a>
             </div>
         </div>
         <div class="form-group">
@@ -87,27 +83,21 @@
             <label for="@cidAsaJoin[0]" class="col-sm-2 control-label ds-label">@cidAsaJoin[1]</label>
             <div class="col-sm-10">
                 <input type="text" readonly="readonly" style="display:inline;" class="form-control helptext-on-interaction" id="@cidAsaJoin[0]" value="@svm.ASAJoinName" />
-                <a href="@asaJoinLink" target="_blank" title="View ASA Query">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="azure-icon" role="img" viewBox="0 0 16 16" focusable="false" xmlns:NS1="" NS1:xmlns:svg="http://www.w3.org/2000/svg"><path d="M 4.99164 9.81903 L 13.0101 1.8277 L 13.0101 5.83333 L 14 5.83333 L 14 0 L 8.16667 0 L 8.16667 1.00055 L 12.2052 1.00055 L 4.23181 8.98627 L 4.99164 9.81903 Z" /><path d="M 12.9928 13.0301 L 1.00958 13.0301 L 1.00958 1.02777 L 5.83333 1.02777 L 5.83333 0 L 5.21155 0 L 0 0 L 0 14 L 14 14 L 14 8.16667 L 12.9928 8.16667 L 12.9928 13.0301 Z" /></svg>
-                </a>
+                <a href="@asaJoinLink" target="_blank" title="View ASA Query">@Html.Partial("_OpenSvg")</a>
             </div>
         </div>
         <div class="form-group">
             <label for="@cidAsaEval[0]" class="col-sm-2 control-label ds-label">@cidAsaEval[1]</label>
             <div class="col-sm-10">
                 <input type="text" readonly="readonly" style="display:inline;" class="form-control helptext-on-interaction" id="@cidAsaEval[0]" value="@svm.ASAEvalName" />
-                <a href="@asaEvalLink" target="_blank" title="View ASA Query">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="azure-icon" role="img" viewBox="0 0 16 16" focusable="false" xmlns:NS1="" NS1:xmlns:svg="http://www.w3.org/2000/svg"><path d="M 4.99164 9.81903 L 13.0101 1.8277 L 13.0101 5.83333 L 14 5.83333 L 14 0 L 8.16667 0 L 8.16667 1.00055 L 12.2052 1.00055 L 4.23181 8.98627 L 4.99164 9.81903 Z" /><path d="M 12.9928 13.0301 L 1.00958 13.0301 L 1.00958 1.02777 L 5.83333 1.02777 L 5.83333 0 L 5.21155 0 L 0 0 L 0 14 L 14 14 L 14 8.16667 L 12.9928 8.16667 L 12.9928 13.0301 Z" /></svg>
-                </a>
+                <a href="@asaEvalLink" target="_blank" title="View ASA Query">@Html.Partial("_OpenSvg")</a>
             </div>
         </div>
         <div class="form-group">
             <label for="@cidOnlineTrainer[0]" class="col-sm-2 control-label ds-label">@cidOnlineTrainer[1]</label>
             <div class="col-sm-10">
                 <input type="text" readonly="readonly" style="display:inline;" class="form-control helptext-on-interaction" id="@cidOnlineTrainer[0]" value="@svm.OnlineTrainerName" />
-                <a href="@onlineTrainerLink" target="_blank" title="Configure The Online Trainer">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="azure-icon" role="img" viewBox="0 0 16 16" focusable="false" xmlns:NS1="" NS1:xmlns:svg="http://www.w3.org/2000/svg"><path d="M 4.99164 9.81903 L 13.0101 1.8277 L 13.0101 5.83333 L 14 5.83333 L 14 0 L 8.16667 0 L 8.16667 1.00055 L 12.2052 1.00055 L 4.23181 8.98627 L 4.99164 9.81903 Z" /><path d="M 12.9928 13.0301 L 1.00958 13.0301 L 1.00958 1.02777 L 5.83333 1.02777 L 5.83333 0 L 5.21155 0 L 0 0 L 0 14 L 14 14 L 14 8.16667 L 12.9928 8.16667 L 12.9928 13.0301 Z" /></svg>
-                </a>
+                <a href="@onlineTrainerLink" target="_blank" title="Configure The Online Trainer">@Html.Partial("_OpenSvg")</a>
             </div>
         </div>
         <div class="form-group">

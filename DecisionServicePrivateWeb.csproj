@@ -215,6 +215,7 @@
     <Content Include="Views\Home\Evaluation.cshtml" />
     <Content Include="Views\Shared\_LoginPartial.cshtml" />
     <Content Include="App_Data\sample-policy-eval.json" />
+    <Content Include="Views\Shared\_OpenSvg.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
