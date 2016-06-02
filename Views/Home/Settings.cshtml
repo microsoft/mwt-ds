@@ -1,6 +1,7 @@
 ﻿@using DecisionServicePrivateWeb.Models
 @using DecisionServicePrivateWeb.Controllers
 @using Microsoft.Research.MultiWorldTesting.Contract
+@using System.Text.RegularExpressions;
 @model SettingsViewModel
 @{
     ViewBag.Title = "Settings";
@@ -10,11 +11,16 @@
 <div class="container-fluid">
     @using (Html.BeginForm("Settings", "Home", FormMethod.Post, new { @class = "form-horizontal ds-form", role = "form" }))
     {
+        // TODO: refactor
         string[] cidAppId = { "sv-app-id", "Application Id" };
         string[] cidAzureRg = { "sv-azure-rg", "Azure Resource Group" };
         string[] cidStorageConnString = { "sv-conn-string", "Azure Storage Connection String" };
+        string[] cidAppInsights = { "sv-app-insights", "Application Insights" };
         string[] cidEhInterConnString = { "sv-eh-inter-conn-string", "Event Hub Interaction Connection String" };
         string[] cidEhObserConnString = { "sv-eh-obser-conn-string", "Event Hub Observation Connection String" };
+        string[] cidAsaJoin = { "sv-asa-join", "Azure Stream Analytics Join Server" };
+        string[] cidAsaEval = { "sv-asa-eval", "Azure Stream Analytics Policy Evaluation" };
+        string[] cidOnlineTrainer = { "sv-online-trainer", "Online Trainer" };
         string[] cidDecisionType = { "sv-decision-type", "Decision Type" };
         string[] cidNumActions = { "sv-num-actions", "Number of Actions" };
         string[] cidTrainFreq = { "sv-train-freq", "Training Frequency" };
@@ -22,6 +28,14 @@
         string[] cidSelectedModel = { "sv-selected-model", "Trained Models" };
         string[] cidEnableExplore = { "sv-enable-explore", "Enable Exploration" };
         string[] cidExpDuration = { "sv-exp-duration", "Join Timeout (in seconds)" };
+
+        string azureResourceGroupLink = $"https://ms.portal.azure.com/#asset/HubsExtension/ResourceGroups/subscriptions/{Model.AzureSubscriptionId}/resourceGroups/{Model.AzureResourceGroupName}";
+        string azureStorageName = Regex.Match(Model.AzureStorageConnectionString, ".*AccountName=(.*);AccountKey.*").Groups[1].Value;
+        string azureStorageBlobLink = $"https://ms.portal.azure.com/#blade/Microsoft_Azure_Storage/ContainersBlade/storageAccountId/%2Fsubscriptions%2F{Model.AzureSubscriptionId}%2FresourceGroups%2F{Model.AzureResourceGroupName}%2Fproviders%2FMicrosoft.Storage%2FstorageAccounts%2F{azureStorageName}";
+        string appInsightsLink = $"https://ms.portal.azure.com/#blade/AppInsightsExtension/SearchBlade/ComponentId/%7B%22SubscriptionId%22%3A%22{Model.AzureSubscriptionId}%22%2C%22ResourceGroup%22%3A%22{Model.AzureResourceGroupName}%22%2C%22Name%22%3A%22{Model.ApplicationInsightsName}%22%7D/InitialFilter/%7B%22eventTypes%22%3A%5B4%2C1%2C3%2C5%2C2%2C6%5D%2C%22typeFacets%22%3A%7B%7D%2C%22isPermissive%22%3Afalse%7D/InitialTime/%7B%22durationMs%22%3A43200000%2C%22endTime%22%3Anull%2C%22isInitialTime%22%3Atrue%2C%22grain%22%3A1%7D/InitialQueryText//ConfigurationId/blankSearch%3A";
+        string asaJoinLink = $"https://ms.portal.azure.com/#resource/subscriptions/{Model.AzureSubscriptionId}/resourceGroups/{Model.AzureResourceGroupName}/providers/Microsoft.StreamAnalytics/streamingjobs/{Model.ASAJoinName}";
+        string asaEvalLink = $"https://ms.portal.azure.com/#resource/subscriptions/{Model.AzureSubscriptionId}/resourceGroups/{Model.AzureResourceGroupName}/providers/Microsoft.StreamAnalytics/streamingjobs/{Model.ASAEvalName}";
+        string onlineTrainerLink = $"https://ms.portal.azure.com/#resource/subscriptions/{Model.AzureSubscriptionId}/resourceGroups/{Model.AzureResourceGroupName}/providers/Microsoft.ClassicCompute/domainNames/{Model.OnlineTrainerName}";
 
         var svm = Model;
 
@@ -43,6 +57,18 @@
             <label for="@cidStorageConnString[0]" class="col-sm-2 control-label ds-label">@cidStorageConnString[1]</label>
             <div class="col-sm-10">
                 <input type="text" readonly="readonly" style="display:inline;" class="form-control helptext-on-interaction" id="@cidStorageConnString[0]" value="@svm.AzureStorageConnectionString" />
+                <a href="@azureStorageBlobLink" target="_blank" title="View Data">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="azure-icon" role="img" viewBox="0 0 16 16" focusable="false" xmlns:NS1="" NS1:xmlns:svg="http://www.w3.org/2000/svg"><path d="M 4.99164 9.81903 L 13.0101 1.8277 L 13.0101 5.83333 L 14 5.83333 L 14 0 L 8.16667 0 L 8.16667 1.00055 L 12.2052 1.00055 L 4.23181 8.98627 L 4.99164 9.81903 Z" /><path d="M 12.9928 13.0301 L 1.00958 13.0301 L 1.00958 1.02777 L 5.83333 1.02777 L 5.83333 0 L 5.21155 0 L 0 0 L 0 14 L 14 14 L 14 8.16667 L 12.9928 8.16667 L 12.9928 13.0301 Z" /></svg>
+                </a>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="@cidAppInsights[0]" class="col-sm-2 control-label ds-label">@cidAppInsights[1]</label>
+            <div class="col-sm-10">
+                <input type="text" readonly="readonly" style="display:inline;" class="form-control helptext-on-interaction" id="@cidAppInsights[0]" value="@svm.ApplicationInsightsName" />
+                <a href="@appInsightsLink" target="_blank" title="View Application Logs">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="azure-icon" role="img" viewBox="0 0 16 16" focusable="false" xmlns:NS1="" NS1:xmlns:svg="http://www.w3.org/2000/svg"><path d="M 4.99164 9.81903 L 13.0101 1.8277 L 13.0101 5.83333 L 14 5.83333 L 14 0 L 8.16667 0 L 8.16667 1.00055 L 12.2052 1.00055 L 4.23181 8.98627 L 4.99164 9.81903 Z" /><path d="M 12.9928 13.0301 L 1.00958 13.0301 L 1.00958 1.02777 L 5.83333 1.02777 L 5.83333 0 L 5.21155 0 L 0 0 L 0 14 L 14 14 L 14 8.16667 L 12.9928 8.16667 L 12.9928 13.0301 Z" /></svg>
+                </a>
             </div>
         </div>
         <div class="form-group">
@@ -55,6 +81,33 @@
             <label for="@cidEhObserConnString[0]" class="col-sm-2 control-label ds-label">@cidEhObserConnString[1]</label>
             <div class="col-sm-10">
                 <input type="text" readonly="readonly" style="display:inline;" class="form-control helptext-on-interaction" id="@cidEhObserConnString[0]" value="@svm.EventHubObservationConnectionString" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="@cidAsaJoin[0]" class="col-sm-2 control-label ds-label">@cidAsaJoin[1]</label>
+            <div class="col-sm-10">
+                <input type="text" readonly="readonly" style="display:inline;" class="form-control helptext-on-interaction" id="@cidAsaJoin[0]" value="@svm.ASAJoinName" />
+                <a href="@asaJoinLink" target="_blank" title="View ASA Query">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="azure-icon" role="img" viewBox="0 0 16 16" focusable="false" xmlns:NS1="" NS1:xmlns:svg="http://www.w3.org/2000/svg"><path d="M 4.99164 9.81903 L 13.0101 1.8277 L 13.0101 5.83333 L 14 5.83333 L 14 0 L 8.16667 0 L 8.16667 1.00055 L 12.2052 1.00055 L 4.23181 8.98627 L 4.99164 9.81903 Z" /><path d="M 12.9928 13.0301 L 1.00958 13.0301 L 1.00958 1.02777 L 5.83333 1.02777 L 5.83333 0 L 5.21155 0 L 0 0 L 0 14 L 14 14 L 14 8.16667 L 12.9928 8.16667 L 12.9928 13.0301 Z" /></svg>
+                </a>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="@cidAsaEval[0]" class="col-sm-2 control-label ds-label">@cidAsaEval[1]</label>
+            <div class="col-sm-10">
+                <input type="text" readonly="readonly" style="display:inline;" class="form-control helptext-on-interaction" id="@cidAsaEval[0]" value="@svm.ASAEvalName" />
+                <a href="@asaEvalLink" target="_blank" title="View ASA Query">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="azure-icon" role="img" viewBox="0 0 16 16" focusable="false" xmlns:NS1="" NS1:xmlns:svg="http://www.w3.org/2000/svg"><path d="M 4.99164 9.81903 L 13.0101 1.8277 L 13.0101 5.83333 L 14 5.83333 L 14 0 L 8.16667 0 L 8.16667 1.00055 L 12.2052 1.00055 L 4.23181 8.98627 L 4.99164 9.81903 Z" /><path d="M 12.9928 13.0301 L 1.00958 13.0301 L 1.00958 1.02777 L 5.83333 1.02777 L 5.83333 0 L 5.21155 0 L 0 0 L 0 14 L 14 14 L 14 8.16667 L 12.9928 8.16667 L 12.9928 13.0301 Z" /></svg>
+                </a>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="@cidOnlineTrainer[0]" class="col-sm-2 control-label ds-label">@cidOnlineTrainer[1]</label>
+            <div class="col-sm-10">
+                <input type="text" readonly="readonly" style="display:inline;" class="form-control helptext-on-interaction" id="@cidOnlineTrainer[0]" value="@svm.OnlineTrainerName" />
+                <a href="@onlineTrainerLink" target="_blank" title="Configure The Online Trainer">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="azure-icon" role="img" viewBox="0 0 16 16" focusable="false" xmlns:NS1="" NS1:xmlns:svg="http://www.w3.org/2000/svg"><path d="M 4.99164 9.81903 L 13.0101 1.8277 L 13.0101 5.83333 L 14 5.83333 L 14 0 L 8.16667 0 L 8.16667 1.00055 L 12.2052 1.00055 L 4.23181 8.98627 L 4.99164 9.81903 Z" /><path d="M 12.9928 13.0301 L 1.00958 13.0301 L 1.00958 1.02777 L 5.83333 1.02777 L 5.83333 0 L 5.21155 0 L 0 0 L 0 14 L 14 14 L 14 8.16667 L 12.9928 8.16667 L 12.9928 13.0301 Z" /></svg>
+                </a>
             </div>
         </div>
         <div class="form-group">
@@ -183,9 +236,45 @@
                 </p>
             </div>
         </div>
+        <div id="div-@cidAppInsights[0]" class="row" style="display:none;">
+            <div class="col-md-12 glossary">
+                <h4 class="ds-title">@cidAppInsights[1]</h4>
+                <p>
+                    The login password to the Registration Center.
+                    TODO: Finalize Description
+                </p>
+            </div>
+        </div>
+        <div id="div-@cidAsaJoin[0]" class="row" style="display:none;">
+            <div class="col-md-12 glossary">
+                <h4 class="ds-title">@cidAsaJoin[1]</h4>
+                <p>
+                    The login password to the Registration Center.
+                    TODO: Finalize Description
+                </p>
+            </div>
+        </div>
+        <div id="div-@cidAsaEval[0]" class="row" style="display:none;">
+            <div class="col-md-12 glossary">
+                <h4 class="ds-title">@cidAsaEval[1]</h4>
+                <p>
+                    The login password to the Registration Center.
+                    TODO: Finalize Description
+                </p>
+            </div>
+        </div>
         <div id="div-@cidTrainFreq[0]" class="row" style="display:none;">
             <div class="col-md-12 glossary">
                 <h4 class="ds-title">@cidTrainFreq[1]</h4>
+                <p>
+                    The login password to the Registration Center.
+                    TODO: Finalize Description
+                </p>
+            </div>
+        </div>
+        <div id="div-@cidOnlineTrainer[0]" class="row" style="display:none;">
+            <div class="col-md-12 glossary">
+                <h4 class="ds-title">@cidOnlineTrainer[1]</h4>
                 <p>
                     The login password to the Registration Center.
                     TODO: Finalize Description

@@ -8,7 +8,7 @@
 
 <div class="container-fluid ds-form form-horizontal">
     <div class="form-group">
-        <label for="eval-window-filter" class="col-sm-2 control-label ds-label">show results for every</label>
+        <label for="eval-window-filter" class="col-sm-2 control-label ds-label" style="max-width: 280px;">show results for every</label>
         <div class="col-sm-10">
             @Html.DropDownList("eval-window-filter",
                 Model.WindowFilters.Select(m => new SelectListItem

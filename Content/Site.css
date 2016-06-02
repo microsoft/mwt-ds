@@ -73,7 +73,6 @@ textarea {
     font-weight:500;
     text-transform:uppercase;
     float:left;
-    max-width:240px;
     word-wrap:break-word;
 }
 
@@ -307,4 +306,13 @@ div.glossary {
 	border: 1px solid #71b1d1;
     border-radius: 10px;
     box-shadow: 2px 2px 1px gainsboro;
+}
+
+svg.azure-icon {
+    width: 20px;
+    height: 20px;
+    display: inline;
+    margin-left: 8px;
+    vertical-align: middle;
+    fill: #0099cc;
 }

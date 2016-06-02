@@ -11,6 +11,12 @@ namespace DecisionServicePrivateWeb.Models
         public string AzureSubscriptionName { get; set; }
         public string AzureSubscriptionId { get; set; }
         public string AzureResourceGroupName { get; set; }
+        public string ApplicationInsightsName { get; set; }
+        public string OnlineTrainerName { get; set; }
+        public string WebApiName { get; set; }
+        public string WebManageName { get; set; }
+        public string ASAEvalName { get; set; }
+        public string ASAJoinName { get; set; }
         public DecisionType DecisionType { get; set; }
         public int? NumActions { get; set; }
         public TrainFrequency TrainFrequency { get; set; }
