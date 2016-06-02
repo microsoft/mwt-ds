@@ -11,7 +11,8 @@ namespace DecisionServicePrivateWeb.Models
         public string AzureSubscriptionName { get; set; }
         public string AzureSubscriptionId { get; set; }
         public string AzureResourceGroupName { get; set; }
-        public string ApplicationInsightsName { get; set; }
+        public string ApplicationInsightsInstrumentationKey { get; set; }
+        public string SettingsBlobUri { get; set; }
         public string OnlineTrainerName { get; set; }
         public string WebApiName { get; set; }
         public string WebManageName { get; set; }

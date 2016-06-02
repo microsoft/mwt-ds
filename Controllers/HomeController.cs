@@ -76,9 +76,11 @@ namespace DecisionServicePrivateWeb.Controllers
             string userName = User.Identity.Name;
             ApplicationClientMetadata clientApp = null;
             ApplicationExtraMetadata extraApp = null;
+            string settingsBlobUri = string.Empty;
             try
             {
                 var clientSettingsBlob = (CloudBlockBlob)Session[SKClientSettingsBlob];
+                settingsBlobUri = clientSettingsBlob.Uri.ToString();
                 clientApp = JsonConvert.DeserializeObject<ApplicationClientMetadata>(clientSettingsBlob.DownloadText());
                 Session[SKClientSettings] = clientApp;
 
@@ -91,7 +93,7 @@ namespace DecisionServicePrivateWeb.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, $"Unable to load application metadata: {ex.ToString()}");
             }
 
-            return View(CreateAppView(clientApp, extraApp));
+            return View(CreateAppView(clientApp, extraApp, settingsBlobUri));
         }
 
         [HttpPost]
@@ -121,7 +123,7 @@ namespace DecisionServicePrivateWeb.Controllers
                     return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, $"Unable to update model: {ex.ToString()}");
                 }
 
-                return View(CreateAppView(clientMeta, extraMeta));
+                return View(CreateAppView(clientMeta, extraMeta, clientSettingsBlob.Uri.ToString()));
             }
             catch (Exception ex)
             {
@@ -228,7 +230,8 @@ namespace DecisionServicePrivateWeb.Controllers
 
         private static SettingsViewModel CreateAppView(
             ApplicationClientMetadata clientMetadata,
-            ApplicationExtraMetadata extraMetadata)
+            ApplicationExtraMetadata extraMetadata,
+            string settingsBlobUri)
         {
             var svm = new SettingsViewModel
             {
@@ -240,7 +243,7 @@ namespace DecisionServicePrivateWeb.Controllers
                 TrainArguments = clientMetadata.TrainArguments,
                 AzureStorageConnectionString = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString],
                 AzureResourceGroupName = extraMetadata.AzureResourceGroupName,
-                ApplicationInsightsName = extraMetadata.AzureResourceGroupName + "-appinsights",
+                ApplicationInsightsInstrumentationKey = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKAppInsightsKey],
                 OnlineTrainerName = extraMetadata.AzureResourceGroupName + "-trainer",
                 WebApiName = extraMetadata.AzureResourceGroupName + "-webapi",
                 WebManageName = extraMetadata.AzureResourceGroupName + "-mc",
@@ -251,7 +254,8 @@ namespace DecisionServicePrivateWeb.Controllers
                 ExperimentalUnitDuration = extraMetadata.ExperimentalUnitDuration,
                 ModelIdList = new List<BlobModelViewModel>(),
                 SelectedModelId = extraMetadata.ModelId,
-                IsExplorationEnabled = clientMetadata.IsExplorationEnabled
+                IsExplorationEnabled = clientMetadata.IsExplorationEnabled,
+                SettingsBlobUri = settingsBlobUri
             };
             svm.ModelIdList.Add(new BlobModelViewModel { Name = "Latest" });
             return svm;

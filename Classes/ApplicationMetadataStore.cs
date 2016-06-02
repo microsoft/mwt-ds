@@ -22,6 +22,7 @@ namespace DecisionServicePrivateWeb.Classes
         public const string AKNumActions = "numberOfActions";
         public const string AKSubscriptionId = "subscriptionId";
         public const string AKExpUnitDuration = "experimentalUnitDurationInSeconds";
+        public const string AKAppInsightsKey = "APPINSIGHTS_INSTRUMENTATIONKEY";
 
         public void Init(HttpApplication context)
         {
