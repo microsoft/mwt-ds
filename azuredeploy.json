@@ -116,7 +116,7 @@
     },
     {
       "apiVersion": "2015-01-01",
-      "name": "interaction",
+      "name": "EventHubInteraction",
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [ "Microsoft.Resources/deployments/ServiceBus" ],
       "properties": {
@@ -135,7 +135,7 @@
     },
     {
       "apiVersion": "2015-01-01",
-      "name": "observation",
+      "name": "EventHubObservation",
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [ "Microsoft.Resources/deployments/ServiceBus" ],
       "properties": {
@@ -154,7 +154,7 @@
     },
     {
       "apiVersion": "2015-01-01",
-      "name": "joined",
+      "name": "EventHubJoined",
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [ "Microsoft.Resources/deployments/ServiceBus" ],
       "properties": {
@@ -173,7 +173,7 @@
     },
     {
       "apiVersion": "2015-01-01",
-      "name": "eval",
+      "name": "EventHubEval",
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [ "Microsoft.Resources/deployments/ServiceBus" ],
       "properties": {
@@ -212,9 +212,9 @@
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [
         "Microsoft.Resources/deployments/Storage",
-        "Microsoft.Resources/deployments/interaction",
-        "Microsoft.Resources/deployments/observation",
-        "Microsoft.Resources/deployments/joined"
+        "Microsoft.Resources/deployments/EventHubInteraction",
+        "Microsoft.Resources/deployments/EventHubObservation",
+        "Microsoft.Resources/deployments/EventHubJoined"
       ],
       "properties": {
         "mode": "incremental",
@@ -223,9 +223,9 @@
           "assetLocation": { "value": "[variables('assetLocation')]" },
           "userStorage": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs]" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
-          "interactionEventHub": { "value": "[reference('Microsoft.Resources/deployments/interaction').outputs]" },
-          "observationEventHub": { "value": "[reference('Microsoft.Resources/deployments/observation').outputs]" },
-          "joinedEventHub": { "value": "[reference('Microsoft.Resources/deployments/joined').outputs]" },
+          "interactionEventHub": { "value": "[reference('Microsoft.Resources/deployments/EventHubInteraction').outputs]" },
+          "observationEventHub": { "value": "[reference('Microsoft.Resources/deployments/EventHubObservation').outputs]" },
+          "joinedEventHub": { "value": "[reference('Microsoft.Resources/deployments/EventHubJoined').outputs]" },
           "messageRetentionInDays": { "value": "[parameters('messageRetentionInDays')]" },
           "partitionCount": { "value": "[parameters('partitionCount')]" },
           "experimentalUnitDurationInSeconds": { "value": "[parameters('experimentalUnitDurationInSeconds')]" }
@@ -239,7 +239,7 @@
       "dependsOn": [
         "Microsoft.Resources/deployments/ServiceBus",
         "Microsoft.Resources/deployments/Storage",
-        "Microsoft.Resources/deployments/eval"
+        "Microsoft.Resources/deployments/EventHubEval"
       ],
       "properties": {
         "mode": "incremental",
@@ -249,7 +249,7 @@
           "userStorageAccountName": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountName.value]" },
           "userStorageAccountKey": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value]" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
-          "evalEventHub": { "value": "[reference('Microsoft.Resources/deployments/eval').outputs]" },
+          "evalEventHub": { "value": "[reference('Microsoft.Resources/deployments/EventHubEval').outputs]" },
           "messageRetentionInDays": { "value": "[parameters('messageRetentionInDays')]" },
           "partitionCount": { "value": "[parameters('partitionCount')]" }
         }
@@ -262,8 +262,8 @@
       "dependsOn": [
         "Microsoft.Resources/deployments/Storage",
         "Microsoft.Resources/deployments/AppInsights",
-        "Microsoft.Resources/deployments/interaction",
-        "Microsoft.Resources/deployments/observation"
+        "Microsoft.Resources/deployments/EventHubInteraction",
+        "Microsoft.Resources/deployments/EventHubObservation"
       ],
       "properties": {
         "mode": "incremental",
@@ -273,8 +273,8 @@
           "userStorageConnectionString": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageConnectionString.value]" },
           "managementPassword": { "value": "[parameters('managementPassword')]" },
 
-          "interactionEventHub": { "value": "[reference('Microsoft.Resources/deployments/interaction').outputs]" },
-          "observationEventHub": { "value": "[reference('Microsoft.Resources/deployments/observation').outputs]" },
+          "interactionEventHub": { "value": "[reference('Microsoft.Resources/deployments/EventHubInteraction').outputs]" },
+          "observationEventHub": { "value": "[reference('Microsoft.Resources/deployments/EventHubObservation').outputs]" },
 
           "experimentalUnitDurationInSeconds": { "value": "[parameters('experimentalUnitDurationInSeconds')]" },
           "vowpalWabbitTrainArguments": { "value": "[parameters('vowpalWabbitTrainArguments')]" },
@@ -289,8 +289,8 @@
       "dependsOn": [
         "Microsoft.Resources/deployments/Storage",
         "Microsoft.Resources/deployments/AppInsights",
-        "Microsoft.Resources/deployments/joined",
-        "Microsoft.Resources/deployments/eval"
+        "Microsoft.Resources/deployments/EventHubJoined",
+        "Microsoft.Resources/deployments/EventHubEval"
       ],
       "properties": {
         "mode": "incremental",
@@ -305,8 +305,8 @@
 
           "cscfg": {
             "value": {
-              "joinedEventHubConnectionString": "[reference('Microsoft.Resources/deployments/joined').outputs.listenConnectionString.value]",
-              "evalEventHubConnectionString": "[reference('Microsoft.Resources/deployments/eval').outputs.sendConnectionString.value]",
+              "joinedEventHubConnectionString": "[reference('Microsoft.Resources/deployments/EventHubJoined').outputs.listenConnectionString.value]",
+              "evalEventHubConnectionString": "[reference('Microsoft.Resources/deployments/EventHubEval').outputs.sendConnectionString.value]",
               "userStorageConnectionString": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageConnectionString.value]",
               "instrumentationKey": "[reference('Microsoft.Resources/deployments/AppInsights').outputs.instrumentationKey.value]",
               "adminToken": "[parameters('adminToken')]",
