@@ -25,6 +25,8 @@ namespace DecisionServicePrivateWeb.Classes
 
         public void Init(HttpApplication context)
         {
+            var telemetry = new TelemetryClient();
+            telemetry.TrackTrace("HttpModule Init triggered, attempting to create settings blobs.");
             ApplicationMetadataStore.CreateSettingsBlobIfNotExists();
         }
 
