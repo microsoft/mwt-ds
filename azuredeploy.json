@@ -322,6 +322,10 @@
     "ManagementCenter": {
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/WebManage').outputs.url.value]"
+    },
+    "ClientLibraryUrl": {
+      "type": "string",
+      "value": "[concat('https://', reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountName.value, '.blob.core.windows.net/mwt-settings/client')]"
     }
   }
 }
