@@ -35,7 +35,7 @@
         string appInsightsLink = $"https://ms.portal.azure.com/#blade/AppInsightsExtension/SearchBlade/ComponentId/%7B%22SubscriptionId%22%3A%22{Model.AzureSubscriptionId}%22%2C%22ResourceGroup%22%3A%22{Model.AzureResourceGroupName}%22%2C%22Name%22%3A%22{Model.ApplicationInsightsName}%22%7D/InitialFilter/%7B%22eventTypes%22%3A%5B4%2C1%2C3%2C5%2C2%2C6%5D%2C%22typeFacets%22%3A%7B%7D%2C%22isPermissive%22%3Afalse%7D/InitialTime/%7B%22durationMs%22%3A43200000%2C%22endTime%22%3Anull%2C%22isInitialTime%22%3Atrue%2C%22grain%22%3A1%7D/InitialQueryText//ConfigurationId/blankSearch%3A";
         string asaJoinLink = $"https://ms.portal.azure.com/#resource/subscriptions/{Model.AzureSubscriptionId}/resourceGroups/{Model.AzureResourceGroupName}/providers/Microsoft.StreamAnalytics/streamingjobs/{Model.ASAJoinName}";
         string asaEvalLink = $"https://ms.portal.azure.com/#resource/subscriptions/{Model.AzureSubscriptionId}/resourceGroups/{Model.AzureResourceGroupName}/providers/Microsoft.StreamAnalytics/streamingjobs/{Model.ASAEvalName}";
-        string onlineTrainerLink = $"https://ms.portal.azure.com/#resource/subscriptions/{Model.AzureSubscriptionId}/resourceGroups/{Model.AzureResourceGroupName}/providers/Microsoft.ClassicCompute/domainNames/{Model.OnlineTrainerName}";
+        string onlineTrainerLink = $"https://manage.windowsazure.com/microsoft.onmicrosoft.com#Workspaces/CloudServicesExtension/CloudService/{Model.OnlineTrainerName}/configure";
 
         var svm = Model;
 
@@ -167,8 +167,7 @@
             <div class="col-md-12 glossary">
                 <h4 class="ds-title">@cidAppId[1]</h4>
                 <p>
-                    The name of this application. This is used to choose an appropriate 10-character long Azure Resource Group name.
-                    TODO: Finalize Description
+                    The name of this application which is set to the Azure Resource Group name. The application name 
                 </p>
             </div>
         </div>
