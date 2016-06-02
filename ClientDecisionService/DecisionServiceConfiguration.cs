@@ -1,12 +1,15 @@
-﻿using Microsoft.Research.MultiWorldTesting.JoinUploader;
+﻿using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.Research.MultiWorldTesting.JoinUploader;
 using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
     public class DecisionServiceConfiguration
     {
-        public DecisionServiceConfiguration(string settingsBlobUri)
+        public DecisionServiceConfiguration(string settingsBlobUri, string appInsightsInstrumentationKey = null)
         {
             if (settingsBlobUri == null)
             {
@@ -14,6 +17,10 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             }
 
             this.SettingsBlobUri = settingsBlobUri;
+            if (appInsightsInstrumentationKey != null)
+            {
+                Trace.Listeners.Add(new ApplicationInsights.TraceListener.ApplicationInsightsTraceListener(appInsightsInstrumentationKey));
+            }
         }
 
         /// <summary>
