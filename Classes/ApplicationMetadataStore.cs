@@ -11,7 +11,7 @@ using System.Web;
 
 namespace DecisionServicePrivateWeb.Classes
 {
-    public static class ApplicationMetadataStore
+    public class ApplicationMetadataStore : IHttpModule
     {
         public const string AKAzureResourceGroup = "resourceGroupName";
         public const string AKConnectionString = "AzureStorageConnectionString";
@@ -22,6 +22,13 @@ namespace DecisionServicePrivateWeb.Classes
         public const string AKNumActions = "numberOfActions";
         public const string AKSubscriptionId = "subscriptionId";
         public const string AKExpUnitDuration = "experimentalUnitDurationInSeconds";
+
+        public void Init(HttpApplication context)
+        {
+            ApplicationMetadataStore.CreateSettingsBlobIfNotExists();
+        }
+
+        public void Dispose() { }
 
         public static void CreateSettingsBlobIfNotExists()
         {
