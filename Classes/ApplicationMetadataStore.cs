@@ -39,7 +39,9 @@ namespace DecisionServicePrivateWeb.Classes
                 telemetry.TrackTrace("Settings blob not found, creating new one.");
 
                 settingsBlobContainer.CreateIfNotExists();
+                settingsBlobContainer.SetPermissions(new BlobContainerPermissions() { PublicAccess = BlobContainerPublicAccessType.Blob });
                 modelBlobContainer.CreateIfNotExists();
+                modelBlobContainer.SetPermissions(new BlobContainerPermissions() { PublicAccess = BlobContainerPublicAccessType.Blob });
 
                 var appSettings = new ApplicationSettings
                 {
