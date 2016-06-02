@@ -9,7 +9,7 @@ using System.Configuration;
 using System.Diagnostics;
 using System.Web;
 
-namespace DecisionServicePrivateWeb.Classes
+namespace ApplicationMetadataStore
 {
     public static class ApplicationMetadataStore
     {

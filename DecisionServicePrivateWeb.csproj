@@ -187,8 +187,6 @@
   <ItemGroup>
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
-    <Compile Include="Classes\ApplicationMetadataStore.cs" />
-    <Compile Include="Classes\ApplicationSettings.cs" />
     <Compile Include="Classes\EvalD3.cs" />
     <Compile Include="Classes\EvalResult.cs" />
     <Compile Include="Controllers\HomeController.cs" />
@@ -223,7 +221,12 @@
       <DependentUpon>Web.config</DependentUpon>
     </None>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="ApplicationMetadataStore\ApplicationMetadataStore.csproj">
+      <Project>{d07078db-fd7d-4488-9221-a4b4a6e81ae2}</Project>
+      <Name>ApplicationMetadataStore</Name>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
