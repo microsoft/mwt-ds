@@ -300,12 +300,20 @@ hr.fancy-line, hr.fancy-line:before {
 }
 
 div.glossary {
-    margin-top:20px;
 	position: relative;
 	background-color: white;
 	border: 1px solid #71b1d1;
     border-radius: 10px;
     box-shadow: 2px 2px 1px gainsboro;
+}
+
+@media (min-width: 1200px) {
+    div.glossary {
+	    position: absolute;
+        top: 80px;
+        right: 40px;
+        max-width: 500px;
+    }
 }
 
 svg.azure-icon {
