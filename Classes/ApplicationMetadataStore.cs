@@ -1,16 +1,70 @@
-﻿using DecisionServicePrivateWeb.Models;
+﻿using Microsoft.ApplicationInsights;
 using Microsoft.Research.MultiWorldTesting.Contract;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Diagnostics;
 
 namespace DecisionServicePrivateWeb.Classes
 {
     public class ApplicationMetadataStore
     {
+        public const string AKAzureResourceGroup = "resourceGroupName";
+        public const string AKConnectionString = "AzureStorageConnectionString";
+        public const string AKPassword = "Password";
+        public const string AKInterEHSendConnString = "interactionEventHubSendConnectionString";
+        public const string AKObserEHSendConnString = "observationEventHubSendConnectionString";
+        public const string AKTrainArguments = "vowpalWabbitTrainArguments";
+        public const string AKNumActions = "numberOfActions";
+        public const string AKSubscriptionId = "subscriptionId";
+        public const string AKExpUnitDuration = "experimentalUnitDurationInSeconds";
+
+        public static void CreateSettingsBlobIfNotExists()
+        {
+            var telemetry = new TelemetryClient();
+            string azureStorageConnectionString = ConfigurationManager.AppSettings[AKConnectionString];
+            var storageAccount = CloudStorageAccount.Parse(azureStorageConnectionString);
+            var blobClient = storageAccount.CreateCloudBlobClient();
+            var settingsBlobContainer = blobClient.GetContainerReference(ApplicationBlobConstants.SettingsContainerName);
+            var modelBlobContainer = blobClient.GetContainerReference(ApplicationBlobConstants.ModelContainerName);
+
+            var clientSettingsBlob = settingsBlobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestClientSettingsBlobName);
+            var extraSettingsBlob = settingsBlobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestExtraSettingsBlobName);
+            if (!clientSettingsBlob.Exists() || !extraSettingsBlob.Exists())
+            {
+                telemetry.TrackTrace("Settings blob not found, creating new one.");
+
+                settingsBlobContainer.CreateIfNotExists();
+                modelBlobContainer.CreateIfNotExists();
+
+                var appSettings = new ApplicationSettings
+                {
+                    ApplicationID = ConfigurationManager.AppSettings[AKAzureResourceGroup],
+                    AzureResourceGroupName = ConfigurationManager.AppSettings[AKAzureResourceGroup],
+                    ConnectionString = ConfigurationManager.AppSettings[AKConnectionString],
+                    ExperimentalUnitDuration = Convert.ToInt32(ConfigurationManager.AppSettings[AKExpUnitDuration]),
+                    InterEventHubSendConnectionString = ConfigurationManager.AppSettings[AKInterEHSendConnString],
+                    ObserEventHubSendConnectionString = ConfigurationManager.AppSettings[AKObserEHSendConnString],
+                    IsExplorationEnabled = true,
+                    SubscriptionId = ConfigurationManager.AppSettings[AKSubscriptionId],
+                    DecisionType = DecisionType.MultiActions, // TODO: update depending on deployment option
+                    ModelId = ApplicationBlobConstants.LatestModelBlobName,
+                    NumActions = Convert.ToInt32(ConfigurationManager.AppSettings[AKNumActions]),
+                    TrainArguments = ConfigurationManager.AppSettings[AKTrainArguments],
+                    TrainFrequency = TrainFrequency.High, // TODO: update depending on deployment option
+                    ModelBlobUri = modelBlobContainer.Uri.ToString() + "/" + ApplicationBlobConstants.LatestModelBlobName,
+                    SettingsBlobUri = settingsBlobContainer.Uri.ToString() + "/" + ApplicationBlobConstants.LatestClientSettingsBlobName
+                };
+                ApplicationMetadataStore.UpdateMetadata(clientSettingsBlob, extraSettingsBlob, appSettings);
+
+                telemetry.TrackTrace($"Model blob uri: {appSettings.ModelBlobUri}");
+                telemetry.TrackTrace($"Settings blob uri: {appSettings.SettingsBlobUri}");
+            }
+        }
+
         public static void UpdateMetadata(CloudBlockBlob clientSettingsBlob, CloudBlockBlob extraSettingsBlob, ApplicationSettings appSettings)
         {
             try

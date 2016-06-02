@@ -18,16 +18,6 @@ namespace DecisionServicePrivateWeb.Controllers
 {
     public class HomeController : Controller
     {
-        const string AKAzureResourceGroup = "resourceGroupName";
-        const string AKConnectionString = "AzureStorageConnectionString";
-        const string AKPassword = "Password";
-        const string AKInterEHSendConnString = "interactionEventHubSendConnectionString";
-        const string AKObserEHSendConnString = "observationEventHubSendConnectionString";
-        const string AKTrainArguments = "vowpalWabbitTrainArguments";
-        const string AKNumActions = "numberOfActions";
-        const string AKSubscriptionId = "subscriptionId";
-        const string AKExpUnitDuration = "experimentalUnitDurationInSeconds";
-
         const string SKAuthenticated = "Authenticated";
 
         const string SKClientSettingsBlob = "ClientSettingsBlob";
@@ -46,52 +36,21 @@ namespace DecisionServicePrivateWeb.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Index(string password)
         {
-            var telemetry = new TelemetryClient();
-            string correctPassword = ConfigurationManager.AppSettings[AKPassword];
+            string correctPassword = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKPassword];
             if (string.Equals(password, correctPassword))
             {
                 Session[SKAuthenticated] = true;
 
-                string azureStorageConnectionString = ConfigurationManager.AppSettings[AKConnectionString];
+                // Create again in case the settings were not created at start up
+                ApplicationMetadataStore.CreateSettingsBlobIfNotExists();
+
+                string azureStorageConnectionString = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString];
                 var storageAccount = CloudStorageAccount.Parse(azureStorageConnectionString);
                 var blobClient = storageAccount.CreateCloudBlobClient();
                 var settingsBlobContainer = blobClient.GetContainerReference(ApplicationBlobConstants.SettingsContainerName);
-                var modelBlobContainer = blobClient.GetContainerReference(ApplicationBlobConstants.ModelContainerName);
 
-                var clientSettingsBlob = settingsBlobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestClientSettingsBlobName);
-                var extraSettingsBlob = settingsBlobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestExtraSettingsBlobName);
-                if (!clientSettingsBlob.Exists() || !extraSettingsBlob.Exists())
-                {
-                    telemetry.TrackTrace("Settings blob not found, creating new one.");
-
-                    settingsBlobContainer.CreateIfNotExists();
-                    modelBlobContainer.CreateIfNotExists();
-
-                    var appSettings = new ApplicationSettings
-                    {
-                        ApplicationID = ConfigurationManager.AppSettings[AKAzureResourceGroup],
-                        AzureResourceGroupName = ConfigurationManager.AppSettings[AKAzureResourceGroup],
-                        ConnectionString = ConfigurationManager.AppSettings[AKConnectionString],
-                        ExperimentalUnitDuration = Convert.ToInt32(ConfigurationManager.AppSettings[AKExpUnitDuration]),
-                        InterEventHubSendConnectionString = ConfigurationManager.AppSettings[AKInterEHSendConnString],
-                        ObserEventHubSendConnectionString = ConfigurationManager.AppSettings[AKObserEHSendConnString],
-                        IsExplorationEnabled = true,
-                        SubscriptionId = ConfigurationManager.AppSettings[AKSubscriptionId],
-                        DecisionType = DecisionType.MultiActions, // TODO: update depending on deployment option
-                        ModelId = ApplicationBlobConstants.LatestModelBlobName,
-                        NumActions = Convert.ToInt32(ConfigurationManager.AppSettings[AKNumActions]),
-                        TrainArguments = ConfigurationManager.AppSettings[AKTrainArguments],
-                        TrainFrequency = TrainFrequency.High, // TODO: update depending on deployment option
-                        ModelBlobUri = modelBlobContainer.Uri.ToString() + "/" + ApplicationBlobConstants.LatestModelBlobName,
-                        SettingsBlobUri = settingsBlobContainer.Uri.ToString() + "/" + ApplicationBlobConstants.LatestClientSettingsBlobName
-                    };
-                    ApplicationMetadataStore.UpdateMetadata(clientSettingsBlob, extraSettingsBlob, appSettings);
-
-                    telemetry.TrackTrace($"Model blob uri: {appSettings.ModelBlobUri}");
-                    telemetry.TrackTrace($"Settings blob uri: {appSettings.SettingsBlobUri}");
-                }
-                Session[SKClientSettingsBlob] = clientSettingsBlob;
-                Session[SKExtraSettingsBlob] = extraSettingsBlob;
+                Session[SKClientSettingsBlob] = settingsBlobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestClientSettingsBlobName);
+                Session[SKExtraSettingsBlob] = settingsBlobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestExtraSettingsBlobName);
                 Session[SKEvalContainer] = blobClient.GetContainerReference(ApplicationBlobConstants.OfflineEvalContainerName);
 
                 return Redirect(Url.Action("Settings"));
@@ -155,7 +114,7 @@ namespace DecisionServicePrivateWeb.Controllers
                 try
                 {
                     // copy selected model file to the latest file
-                    ApplicationMetadataStore.UpdateModel(model.SelectedModelId, ConfigurationManager.AppSettings[AKConnectionString]);
+                    ApplicationMetadataStore.UpdateModel(model.SelectedModelId, ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString]);
                 }
                 catch (Exception ex)
                 {
@@ -279,7 +238,7 @@ namespace DecisionServicePrivateWeb.Controllers
                 NumActions = clientMetadata.NumActions,
                 TrainFrequency = extraMetadata.TrainFrequency,
                 TrainArguments = clientMetadata.TrainArguments,
-                AzureStorageConnectionString = ConfigurationManager.AppSettings[AKConnectionString],
+                AzureStorageConnectionString = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString],
                 AzureResourceGroupName = extraMetadata.AzureResourceGroupName,
                 ApplicationInsightsName = extraMetadata.AzureResourceGroupName + "-appinsights",
                 OnlineTrainerName = extraMetadata.AzureResourceGroupName + "-trainer",

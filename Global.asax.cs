@@ -1,4 +1,5 @@
-﻿using Microsoft.ApplicationInsights.Extensibility;
+﻿using DecisionServicePrivateWeb.Classes;
+using Microsoft.ApplicationInsights.Extensibility;
 using System.Configuration;
 using System.Web.Mvc;
 using System.Web.Optimization;
@@ -14,6 +15,7 @@ namespace DecisionServicePrivateWeb
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
             TelemetryConfiguration.Active.InstrumentationKey = ConfigurationManager.AppSettings["APPINSIGHTS_INSTRUMENTATIONKEY"];
+            ApplicationMetadataStore.CreateSettingsBlobIfNotExists();
         }
     }
 }
