@@ -53,7 +53,7 @@
     },
     "vowpalWabbitTrainArguments": {
       "type": "string",
-      "defaultValue": "-cb_adf --rank_all --cb_type dr",
+      "defaultValue": "--cb_adf --rank_all --cb_type dr",
       "metadata": {
         "description": "Vowpal wabbit train arguments (TODO)"
       }
