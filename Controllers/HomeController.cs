@@ -13,7 +13,6 @@ using System.Net;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Mvc;
-using ApplicationMetadataStore;
 
 namespace DecisionServicePrivateWeb.Controllers
 {
@@ -37,15 +36,15 @@ namespace DecisionServicePrivateWeb.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Index(string password)
         {
-            string correctPassword = ConfigurationManager.AppSettings[ApplicationMetadataStore.ApplicationMetadataStore.AKPassword];
+            string correctPassword = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKPassword];
             if (string.Equals(password, correctPassword))
             {
                 Session[SKAuthenticated] = true;
 
                 // Create again in case the settings were not created at start up
-                ApplicationMetadataStore.ApplicationMetadataStore.CreateSettingsBlobIfNotExists();
+                ApplicationMetadataStore.CreateSettingsBlobIfNotExists();
 
-                string azureStorageConnectionString = ConfigurationManager.AppSettings[ApplicationMetadataStore.ApplicationMetadataStore.AKConnectionString];
+                string azureStorageConnectionString = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString];
                 var storageAccount = CloudStorageAccount.Parse(azureStorageConnectionString);
                 var blobClient = storageAccount.CreateCloudBlobClient();
                 var settingsBlobContainer = blobClient.GetContainerReference(ApplicationBlobConstants.SettingsContainerName);
@@ -115,7 +114,7 @@ namespace DecisionServicePrivateWeb.Controllers
                 try
                 {
                     // copy selected model file to the latest file
-                    ApplicationMetadataStore.ApplicationMetadataStore.UpdateModel(model.SelectedModelId, ConfigurationManager.AppSettings[ApplicationMetadataStore.ApplicationMetadataStore.AKConnectionString]);
+                    ApplicationMetadataStore.UpdateModel(model.SelectedModelId, ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString]);
                 }
                 catch (Exception ex)
                 {
@@ -239,7 +238,7 @@ namespace DecisionServicePrivateWeb.Controllers
                 NumActions = clientMetadata.NumActions,
                 TrainFrequency = extraMetadata.TrainFrequency,
                 TrainArguments = clientMetadata.TrainArguments,
-                AzureStorageConnectionString = ConfigurationManager.AppSettings[ApplicationMetadataStore.ApplicationMetadataStore.AKConnectionString],
+                AzureStorageConnectionString = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString],
                 AzureResourceGroupName = extraMetadata.AzureResourceGroupName,
                 ApplicationInsightsName = extraMetadata.AzureResourceGroupName + "-appinsights",
                 OnlineTrainerName = extraMetadata.AzureResourceGroupName + "-trainer",
