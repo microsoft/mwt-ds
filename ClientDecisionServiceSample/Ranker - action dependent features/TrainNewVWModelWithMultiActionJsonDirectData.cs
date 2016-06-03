@@ -43,7 +43,7 @@ namespace ClientDecisionServiceSample
                     string key = "fooditem " + Guid.NewGuid().ToString();
 
                     int action = iE % numActions + 1;
-                    recorder.Record(null, null, new EpsilonGreedyState { Probability = 1.0f / numActions }, null, new UniqueEventID { Key = key, TimeStamp = timeStamp });
+                    recorder.Record(null, null, new EpsilonGreedyState { Probability = 1.0f / numActions }, null, key);
 
                     float cost = 0;
 

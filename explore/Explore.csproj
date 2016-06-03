@@ -56,7 +56,6 @@
     <Compile Include="MultiActionHelper.cs" />
     <Compile Include="TopSlotExplorer.cs" />
     <Compile Include="UniformRandomExploration.cs" />
-    <Compile Include="UniqueEventID.cs" />
     <Compile Include="VariableActionHelper.cs" />
   </ItemGroup>
   <ItemGroup>

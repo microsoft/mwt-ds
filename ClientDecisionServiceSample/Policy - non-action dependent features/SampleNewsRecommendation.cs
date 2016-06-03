@@ -75,7 +75,7 @@ namespace ClientDecisionServiceSample
                     }
 
                     // Perform exploration given user features.
-                    int topicId = service.ChooseAction(new UniqueEventID { Key = userId }, context: userContext);
+                    int topicId = service.ChooseAction(userId, context: userContext);
 
                     // Display the news topic chosen by exploration process.
                     DisplayNewsTopic(topicId, user + 1);
@@ -84,7 +84,7 @@ namespace ClientDecisionServiceSample
                     // In a real scenario, one could associated a reward of 1 if user
                     // clicks on the article and 0 otherwise.
                     float reward = 1 - (user % 2);
-                    service.ReportReward(reward, new UniqueEventID { Key = userId });
+                    service.ReportReward(reward, userId);
                 }
 
                 Console.WriteLine("DO NOT CLOSE THE CONSOLE WINDOW AT THIS POINT IF YOU ARE FOLLOWING THE GETTING STARTED GUIDE.");

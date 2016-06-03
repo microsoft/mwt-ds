@@ -28,7 +28,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
         private class OfflineRecorder : IRecorder<TContext, TAction>
         {
-            public void Record(TContext context, TAction value, object explorerState, object mapperState, UniqueEventID uniqueKey)
+            public void Record(TContext context, TAction value, object explorerState, object mapperState, string uniqueKey)
             {
                 throw new NotSupportedException("Must set an recorder in offline mode");
             }
@@ -241,12 +241,12 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             return this;
         }
 
-        public TAction ChooseAction(UniqueEventID uniqueKey, TContext context, TPolicyValue defaultPolicyDecision)
+        public TAction ChooseAction(string uniqueKey, TContext context, TPolicyValue defaultPolicyDecision)
         {
             return this.mwtExplorer.ChooseAction(uniqueKey, context, defaultPolicyDecision);
         }
 
-        public TAction ChooseAction(UniqueEventID uniqueKey, TContext context)
+        public TAction ChooseAction(string uniqueKey, TContext context)
         {
             var initialPolicy = this.initialPolicy;
             if (initialPolicy != null)
@@ -262,7 +262,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         /// </summary>
         /// <param name="reward">The simple float reward.</param>
         /// <param name="uniqueKey">The unique key of the experimental unit.</param>
-        public void ReportReward(float reward, UniqueEventID uniqueKey)
+        public void ReportReward(float reward, string uniqueKey)
         {
             if (this.logger != null)
                 this.logger.ReportReward(uniqueKey, reward);
@@ -276,7 +276,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         /// <remarks>
         /// Outcomes are general forms of observations that can be converted to simple float rewards as required by some ML algorithms for optimization.
         /// </remarks>
-        public void ReportOutcome(object outcome, UniqueEventID uniqueKey)
+        public void ReportOutcome(object outcome, string uniqueKey)
         {
             if (this.logger != null)
                 logger.ReportOutcome(uniqueKey, outcome);

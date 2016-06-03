@@ -32,7 +32,7 @@ namespace ClientDecisionServiceTest
                 .With<TestContext>()
                 .ExploitUntilModelReady(new TestSingleActionPolicy()))
             {
-                chosenAction = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
+                chosenAction = ds.ChooseAction(uniqueKey, new TestContext());
             }
 
             Assert.AreEqual(1, joinServer.RequestCount);
@@ -60,10 +60,10 @@ namespace ClientDecisionServiceTest
                 .ExploitUntilModelReady(new TestSingleActionPolicy()))
             {
 
-                int chosenAction1 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
-                int chosenAction2 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
-                ds.ReportReward(1.0f, new UniqueEventID { Key = uniqueKey });
-                ds.ReportOutcome(JsonConvert.SerializeObject(new { value = "test outcome" }), new UniqueEventID { Key = uniqueKey });
+                int chosenAction1 = ds.ChooseAction(uniqueKey, new TestContext());
+                int chosenAction2 = ds.ChooseAction(uniqueKey, new TestContext());
+                ds.ReportReward(1.0f, uniqueKey);
+                ds.ReportOutcome(JsonConvert.SerializeObject(new { value = "test outcome" }), uniqueKey);
             }
 
             Assert.AreEqual(4, joinServer.EventBatchList.Sum(batch => batch.ExperimentalUnitFragments.Count));
@@ -92,8 +92,8 @@ namespace ClientDecisionServiceTest
             {
                 Parallel.For(0, numEvents, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, (i) =>
                 {
-                    chosenActions.Add(ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext()));
-                    ds.ReportOutcome(new { value = createObservation((int)i) }, new UniqueEventID { Key = uniqueKey });
+                    chosenActions.Add(ds.ChooseAction(uniqueKey, new TestContext()));
+                    ds.ReportOutcome(new { value = createObservation((int)i) }, uniqueKey);
                 });
             }
 
@@ -160,7 +160,7 @@ namespace ClientDecisionServiceTest
                 .WithTopSlotEpsilonGreedy(.2f)
                 .ExploitUntilModelReady(new TestMultiActionPolicy()))
             {
-                chosenActions = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
+                chosenActions = ds.ChooseAction(uniqueKey, new TestContext());
             }
 
             Assert.AreEqual(1, joinServer.RequestCount);
@@ -187,10 +187,10 @@ namespace ClientDecisionServiceTest
                 .WithTopSlotEpsilonGreedy(.2f)
                 .ExploitUntilModelReady(new TestMultiActionPolicy()))
             {
-                int[] chosenAction1 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
-                int[] chosenAction2 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
-                ds.ReportReward(1.0f, new UniqueEventID { Key = uniqueKey });
-                ds.ReportOutcome(new { value = "test outcome" }, new UniqueEventID { Key = uniqueKey });
+                int[] chosenAction1 = ds.ChooseAction(uniqueKey, new TestContext());
+                int[] chosenAction2 = ds.ChooseAction(uniqueKey, new TestContext());
+                ds.ReportReward(1.0f, uniqueKey);
+                ds.ReportOutcome(new { value = "test outcome" }, uniqueKey);
             }
             Assert.AreEqual(4, joinServer.EventBatchList.Sum(batch => batch.ExperimentalUnitFragments.Count));
         }
@@ -229,7 +229,7 @@ namespace ClientDecisionServiceTest
             {
                 for (int i = 0; i < numEvents; i++)
                 {
-                    int[] chosenAction1 = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext());
+                    int[] chosenAction1 = ds.ChooseAction(uniqueKey, new TestContext());
                 }
             }
             // Some events must have been dropped so the total count cannot be same as original
@@ -280,8 +280,8 @@ namespace ClientDecisionServiceTest
             {
                 Parallel.For(0, numEvents, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, (i) =>
                 {
-                    chosenActions.Add(ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, new TestContext()));
-                    ds.ReportOutcome(new { value = createObservation((int)i) }, new UniqueEventID { Key = uniqueKey });
+                    chosenActions.Add(ds.ChooseAction(uniqueKey, new TestContext()));
+                    ds.ReportOutcome(new { value = createObservation((int)i) }, uniqueKey);
                 });
             }
             List<PartialDecisionServiceMessage> batchList = this.joinServer.EventBatchList;

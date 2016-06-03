@@ -41,7 +41,7 @@ namespace ClientDecisionServiceSample
                 .ExploitUntilModelReady(new MyHeuristicPolicy()) // optional
                 .WithEpsilonGreedy(.05f)) // optional
             {
-                var id = new UniqueEventID() { Key = Guid.NewGuid().ToString(), TimeStamp = DateTime.UtcNow };
+                var id = Guid.NewGuid().ToString();
                 var ctx = new MyContext { Age = 25, Location = "New York", IsMember = true, SessionId = "123" };
                 var action = client.ChooseAction(id, ctx);
             }

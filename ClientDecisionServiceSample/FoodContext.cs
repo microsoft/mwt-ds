@@ -58,9 +58,9 @@ namespace ClientDecisionServiceSample
             return keyToProb[key];
         }
 
-        public void Record(FoodContext context, int[] value, object explorerState, object mapperState, UniqueEventID uniqueKey)
+        public void Record(FoodContext context, int[] value, object explorerState, object mapperState, string uniqueKey)
         {
-            keyToProb.Add(uniqueKey.Key, ((EpsilonGreedyState)explorerState).Probability);
+            keyToProb.Add(uniqueKey, ((EpsilonGreedyState)explorerState).Probability);
         }
     }
 

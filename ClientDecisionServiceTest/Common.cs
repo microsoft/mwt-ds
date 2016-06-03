@@ -194,12 +194,12 @@ namespace ClientDecisionServiceTest
             this.numOutcome = 0;
         }
 
-        public void ReportReward(UniqueEventID uniqueKey, float reward)
+        public void ReportReward(string uniqueKey, float reward)
         {
             this.numReward++;
         }
 
-        public void ReportOutcome(UniqueEventID uniqueKey, object outcome)
+        public void ReportOutcome(string uniqueKey, object outcome)
         {
             this.numOutcome++;
         }
@@ -211,12 +211,12 @@ namespace ClientDecisionServiceTest
             this.numOutcome = 0;
         }
 
-        public void Record(TestContext context, int value, object explorerState, object mapperState, UniqueEventID uniqueKey)
+        public void Record(TestContext context, int value, object explorerState, object mapperState, string uniqueKey)
         {
             this.numRecord++;
         }
 
-        public void Record(TestContext context, int[] value, object explorerState, object mapperState, UniqueEventID uniqueKey)
+        public void Record(TestContext context, int[] value, object explorerState, object mapperState, string uniqueKey)
         {
             this.numRecord++;
         }

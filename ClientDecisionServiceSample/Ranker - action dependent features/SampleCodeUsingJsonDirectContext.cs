@@ -56,7 +56,7 @@ namespace ClientDecisionServiceSample
                     currentContext.UserLocation = location;
                     currentContext.Actions = Enumerable.Range(1, numActions).ToArray();
 
-                    int[] action = service.ChooseAction(new UniqueEventID { Key = key, TimeStamp = timeStamp }, currentContext);
+                    int[] action = service.ChooseAction(key, currentContext);
 
                     counterTotal += 1;
 
@@ -91,7 +91,7 @@ namespace ClientDecisionServiceSample
                             reward = 10;
                         }
                     }
-                    service.ReportReward(reward, new UniqueEventID { Key = key, TimeStamp = timeStamp });
+                    service.ReportReward(reward, key);
                     var newLine = string.Format("{0},{1},{2}", csvLocation, csvAction, "0");
                     csv.AppendLine(newLine);
 

@@ -36,8 +36,8 @@ namespace ClientDecisionServiceSample
                     string key = uniqueKey + Guid.NewGuid().ToString();
 
                     var context = new FoodContext { Actions = new int[] { 1, 2, 3 }, UserLocation = baseLocation + rg.Next(100) };
-                    int[] action = service.ChooseAction(new UniqueEventID { Key = key, TimeStamp = timeStamp }, context);
-                    service.ReportReward(i / 100f, new UniqueEventID { Key = key, TimeStamp = timeStamp });
+                    int[] action = service.ChooseAction(key, context);
+                    service.ReportReward(i / 100f, key);
 
                     System.Threading.Thread.Sleep(1);
                 }

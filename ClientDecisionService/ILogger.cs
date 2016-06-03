@@ -4,8 +4,8 @@
 
     public interface ILogger 
     {
-        void ReportReward(UniqueEventID uniqueKey, float reward);
-        
-        void ReportOutcome(UniqueEventID uniqueKey, object outcome);
+        void ReportReward(string uniqueKey, float reward);
+
+        void ReportOutcome(string uniqueKey, object outcome);
     }
 }

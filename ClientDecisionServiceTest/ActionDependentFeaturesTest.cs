@@ -37,7 +37,7 @@ namespace ClientDecisionServiceTest
                 for (int i = 1; i <= 100; i++)
                 {
                     var adfContext = new TestADFContext(i);
-                    int[] action = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, adfContext);
+                    int[] action = ds.ChooseAction(uniqueKey, adfContext);
 
                     Assert.AreEqual(i, action.Length);
 
@@ -47,7 +47,7 @@ namespace ClientDecisionServiceTest
                     // verify the actions are in the expected range
                     Assert.AreEqual((i * (i + 1)) / 2, action.Sum(a => a));
 
-                    ds.ReportReward(i / 100f, new UniqueEventID { Key = uniqueKey });
+                    ds.ReportReward(i / 100f, uniqueKey);
                 }
             }
             Assert.AreEqual(200, joinServer.EventBatchList.Sum(b => b.ExperimentalUnitFragments.Count));
@@ -93,7 +93,7 @@ namespace ClientDecisionServiceTest
                     int numActions = rg.Next(5, 20);
                     var context = TestADFContextWithFeatures.CreateRandom(numActions, rg);
 
-                    int[] action = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, context);
+                    int[] action = ds.ChooseAction(uniqueKey, context);
 
                     Assert.AreEqual(numActions, action.Length);
 
@@ -103,7 +103,7 @@ namespace ClientDecisionServiceTest
                     // verify the actions are in the expected range
                     Assert.AreEqual((numActions * (numActions + 1)) / 2, action.Sum(a => a));
 
-                    ds.ReportReward(i / 100f, new UniqueEventID { Key = uniqueKey });
+                    ds.ReportReward(i / 100f, uniqueKey);
                 }
             }
             Assert.AreEqual(200, joinServer.EventBatchList.Sum(b => b.ExperimentalUnitFragments.Count));

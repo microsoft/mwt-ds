@@ -57,12 +57,12 @@ namespace ClientDecisionServiceTest
 
                     DateTime timeStamp = DateTime.UtcNow;
 
-                    int action = ds.ChooseAction(new UniqueEventID { Key = uniqueKey }, context);
+                    int action = ds.ChooseAction(uniqueKey, context);
 
                     // verify the actions are in the expected range
                     Assert.IsTrue(action >= 1 && action <= numActions);
 
-                    ds.ReportReward(i / 100f, new UniqueEventID { Key = uniqueKey });
+                    ds.ReportReward(i / 100f, uniqueKey);
                 }
             }
 

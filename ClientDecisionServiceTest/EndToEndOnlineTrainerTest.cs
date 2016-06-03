@@ -28,7 +28,7 @@ namespace ClientDecisionServiceTest
 
             for (int i = 0; i < numberOfEvents; i++)
             {
-                var key = new UniqueEventID() { Key = Guid.NewGuid().ToString(), TimeStamp = DateTime.UtcNow };
+                var key = Guid.NewGuid().ToString();
 
                 var featureIndex = i % features.Length;
 
@@ -143,7 +143,7 @@ namespace ClientDecisionServiceTest
 
                 for (i = 0; i < 1024; i++)
                 {
-                    var key = new UniqueEventID() { Key = Guid.NewGuid().ToString(), TimeStamp = DateTime.UtcNow };
+                    var key = Guid.NewGuid().ToString();
 
                     var featureIndex = i % features.Length;
 

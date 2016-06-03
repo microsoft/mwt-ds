@@ -44,8 +44,8 @@ namespace ClientDecisionServiceSample
                     // if 
                     var contextJson = JsonConvert.SerializeObject(context);
 
-                    int[] action = service.ChooseAction(new UniqueEventID { Key = key, TimeStamp = timeStamp }, contextJson);
-                    service.ReportReward(i / 100f, new UniqueEventID { Key = key, TimeStamp = timeStamp });
+                    int[] action = service.ChooseAction(key, contextJson);
+                    service.ReportReward(i / 100f, key);
 
                     System.Threading.Thread.Sleep(1);
                 }

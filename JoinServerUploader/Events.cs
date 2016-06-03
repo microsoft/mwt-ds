@@ -16,12 +16,6 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// </summary>
         [JsonProperty(PropertyName = "EventId")]
         string Key { get; set; }
-
-        /// <summary>
-        /// The unique time stamp of this event.
-        /// </summary>
-        [JsonProperty]
-        DateTime TimeStamp { get; set; }
     }
 
     /// <summary>
@@ -36,11 +30,6 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// </summary>
         public string Key { get; set; }
 
-        /// <summary>
-        /// Gets or sets the time stamp of the event.
-        /// </summary>
-        public DateTime TimeStamp { get; set; }
-
         // int, int[]
         public object Value { get; set; }
 
@@ -54,23 +43,17 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
 
         public static Interaction CreateEpsilonGreedy<TContext>(string key, TContext context, int action, float probability)
         {
-            return Interaction.CreateEpsilonGreedy(new UniqueEventID { Key = key }, context, action, probability);
-        }
-
-        public static Interaction CreateEpsilonGreedy<TContext>(UniqueEventID eventId, TContext context, int action, float probability)
-        {
-            return Interaction.Create(eventId, context, action, new GenericExplorerState { Probability = probability });
+            return Interaction.Create(key, context, action, new GenericExplorerState { Probability = probability });
         }
         
         // TODO: add other exploration types
 
         internal static Interaction Create<TAction, TContext>(
-            UniqueEventID eventId, TContext context, TAction value, object exploreState)
+            string key, TContext context, TAction value, object exploreState)
         {
             return new Interaction 
             { 
-                Key = eventId.Key,
-                TimeStamp = eventId.TimeStamp,
+                Key = key,
                 Context = context,
                 ExplorerState = exploreState,
                 Value = value
@@ -88,11 +71,6 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// Gets or sets the unique experimental unit key that this event belongs to.
         /// </summary>
         public string Key { get; set; }
-
-        /// <summary>
-        /// Gets or sets the time stamp of the event.
-        /// </summary>
-        public DateTime TimeStamp { get; set; }
 
         /// <summary>
         /// Gets or sets the value of the observation.

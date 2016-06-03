@@ -34,9 +34,6 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
             writer.WritePropertyName("EventId");
             writer.WriteValue(v.Key);
 
-            writer.WritePropertyName("TimeStamp");
-            writer.WriteValue(v.TimeStamp);
-
             if (v.Value != null)
             {
                 writer.WritePropertyName("a");

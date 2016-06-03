@@ -25,7 +25,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         /// <param name="uniqueKey">A user-defined identifer for the decision.</param>
         /// <param name="modelId">Optional; The Id of the model used to make predictions/decisions, if any exists at decision time.</param>
         /// <param name="isExplore">Optional; Indicates whether the decision was generated purely from exploration (vs. exploitation).</param>
-        void Record(TContext context, TAction value, object explorerState, object mapperState, UniqueEventID uniqueKey); 
+        void Record(TContext context, TAction value, object explorerState, object mapperState, string uniqueKey); 
     }
 
     public interface IExplorer<TAction, TPolicyValue>

@@ -53,12 +53,11 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             this.perfCounters.ReportObservationExampleQueue(inputQueueSize);
         }
 
-        public void Record(TContext context, TAction value, object explorerState, object mapperState, UniqueEventID uniqueKey)
+        public void Record(TContext context, TAction value, object explorerState, object mapperState, string uniqueKey)
         {
             this.interactionEventUploader.Upload(new Interaction
             {
-                Key = uniqueKey.Key,
-                TimeStamp = uniqueKey.TimeStamp,
+                Key = uniqueKey,
                 Context = context, 
                 Value = value,
                 ExplorerState = explorerState,
@@ -66,22 +65,20 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             });
         }
 
-        public void ReportReward(UniqueEventID uniqueKey, float reward)
+        public void ReportReward(string uniqueKey, float reward)
         {
             (this.observationEventUploader ?? this.interactionEventUploader).Upload(new Observation
             {
-                Key = uniqueKey.Key,
-                TimeStamp = uniqueKey.TimeStamp,
+                Key = uniqueKey,
                 Value = new { Reward = reward }
             });
         }
 
-        public void ReportOutcome(UniqueEventID uniqueKey, object outcome)
+        public void ReportOutcome(string uniqueKey, object outcome)
         {
             (this.observationEventUploader ?? this.interactionEventUploader).Upload(new Observation
             {
-                Key = uniqueKey.Key,
-                TimeStamp = uniqueKey.TimeStamp,
+                Key = uniqueKey,
                 Value = outcome
             });
         }
