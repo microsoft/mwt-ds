@@ -72,7 +72,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             (this.observationEventUploader ?? this.interactionEventUploader).Upload(new Observation
             {
                 Key = uniqueKey,
-                Value = new { Reward = reward }
+                Value = reward
             });
         }
 
