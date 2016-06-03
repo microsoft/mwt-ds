@@ -40,7 +40,7 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// <summary>
         /// Constructs an uploader object.
         /// </summary>
-        public EventUploader() : this(null, null, null) { }
+        public EventUploader(bool developmentMode) : this(null, null, null, developmentMode) { }
 
         /// <summary>
         /// Constructs an uploader object.
@@ -48,7 +48,8 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// <param name="batchConfig">Optional; The batching configuration that controls the buffer size.</param>
         /// <param name="loggingServiceBaseAddress">Optional; The address of a custom HTTP logging service. When null, the join service address is used.</param>
         /// <param name="httpClient">Optional; The custom <see cref="IHttpClient"/> object to handle HTTP requests.</param>
-        public EventUploader(BatchingConfiguration batchConfig = null, string loggingServiceBaseAddress = null, IHttpClient httpClient = null) : base(batchConfig)
+        public EventUploader(BatchingConfiguration batchConfig = null, string loggingServiceBaseAddress = null, IHttpClient httpClient = null, bool developmentMode = false) 
+            : base(batchConfig, developmentMode)
         {
             this.loggingServiceBaseAddress = loggingServiceBaseAddress ?? ServiceConstants.JoinAddress;
 

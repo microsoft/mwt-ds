@@ -19,18 +19,34 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// <summary>
         /// Constructor with default configuration values set.
         /// </summary>
-        public BatchingConfiguration()
+        public BatchingConfiguration(bool developmentMode = false)
         {
-            this.MaxBufferSizeInBytes = 4 * 1024 * 1024;
-            this.MaxDuration = TimeSpan.FromSeconds(5);
-            this.MaxEventCount = 1024;
-            // the number of events buffered is MaxEventCount * MaxUploadQueueCapacity * MaxDegreeOfSerializationParallelism
-            this.MaxUploadQueueCapacity = 512;
-            this.PartitionCount = 16;
-            this.UploadRetryPolicy = BatchUploadRetryPolicy.ExponentialRetry;
-            this.MaxDegreeOfSerializationParallelism = Environment.ProcessorCount;
-            this.DroppingPolicy = new DroppingPolicy();
-            this.ReUseTcpConnection = true;
+            if (developmentMode)
+            {
+                this.MaxBufferSizeInBytes = 1;
+                this.MaxDuration = TimeSpan.FromMilliseconds(1);
+                this.MaxEventCount = 1;
+                // the number of events buffered is MaxEventCount * MaxUploadQueueCapacity * MaxDegreeOfSerializationParallelism
+                this.MaxUploadQueueCapacity = 1;
+                this.PartitionCount = 1;
+                this.UploadRetryPolicy = BatchUploadRetryPolicy.ExponentialRetry;
+                this.MaxDegreeOfSerializationParallelism = 1;
+                this.DroppingPolicy = new DroppingPolicy();
+                this.ReUseTcpConnection = true;
+            }
+            else
+            {
+                this.MaxBufferSizeInBytes = 4 * 1024 * 1024;
+                this.MaxDuration = TimeSpan.FromSeconds(5);
+                this.MaxEventCount = 1024;
+                // the number of events buffered is MaxEventCount * MaxUploadQueueCapacity * MaxDegreeOfSerializationParallelism
+                this.MaxUploadQueueCapacity = 512;
+                this.PartitionCount = 16;
+                this.UploadRetryPolicy = BatchUploadRetryPolicy.ExponentialRetry;
+                this.MaxDegreeOfSerializationParallelism = Environment.ProcessorCount;
+                this.DroppingPolicy = new DroppingPolicy();
+                this.ReUseTcpConnection = true;
+            }
         }
 
         /// <summary>

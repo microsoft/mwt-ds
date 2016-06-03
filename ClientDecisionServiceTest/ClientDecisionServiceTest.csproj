@@ -122,6 +122,7 @@
     <Compile Include="AzureStorageEmulatorManager.cs" />
     <Compile Include="AzureStorageHelper.cs" />
     <Compile Include="Common.cs" />
+    <Compile Include="DevelopmentModeTest.cs" />
     <Compile Include="EndToEndOnlineTrainerTest.cs" />
     <Compile Include="EpsilonGreedySlateTest.cs" />
     <Compile Include="InitialFullExploration.cs" />

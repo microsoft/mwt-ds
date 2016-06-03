@@ -107,7 +107,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         public static DecisionServiceClient<TContext, int, int> With<TContext>(this DecisionServiceClientSpecification<int> spec, ITypeInspector typeInspector = null)
         {
             spec.Config.UseJsonContext = false;
-            return spec.CreateClient(new VWPolicy<TContext>(spec.Config.ModelStream, typeInspector));
+            return spec.CreateClient(new VWPolicy<TContext>(spec.Config.ModelStream, typeInspector, spec.Config.DevelopmentMode));
         }
 
         /// <summary>
@@ -132,7 +132,8 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                     new VWRanker<TContext, TActionDependentFeature>(
 						getContextFeaturesFunc,
                         spec.Config.ModelStream, 
-                        typeInspector));
+                        typeInspector,
+                        spec.Config.DevelopmentMode));
         }
     }
 }

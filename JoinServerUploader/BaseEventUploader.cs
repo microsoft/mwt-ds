@@ -39,12 +39,12 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// Constructs an uploader object.
         /// </summary>
         /// <param name="batchConfig">Optional; The batching configuration that controls the buffer size.</param>
-        public BaseEventUploader(BatchingConfiguration batchConfig = null)
+        public BaseEventUploader(BatchingConfiguration batchConfig = null, bool developmentMode = false)
         {
             this.cancellationTokenSource = new CancellationTokenSource();
             this.cancellationToken = this.cancellationTokenSource.Token;
 
-            this.batchConfig = batchConfig ?? new BatchingConfiguration();
+            this.batchConfig = batchConfig ?? new BatchingConfiguration(developmentMode);
 
             this.eventSource = new TransformBlock<IEvent, TTransformedEvent>(
                 ev => TransformEventInternal(ev),

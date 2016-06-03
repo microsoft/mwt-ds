@@ -13,6 +13,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
     {
         protected ITypeInspector typeInspector;
         protected TPool vwPool;
+        protected bool developmentMode;
 
         /// <summary>
         /// Constructor using a memory stream.
@@ -20,11 +21,13 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         /// <param name="vwModelStream">The VW model memory stream.</param>
         protected VWBaseContextMapper(
             Stream vwModelStream = null,
-            ITypeInspector typeInspector = null)
+            ITypeInspector typeInspector = null,
+            bool developmentMode = false)
         {
             if (typeInspector == null)
                 typeInspector = JsonTypeInspector.Default;
             this.typeInspector = typeInspector;
+            this.developmentMode = developmentMode;
             this.Update(vwModelStream);
         }
 
@@ -42,7 +45,9 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                     {
                         ModelStream = modelStream,
                         MaxExampleCacheSize = 1024,
-                        TypeInspector = this.typeInspector
+                        TypeInspector = this.typeInspector,
+                        EnableStringExampleGeneration = this.developmentMode,
+                        EnableStringFloatCompact = this.developmentMode
                     });
 
             if (this.vwPool == null)

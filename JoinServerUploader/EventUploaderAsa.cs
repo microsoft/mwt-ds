@@ -34,9 +34,10 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         public EventUploaderASA
         (
             string eventHubConnectionString, 
-            BatchingConfiguration batchConfig = null
+            BatchingConfiguration batchConfig = null,
+            bool developmentMode = false
         ) 
-        : base(batchConfig)
+        : base(batchConfig, developmentMode)
         {
             this.connectionString = eventHubConnectionString;
             

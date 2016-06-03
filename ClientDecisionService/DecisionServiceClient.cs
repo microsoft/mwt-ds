@@ -50,10 +50,10 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 throw new ArgumentNullException("explorer");
 
             if (config.InteractionUploadConfiguration == null)
-                config.InteractionUploadConfiguration = new JoinUploader.BatchingConfiguration();
+                config.InteractionUploadConfiguration = new JoinUploader.BatchingConfiguration(config.DevelopmentMode);
 
             if (config.ObservationUploadConfiguration == null)
-                config.ObservationUploadConfiguration = new JoinUploader.BatchingConfiguration();
+                config.ObservationUploadConfiguration = new JoinUploader.BatchingConfiguration(config.DevelopmentMode);
 
             this.config = config;
             string appId = string.Empty;
@@ -76,7 +76,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
                 if (this.recorder == null)
                 {
-                    var joinServerLogger = new JoinServiceLogger<TContext, TAction>(metaData.ApplicationID); // TODO: check token remove
+                    var joinServerLogger = new JoinServiceLogger<TContext, TAction>(metaData.ApplicationID, config.DevelopmentMode); // TODO: check token remove
                     switch (config.JoinServerType)
                     {
                         case JoinServerType.CustomSolution:

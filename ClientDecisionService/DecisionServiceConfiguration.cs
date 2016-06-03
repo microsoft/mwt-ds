@@ -17,6 +17,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             }
 
             this.SettingsBlobUri = settingsBlobUri;
+            this.LogAppInsights = true;
         }
 
         /// <summary>
@@ -31,7 +32,16 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
         #region Optional Parameters
 
+        /// <summary>
+        /// Whether to log diagnostic trace messages to Application Insights associated with the application.
+        /// </summary>
         public bool LogAppInsights { get; set; }
+
+        /// <summary>
+        /// In development mode, more diagnostics messages such as example contexts will be logged.
+        /// Batch upload is turned off by default but honors user-specified configuration.
+        /// </summary>
+        public bool DevelopmentMode { get; set; }
 
         /// <summary>
         /// Whether the context provided is already serialized in JSON format.

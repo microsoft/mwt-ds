@@ -9,12 +9,14 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
     {
         private readonly PerformanceCounters perfCounters;
         private readonly string applicationID;
+        private readonly bool developmentMode;
         private IEventUploader interactionEventUploader;
         private IEventUploader observationEventUploader;
 
-        internal JoinServiceLogger(string applicationID)
+        internal JoinServiceLogger(string applicationID, bool developmentMode = false)
         {
             this.applicationID = applicationID;
+            this.developmentMode = developmentMode;
             this.perfCounters = new PerformanceCounters(applicationID);
         }
 
@@ -22,7 +24,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             string loggingServiceBaseAddress,
             BatchingConfiguration batchConfig)
         {
-            var eventUploader = new EventUploader(batchConfig, loggingServiceBaseAddress);
+            var eventUploader = new EventUploader(batchConfig, loggingServiceBaseAddress, developmentMode: this.developmentMode);
             eventUploader.InitializeWithToken(this.applicationID);
 
             this.interactionEventUploader = eventUploader;
@@ -37,8 +39,8 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             interactionBatchConfig.SuccessHandler += interactionBatchConfig_SuccessHandler;
             observationsBatchConfig.SuccessHandler += observationBatchConfig_SuccessHandler;
 
-            this.interactionEventUploader = new EventUploaderASA(interactionEventHubConnectionString, interactionBatchConfig);
-            this.observationEventUploader = new EventUploaderASA(observationEventHubConnectionString, observationsBatchConfig);
+            this.interactionEventUploader = new EventUploaderASA(interactionEventHubConnectionString, interactionBatchConfig, developmentMode: this.developmentMode);
+            this.observationEventUploader = new EventUploaderASA(observationEventHubConnectionString, observationsBatchConfig, developmentMode: this.developmentMode);
         }
 
         void interactionBatchConfig_SuccessHandler(object source, int eventCount, int sumSize, int inputQueueSize)
