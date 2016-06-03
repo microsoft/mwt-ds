@@ -67,6 +67,11 @@ namespace Microsoft.Research.MultiWorldTesting.Contract
         /// The publicly accessible Uri of the model blob that clients can check for update.
         /// </summary>
         public string ModelBlobUri { get; set; }
+
+        /// <summary>
+        /// The instrumentation key of Application Insights used for diagnostics & event logging.
+        /// </summary>
+        public string AppInsightsKey { get; set; }
     }
 
     public class ApplicationExtraMetadata

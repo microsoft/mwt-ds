@@ -9,7 +9,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
     public class DecisionServiceConfiguration
     {
-        public DecisionServiceConfiguration(string settingsBlobUri, string appInsightsInstrumentationKey = null)
+        public DecisionServiceConfiguration(string settingsBlobUri)
         {
             if (settingsBlobUri == null)
             {
@@ -17,10 +17,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             }
 
             this.SettingsBlobUri = settingsBlobUri;
-            if (appInsightsInstrumentationKey != null)
-            {
-                Trace.Listeners.Add(new ApplicationInsights.TraceListener.ApplicationInsightsTraceListener(appInsightsInstrumentationKey));
-            }
         }
 
         /// <summary>
@@ -34,6 +30,8 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         public Stream ModelStream { get; set; }
 
         #region Optional Parameters
+
+        public bool LogAppInsights { get; set; }
 
         /// <summary>
         /// Whether the context provided is already serialized in JSON format.

@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using VW;
@@ -24,6 +25,11 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             if (!spec.Config.OfflineMode)
             {
                 metaData = ApplicationMetadataUtil.DownloadMetadata<ApplicationClientMetadata>(spec.Config.SettingsBlobUri);
+
+                if (spec.Config.LogAppInsights)
+                {
+                    Trace.Listeners.Add(new ApplicationInsights.TraceListener.ApplicationInsightsTraceListener(metaData.AppInsightsKey));
+                }
 
                 if (spec.NumberOfActions != null)
                     numberOfActions = (int)spec.NumberOfActions;
@@ -60,7 +66,13 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             ApplicationClientMetadata metaData = null;
 
             if (!spec.Config.OfflineMode)
+            {
                 metaData = ApplicationMetadataUtil.DownloadMetadata<ApplicationClientMetadata>(spec.Config.SettingsBlobUri);
+                if (spec.Config.LogAppInsights)
+                {
+                    Trace.Listeners.Add(new ApplicationInsights.TraceListener.ApplicationInsightsTraceListener(metaData.AppInsightsKey));
+                }
+            }
 
 			// have sensible defaults
             return new DecisionServiceClient<TContext, int[], int[]>(
