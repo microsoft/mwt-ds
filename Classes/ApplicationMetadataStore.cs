@@ -69,7 +69,8 @@ namespace DecisionServicePrivateWeb.Classes
                     TrainArguments = ConfigurationManager.AppSettings[AKTrainArguments],
                     TrainFrequency = TrainFrequency.High, // TODO: update depending on deployment option
                     ModelBlobUri = modelBlobContainer.Uri.ToString() + "/" + ApplicationBlobConstants.LatestModelBlobName,
-                    SettingsBlobUri = settingsBlobContainer.Uri.ToString() + "/" + ApplicationBlobConstants.LatestClientSettingsBlobName
+                    SettingsBlobUri = settingsBlobContainer.Uri.ToString() + "/" + ApplicationBlobConstants.LatestClientSettingsBlobName,
+                    AppInsightsKey = ConfigurationManager.AppSettings[AKAppInsightsKey]
                 };
                 ApplicationMetadataStore.UpdateMetadata(clientSettingsBlob, extraSettingsBlob, appSettings);
 
@@ -116,7 +117,8 @@ namespace DecisionServicePrivateWeb.Classes
                     EventHubObservationConnectionString = appSettings.ObserEventHubSendConnectionString,
                     IsExplorationEnabled = appSettings.IsExplorationEnabled,
                     ModelBlobUri = appSettings.ModelBlobUri,
-                    TrainArguments = appSettings.TrainArguments
+                    TrainArguments = appSettings.TrainArguments,
+                    AppInsightsKey = appSettings.AppInsightsKey
                 },
                 new ApplicationExtraMetadata
                 {

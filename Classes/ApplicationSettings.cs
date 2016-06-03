@@ -7,6 +7,7 @@ namespace DecisionServicePrivateWeb.Classes
         public string SubscriptionId { get; set; }
 
         public string AzureResourceGroupName { get; set; }
+        public string AppInsightsKey { get; set; }
         public DecisionType DecisionType { get; set; }
 
         public int? NumActions { get; set; }
