@@ -56,7 +56,6 @@
     <Compile Include="MultiActionHelper.cs" />
     <Compile Include="TopSlotExplorer.cs" />
     <Compile Include="UniformRandomExploration.cs" />
-    <Compile Include="VariableActionHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="GitLink, Version=2.2.0.0, Culture=neutral, processorArchitecture=MSIL">
