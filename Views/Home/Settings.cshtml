@@ -74,12 +74,6 @@
                     }
                 </div>
             </div>
-            <div id="div-sv-@item.Name" class="row" style="display:none;">
-                <div class="col-md-12 glossary">
-                    <h4 class="ds-title">@item.DisplayName</h4>
-                    <p>@item.HelpText</p>
-                </div>
-            </div>
         }
         <div class="form-group">
             <label class="col-sm-2 control-label ds-label"></label>
@@ -87,5 +81,15 @@
                 <button class="btn btn-primary outline">Save</button>
             </div>
         </div>
+
+        foreach (var item in Model)
+        {
+            <div id="div-sv-@item.Name" class="row glossary" style="display:none;">
+                <div class="col-md-12">
+                    <h4 class="ds-title">@item.DisplayName</h4>
+                    <p>@item.HelpText</p>
+                </div>
+            </div>
+        }
     }
 </div>
