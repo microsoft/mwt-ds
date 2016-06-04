@@ -230,7 +230,7 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="HelpText.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
+      <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>HelpText.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>

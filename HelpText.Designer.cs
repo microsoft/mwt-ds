@@ -22,7 +22,7 @@ namespace DecisionServicePrivateWeb {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class HelpText {
+    public class HelpText {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace DecisionServicePrivateWeb {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("DecisionServicePrivateWeb.HelpText", typeof(HelpText).Assembly);
@@ -51,7 +51,7 @@ namespace DecisionServicePrivateWeb {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -61,198 +61,180 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The name of this application which is set to the Azure Resource Group name..
+        ///   Looks up a localized string similar to Application Id ::: The name of this application which is set to the Azure Resource Group name..
         /// </summary>
-        internal static string ApplicationId {
+        public static string ApplicationId {
             get {
                 return ResourceManager.GetString("ApplicationId", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ApplicationInsightsInstrumentationKey.
+        ///   Looks up a localized string similar to Application Insights Instrumentation Key ::: ApplicationInsightsInstrumentationKey.
         /// </summary>
-        internal static string ApplicationInsightsInstrumentationKey {
+        public static string ApplicationInsightsInstrumentationKey {
             get {
                 return ResourceManager.GetString("ApplicationInsightsInstrumentationKey", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ASAEvalName.
+        ///   Looks up a localized string similar to Azure Stream Analytics Policy Evaluation ::: ASAEvalName.
         /// </summary>
-        internal static string ASAEvalName {
+        public static string ASAEvalName {
             get {
                 return ResourceManager.GetString("ASAEvalName", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ASAJoinName.
+        ///   Looks up a localized string similar to Azure Stream Analytics Join Server ::: ASAJoinName.
         /// </summary>
-        internal static string ASAJoinName {
+        public static string ASAJoinName {
             get {
                 return ResourceManager.GetString("ASAJoinName", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to AzureResourceGroupName.
+        ///   Looks up a localized string similar to Azure Resource Group ::: AzureResourceGroupName.
         /// </summary>
-        internal static string AzureResourceGroupName {
+        public static string AzureResourceGroupName {
             get {
                 return ResourceManager.GetString("AzureResourceGroupName", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to AzureStorageConnectionString.
+        ///   Looks up a localized string similar to Azure Storage Connection String ::: AzureStorageConnectionString.
         /// </summary>
-        internal static string AzureStorageConnectionString {
+        public static string AzureStorageConnectionString {
             get {
                 return ResourceManager.GetString("AzureStorageConnectionString", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The Azure Subscription Id used for this deployment..
+        ///   Looks up a localized string similar to Azure Subscription Id ::: The Azure Subscription Id used for this deployment..
         /// </summary>
-        internal static string AzureSubscriptionId {
+        public static string AzureSubscriptionId {
             get {
                 return ResourceManager.GetString("AzureSubscriptionId", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to AzureSubscriptionName.
+        ///   Looks up a localized string similar to Decision Type ::: Whether the decision uses regular features or action-dependent features..
         /// </summary>
-        internal static string AzureSubscriptionName {
-            get {
-                return ResourceManager.GetString("AzureSubscriptionName", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Whether the decision uses regular features or action-dependent features..
-        /// </summary>
-        internal static string DecisionType {
+        public static string DecisionType {
             get {
                 return ResourceManager.GetString("DecisionType", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to EventHubInteractionConnectionString.
+        ///   Looks up a localized string similar to Event Hub Interaction Connection String ::: EventHubInteractionConnectionString.
         /// </summary>
-        internal static string EventHubInteractionConnectionString {
+        public static string EventHubInteractionConnectionString {
             get {
                 return ResourceManager.GetString("EventHubInteractionConnectionString", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to EventHubObservationConnectionString.
+        ///   Looks up a localized string similar to Event Hub Observation Connection String ::: EventHubObservationConnectionString.
         /// </summary>
-        internal static string EventHubObservationConnectionString {
+        public static string EventHubObservationConnectionString {
             get {
                 return ResourceManager.GetString("EventHubObservationConnectionString", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ExperimentalUnitDuration.
+        ///   Looks up a localized string similar to Join Timeout (in seconds) ::: ExperimentalUnitDuration.
         /// </summary>
-        internal static string ExperimentalUnitDuration {
+        public static string ExperimentalUnitDuration {
             get {
                 return ResourceManager.GetString("ExperimentalUnitDuration", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to IsExplorationEnabled.
+        ///   Looks up a localized string similar to Enable Exploration ::: IsExplorationEnabled.
         /// </summary>
-        internal static string IsExplorationEnabled {
+        public static string IsExplorationEnabled {
             get {
                 return ResourceManager.GetString("IsExplorationEnabled", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ModelIdList.
+        ///   Looks up a localized string similar to Number of Actions ::: NumActions.
         /// </summary>
-        internal static string ModelIdList {
-            get {
-                return ResourceManager.GetString("ModelIdList", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to NumActions.
-        /// </summary>
-        internal static string NumActions {
+        public static string NumActions {
             get {
                 return ResourceManager.GetString("NumActions", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to OnlineTrainerName.
+        ///   Looks up a localized string similar to Online Trainer ::: OnlineTrainerName.
         /// </summary>
-        internal static string OnlineTrainerName {
+        public static string OnlineTrainerName {
             get {
                 return ResourceManager.GetString("OnlineTrainerName", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SelectedModelId.
+        ///   Looks up a localized string similar to Trained Models ::: SelectedModelId.
         /// </summary>
-        internal static string SelectedModelId {
+        public static string SelectedModelId {
             get {
                 return ResourceManager.GetString("SelectedModelId", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SettingsBlobUri.
+        ///   Looks up a localized string similar to Settings Blob Address ::: SettingsBlobUri.
         /// </summary>
-        internal static string SettingsBlobUri {
+        public static string SettingsBlobUri {
             get {
                 return ResourceManager.GetString("SettingsBlobUri", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to TrainArguments.
+        ///   Looks up a localized string similar to VW Training Arguments ::: TrainArguments.
         /// </summary>
-        internal static string TrainArguments {
+        public static string TrainArguments {
             get {
                 return ResourceManager.GetString("TrainArguments", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to TrainFrequency.
+        ///   Looks up a localized string similar to Training Frequency ::: TrainFrequency.
         /// </summary>
-        internal static string TrainFrequency {
+        public static string TrainFrequency {
             get {
                 return ResourceManager.GetString("TrainFrequency", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to WebApiName.
+        ///   Looks up a localized string similar to REST Endpoint ::: WebApiName.
         /// </summary>
-        internal static string WebApiName {
+        public static string WebApiAddress {
             get {
-                return ResourceManager.GetString("WebApiName", resourceCulture);
+                return ResourceManager.GetString("WebApiAddress", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to WebManageName.
+        ///   Looks up a localized string similar to Management Center Address ::: WebManageName.
         /// </summary>
-        internal static string WebManageName {
+        public static string WebManageName {
             get {
                 return ResourceManager.GetString("WebManageName", resourceCulture);
             }

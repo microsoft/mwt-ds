@@ -1,8 +1,9 @@
-﻿@using DecisionServicePrivateWeb.Models
+﻿@using DecisionServicePrivateWeb;
+@using DecisionServicePrivateWeb.Models
 @using DecisionServicePrivateWeb.Controllers
 @using Microsoft.Research.MultiWorldTesting.Contract
 @using System.Text.RegularExpressions;
-@model SettingsViewModel
+@model List<SettingItemViewModel>
 @{
     ViewBag.Title = "Settings";
 }
@@ -11,308 +12,80 @@
 <div class="container-fluid">
     @using (Html.BeginForm("Settings", "Home", FormMethod.Post, new { @class = "form-horizontal ds-form", role = "form" }))
     {
-        // TODO: refactor
-        string[] cidAppId = { "sv-app-id", "Application Id" };
-        string[] cidAzureRg = { "sv-azure-rg", "Azure Resource Group" };
-        string[] cidStorageConnString = { "sv-conn-string", "Azure Storage Connection String" };
-        string[] cidAppInsights = { "sv-app-insights", "Application Insights" };
-        string[] cidEhInterConnString = { "sv-eh-inter-conn-string", "Event Hub Interaction Connection String" };
-        string[] cidEhObserConnString = { "sv-eh-obser-conn-string", "Event Hub Observation Connection String" };
-        string[] cidAsaJoin = { "sv-asa-join", "Azure Stream Analytics Join Server" };
-        string[] cidAsaEval = { "sv-asa-eval", "Azure Stream Analytics Policy Evaluation" };
-        string[] cidOnlineTrainer = { "sv-online-trainer", "Online Trainer" };
-        string[] cidDecisionType = { "sv-decision-type", "Decision Type" };
-        string[] cidNumActions = { "sv-num-actions", "Number of Actions" };
-        string[] cidTrainFreq = { "sv-train-freq", "Training Frequency" };
-        string[] cidTrainArgs = { "sv-train-args", "VW Training Arguments" };
-        string[] cidSelectedModel = { "sv-selected-model", "Trained Models" };
-        string[] cidEnableExplore = { "sv-enable-explore", "Enable Exploration" };
-        string[] cidExpDuration = { "sv-exp-duration", "Join Timeout (in seconds)" };
-        string[] cidSettingsBlobUri = { "sv-settings-blob-uri", "Settings Blob Address" };
-
-        string azureResourceGroupLink = $"https://ms.portal.azure.com/#asset/HubsExtension/ResourceGroups/subscriptions/{Model.AzureSubscriptionId}/resourceGroups/{Model.AzureResourceGroupName}";
-        string azureStorageName = Regex.Match(Model.AzureStorageConnectionString, ".*AccountName=(.*);AccountKey.*").Groups[1].Value;
-        string azureStorageBlobLink = $"https://ms.portal.azure.com/#blade/Microsoft_Azure_Storage/ContainersBlade/storageAccountId/%2Fsubscriptions%2F{Model.AzureSubscriptionId}%2FresourceGroups%2F{Model.AzureResourceGroupName}%2Fproviders%2FMicrosoft.Storage%2FstorageAccounts%2F{azureStorageName}";
-        string appInsightsLink = $"https://ms.portal.azure.com/#blade/AppInsightsExtension/SearchBlade/ComponentId/%7B%22SubscriptionId%22%3A%22{Model.AzureSubscriptionId}%22%2C%22ResourceGroup%22%3A%22{Model.AzureResourceGroupName}%22%2C%22Name%22%3A%22{Model.AzureResourceGroupName + "-appinsights"}%22%7D/InitialFilter/%7B%22eventTypes%22%3A%5B4%2C1%2C3%2C5%2C2%2C6%5D%2C%22typeFacets%22%3A%7B%7D%2C%22isPermissive%22%3Afalse%7D/InitialTime/%7B%22durationMs%22%3A43200000%2C%22endTime%22%3Anull%2C%22isInitialTime%22%3Atrue%2C%22grain%22%3A1%7D/InitialQueryText//ConfigurationId/blankSearch%3A";
-        string asaJoinLink = $"https://ms.portal.azure.com/#resource/subscriptions/{Model.AzureSubscriptionId}/resourceGroups/{Model.AzureResourceGroupName}/providers/Microsoft.StreamAnalytics/streamingjobs/{Model.ASAJoinName}";
-        string asaEvalLink = $"https://ms.portal.azure.com/#resource/subscriptions/{Model.AzureSubscriptionId}/resourceGroups/{Model.AzureResourceGroupName}/providers/Microsoft.StreamAnalytics/streamingjobs/{Model.ASAEvalName}";
-        string onlineTrainerLink = $"https://manage.windowsazure.com/microsoft.onmicrosoft.com#Workspaces/CloudServicesExtension/CloudService/{Model.OnlineTrainerName}/configure";
-
-        var svm = Model;
-
         @Html.AntiForgeryToken()
 
-        <div class="form-group">
-            <label for="@cidAppId[0]" class="col-sm-2 control-label ds-label">@cidAppId[1]</label>
-            <div class="col-sm-10">
-                <input type="text" readonly="readonly" style="display:inline;" class="form-control helptext-on-interaction" id="@cidAppId[0]" value="@svm.ApplicationId" />
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="@cidAzureRg[0]" class="col-sm-2 control-label ds-label">@cidAzureRg[1]</label>
-            <div class="col-sm-10">
-                <a id="@cidAzureRg[0]" class="btn btn-primary outline form-control helptext-on-interaction" href="@string.Format("https://ms.portal.azure.com/#asset/HubsExtension/ResourceGroups/subscriptions/{0}/resourceGroups/{1}", svm.AzureSubscriptionId, svm.AzureResourceGroupName)" target="_blank">@svm.AzureResourceGroupName</a>
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="@cidSettingsBlobUri[0]" class="col-sm-2 control-label ds-label">@cidSettingsBlobUri[1]</label>
-            <div class="col-sm-10">
-                <input type="text" readonly="readonly" style="display:inline;" class="form-control helptext-on-interaction" id="@cidSettingsBlobUri[0]" value="@svm.SettingsBlobUri" />
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="@cidStorageConnString[0]" class="col-sm-2 control-label ds-label">@cidStorageConnString[1]</label>
-            <div class="col-sm-10">
-                <input type="text" readonly="readonly" style="display:inline;" class="form-control helptext-on-interaction" id="@cidStorageConnString[0]" value="@svm.AzureStorageConnectionString" />
-                <a href="@azureStorageBlobLink" target="_blank" title="View Data">@Html.Partial("_OpenSvg")</a>
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="@cidAppInsights[0]" class="col-sm-2 control-label ds-label">@cidAppInsights[1]</label>
-            <div class="col-sm-10">
-                <input type="text" readonly="readonly" style="display:inline;" class="form-control helptext-on-interaction" id="@cidAppInsights[0]" value="@svm.ApplicationInsightsInstrumentationKey" />
-                <a href="@appInsightsLink" target="_blank" title="View Application Logs">@Html.Partial("_OpenSvg")</a>
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="@cidEhInterConnString[0]" class="col-sm-2 control-label ds-label">@cidEhInterConnString[1]</label>
-            <div class="col-sm-10">
-                <input type="text" readonly="readonly" style="display:inline;" class="form-control helptext-on-interaction" id="@cidEhInterConnString[0]" value="@svm.EventHubInteractionConnectionString" />
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="@cidEhObserConnString[0]" class="col-sm-2 control-label ds-label">@cidEhObserConnString[1]</label>
-            <div class="col-sm-10">
-                <input type="text" readonly="readonly" style="display:inline;" class="form-control helptext-on-interaction" id="@cidEhObserConnString[0]" value="@svm.EventHubObservationConnectionString" />
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="@cidAsaJoin[0]" class="col-sm-2 control-label ds-label">@cidAsaJoin[1]</label>
-            <div class="col-sm-10">
-                <input type="text" readonly="readonly" style="display:inline;" class="form-control helptext-on-interaction" id="@cidAsaJoin[0]" value="@svm.ASAJoinName" />
-                <a href="@asaJoinLink" target="_blank" title="View ASA Query">@Html.Partial("_OpenSvg")</a>
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="@cidAsaEval[0]" class="col-sm-2 control-label ds-label">@cidAsaEval[1]</label>
-            <div class="col-sm-10">
-                <input type="text" readonly="readonly" style="display:inline;" class="form-control helptext-on-interaction" id="@cidAsaEval[0]" value="@svm.ASAEvalName" />
-                <a href="@asaEvalLink" target="_blank" title="View ASA Query">@Html.Partial("_OpenSvg")</a>
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="@cidOnlineTrainer[0]" class="col-sm-2 control-label ds-label">@cidOnlineTrainer[1]</label>
-            <div class="col-sm-10">
-                <input type="text" readonly="readonly" style="display:inline;" class="form-control helptext-on-interaction" id="@cidOnlineTrainer[0]" value="@svm.OnlineTrainerName" />
-                <a href="@onlineTrainerLink" target="_blank" title="Configure The Online Trainer">@Html.Partial("_OpenSvg")</a>
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="@cidDecisionType[0]" class="col-sm-2 control-label ds-label">@cidDecisionType[1]</label>
-            <div class="col-sm-10">
-                <input type="text" readonly="readonly" style="display:inline;" class="form-control helptext-on-interaction" id="@cidDecisionType[0]" value="@HomeController.GetDecisionTypeString(svm.DecisionType)" />
-            </div>
-        </div>
-        if (svm.DecisionType == DecisionType.SingleAction)
+        foreach (var item in Model)
         {
+            if (item.IsVisible == false)
+            {
+                continue;
+            }
+            var readOnlyStyle = item.IsEditable == true ? string.Empty : "readonly=readonly";
             <div class="form-group">
-                <label for="@cidNumActions[0]" class="col-sm-2 control-label ds-label">@cidNumActions[1]</label>
+                <label for="@item.Name" class="col-sm-2 control-label ds-label">@item.DisplayName</label>
                 <div class="col-sm-10">
-                    <input type="text" readonly="readonly" style="display:inline;" class="form-control helptext-on-interaction" id="@cidNumActions[0]" value="@svm.NumActions.Value" />
+                    @if (item.IsSplotlightUrl == true)
+                    {
+                        <a id="@item.Name" class="btn btn-primary outline form-control helptext-on-interaction" href="@item.Url" target="_blank">@item.Value</a>
+                    }
+                    else
+                    {
+                        if (item.Value != null)
+                        {
+                            switch (item.Value.GetType().Name)
+                            {
+                                case "String":
+                                case "Int32":
+                                case "DecisionType":
+                                case "TrainFrequency":
+                                    <input type="text" @readOnlyStyle style="display:inline;" class="form-control helptext-on-interaction" id="@item.Name" name="@item.Name" value="@item.Value" />
+                                    break;
+                                case "Boolean":
+                                    @Html.CheckBox(item.Name, (bool)item.Value, new { @id = item.Name, @class = "helptext-on-interaction", @style = "display:inline" })
+                                    break;
+                                case "SettingBlobListViewModel":
+                                    var listView = (SettingBlobListViewModel)item.Value;
+                                    @Html.DropDownList(item.Name, listView.Items.Select(i => new SelectListItem
+                                        {
+                                            Value = i.Name,
+                                            Text = String.IsNullOrEmpty(i.LastModifiedRelativeTime) ? i.Name : i.Name + " - " + i.LastModifiedRelativeTime,
+                                            Selected = i.Name == listView.SelectedItem
+                                        }),
+                                        "Select a model",
+                                        new { @id = item.Name, @class = "form-control helptext-on-interaction", @style = "display:inline" })
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                        if (!string.IsNullOrEmpty(item.Url))
+                        {
+                            if (item.Value != null)
+                            {
+                                // Side link
+                                <a href="@item.Url" target="_blank" title="View">@Html.Partial("_OpenSvg")</a>
+                            }
+                            else
+                            {
+                                // Main link
+                                <a id="@item.Name" class="btn btn-primary outline form-control helptext-on-interaction" href="@item.Url" target="_blank">@item.Value</a>
+                            }
+                        }
+                    }
+                </div>
+            </div>
+            <div id="div-sv-@item.Name" class="row" style="display:none;">
+                <div class="col-md-12 glossary">
+                    <h4 class="ds-title">@item.DisplayName</h4>
+                    <p>@item.HelpText</p>
                 </div>
             </div>
         }
-        <div class="form-group">
-            <label for="@cidTrainFreq[0]" class="col-sm-2 control-label ds-label">@cidTrainFreq[1]</label>
-            <div class="col-sm-10">
-                <input type="text" readonly="readonly" style="display:inline;" class="form-control helptext-on-interaction" id="@cidTrainFreq[0]" value="@svm.TrainFrequency.ToString()" />
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="@cidTrainArgs[0]" class="col-sm-2 control-label ds-label">@cidTrainArgs[1]</label>
-            <div class="col-sm-10">
-                @Html.TextBoxFor(m => m.TrainArguments, new { @id = cidTrainArgs[0], @class = "form-control helptext-on-interaction", @style = "display:inline" })
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="@cidSelectedModel[0]" class="col-sm-2 control-label ds-label">@cidSelectedModel[1]</label>
-            <div class="col-sm-10">
-                @Html.DropDownListFor(m => m.SelectedModelId,
-                    svm.ModelIdList.Select(m => new SelectListItem
-                    {
-                        Value = m.Name,
-                        Text = String.IsNullOrEmpty(m.LastModifiedRelativeTime) ? m.Name : m.Name + " - " + m.LastModifiedRelativeTime,
-                        Selected = m.Name == svm.SelectedModelId
-                    }),
-                    "Select a model",
-                    new { @id = cidSelectedModel[0], @class = "form-control helptext-on-interaction", @style = "display:inline" })
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="@cidEnableExplore[0]" class="col-sm-2 control-label ds-label">@cidEnableExplore[1]</label>
-            <div class="col-sm-10">
-                @Html.CheckBoxFor(m => m.IsExplorationEnabled, new { @id = cidEnableExplore[0], @style = "display:inline", @class = "helptext-on-interaction" })
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="@cidExpDuration[0]" class="col-sm-2 control-label ds-label">@cidExpDuration[1]</label>
-            <div class="col-sm-10">
-                <input type="text" readonly="readonly" style="display:inline;" class="form-control helptext-on-interaction" id="@cidExpDuration[0]" value="@svm.ExperimentalUnitDuration" />
-            </div>
-        </div>
-        @Html.Hidden("hidAzureSubscriptionId", svm.AzureSubscriptionId)
         <div class="form-group">
             <label class="col-sm-2 control-label ds-label"></label>
             <div class="col-sm-10" style="text-align:left;">
                 <button class="btn btn-primary outline">Save</button>
             </div>
         </div>
-
-        /* HELP TEXT */
-
-        <div id="div-@cidAppId[0]" class="row" style="display:none;">
-            <div class="col-md-12 glossary">
-                <h4 class="ds-title">@cidAppId[1]</h4>
-                <p>
-                    The name of this application which is set to the Azure Resource Group name. The application name 
-                </p>
-            </div>
-        </div>
-        <div id="div-@cidAzureRg[0]" class="row" style="display:none;">
-            <div class="col-md-12 glossary">
-                <h4 class="ds-title">@cidAzureRg[1]</h4>
-                <p>
-                    The Azure subscription to use for this deployment.
-                    TODO: Finalize Description
-                </p>
-            </div>
-        </div>
-        <div id="div-@cidStorageConnString[0]" class="row" style="display:none;">
-            <div class="col-md-12 glossary">
-                <h4 class="ds-title">@cidStorageConnString[1]</h4>
-                <p>
-                    Whether the decision uses regular features or action-dependent features.
-                    TODO: Finalize Description
-                </p>
-            </div>
-        </div>
-        <div id="div-@cidEhInterConnString[0]" class="row" style="display:none;">
-            <div class="col-md-12 glossary">
-                <h4 class="ds-title">@cidEhInterConnString[1]</h4>
-                <p>
-                    Whether the decision uses regular features or action-dependent features.
-                    TODO: Finalize Description
-                </p>
-            </div>
-        </div>
-        <div id="div-@cidEhObserConnString[0]" class="row" style="display:none;">
-            <div class="col-md-12 glossary">
-                <h4 class="ds-title">@cidEhObserConnString[1]</h4>
-                <p>
-                    Whether the decision uses regular features or action-dependent features.
-                    TODO: Finalize Description
-                </p>
-            </div>
-        </div>
-        <div id="div-@cidDecisionType[0]" class="row" style="display:none;">
-            <div class="col-md-12 glossary">
-                <h4 class="ds-title">@cidDecisionType[1]</h4>
-                <p>
-                    The login password to the Registration Center.
-                    TODO: Finalize Description
-                </p>
-            </div>
-        </div>
-        <div id="div-@cidNumActions[0]" class="row" style="display:none;">
-            <div class="col-md-12 glossary">
-                <h4 class="ds-title">@cidNumActions[1]</h4>
-                <p>
-                    The login password to the Registration Center.
-                    TODO: Finalize Description
-                </p>
-            </div>
-        </div>
-        <div id="div-@cidAppInsights[0]" class="row" style="display:none;">
-            <div class="col-md-12 glossary">
-                <h4 class="ds-title">@cidAppInsights[1]</h4>
-                <p>
-                    The login password to the Registration Center.
-                    TODO: Finalize Description
-                </p>
-            </div>
-        </div>
-        <div id="div-@cidAsaJoin[0]" class="row" style="display:none;">
-            <div class="col-md-12 glossary">
-                <h4 class="ds-title">@cidAsaJoin[1]</h4>
-                <p>
-                    The login password to the Registration Center.
-                    TODO: Finalize Description
-                </p>
-            </div>
-        </div>
-        <div id="div-@cidAsaEval[0]" class="row" style="display:none;">
-            <div class="col-md-12 glossary">
-                <h4 class="ds-title">@cidAsaEval[1]</h4>
-                <p>
-                    The login password to the Registration Center.
-                    TODO: Finalize Description
-                </p>
-            </div>
-        </div>
-        <div id="div-@cidTrainFreq[0]" class="row" style="display:none;">
-            <div class="col-md-12 glossary">
-                <h4 class="ds-title">@cidTrainFreq[1]</h4>
-                <p>
-                    The login password to the Registration Center.
-                    TODO: Finalize Description
-                </p>
-            </div>
-        </div>
-        <div id="div-@cidOnlineTrainer[0]" class="row" style="display:none;">
-            <div class="col-md-12 glossary">
-                <h4 class="ds-title">@cidOnlineTrainer[1]</h4>
-                <p>
-                    The login password to the Registration Center.
-                    TODO: Finalize Description
-                </p>
-            </div>
-        </div>
-        <div id="div-@cidTrainArgs[0]" class="row" style="display:none;">
-            <div class="col-md-12 glossary">
-                <h4 class="ds-title">@cidTrainArgs[1]</h4>
-                <p>
-                    The login password to the Registration Center.
-                    TODO: Finalize Description
-                </p>
-            </div>
-        </div>
-        <div id="div-@cidSelectedModel[0]" class="row" style="display:none;">
-            <div class="col-md-12 glossary">
-                <h4 class="ds-title">@cidSelectedModel[1]</h4>
-                <p>
-                    Whether to create a REST endpoint for the decision service where events can be sent to.
-                    TODO: Finalize Description
-                </p>
-            </div>
-        </div>
-        <div id="div-@cidEnableExplore[0]" class="row" style="display:none;">
-            <div class="col-md-12 glossary">
-                <h4 class="ds-title">@cidEnableExplore[1]</h4>
-                <p>
-                    The frequency of training service.
-                    TODO: Finalize Description
-                </p>
-            </div>
-        </div>
-        <div id="div-@cidExpDuration[0]" class="row" style="display:none;">
-            <div class="col-md-12 glossary">
-                <h4 class="ds-title">@cidExpDuration[1]</h4>
-                <p>
-                    The duration of the experimental unit.
-                    TODO: Finalize Description
-                </p>
-            </div>
-        </div>
-
     }
 </div>
