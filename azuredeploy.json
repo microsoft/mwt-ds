@@ -79,9 +79,9 @@
     }
   },
   "variables": {
-    "plMC": "[string(length('managementPassword'))]",
-    "plUTK": "[string(length('userToken'))]",
-    "plATK": "[string(length('adminToken'))]",
+    "plMC": "[string(length(parameters('managementPassword')))]",
+    "plUTK": "[string(length(parameters('userToken')))]",
+    "plATK": "[string(length(parameters('adminToken')))]",
     "mcPassword": {
       "0": "[uniqueString(resourceGroup().id)]",
       "1": "[parameters('managementPassword')]"
