@@ -358,7 +358,7 @@
     }
   ],
   "outputs": {
-    "ManagementCenter": {
+    "ManagementCenterAddress": {
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/WebManage').outputs.url.value]"
     },
@@ -366,17 +366,21 @@
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/ManagementPasswordGenerator').outputs.FinalPassword.value]"
     },
-    "WebAPIToken": {
+    "ClientLibraryUrl": {
+      "type": "string",
+      "value": "[concat('https://', reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountName.value, '.blob.core.windows.net/mwt-settings/client')]"
+    },
+    "WebServiceAddress": {
+      "type": "string",
+      "value": "[reference('Microsoft.Resources/deployments/WebAPI').outputs.WebApiUrl.value]"
+    },
+    "WebServiceToken": {
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/UserTokenGenerator').outputs.FinalPassword.value]"
     },
     "OnlineTrainerToken": {
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/AdminTokenGenerator').outputs.FinalPassword.value]"
-    },
-    "ClientLibraryUrl": {
-      "type": "string",
-      "value": "[concat('https://', reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountName.value, '.blob.core.windows.net/mwt-settings/client')]"
     }
   }
 }
