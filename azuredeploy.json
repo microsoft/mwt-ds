@@ -92,7 +92,8 @@
         "mode": "incremental",
         "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" },
         "parameters": {
-          "Password": { "value": "[parameters('managementPassword')]" }
+          "Password": { "value": "[parameters('managementPassword')]" },
+          "RandomSeed": { "value": "[concat(uniqueString(resourceGroup().id), 'mc')]" }
         }
       },
     },
@@ -104,7 +105,8 @@
         "mode": "incremental",
         "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" },
         "parameters": {
-          "Password": { "value": "[parameters('userToken')]" }
+          "Password": { "value": "[parameters('userToken')" },
+          "RandomSeed": { "value": "[concat(uniqueString(resourceGroup().id), 'ut')]" }
         }
       },
     },
@@ -116,7 +118,8 @@
         "mode": "incremental",
         "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" },
         "parameters": {
-          "Password": { "value": "[parameters('adminToken')]" }
+          "Password": { "value": "[parameters('adminToken')]" },
+          "RandomSeed": { "value": "[concat(uniqueString(resourceGroup().id), 'at')]" }
         }
       },
     },
