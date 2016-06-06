@@ -101,7 +101,6 @@
           "properties": {
             "APPINSIGHTS_INSTRUMENTATIONKEY": "[parameters('InstrumentationKey')]",
             "DecisionServiceSettingsUrl": "[concat('http://', parameters('UserStorageAccountName'), '.blob.core.windows.net/mwt-settings/client')]",
-            "DecisionServiceTrainerSettingsUrl": "[concat('http://', parameters('UserStorageAccountName'), '.blob.core.windows.net/mwt-settings/trainer')]",
             "UserToken": "[parameters('UserToken')]"
           }
         },
