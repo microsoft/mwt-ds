@@ -105,7 +105,7 @@
         "mode": "incremental",
         "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" },
         "parameters": {
-          "Password": { "value": "[parameters('userToken')" },
+          "Password": { "value": "[parameters('userToken')]" },
           "RandomSeed": { "value": "[concat(resourceGroup().id, 'ut')]" }
         }
       },
