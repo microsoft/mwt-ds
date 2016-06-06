@@ -4,21 +4,21 @@
   "parameters": {
     "managementPassword": {
       "type": "string",
-      "minLength": 1,
+      "defaultValue": "",
       "metadata": {
         "description": "Password for management center."
       }
     },
     "userToken": {
       "type": "string",
-      "minLength": 1,
+      "defaultValue": "",
       "metadata": {
         "description": "Authentication token for WebAPI trainer."
       }
     },
     "adminToken": {
       "type": "string",
-      "minLength": 1,
+      "defaultValue": "",
       "metadata": {
         "description": "Authentication token for online trainer."
       }
@@ -79,6 +79,13 @@
     }
   },
   "variables": {
+    "plMC": "[length('managementPassword')]",
+    "plUTK": "[length('userToken')]",
+    "plATK": "[length('adminToken')]",
+    "mcPassword": {
+      "0": "[uniqueString(resourceGroup().id)]",
+      "1": "[parameters('managementPassword')]"
+    },
     "assetLocation": "https://raw.githubusercontent.com/multiworldtesting/ds-provisioning/master/",
     "binaryStorageAccountName": "dscode",
     "onlineTrainerCspkgToken": "sr=b&sv=2015-02-21&st=2016-06-01T17%3A00%3A25Z&se=2099-06-01T18%3A00%3A00Z&sp=r&sig=BzvUAAilAs%2B0NYmnPUsc2TtdNzkQILH3bbFrgQcZ3x4%3D"
@@ -268,7 +275,7 @@
         "parameters": {
           "instrumentationKey": { "value": "[reference('Microsoft.Resources/deployments/AppInsights').outputs.instrumentationKey.value]" },
           "userStorageConnectionString": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageConnectionString.value]" },
-          "managementPassword": { "value": "[parameters('managementPassword')]" },
+          "managementPassword": { "value": "[variables('mcPassword')[variables('plMC')]]" },
 
           "interactionEventHub": { "value": "[reference('Microsoft.Resources/deployments/EventHubInteraction').outputs]" },
           "observationEventHub": { "value": "[reference('Microsoft.Resources/deployments/EventHubObservation').outputs]" },
