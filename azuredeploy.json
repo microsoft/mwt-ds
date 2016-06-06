@@ -6,21 +6,21 @@
       "type": "string",
       "defaultValue": "",
       "metadata": {
-        "description": "Password for management center."
+        "description": "Password for management center, if empty a random value will be generated."
       }
     },
     "userToken": {
       "type": "string",
       "defaultValue": "",
       "metadata": {
-        "description": "Authentication token for WebAPI trainer."
+        "description": "Authentication token for the web service endpoint, if empty a random value will be generated."
       }
     },
     "adminToken": {
       "type": "string",
       "defaultValue": "",
       "metadata": {
-        "description": "Authentication token for online trainer."
+        "description": "Authentication token for online trainer, if empty a random value will be generated."
       }
     },
     "messageRetentionInDays": {
