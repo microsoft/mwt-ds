@@ -90,11 +90,11 @@
       "type": "Microsoft.Resources/deployments",
       "properties": {
         "mode": "incremental",
-        "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" }
+        "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" },
+        "parameters": {
+          "Password": { "value": "[parameters('managementPassword')]" }
+        }
       },
-      "parameters": {
-        "Password": { "value": "[parameters('managementPassword')]" }
-      }
     },
     {
       "apiVersion": "2015-01-01",
@@ -102,11 +102,11 @@
       "type": "Microsoft.Resources/deployments",
       "properties": {
         "mode": "incremental",
-        "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" }
+        "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" },
+        "parameters": {
+          "Password": { "value": "[parameters('userToken')]" }
+        }
       },
-      "parameters": {
-        "Password": { "value": "[parameters('userToken')]" }
-      }
     },
     {
       "apiVersion": "2015-01-01",
@@ -114,11 +114,11 @@
       "type": "Microsoft.Resources/deployments",
       "properties": {
         "mode": "incremental",
-        "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" }
+        "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" },
+        "parameters": {
+          "Password": { "value": "[parameters('adminToken')]" }
+        }
       },
-      "parameters": {
-        "Password": { "value": "[parameters('adminToken')]" }
-      }
     },
     {
       "apiVersion": "2015-01-01",
