@@ -4,7 +4,7 @@
   "parameters": {
     "managementPassword": {
       "type": "string",
-      "defaultValue": "GEN-PASSWORD",
+      "defaultValue": "uniqueString()",
       "minLength": 1,
       "metadata": {
         "description": "Password for management center."
@@ -12,7 +12,7 @@
     },
     "userToken": {
       "type": "string",
-      "defaultValue": "GEN-UNIQUE-32",
+      "defaultValue": "uniqueString()",
       "minLength": 1,
       "metadata": {
         "description": "Authentication token for WebAPI trainer."
@@ -20,7 +20,7 @@
     },
     "adminToken": {
       "type": "string",
-      "defaultValue": "GEN-UNIQUE-32",
+      "defaultValue": "uniqueString()",
       "minLength": 1,
       "metadata": {
         "description": "Authentication token for online trainer."
