@@ -301,7 +301,8 @@
         "Microsoft.Resources/deployments/Storage",
         "Microsoft.Resources/deployments/AppInsights",
         "Microsoft.Resources/deployments/EventHubInteraction",
-        "Microsoft.Resources/deployments/EventHubObservation"
+        "Microsoft.Resources/deployments/EventHubObservation",
+        "Microsoft.Resources/deployments/WebAPI"
       ],
       "properties": {
         "mode": "incremental",
