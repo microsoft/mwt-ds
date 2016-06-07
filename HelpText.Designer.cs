@@ -70,7 +70,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Application Insights Instrumentation Key ::: Application Insights is a diagnostics logging service to aid with debugging your system. By default, all components of the Decision Service send detailed logs to Application Insights. To log additional information, use the displayed instrumentation key to initialize your telemetry client..
+        ///   Looks up a localized string similar to Application Insights Instrumentation Key ::: Application Insights is a diagnostics logging service to aid with debugging the system. By default, all components of the Decision Service send detailed logs to Application Insights. To log additional information, use the displayed instrumentation key to initialize the telemetry client..
         /// </summary>
         public static string ApplicationInsightsInstrumentationKey {
             get {
@@ -79,7 +79,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Azure Stream Analytics Policy Evaluation ::: Decision Service has the ability to offline evaluate and compare many policies. It achieves this partly by leveraging Azure Stream Analytics to collect real-time performance results of each policy. To see how this is done, view the policy evaluation query in ASA. .
+        ///   Looks up a localized string similar to Azure Stream Analytics Policy Evaluation ::: Decision Service has the ability to offline evaluate and compare many policies. It achieves this partly by leveraging Azure Stream Analytics to collect real-time performance results of each policy. To see how this is done, view the policy evaluation query in ASA by clicking on the arrow to the right. .
         /// </summary>
         public static string ASAEvalName {
             get {
@@ -88,7 +88,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Azure Stream Analytics Join Server ::: Azure Stream Analytics is used to join interaction and observation data streams together. For more details view the join query in ASA..
+        ///   Looks up a localized string similar to Azure Stream Analytics Join Server ::: Azure Stream Analytics is used to join interaction and observation data streams together. For more details view the join query in ASA by clicking on the arrow to the right..
         /// </summary>
         public static string ASAJoinName {
             get {
@@ -106,7 +106,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Azure Storage Connection String ::: Azure Storage contains all data produced and consumed by Decision Service. For example, the joined data and machine-learned models are created and stored here. The Azure Storage Connection String is needed to programmatically connect to the storage account and retrieve data. In addition, users can use .
+        ///   Looks up a localized string similar to Azure Storage Connection String ::: Azure Storage contains all data produced and consumed by Decision Service. For example, the joined data and machine-learned models are created and stored here. The Azure Storage Connection String is needed to programmatically connect to the storage account and retrieve data. Click on the arrow to view these data from the Azure portal..
         /// </summary>
         public static string AzureStorageConnectionString {
             get {

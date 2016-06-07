@@ -121,19 +121,19 @@
     <value>Application Id ::: The name of this application which is set to the Azure Resource Group name.</value>
   </data>
   <data name="ApplicationInsightsInstrumentationKey" xml:space="preserve">
-    <value>Application Insights Instrumentation Key ::: Application Insights is a diagnostics logging service to aid with debugging your system. By default, all components of the Decision Service send detailed logs to Application Insights. To log additional information, use the displayed instrumentation key to initialize your telemetry client.</value>
+    <value>Application Insights Instrumentation Key ::: Application Insights is a diagnostics logging service to aid with debugging the system. By default, all components of the Decision Service send detailed logs to Application Insights. To log additional information, use the displayed instrumentation key to initialize the telemetry client.</value>
   </data>
   <data name="ASAEvalName" xml:space="preserve">
-    <value>Azure Stream Analytics Policy Evaluation ::: Decision Service has the ability to offline evaluate and compare many policies. It achieves this partly by leveraging Azure Stream Analytics to collect real-time performance results of each policy. To see how this is done, view the policy evaluation query in ASA. </value>
+    <value>Azure Stream Analytics Policy Evaluation ::: Decision Service has the ability to offline evaluate and compare many policies. It achieves this partly by leveraging Azure Stream Analytics to collect real-time performance results of each policy. To see how this is done, view the policy evaluation query in ASA by clicking on the arrow to the right. </value>
   </data>
   <data name="ASAJoinName" xml:space="preserve">
-    <value>Azure Stream Analytics Join Server ::: Azure Stream Analytics is used to join interaction and observation data streams together. For more details view the join query in ASA.</value>
+    <value>Azure Stream Analytics Join Server ::: Azure Stream Analytics is used to join interaction and observation data streams together. For more details view the join query in ASA by clicking on the arrow to the right.</value>
   </data>
   <data name="AzureResourceGroupName" xml:space="preserve">
     <value>Azure Resource Group ::: Azure Resource Group name is the value chosen at deployment time. The resource group contains all Azure resources (such as cloud services, storage accounts, etc...) deployed as part of the Decision Service.</value>
   </data>
   <data name="AzureStorageConnectionString" xml:space="preserve">
-    <value>Azure Storage Connection String ::: Azure Storage contains all data produced and consumed by Decision Service. For example, the joined data and machine-learned models are created and stored here. The Azure Storage Connection String is needed to programmatically connect to the storage account and retrieve data. In addition, users can use </value>
+    <value>Azure Storage Connection String ::: Azure Storage contains all data produced and consumed by Decision Service. For example, the joined data and machine-learned models are created and stored here. The Azure Storage Connection String is needed to programmatically connect to the storage account and retrieve data. Click on the arrow to view these data from the Azure portal.</value>
   </data>
   <data name="AzureSubscriptionId" xml:space="preserve">
     <value>Azure Subscription Id ::: The Id of the Azure Subscription containing all used for this deployment.</value>
