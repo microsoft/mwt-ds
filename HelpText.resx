@@ -121,60 +121,60 @@
     <value>Application Id ::: The name of this application which is set to the Azure Resource Group name.</value>
   </data>
   <data name="ApplicationInsightsInstrumentationKey" xml:space="preserve">
-    <value>Application Insights Instrumentation Key ::: ApplicationInsightsInstrumentationKey</value>
+    <value>Application Insights Instrumentation Key ::: Application Insights is a diagnostics logging service to aid with debugging your system. By default, all components of the Decision Service send detailed logs to Application Insights. To log additional information, use the displayed instrumentation key to initialize your telemetry client.</value>
   </data>
   <data name="ASAEvalName" xml:space="preserve">
-    <value>Azure Stream Analytics Policy Evaluation ::: ASAEvalName</value>
+    <value>Azure Stream Analytics Policy Evaluation ::: Decision Service has the ability to offline evaluate and compare many policies. It achieves this partly by leveraging Azure Stream Analytics to collect real-time performance results of each policy. To see how this is done, view the policy evaluation query in ASA. </value>
   </data>
   <data name="ASAJoinName" xml:space="preserve">
-    <value>Azure Stream Analytics Join Server ::: ASAJoinName</value>
+    <value>Azure Stream Analytics Join Server ::: Azure Stream Analytics is used to join interaction and observation data streams together. For more details view the join query in ASA.</value>
   </data>
   <data name="AzureResourceGroupName" xml:space="preserve">
-    <value>Azure Resource Group ::: AzureResourceGroupName</value>
+    <value>Azure Resource Group ::: Azure Resource Group name is the value chosen at deployment time. The resource group contains all Azure resources (such as cloud services, storage accounts, etc...) deployed as part of the Decision Service.</value>
   </data>
   <data name="AzureStorageConnectionString" xml:space="preserve">
-    <value>Azure Storage Connection String ::: AzureStorageConnectionString</value>
+    <value>Azure Storage Connection String ::: Azure Storage contains all data produced and consumed by Decision Service. For example, the joined data and machine-learned models are created and stored here. The Azure Storage Connection String is needed to programmatically connect to the storage account and retrieve data. In addition, users can use </value>
   </data>
   <data name="AzureSubscriptionId" xml:space="preserve">
-    <value>Azure Subscription Id ::: The Azure Subscription Id used for this deployment.</value>
+    <value>Azure Subscription Id ::: The Id of the Azure Subscription containing all used for this deployment.</value>
   </data>
   <data name="DecisionType" xml:space="preserve">
     <value>Decision Type ::: Whether the decision uses regular features or action-dependent features.</value>
   </data>
   <data name="EventHubInteractionConnectionString" xml:space="preserve">
-    <value>Event Hub Interaction Connection String ::: EventHubInteractionConnectionString</value>
+    <value>Event Hub Interaction Connection String ::: Connection string of the Event Hub associated with ASA Join Server which accepts interaction data from the Client Library or Web Service..</value>
   </data>
   <data name="EventHubObservationConnectionString" xml:space="preserve">
-    <value>Event Hub Observation Connection String ::: EventHubObservationConnectionString</value>
+    <value>Event Hub Observation Connection String ::: Connection string of the Event Hub associated with ASA Join Server which accepts observation data (e.g. reward) from the Client Library or Web Service.</value>
   </data>
   <data name="ExperimentalUnitDuration" xml:space="preserve">
-    <value>Join Timeout (in seconds) ::: ExperimentalUnitDuration</value>
+    <value>Join Timeout (in seconds) ::: The timeout duration of the interaction-observation join that occurs in ASA.</value>
   </data>
   <data name="IsExplorationEnabled" xml:space="preserve">
-    <value>Enable Exploration ::: IsExplorationEnabled</value>
+    <value>Enable Exploration ::: Whether to enable exploration in Client Library or Web Service. This is useful as a safety mechanism in case exploration results in undesired application behavior.</value>
   </data>
   <data name="NumActions" xml:space="preserve">
-    <value>Number of Actions ::: NumActions</value>
+    <value>Number of Actions ::: The number of actions that is fixed for all interactions. This value is only relevant if not using action dependent features.</value>
   </data>
   <data name="OnlineTrainerName" xml:space="preserve">
-    <value>Online Trainer ::: OnlineTrainerName</value>
+    <value>Online Trainer ::: The name of the cloud service that performs online training.</value>
   </data>
   <data name="SelectedModelId" xml:space="preserve">
-    <value>Trained Models ::: SelectedModelId</value>
+    <value>Trained Models ::: The list of trained models detected in Azure Storage. The selected model will be deployed to all clients.</value>
   </data>
   <data name="SettingsBlobUri" xml:space="preserve">
-    <value>Settings Blob Address ::: SettingsBlobUri</value>
+    <value>Settings Blob Address ::: The address of the settings for the application. This is required by the Client Library to initialize with the proper configurations.</value>
   </data>
   <data name="TrainArguments" xml:space="preserve">
-    <value>VW Training Arguments ::: TrainArguments</value>
+    <value>VW Training Arguments ::: The training arguments used by the training service.</value>
   </data>
   <data name="TrainFrequency" xml:space="preserve">
-    <value>Training Frequency ::: TrainFrequency</value>
+    <value>Training Frequency ::: High frequency corresponds to online training where data points are continuously used for learning. Low frequency corresponds to batch training which occurs at higher time intervals (e.g. every 5 minutes or once a day).</value>
   </data>
   <data name="WebApiAddress" xml:space="preserve">
-    <value>REST Endpoint ::: WebApiName</value>
+    <value>REST Endpoint ::: The address of the Web Service which can accept HTTP requests. This serves as an alternative data entry point to the Decision Service.</value>
   </data>
   <data name="WebManageName" xml:space="preserve">
-    <value>Management Center Address ::: WebManageName</value>
+    <value>Management Center Address ::: The address of the Management Center.</value>
   </data>
 </root>

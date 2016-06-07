@@ -70,7 +70,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Application Insights Instrumentation Key ::: ApplicationInsightsInstrumentationKey.
+        ///   Looks up a localized string similar to Application Insights Instrumentation Key ::: Application Insights is a diagnostics logging service to aid with debugging your system. By default, all components of the Decision Service send detailed logs to Application Insights. To log additional information, use the displayed instrumentation key to initialize your telemetry client..
         /// </summary>
         public static string ApplicationInsightsInstrumentationKey {
             get {
@@ -79,7 +79,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Azure Stream Analytics Policy Evaluation ::: ASAEvalName.
+        ///   Looks up a localized string similar to Azure Stream Analytics Policy Evaluation ::: Decision Service has the ability to offline evaluate and compare many policies. It achieves this partly by leveraging Azure Stream Analytics to collect real-time performance results of each policy. To see how this is done, view the policy evaluation query in ASA. .
         /// </summary>
         public static string ASAEvalName {
             get {
@@ -88,7 +88,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Azure Stream Analytics Join Server ::: ASAJoinName.
+        ///   Looks up a localized string similar to Azure Stream Analytics Join Server ::: Azure Stream Analytics is used to join interaction and observation data streams together. For more details view the join query in ASA..
         /// </summary>
         public static string ASAJoinName {
             get {
@@ -97,7 +97,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Azure Resource Group ::: AzureResourceGroupName.
+        ///   Looks up a localized string similar to Azure Resource Group ::: Azure Resource Group name is the value chosen at deployment time. The resource group contains all Azure resources (such as cloud services, storage accounts, etc...) deployed as part of the Decision Service..
         /// </summary>
         public static string AzureResourceGroupName {
             get {
@@ -106,7 +106,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Azure Storage Connection String ::: AzureStorageConnectionString.
+        ///   Looks up a localized string similar to Azure Storage Connection String ::: Azure Storage contains all data produced and consumed by Decision Service. For example, the joined data and machine-learned models are created and stored here. The Azure Storage Connection String is needed to programmatically connect to the storage account and retrieve data. In addition, users can use .
         /// </summary>
         public static string AzureStorageConnectionString {
             get {
@@ -115,7 +115,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Azure Subscription Id ::: The Azure Subscription Id used for this deployment..
+        ///   Looks up a localized string similar to Azure Subscription Id ::: The Id of the Azure Subscription containing all used for this deployment..
         /// </summary>
         public static string AzureSubscriptionId {
             get {
@@ -133,7 +133,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Event Hub Interaction Connection String ::: EventHubInteractionConnectionString.
+        ///   Looks up a localized string similar to Event Hub Interaction Connection String ::: Connection string of the Event Hub associated with ASA Join Server which accepts interaction data from the Client Library or Web Service...
         /// </summary>
         public static string EventHubInteractionConnectionString {
             get {
@@ -142,7 +142,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Event Hub Observation Connection String ::: EventHubObservationConnectionString.
+        ///   Looks up a localized string similar to Event Hub Observation Connection String ::: Connection string of the Event Hub associated with ASA Join Server which accepts observation data (e.g. reward) from the Client Library or Web Service..
         /// </summary>
         public static string EventHubObservationConnectionString {
             get {
@@ -151,7 +151,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Join Timeout (in seconds) ::: ExperimentalUnitDuration.
+        ///   Looks up a localized string similar to Join Timeout (in seconds) ::: The timeout duration of the interaction-observation join that occurs in ASA..
         /// </summary>
         public static string ExperimentalUnitDuration {
             get {
@@ -160,7 +160,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Enable Exploration ::: IsExplorationEnabled.
+        ///   Looks up a localized string similar to Enable Exploration ::: Whether to enable exploration in Client Library or Web Service. This is useful as a safety mechanism in case exploration results in undesired application behavior..
         /// </summary>
         public static string IsExplorationEnabled {
             get {
@@ -169,7 +169,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Number of Actions ::: NumActions.
+        ///   Looks up a localized string similar to Number of Actions ::: The number of actions that is fixed for all interactions. This value is only relevant if not using action dependent features..
         /// </summary>
         public static string NumActions {
             get {
@@ -178,7 +178,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Online Trainer ::: OnlineTrainerName.
+        ///   Looks up a localized string similar to Online Trainer ::: The name of the cloud service that performs online training..
         /// </summary>
         public static string OnlineTrainerName {
             get {
@@ -187,7 +187,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Trained Models ::: SelectedModelId.
+        ///   Looks up a localized string similar to Trained Models ::: The list of trained models detected in Azure Storage. The selected model will be deployed to all clients..
         /// </summary>
         public static string SelectedModelId {
             get {
@@ -196,7 +196,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Settings Blob Address ::: SettingsBlobUri.
+        ///   Looks up a localized string similar to Settings Blob Address ::: The address of the settings for the application. This is required by the Client Library to initialize with the proper configurations..
         /// </summary>
         public static string SettingsBlobUri {
             get {
@@ -205,7 +205,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to VW Training Arguments ::: TrainArguments.
+        ///   Looks up a localized string similar to VW Training Arguments ::: The training arguments used by the training service..
         /// </summary>
         public static string TrainArguments {
             get {
@@ -214,7 +214,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Training Frequency ::: TrainFrequency.
+        ///   Looks up a localized string similar to Training Frequency ::: High frequency corresponds to online training where data points are continuously used for learning. Low frequency corresponds to batch training which occurs at higher time intervals (e.g. every 5 minutes or once a day)..
         /// </summary>
         public static string TrainFrequency {
             get {
@@ -223,7 +223,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to REST Endpoint ::: WebApiName.
+        ///   Looks up a localized string similar to REST Endpoint ::: The address of the Web Service which can accept HTTP requests. This serves as an alternative data entry point to the Decision Service..
         /// </summary>
         public static string WebApiAddress {
             get {
@@ -232,7 +232,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Management Center Address ::: WebManageName.
+        ///   Looks up a localized string similar to Management Center Address ::: The address of the Management Center..
         /// </summary>
         public static string WebManageName {
             get {
