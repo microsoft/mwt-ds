@@ -40,10 +40,10 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 }
             }
 
-            int[] vwMultilabelPredictions = vw.Predict(context, VowpalWabbitPredictionType.Multilabel);
+            ActionScore[] vwMultilabelPredictions = vw.Predict(context, VowpalWabbitPredictionType.ActionScore);
 
             // VW multi-label predictions are 0-based
-            var actions = vwMultilabelPredictions.Select(a => a + 1).ToArray();
+            var actions = vwMultilabelPredictions.Select(a => (int)a.Action + 1).ToArray();
             var state = new VWState { ModelId = vw.Native.ID };
 
             return PolicyDecision.Create(actions, state);

@@ -91,8 +91,8 @@ namespace ClientDecisionServiceSample
                         DateTime timeStamp = DateTime.UtcNow;
 
                         var context = new FoodContext { Actions = new int[] { 1, 2, 3 }, UserLocation = location };
-                        int[] predicts = vw.Predict(context, VowpalWabbitPredictionType.Multilabel);
-                        stringExamplesPred.Append(predicts[0] + 1);
+                        ActionScore[] predicts = vw.Predict(context, VowpalWabbitPredictionType.ActionScore);
+                        stringExamplesPred.Append(predicts[0].Action + 1);
 
                         if (location == locations[0])
                         {
