@@ -2,7 +2,7 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "management_Password": {
+    "managementPassword": {
       "type": "string",
       "defaultValue": "",
       "metadata": {
@@ -32,7 +32,7 @@
         "description": "How long to keep messages before purging"
       }
     },
-    "partition_Count": {
+    "partitionCount": {
       "type": "int",
       "defaultValue": 16,
       "minValue": 1,
@@ -92,7 +92,7 @@
         "mode": "incremental",
         "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" },
         "parameters": {
-          "Password": { "value": "[parameters('management_Password')]" },
+          "Password": { "value": "[parameters('managementPassword')]" },
           "RandomSeed": { "value": "[concat(resourceGroup().id, 'mc')]" }
         }
       },
@@ -165,7 +165,7 @@
           "ehName": { "value": "interaction" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
           "messageRetentionInDays": { "value": "[parameters('messageRetentionInDays')]" },
-          "partitionCount": { "value": "[parameters('partition_Count')]" }
+          "partitionCount": { "value": "[parameters('partitionCount')]" }
         }
       }
     },
@@ -184,7 +184,7 @@
           "ehName": { "value": "observation" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
           "messageRetentionInDays": { "value": "[parameters('messageRetentionInDays')]" },
-          "partitionCount": { "value": "[parameters('partition_Count')]" }
+          "partitionCount": { "value": "[parameters('partitionCount')]" }
         }
       }
     },
@@ -203,7 +203,7 @@
           "ehName": { "value": "joined" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
           "messageRetentionInDays": { "value": "[parameters('messageRetentionInDays')]" },
-          "partitionCount": { "value": "[parameters('partition_Count')]" }
+          "partitionCount": { "value": "[parameters('partitionCount')]" }
         }
       }
     },
@@ -219,7 +219,7 @@
           "ehName": { "value": "eval" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
           "messageRetentionInDays": { "value": "[parameters('messageRetentionInDays')]" },
-          "partitionCount": { "value": "[parameters('partition_Count')]" }
+          "partitionCount": { "value": "[parameters('partitionCount')]" }
         }
       }
     },
@@ -264,7 +264,7 @@
           "observationEventHub": { "value": "[reference('Microsoft.Resources/deployments/EventHubObservation').outputs]" },
           "joinedEventHub": { "value": "[reference('Microsoft.Resources/deployments/EventHubJoined').outputs]" },
           "messageRetentionInDays": { "value": "[parameters('messageRetentionInDays')]" },
-          "partitionCount": { "value": "[parameters('partition_Count')]" },
+          "partitionCount": { "value": "[parameters('partitionCount')]" },
           "experimentalUnitDurationInSeconds": { "value": "[parameters('experimentalUnitDurationInSeconds')]" }
         }
       }
@@ -288,7 +288,7 @@
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
           "evalEventHub": { "value": "[reference('Microsoft.Resources/deployments/EventHubEval').outputs]" },
           "messageRetentionInDays": { "value": "[parameters('messageRetentionInDays')]" },
-          "partitionCount": { "value": "[parameters('partition_Count')]" }
+          "partitionCount": { "value": "[parameters('partitionCount')]" }
         }
       }
     },
@@ -363,7 +363,7 @@
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/WebManage').outputs.url.value]"
     },
-    "Management_Password": {
+    "ManagementPassword": {
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/ManagementPasswordGenerator').outputs.FinalPassword.value]"
     },
