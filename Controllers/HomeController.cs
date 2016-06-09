@@ -27,6 +27,7 @@ namespace DecisionServicePrivateWeb.Controllers
         const string SKClientSettings = "ClientSettings";
         const string SKExtraSettings = "ExtraSettings";
 
+        [HttpGet]
         public ActionResult Index()
         {
             return View(new IndexViewModel { Authenticated = IsAuthenticated(Session) });
@@ -66,6 +67,7 @@ namespace DecisionServicePrivateWeb.Controllers
             return RedirectToAction("Index");
         }
 
+        [HttpGet]
         [AllowAnonymous]
         public ActionResult Settings()
         {
@@ -131,7 +133,7 @@ namespace DecisionServicePrivateWeb.Controllers
             }
         }
 
-
+        [HttpGet]
         [AllowAnonymous]
         public ActionResult Evaluation()
         {
@@ -143,10 +145,11 @@ namespace DecisionServicePrivateWeb.Controllers
             return View(new EvaluationViewModel { WindowFilters = new List<string>(new string[] { "5m", "20m", "1h", "3h", "6h" }), SelectedFilter = "5m" });
         }
 
+        [HttpGet]
         [AllowAnonymous]
         public ActionResult EvalJson(string windowType = "3h", int maxNumPolicies = 5)
         {
-            var policyRegex = "Policy (.*)";
+            var policyRegex = "Constant Policy (.*)";
             var regex = new Regex(policyRegex);
 
             if (!IsAuthenticated(Session))
@@ -174,11 +177,12 @@ namespace DecisionServicePrivateWeb.Controllers
                             {
                                 continue;
                             }
-                            if (Convert.ToInt32(regex.Match(evalResult.PolicyName).Groups[1].Value) > maxNumPolicies)
+                            string policyNumber = regex.Match(evalResult.PolicyName).Groups[1].Value;
+                            int policyNumberInt;
+                            if (int.TryParse(policyNumber, out policyNumberInt) && policyNumberInt > maxNumPolicies)
                             {
                                 continue;
                             }
-
                             if (evalData.ContainsKey(evalResult.PolicyName))
                             {
                                 var timeToCost = evalData[evalResult.PolicyName].values;
