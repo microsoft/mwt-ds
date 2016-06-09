@@ -53,8 +53,7 @@ namespace ClientDecisionServiceSample
             // Specify the exploration algorithm to use, here we will use Epsilon-Greedy.
             // For more details about this and other algorithms, refer to the MWT onboarding whitepaper.
             using (var service = DecisionService
-                .WithPolicy(serviceConfig, numTopics)
-                .WithJson()
+                .Create(serviceConfig)
                 .WithEpsilonGreedy(epsilon)
                 .ExploitUntilModelReady(new MyJsonPolicy()))
             {

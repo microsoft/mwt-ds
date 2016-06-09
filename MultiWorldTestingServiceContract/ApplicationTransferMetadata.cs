@@ -72,6 +72,8 @@ namespace Microsoft.Research.MultiWorldTesting.Contract
         /// The instrumentation key of Application Insights used for diagnostics & event logging.
         /// </summary>
         public string AppInsightsKey { get; set; }
+
+        public float InitialExplorationEpsilon { get; set; }
     }
 
     public class ApplicationExtraMetadata

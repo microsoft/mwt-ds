@@ -100,4 +100,11 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
     public interface IScorer<in TContext> : IContextMapper<TContext, float[]>
     {
     }
+
+    public class ActionProbability
+    {
+        public int Action { get; set; }
+
+        public float Probability { get; set; }
+    }
 }

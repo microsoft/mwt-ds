@@ -1,4 +1,5 @@
 ﻿using Microsoft.Research.MultiWorldTesting.ClientLibrary;
+using Microsoft.Research.MultiWorldTesting.Contract;
 using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -64,17 +65,26 @@ namespace ClientDecisionServiceTest
         private Random rnd;
 
         [TestMethod]
-        [Ignore]
         public void EndToEndOnlineTrainerTest()
         {
-            var token = "7ce3fc9e-88cb-44bf-8c9a-8c381e876a60";
             // configure VW parameters: 
 
+            var uri = "https://mcdel8storage.blob.core.windows.net/mwt-settings/client";
+
+            var metaData = ApplicationMetadataUtil.DownloadMetadata<ApplicationClientMetadata>(uri);
+            Assert.IsTrue(metaData.TrainArguments.Contains("--cb 4"));
+            
             // 4 Actions
-            //var config = new DecisionServiceConfiguration("2fee5489-0b9f-4590-9cbe-eee9802e1e3c");
-            var config = new DecisionServiceConfiguration(token)
+            var config = new DecisionServiceConfiguration(uri)
             {
-                InteractionUploadConfiguration = new Microsoft.Research.MultiWorldTesting.JoinUploader.BatchingConfiguration()
+                InteractionUploadConfiguration = new Microsoft.Research.MultiWorldTesting.JoinUploader.BatchingConfiguration
+                {
+                    MaxEventCount = 64
+                },
+                ObservationUploadConfiguration = new Microsoft.Research.MultiWorldTesting.JoinUploader.BatchingConfiguration
+                {
+                    MaxEventCount = 64
+                }
             };
             
             config.InteractionUploadConfiguration.ErrorHandler +=JoinServiceBatchConfiguration_ErrorHandler;
@@ -83,22 +93,21 @@ namespace ClientDecisionServiceTest
             this.freq = new Dictionary<string, int>();
             this.rnd = new Random(123);
 
-            // reset the model
-            //var wc = new WebClient();
-            //wc.Headers.Add("Authorization: " + token);
-            //wc.DownloadString("http://127.0.0.1:81/onlineTrainer");
+            //// reset the model
+                var wc = new WebClient();
+                wc.Headers.Add("Authorization: a");
+                wc.DownloadString("http://127.0.0.1:81/reset");
 
             //Trace.TraceInformation("Waiting after reset...");
-            //Thread.Sleep(10000);
+            //Thread.Sleep(TimeSpan.FromSeconds(5));
             
             {
                 var expectedEvents = 0;
-
                 using (var client = DecisionService.WithPolicy(config, numberOfActions: 4).With<MyContext>()
                     .WithEpsilonGreedy(1f))
                 {
                     // need to send events for at least experimental unit duration, so ASA is triggered
-                    for (int i = 0; i < 10; i++)
+                    for (int i = 0; i < 100; i++)
                     {
                         expectedEvents += SendEvents(client, 128);
                         // Thread.Sleep(500);                        
@@ -126,7 +135,7 @@ namespace ClientDecisionServiceTest
                 .WithEpsilonGreedy(epsilon: 0))
             {
                 int i;
-                for (i = 0; i < 60; i++)
+                for (i = 0; i < 120; i++)
                 {
                     try
                     {
@@ -135,7 +144,7 @@ namespace ClientDecisionServiceTest
                     }
                     catch (Exception e)
                     {
-                        Thread.Sleep(1000);
+                        Thread.Sleep(TimeSpan.FromSeconds(1));
                     }
                 }
 

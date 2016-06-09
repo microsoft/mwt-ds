@@ -1,37 +1,43 @@
 ﻿
+using Microsoft.Research.MultiWorldTesting.Contract;
+using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
+using System.Diagnostics;
+using VW;
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    /// <summary>
-    /// Incomplete decision service client, just a vehicle to transport TAction
-    /// </summary>
-    /// <typeparam name="TAction"></typeparam>
-    public class DecisionServiceClientSpecification<TAction>
-    {
-        internal int? NumberOfActions;
-
-        internal DecisionServiceConfiguration Config;
-    }
-
     /// <summary>
     /// Factory class.
     /// </summary>
     public static class DecisionService
     {
-        public static DecisionServiceClientSpecification<int> WithPolicy(DecisionServiceConfiguration config, int? numberOfActions = null)
-        { 
-            return new DecisionServiceClientSpecification<int>()
+        private static ApplicationClientMetadata DownloadMetadata(DecisionServiceConfiguration config, ApplicationClientMetadata metaData)
+        {
+            if (!config.OfflineMode || metaData == null)
             {
-                Config = config,
-                NumberOfActions = numberOfActions
-            };
+                metaData = ApplicationMetadataUtil.DownloadMetadata<ApplicationClientMetadata>(config.SettingsBlobUri);
+                if (config.LogAppInsights)
+                {
+                    Trace.Listeners.Add(new ApplicationInsights.TraceListener.ApplicationInsightsTraceListener(metaData.AppInsightsKey));
+                }
+            }
+
+            return metaData;
         }
 
-        public static DecisionServiceClientSpecification<int[]> WithRanker(DecisionServiceConfiguration config)
-        { 
-            return new DecisionServiceClientSpecification<int[]>()
-            {
-                Config = config
-            };
+        public static DecisionServiceClient<TContext> Create<TContext>(DecisionServiceConfiguration config, ITypeInspector typeInspector = null, ApplicationClientMetadata metaData = null)
+        {
+            return new DecisionServiceClient<TContext>(
+                config,
+                DownloadMetadata(config, metaData),
+                new VWExplorer<TContext>(config.ModelStream, typeInspector, config.DevelopmentMode));
+        }
+
+        public static DecisionServiceClient<string> CreateJson(DecisionServiceConfiguration config, ApplicationClientMetadata metaData = null)
+        {
+            return new DecisionServiceClient<string>(
+                config,
+                DownloadMetadata(config, metaData),
+                new VWJsonExplorer(config.ModelStream, config.DevelopmentMode));
         }
     }
 }

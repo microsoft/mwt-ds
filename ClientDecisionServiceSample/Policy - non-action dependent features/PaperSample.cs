@@ -36,8 +36,7 @@ namespace ClientDecisionServiceSample
         public static void Run()
         {
             var config = new DecisionServiceConfiguration("... auth token ...");
-            using (var client = DecisionService.WithPolicy(config)
-                .With<MyContext>()
+            using (var client = DecisionService.Create<MyContext>(config)
                 .ExploitUntilModelReady(new MyHeuristicPolicy()) // optional
                 .WithEpsilonGreedy(.05f)) // optional
             {
