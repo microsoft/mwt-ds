@@ -42,10 +42,10 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             using (var vwJson = new VowpalWabbitJsonSerializer(vw))
             using (VowpalWabbitExampleCollection vwExample = vwJson.ParseAndCreate(context))
             {
-                int[] vwMultilabelPredictions = vwExample.Predict(VowpalWabbitPredictionType.Multilabel);
+                ActionScore[] vwMultilabelPredictions = vwExample.Predict(VowpalWabbitPredictionType.ActionScore);
 
                 // VW multi-label predictions are 0-based
-                var actions = vwMultilabelPredictions.Select(a => a + 1).ToArray();
+                var actions = vwMultilabelPredictions.Select(a => (int)a.Action + 1).ToArray();
                 var state = new VWState { ModelId = vw.ID };
 
                 return PolicyDecision.Create(actions, state);
