@@ -20,6 +20,7 @@ namespace ClientDecisionServiceSample
             var serviceConfig = new DecisionServiceConfiguration(settingsBlobUri: SettingsBlobUri);
 
             using (var service = DecisionService
+                .Create<FoodContext, FoodFeature>()
                 .WithRanker(serviceConfig)
                 .With<FoodContext, FoodFeature>(context => FoodContext.GetFeaturesFromContext(context))
                 .WithTopSlotEpsilonGreedy(epsilon: .8f)

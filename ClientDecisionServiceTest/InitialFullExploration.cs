@@ -44,9 +44,8 @@ namespace ClientDecisionServiceTest
 
                 using (var ds =
                         DecisionService
-                            .WithRanker(config)
-                            .WithJson()
-                            .WithTopSlotEpsilonGreedy(0.3f)
+                            .CreateJson(config)
+                            // TODO .WithTopSlotEpsilonGreedy(0.3f)
                             .WithRecorder(recorder)
                             .ExploreTopSlotUniformRandomUntilModelReady())
                 {

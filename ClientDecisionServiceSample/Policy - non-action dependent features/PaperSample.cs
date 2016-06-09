@@ -37,8 +37,7 @@ namespace ClientDecisionServiceSample
         {
             var config = new DecisionServiceConfiguration("... auth token ...");
             using (var client = DecisionService.Create<MyContext>(config)
-                .ExploitUntilModelReady(new MyHeuristicPolicy()) // optional
-                .WithEpsilonGreedy(.05f)) // optional
+                .ExploitUntilModelReady(new MyHeuristicPolicy())) // optional
             {
                 var id = Guid.NewGuid().ToString();
                 var ctx = new MyContext { Age = 25, Location = "New York", IsMember = true, SessionId = "123" };

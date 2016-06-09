@@ -36,9 +36,9 @@ namespace ClientDecisionServiceTest
             var eventIdList = new List<string>();
 
             using (var ds = DecisionService
-                .WithRanker(dsConfig)
-                .With<TestADFContextWithFeatures, TestADFFeatures>(context => context.ActionDependentFeatures)
-                .WithTopSlotEpsilonGreedy(.5f)
+                .Create<TestADFContextWithFeatures>(dsConfig)
+                // .With<TestADFContextWithFeatures, TestADFFeatures>(context => context.ActionDependentFeatures)
+                // TODO .WithTopSlotEpsilonGreedy(.5f)
                 .ExploitUntilModelReady(new TestADFWithFeaturesPolicy()))
             {
                 byte[] modelContent = commandCenter.GetCBADFModelBlobContent(numExamples: 5, numFeatureVectors: 10);

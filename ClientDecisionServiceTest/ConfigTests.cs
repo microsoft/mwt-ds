@@ -24,9 +24,8 @@ namespace ClientDecisionServiceTest
             dsConfig.PollingForSettingsPeriod = TimeSpan.FromMilliseconds(500);
 
             using (var ds = DecisionService
-                .WithPolicy(dsConfig)
-                .With<TestContext>()
-                .WithEpsilonGreedy(.2f)
+                .Create<TestContext>(dsConfig)
+                // TODO: update settinsg blob with .WithEpsilonGreedy(.2f)
                 .ExploitUntilModelReady(new TestSingleActionPolicy()))
             {
                 byte[] settingsBytes = null;
@@ -60,9 +59,8 @@ namespace ClientDecisionServiceTest
             dsConfig.PollingForSettingsPeriod = TimeSpan.FromMilliseconds(500);
 
             using (var ds = DecisionService
-                .WithRanker(dsConfig)
-                .With<TestContext>()
-                .WithTopSlotEpsilonGreedy(.2f)
+                .Create<TestContext>(dsConfig)
+                // TODO .WithTopSlotEpsilonGreedy(.2f)
                 .ExploitUntilModelReady(new TestMultiActionPolicy()))
             {
                 byte[] settingsBytes = null;

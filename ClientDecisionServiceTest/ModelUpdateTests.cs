@@ -32,9 +32,8 @@ namespace ClientDecisionServiceTest
             };
 
             using (var ds = DecisionService
-                .WithPolicy(dsConfig, numActions)
-                .With<TestRcv1Context>()
-                .WithEpsilonGreedy(.5f)
+                .Create<TestRcv1Context>(dsConfig)
+                // TODOD: .WithEpsilonGreedy(.5f)
                 .ExploitUntilModelReady(new TestRcv1ContextPolicy()))
             {
                 string uniqueKey = "eventid";

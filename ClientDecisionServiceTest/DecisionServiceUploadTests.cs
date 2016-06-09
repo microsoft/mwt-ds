@@ -28,8 +28,7 @@ namespace ClientDecisionServiceTest
 
             int chosenAction;
             using (var ds = DecisionService
-                .WithPolicy(dsConfig, Constants.NumberOfActions)
-                .With<TestContext>()
+                .Create<TestContext>(dsConfig)
                 .ExploitUntilModelReady(new TestSingleActionPolicy()))
             {
                 chosenAction = ds.ChooseAction(uniqueKey, new TestContext());
@@ -55,8 +54,7 @@ namespace ClientDecisionServiceTest
             dsConfig.LoggingServiceAddress = MockJoinServer.MockJoinServerAddress;
 
             using (var ds = DecisionService
-                .WithPolicy(dsConfig, Constants.NumberOfActions)
-                .With<TestContext>()
+                .Create<TestContext>(dsConfig)
                 .ExploitUntilModelReady(new TestSingleActionPolicy()))
             {
 
@@ -85,8 +83,7 @@ namespace ClientDecisionServiceTest
             int numEvents = 1000;
             var chosenActions = new ConcurrentBag<int>();
             using (var ds = DecisionService
-                .WithPolicy(dsConfig, Constants.NumberOfActions)
-                .With<TestContext>()
+                .Create<TestContext>(dsConfig)
                 .WithEpsilonGreedy(.2f)
                 .ExploitUntilModelReady(new TestSingleActionPolicy()))
             {

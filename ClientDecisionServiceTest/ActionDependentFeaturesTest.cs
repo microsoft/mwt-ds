@@ -26,10 +26,8 @@ namespace ClientDecisionServiceTest
                 LoggingServiceAddress = MockJoinServer.MockJoinServerAddress
             };
 
-            using (var ds = DecisionService
-                .WithRanker(dsConfig)
-                .With<TestADFContext>()
-                .WithTopSlotEpsilonGreedy(.5f)
+            using (var ds = DecisionService.Create<TestADFContext>(dsConfig)
+                // TODO .WithTopSlotEpsilonGreedy(.5f)
                 .ExploitUntilModelReady(new TestADFPolicy()))
             {
                 string uniqueKey = "eventid";
@@ -37,7 +35,7 @@ namespace ClientDecisionServiceTest
                 for (int i = 1; i <= 100; i++)
                 {
                     var adfContext = new TestADFContext(i);
-                    int[] action = ds.ChooseAction(uniqueKey, adfContext);
+                    int[] action = ds.ChooseRanking(uniqueKey, adfContext);
 
                     Assert.AreEqual(i, action.Length);
 

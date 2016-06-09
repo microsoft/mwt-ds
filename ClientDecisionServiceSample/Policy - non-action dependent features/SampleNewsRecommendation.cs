@@ -55,10 +55,7 @@ namespace ClientDecisionServiceSample
             // Create the main service object with above configurations.
             // Specify the exploration algorithm to use, here we will use Epsilon-Greedy.
             // For more details about this and other algorithms, refer to the MWT onboarding whitepaper.
-            using (var service = DecisionService
-                .Create(serviceConfig, numTopics)
-                .With<UserContext>()
-                .WithEpsilonGreedy(epsilon)
+            using (var service = DecisionService.Create<UserContext>(serviceConfig))
                 .ExploitUntilModelReady(new NewsDisplayPolicy()))
             {
                 var random = new Random();

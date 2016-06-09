@@ -23,10 +23,7 @@ namespace ClientDecisionServiceSample
                 PollingForSettingsPeriod = TimeSpan.MinValue
             };
 
-            using (var service = DecisionService
-                .WithRanker(serviceConfig)
-                .WithJson()
-                .WithTopSlotEpsilonGreedy(epsilon: 0.8f))
+            using (var service = DecisionService.CreateJson(serviceConfig))
             {
                 string uniqueKey = "json-key-";
 
@@ -44,7 +41,7 @@ namespace ClientDecisionServiceSample
                     // if 
                     var contextJson = JsonConvert.SerializeObject(context);
 
-                    int[] action = service.ChooseAction(key, contextJson);
+                    int[] action = service.ChooseRanking(key, contextJson);
                     service.ReportReward(i / 100f, key);
 
                     System.Threading.Thread.Sleep(1);

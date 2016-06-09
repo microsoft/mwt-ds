@@ -21,9 +21,7 @@ namespace ClientDecisionServiceSample
             var serviceConfig = new DecisionServiceConfiguration(settingsBlobUri: SettingsBlobUri);
 
             using (var service = DecisionService
-                .WithRanker(serviceConfig)
-                .With<FoodContext>()
-                .WithTopSlotEpsilonGreedy(epsilon: .2f)
+                .Create<FoodContext>(serviceConfig)
                 .ExploitUntilModelReady(new FoodPolicy()))
             {
                 System.Threading.Thread.Sleep(10000);

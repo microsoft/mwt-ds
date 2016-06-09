@@ -16,7 +16,7 @@ namespace ClientDecisionServiceTest
             var dsConfig = new DecisionServiceConfiguration("") { OfflineMode = true, OfflineApplicationID = "" };
             try
             {
-                using (var ds = DecisionService.WithPolicy(dsConfig, 2).With<TestContext>())
+                using (var ds = DecisionService.Create<TestContext>(dsConfig))
                 { }
             }
             catch (ArgumentException ex)
@@ -32,10 +32,7 @@ namespace ClientDecisionServiceTest
 
             var recorder = new TestLogger();
             int numChooseAction = 100;
-            using (var ds = DecisionService
-                .WithPolicy(dsConfig, Constants.NumberOfActions)
-                .With<TestContext>()
-                .WithEpsilonGreedy(.2f)
+            using (var ds = DecisionService.Create<TestContext>(dsConfig))
                 .WithRecorder(recorder)
                 .ExploitUntilModelReady(new TestSingleActionPolicy()))
             {
@@ -80,9 +77,8 @@ namespace ClientDecisionServiceTest
 
             int numChooseAction = 100;
             using (var ds = DecisionService
-                .WithPolicy(dsConfig, Constants.NumberOfActions)
-                .With<TestContext>()
-                .WithEpsilonGreedy(.2f)
+                .Create<TestContext>(dsConfig)
+                // TODO: .WithEpsilonGreedy(.2f)
                 .WithRecorder(recorder)
                 .ExploitUntilModelReady(new TestSingleActionPolicy()))
             {

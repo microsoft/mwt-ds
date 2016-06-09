@@ -23,7 +23,7 @@ namespace ClientDecisionServiceTest
 
         private int eventCount;
 
-        private int SendEvents(DecisionServiceClient<MyContext, int, int> client, int numberOfEvents)
+        private int SendEvents(DecisionServiceClient<MyContext> client, int numberOfEvents)
         {
             var expectedEvents = 0;
 
@@ -103,7 +103,7 @@ namespace ClientDecisionServiceTest
             
             {
                 var expectedEvents = 0;
-                using (var client = DecisionService.WithPolicy(config, numberOfActions: 4).With<MyContext>()
+                using (var client = DecisionService.Create<MyContext>(config)
                     .WithEpsilonGreedy(1f))
                 {
                     // need to send events for at least experimental unit duration, so ASA is triggered
@@ -131,8 +131,8 @@ namespace ClientDecisionServiceTest
 
             freq.Clear();
 
-            using (var client = DecisionService.WithPolicy(config, numberOfActions: 4).With<MyContext>()
-                .WithEpsilonGreedy(epsilon: 0))
+            // TODO: update eps: 0
+            using (var client = DecisionService.Create<MyContext>(config))
             {
                 int i;
                 for (i = 0; i < 120; i++)
