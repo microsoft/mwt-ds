@@ -22,7 +22,9 @@ namespace ClientDecisionServiceTest
             int numActions = 10;
             int numFeatures = 1024;
 
-            commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false, vwArgs: "--cb_explore_adf --epsilon 0.5");
+            string vwArgs = "--cb_explore 10 --epsilon 0.5";
+
+            commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false, vwArgs: vwArgs);
 
             var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri)
             //explorer: new EpsilonGreedyExplorer<TestRcv1Context>(new ConstantPolicy<TestRcv1Context>(ctx => ctx.ActionDependentFeatures.Count), epsilon: 0.5f, numActions: (int)numActions))
@@ -47,7 +49,7 @@ namespace ClientDecisionServiceTest
                     if (i % 50 == 1)
                     {
                         int modelIndex = i / 50;
-                        byte[] modelContent = commandCenter.GetCBModelBlobContent(numExamples: 3 + modelIndex, numFeatures: numFeatures, numActions: numActions);
+                        byte[] modelContent = commandCenter.GetCBModelBlobContent(numExamples: 3 + modelIndex, numFeatures: numFeatures, numActions: numActions, vwArgs: vwArgs);
                         using (var modelStream = new MemoryStream(modelContent))
                         {
                             ds.UpdateModel(modelStream);

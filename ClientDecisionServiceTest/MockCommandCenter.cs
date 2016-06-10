@@ -86,13 +86,12 @@ namespace ClientDecisionServiceTest
             return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(metadata));
         }
 
-        public byte[] GetCBModelBlobContent(int numExamples, int numFeatures, int numActions)
+        public byte[] GetCBModelBlobContent(int numExamples, int numFeatures, int numActions, string vwArgs)
         {
             Random rg = new Random(numExamples + numFeatures);
 
             string localOutputDir = "test";
             string vwFileName = Path.Combine(localOutputDir, string.Format("test_vw_{0}.model", numExamples));
-            string vwArgs = "--cb " + numActions;
 
             using (var vw = new VowpalWabbit<TestRcv1Context>(vwArgs))
             {
@@ -120,7 +119,7 @@ namespace ClientDecisionServiceTest
 
             string localOutputDir = "test";
             string vwFileName = Path.Combine(localOutputDir, string.Format("test_vw_{0}.model", numExamples));
-            string vwArgs = string.IsNullOrWhiteSpace(vwDefaultArgs) ? "--cb_adf --rank_all" : vwDefaultArgs;
+            string vwArgs = vwDefaultArgs;
 
             using (var vw = new VowpalWabbit(vwArgs))
             {
