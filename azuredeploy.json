@@ -79,7 +79,7 @@
     }
   },
   "variables": {
-    "assetLocation": "https://raw.githubusercontent.com/danmelamed/ds-provisioning/master/",
+    "assetLocation": "https://raw.githubusercontent.com/multiworldtesting/ds-provisioning/master/",
     "binaryStorageAccountName": "dscode",
     "onlineTrainerCspkgToken": "sr=b&sv=2015-02-21&st=2016-06-01T17%3A00%3A25Z&se=2099-06-01T18%3A00%3A00Z&sp=r&sig=BzvUAAilAs%2B0NYmnPUsc2TtdNzkQILH3bbFrgQcZ3x4%3D"
   },
