@@ -16,6 +16,7 @@ using System.Web.Mvc;
 
 namespace DecisionServicePrivateWeb.Controllers
 {
+    [RequireHttps]
     public class HomeController : Controller
     {
         const string SKAuthenticated = "Authenticated";
