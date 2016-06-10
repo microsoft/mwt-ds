@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using VW;
+using VW.Serializer;
 
 namespace ClientDecisionServiceTest
 {
@@ -53,7 +54,7 @@ namespace ClientDecisionServiceTest
                 if (createModelBlob)
                 {
                     var modelBlob = localContainer.GetBlockBlobReference(this.localAzureModelBlobName);
-                    byte[] modelContent = this.GetCBADFModelBlobContent(5, 5);
+                    byte[] modelContent = this.GetCBADFModelBlobContent(5, 5, vwArgs);
                     modelBlob.UploadFromByteArray(modelContent, 0, modelContent.Length);
                     this.localAzureModelBlobUri = modelBlob.Uri.ToString();
                 }
@@ -113,35 +114,19 @@ namespace ClientDecisionServiceTest
             return vwModelBytes;
         }
 
-        public byte[] GetCBADFModelBlobContent(int numExamples, int numFeatureVectors)
+        public byte[] GetCBADFModelBlobContent(int numExamples, int numFeatureVectors, string vwDefaultArgs)
         {
             Random rg = new Random(numExamples + numFeatureVectors);
 
             string localOutputDir = "test";
             string vwFileName = Path.Combine(localOutputDir, string.Format("test_vw_{0}.model", numExamples));
-            string vwArgs = "--cb_adf --rank_all";
+            string vwArgs = string.IsNullOrWhiteSpace(vwDefaultArgs) ? "--cb_adf --rank_all" : vwDefaultArgs;
 
-            using (var vw = new VowpalWabbit<TestADFContextWithFeatures, TestADFFeatures>(vwArgs))
+            using (var vw = new VowpalWabbit(vwArgs))
             {
-                //Create examples
-                for (int ie = 0; ie < numExamples; ie++)
-                {
-                    // Create features
-                    var context = TestADFContextWithFeatures.CreateRandom(numFeatureVectors, rg);
-                    if (ie == 0)
-                    {
-                        context.Shared = new string[] { "s_1", "s_2" };
-                    }
-
-                    vw.Learn(
-                        context,
-                        context.ActionDependentFeatures,
-                        context.ActionDependentFeatures.IndexOf(f => f.Label != null),
-                        context.ActionDependentFeatures.First(f => f.Label != null).Label);
-                }
-
-                vw.Native.ID = "random_id";
-                vw.Native.SaveModel(vwFileName);
+                vw.Learn(new[] { "1:-3:0.2 | b:2" });
+                vw.ID = "123";
+                vw.SaveModel(vwFileName);
             }
 
             byte[] vwModelBytes = File.ReadAllBytes(vwFileName);

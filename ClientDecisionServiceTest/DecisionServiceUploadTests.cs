@@ -21,6 +21,8 @@ namespace ClientDecisionServiceTest
 
             string uniqueKey = "test interaction";
 
+            commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false, vwArgs: "--cb_explore_adf --epsilon 0.5");
+
             var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri);
 
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
@@ -38,7 +40,7 @@ namespace ClientDecisionServiceTest
             Assert.AreEqual(1, joinServer.EventBatchList.Count);
             Assert.AreEqual(1, joinServer.EventBatchList[0].ExperimentalUnitFragments.Count);
             Assert.AreEqual(uniqueKey, joinServer.EventBatchList[0].ExperimentalUnitFragments[0].Id);
-            Assert.IsTrue(joinServer.EventBatchList[0].ExperimentalUnitFragments[0].Value.ToLower().Contains("\"a\":" + chosenAction + ","));
+            Assert.IsTrue(joinServer.EventBatchList[0].ExperimentalUnitFragments[0].Value.ToLower().Contains("\"a\":[" + chosenAction + ","));
         }
 
         [TestMethod]
@@ -74,6 +76,8 @@ namespace ClientDecisionServiceTest
 
             string uniqueKey = "test interaction";
 
+            commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false, vwArgs: "--cb_explore_adf --epsilon 0.2");
+
             var createObservation = (Func<int, string>)((i) => { return string.Format("00000", i); });
 
             var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri);
@@ -84,7 +88,6 @@ namespace ClientDecisionServiceTest
             var chosenActions = new ConcurrentBag<int>();
             using (var ds = DecisionService
                 .Create<TestContext>(dsConfig)
-                // .WithEpsilonGreedy(.2f)
                 .ExploitUntilModelReady(new ConstantPolicy<TestContext>()))
             {
                 Parallel.For(0, numEvents, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, (i) =>
@@ -108,12 +111,12 @@ namespace ClientDecisionServiceTest
 
             var completeFragments = batchList
                 .SelectMany(b => b.ExperimentalUnitFragments
-                .Select(f => JsonConvert.DeserializeObject<SingleActionCompleteExperimentalUnitFragment>(f.Value)));
+                .Select(f => JsonConvert.DeserializeObject<MultiActionCompleteExperimentalUnitFragment>(f.Value)));
 
             // Test actual interactions received 
-            List<SingleActionCompleteExperimentalUnitFragment> interactions = completeFragments
+            List<MultiActionCompleteExperimentalUnitFragment> interactions = completeFragments
                 .Where(f => f.Value == null)
-                .OrderBy(f => f.Action)
+                .OrderBy(f => f.Actions[0])
                 .ToList();
 
             // Test values of the interactions
@@ -121,11 +124,11 @@ namespace ClientDecisionServiceTest
             var chosenActionList = chosenActions.OrderBy(a => a).ToList();
             for (int i = 0; i < interactions.Count; i++)
             {
-                Assert.AreEqual((int)chosenActionList[i], interactions[i].Action.Value);
+                Assert.AreEqual((int)chosenActionList[i], interactions[i].Actions[0]);
             }
 
             // Test actual observations received
-            List<SingleActionCompleteExperimentalUnitFragment> observations = completeFragments
+            List<MultiActionCompleteExperimentalUnitFragment> observations = completeFragments
                 .Where(f => f.Value != null)
                 .OrderBy(f => f.Value)
                 .ToList();

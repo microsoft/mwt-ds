@@ -15,7 +15,7 @@ namespace ClientDecisionServiceTest
         {
             joinServer.Reset();
 
-            commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false);
+            commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false, vwArgs: "--cb_explore 2");
 
             var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri);
 
@@ -51,7 +51,7 @@ namespace ClientDecisionServiceTest
         {
             joinServer.Reset();
 
-            commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false);
+            commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false, vwArgs: "--cb_explore 2");
 
             var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri);
             dsConfig.JoinServerType = JoinServerType.CustomSolution;

@@ -21,7 +21,9 @@ namespace ClientDecisionServiceTest
             var testTraceListener = new TestTraceListener();
             Trace.Listeners.Add(testTraceListener);
 
-            commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false);
+            string vwArgs = "--cb_explore_adf --epsilon 0.5";
+
+            commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false, vwArgs: vwArgs);
 
             var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri)
             {
@@ -41,7 +43,7 @@ namespace ClientDecisionServiceTest
                 // TODO .WithTopSlotEpsilonGreedy(.5f)
                 .ExploitUntilModelReady(new ConstantPolicy<TestADFContextWithFeatures>(ctx => ctx.ActionDependentFeatures.Count)))
             {
-                byte[] modelContent = commandCenter.GetCBADFModelBlobContent(numExamples: 5, numFeatureVectors: 10);
+                byte[] modelContent = commandCenter.GetCBADFModelBlobContent(numExamples: 5, numFeatureVectors: 10, vwDefaultArgs: vwArgs);
                 using (var modelStream = new MemoryStream(modelContent))
                 {
                     ds.UpdateModel(modelStream);

@@ -55,7 +55,8 @@ namespace ClientDecisionServiceTest
         {
             joinServer.Reset();
 
-            commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false, vwArgs:"--cb_explore_adf --epsilon 0.5");
+            string vwArgs = "--cb_explore_adf --epsilon 0.5";
+            commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false, vwArgs: vwArgs);
 
             var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri)
             {
@@ -77,7 +78,7 @@ namespace ClientDecisionServiceTest
                     if (i % 50 == 1)
                     {
                         int modelIndex = i / 50;
-                        byte[] modelContent = commandCenter.GetCBADFModelBlobContent(numExamples: 3 + modelIndex, numFeatureVectors: 4 + modelIndex);
+                        byte[] modelContent = commandCenter.GetCBADFModelBlobContent(numExamples: 3 + modelIndex, numFeatureVectors: 4 + modelIndex, vwDefaultArgs: vwArgs);
                         using (var modelStream = new MemoryStream(modelContent))
                         {
                             ds.UpdateModel(modelStream);

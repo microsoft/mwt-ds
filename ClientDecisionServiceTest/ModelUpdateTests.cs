@@ -22,6 +22,8 @@ namespace ClientDecisionServiceTest
             int numActions = 10;
             int numFeatures = 1024;
 
+            commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false, vwArgs: "--cb_explore_adf --epsilon 0.5");
+
             var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri)
             //explorer: new EpsilonGreedyExplorer<TestRcv1Context>(new ConstantPolicy<TestRcv1Context>(ctx => ctx.ActionDependentFeatures.Count), epsilon: 0.5f, numActions: (int)numActions))
             {
