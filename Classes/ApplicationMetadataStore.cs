@@ -64,7 +64,7 @@ namespace DecisionServicePrivateWeb.Classes
                     IsExplorationEnabled = true,
                     SubscriptionId = ConfigurationManager.AppSettings[AKSubscriptionId],
                     DecisionType = DecisionType.MultiActions, // TODO: update depending on deployment option
-                    ModelId = ApplicationBlobConstants.LatestModelBlobName,
+                    ModelId = ApplicationSettingConstants.UseLatestModelSetting,
                     NumActions = Convert.ToInt32(ConfigurationManager.AppSettings[AKNumActions]),
                     TrainArguments = ConfigurationManager.AppSettings[AKTrainArguments],
                     TrainFrequency = TrainFrequency.High, // TODO: update depending on deployment option

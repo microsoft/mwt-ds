@@ -51,7 +51,6 @@
                                             Text = String.IsNullOrEmpty(i.LastModifiedRelativeTime) ? i.Name : i.Name + " - " + i.LastModifiedRelativeTime,
                                             Selected = i.Name == listView.SelectedItem
                                         }),
-                                        "Select a model",
                                         new { @id = item.Name, @class = "form-control helptext-on-interaction", @style = "display:inline" })
                                     break;
                                 default:

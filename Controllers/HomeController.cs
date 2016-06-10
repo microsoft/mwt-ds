@@ -314,7 +314,17 @@ namespace DecisionServicePrivateWeb.Controllers
                 EventHubInteractionConnectionString = clientMetadata.EventHubInteractionConnectionString,
                 EventHubObservationConnectionString = clientMetadata.EventHubObservationConnectionString,
                 ExperimentalUnitDuration = extraMetadata.ExperimentalUnitDuration,
-                SelectedModelId = new SettingBlobListViewModel { Items = new List<BlobModelViewModel>() { new BlobModelViewModel { Name = "Latest" } }, SelectedItem = extraMetadata.ModelId },
+                SelectedModelId = new SettingBlobListViewModel
+                {
+                    Items = new List<BlobModelViewModel>()
+                    {
+                        new BlobModelViewModel
+                        {
+                            Name = ApplicationSettingConstants.UseLatestModelSetting
+                        }
+                    },
+                    SelectedItem = extraMetadata.ModelId
+                },
                 IsExplorationEnabled = clientMetadata.IsExplorationEnabled,
                 SettingsBlobUri = settingsBlobUri
             };
