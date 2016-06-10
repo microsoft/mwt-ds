@@ -28,7 +28,10 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                 ranking[i] = temp;
             }
 
-            return ExplorerDecision.Create(ranking, new GenericExplorerState { Probability = 1f }, true);
+            return ExplorerDecision.Create(
+                ranking, 
+                new GenericTopSlotExplorerState { Probabilities = Enumerable.Repeat(1f / numActionsVariable, numActionsVariable).ToArray() }, 
+                true);
         }
     }
 }

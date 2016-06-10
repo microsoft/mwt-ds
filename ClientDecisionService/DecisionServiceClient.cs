@@ -123,7 +123,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             var explorer = new GenericTopSlotExplorer();
             // explorer used if model not ready and defaultAction provided
             if (initialExplorer == null)
-                initialExplorer = InitialExplorer.Create(this.metaData.InitialExplorationEpsilon);
+                initialExplorer = new EpsilonGreedyInitialExplorer(this.metaData.InitialExplorationEpsilon);
 
             // explorer used if model not ready and no default action provided
             if (initialFullExplorer == null)
