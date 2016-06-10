@@ -4,6 +4,7 @@ using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
 using System;
 using System.IO;
 using VW.Serializer;
+using Microsoft.Research.MultiWorldTesting.Contract;
 
 namespace ClientDecisionServiceTest
 {
@@ -125,10 +126,14 @@ namespace ClientDecisionServiceTest
         public void TestMultiActionOfflineModeCustomLogger()
         {
             var dsConfig = new DecisionServiceConfiguration("") { OfflineMode = true, OfflineApplicationID = "" };
+            var metaData = new ApplicationClientMetadata
+            {
+                TrainArguments = "--cb_explore 100 --epsilon 0.2"
+            };
+
             var recorder = new TestLogger();
             int numChooseAction = 100;
-            using (var ds = DecisionService.Create<TestContext>(dsConfig)
-                //.WithTopSlotEpsilonGreedy(.2f)
+            using (var ds = DecisionService.Create<TestContext>(dsConfig, metaData: metaData)
                 .WithRecorder(recorder)
                 .ExploitUntilModelReady(new ConstantPolicy<TestContext>()))
             {

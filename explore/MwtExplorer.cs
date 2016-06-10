@@ -10,10 +10,10 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             IRecorder<TContext, TAction> recorder, 
             IExplorer<TAction, TPolicyValue> explorer,
             IContextMapper<TContext, TPolicyValue> policy = null,
-            IFullExplorer<TAction> initialExplorer = null
-            )
+            IFullExplorer<TAction> initialFullExplorer = null,
+            IInitialExplorer<TPolicyValue, TAction> initialExplorer = null)
         {
-            var mwt = new MwtExplorer<TContext, TAction, TPolicyValue>(appId, numActionsProvider, recorder, explorer, initialExplorer);
+            var mwt = new MwtExplorer<TContext, TAction, TPolicyValue>(appId, numActionsProvider, recorder, explorer, initialFullExplorer, initialExplorer);
             mwt.Policy = policy;
             return mwt;
         }
@@ -24,9 +24,10 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             IRecorder<TContext, TAction> recorder,
             IExplorer<TAction, TPolicyValue> explorer,
             IContextMapper<TContext, TPolicyValue> policy = null,
-            IFullExplorer<TAction> initialExplorer = null)
+            IFullExplorer<TAction> initialFullExplorer = null,
+            IInitialExplorer<TPolicyValue, TAction> initialExplorer = null)
         {
-            var mwt = new MwtExplorer<TContext, TAction, TPolicyValue>(appId, new ConstantActionsProvider<TContext>(numActions), recorder, explorer, initialExplorer);
+            var mwt = new MwtExplorer<TContext, TAction, TPolicyValue>(appId, new ConstantActionsProvider<TContext>(numActions), recorder, explorer, initialFullExplorer, initialExplorer);
             mwt.Policy = policy;
             return mwt;
         }
@@ -53,7 +54,8 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             INumberOfActionsProvider<TContext> numActionsProvider,
             IRecorder<TContext, TAction> recorder, 
             IExplorer<TAction, TPolicyValue> explorer,
-            IFullExplorer<TAction> initialExplorer = null
+            IFullExplorer<TAction> initialFullExplorer = null,
+            IInitialExplorer<TPolicyValue, TAction> initialExplorer = null
             )
 		{
             this.appId = MurMurHash3.ComputeIdHash(appId);
@@ -66,10 +68,11 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                 throw new ArgumentNullException("explorer");
             this.Explorer = explorer;
 
+            this.InitialFullExplorer = initialFullExplorer;
             this.InitialExplorer = initialExplorer;
             this.numActionsProvider = numActionsProvider;
 
-            if (this.InitialExplorer != null && this.numActionsProvider == null)
+            if (this.InitialFullExplorer != null && this.numActionsProvider == null)
             {
                 throw new ArgumentNullException("numActionsProvider");
             }
@@ -91,7 +94,9 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             }
         }
 
-        public IFullExplorer<TAction> InitialExplorer { get; set; }
+        public IFullExplorer<TAction> InitialFullExplorer { get; set; }
+
+        public IInitialExplorer<TPolicyValue, TAction> InitialExplorer { get; set; }
 
         public IContextMapper<TContext, TPolicyValue> Policy { get; set; }
 
@@ -109,6 +114,13 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 
                 this.recorder = value;
             }
+        }
+
+        public TAction ChooseAction(string uniqueKey, TContext context, TAction defaultAction)
+        {
+            var policy = this.Policy;
+            var policyDecision = policy != null ? policy.MapContext(context) : PolicyDecision.Create(this.InitialExplorer.Explore(defaultAction));
+            return ChooseActionInternal(uniqueKey, context, policyDecision);
         }
 
         public TAction ChooseAction(string uniqueKey, TContext context, IContextMapper<TContext, TPolicyValue> defaultPolicy)
@@ -150,7 +162,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             }
 
             if (policy == null)
-                explorerDecision = this.InitialExplorer.Explore(random, numActionsVariable);
+                explorerDecision = this.InitialFullExplorer.Explore(random, numActionsVariable);
             else
             {
                 policyDecision = policy.MapContext(context);

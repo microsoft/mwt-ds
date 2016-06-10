@@ -4,8 +4,10 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -20,13 +22,12 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         private IRecorder<TContext, int[]> recorder;
         private ILogger logger;
         private IContextMapper<TContext, ActionProbability[]> initialPolicy;
-        private EpsilonGreedyInitialExplorer epsilonGreedyInitialExplorer;
         private readonly DecisionServiceConfiguration config;
         private readonly ApplicationClientMetadata metaData;
         private MwtExplorer<TContext, int[], ActionProbability[]> mwtExplorer;
         private AzureBlobBackgroundDownloader settingsDownloader;
         private AzureBlobBackgroundDownloader modelDownloader;
-        private int numActions;
+        private INumberOfActionsProvider<TContext> numActionsProvider;
 
         private class OfflineRecorder : IRecorder<TContext, int[]>
         {
@@ -41,7 +42,8 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             ApplicationClientMetadata metaData,
             IContextMapper<TContext, ActionProbability[]> internalPolicy,
             IContextMapper<TContext, ActionProbability[]> initialPolicy = null,
-            IFullExplorer<int[]> initialExplorer = null)
+            IFullExplorer<int[]> initialFullExplorer = null,
+            IInitialExplorer<ActionProbability[], int[]> initialExplorer = null)
         {
             if (config == null)
                 throw new ArgumentNullException("config");
@@ -54,6 +56,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
             this.config = config;
             string appId = string.Empty;
+            this.metaData = metaData;
 
             if (config.OfflineMode)
             {
@@ -66,11 +69,8 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             }
             else
             {
-                this.metaData = metaData;
                 if (metaData == null)
                     throw new Exception("Unable to locate a registered MWT application.");
-
-                this.epsilonGreedyInitialExplorer = new EpsilonGreedyInitialExplorer(this.metaData.InitialExplorationEpsilon);
 
                 if (this.recorder == null)
                 {
@@ -121,19 +121,26 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 throw new Exception("Initial Explorer and Default Policy are both specified but only one can be used.");
 
             var explorer = new GenericTopSlotExplorer();
+            // explorer used if model not ready and defaultAction provided
+            if (initialExplorer == null)
+                initialExplorer = InitialExplorer.Create(this.metaData.InitialExplorationEpsilon);
+
+            // explorer used if model not ready and no default action provided
+            if (initialFullExplorer == null)
+                initialFullExplorer = new PermutationExplorer(1);
 
             var match = Regex.Match(metaData.TrainArguments, @"--cb_explore\s+(?<numActions>\d+)");
             if (match.Success)
             {
-                this.numActions = int.Parse(match.Groups["numActions"].Value);
+                var numActions = int.Parse(match.Groups["numActions"].Value);
+                this.numActionsProvider = new ConstantNumActionsProvider(numActions);
 
                 this.mwtExplorer = MwtExplorer.Create(appId,
-                    numActions, this.recorder, explorer, initialExplorer: initialExplorer);
+                    numActions, this.recorder, explorer, initialPolicy, initialFullExplorer, initialExplorer);
             }
             else
             {
-                INumberOfActionsProvider<TContext> numActionsProvider = null;
-                if (initialExplorer != null) // only needed when full exploration
+                if (initialExplorer != null || metaData.InitialExplorationEpsilon == 1f) // only needed when full exploration
                 {
                     numActionsProvider = internalPolicy as INumberOfActionsProvider<TContext>;
                     if (numActionsProvider == null)
@@ -144,7 +151,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 }
 
                 this.mwtExplorer = MwtExplorer.Create(appId,
-                    numActionsProvider, this.recorder, explorer, initialExplorer: initialExplorer);
+                    numActionsProvider, this.recorder, explorer, initialPolicy, initialFullExplorer, initialExplorer);
             }
         }
 
@@ -212,12 +219,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             set { this.mwtExplorer.Explorer = value; }
         }
 
-        internal IFullExplorer<int[]> InitialExplorer
-        {
-            get { return this.mwtExplorer.InitialExplorer; }
-            set { this.mwtExplorer.InitialExplorer = value; }
-        }
-
         internal IContextMapper<TContext, ActionProbability[]> InitialPolicy
         {
             get { return this.initialPolicy; }
@@ -246,8 +247,20 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
         public int ChooseAction(string uniqueKey, TContext context, int defaultAction)
         {
-            var defaultPolicyDecision = this.epsilonGreedyInitialExplorer.Explore(defaultAction, numActions);
-            return this.mwtExplorer.ChooseAction(uniqueKey, context, defaultPolicyDecision)[0];
+            var numActions = this.numActionsProvider.GetNumberOfActions(context);
+            var actions = new int[numActions];
+            actions[0] = defaultAction;
+            var action = 1;
+            for (int i = 1; i < numActions; i++)
+            {
+                if (action == defaultAction)
+                    action++;
+
+                actions[i] = action;
+                action++;
+            }
+
+            return this.mwtExplorer.ChooseAction(uniqueKey, context, actions)[0];
         }
 
         public int ChooseAction(string uniqueKey, TContext context)
@@ -257,8 +270,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
         public int[] ChooseRanking(string uniqueKey, TContext context, int[] defaultActions)
         {
-            var defaultPolicyDecision = this.epsilonGreedyInitialExplorer.Explore(defaultActions);
-            return this.mwtExplorer.ChooseAction(uniqueKey, context, defaultPolicyDecision);
+            return this.mwtExplorer.ChooseAction(uniqueKey, context, defaultActions);
         }
 
         public int[] ChooseRanking(string uniqueKey, TContext context)
@@ -344,6 +356,21 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             {
                 this.mwtExplorer.Dispose();
                 this.mwtExplorer = null;
+            }
+        }
+
+        private sealed class ConstantNumActionsProvider : INumberOfActionsProvider<TContext>
+        {
+            private int numActions;
+
+            internal ConstantNumActionsProvider(int numActions)
+            {
+                this.numActions = numActions;
+            }
+
+            public int GetNumberOfActions(TContext context)
+            {
+                return numActions;
             }
         }
     }

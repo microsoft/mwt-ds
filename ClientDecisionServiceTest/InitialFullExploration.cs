@@ -1,4 +1,5 @@
 ﻿using Microsoft.Research.MultiWorldTesting.ClientLibrary;
+using Microsoft.Research.MultiWorldTesting.Contract;
 using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -34,22 +35,23 @@ namespace ClientDecisionServiceTest
 
             using (var model = new MemoryStream())
             {
-                using (var vw = new VowpalWabbit("--cb_adf --rank_all"))
+                using (var vw = new VowpalWabbit("--cb_explore_adf --epsilon 0.3"))
                 {
+                    vw.Learn(new[] { "1:-3:0.2 | b:2"});
                     vw.ID = "123";
                     vw.SaveModel(model);
                 }
 
-                var config = new DecisionServiceConfiguration("") { OfflineMode = true, OfflineApplicationID = "" };
-
-                using (var ds =
-                        DecisionService
-                            .CreateJson(config)
-                            // TODO .WithTopSlotEpsilonGreedy(0.3f)
-                            .WithRecorder(recorder)
-                            .ExploreTopSlotUniformRandomUntilModelReady())
+                var config = new DecisionServiceConfiguration("") { OfflineMode = true, OfflineApplicationID = "", DevelopmentMode = true };
+                var metaData = new ApplicationClientMetadata
                 {
-                    var decision = ds.ChooseAction("abc", "{\"a\":1,\"_multi\":[{\"b\":2}]}");
+                    TrainArguments = "--cb_explore_adf --epsilon 0.3",
+                    InitialExplorationEpsilon = 1f
+                };
+
+                using (var ds = DecisionService.CreateJson(config, metaData:metaData).WithRecorder(recorder))
+                {
+                    var decision = ds.ChooseRanking("abc", "{\"a\":1,\"_multi\":[{\"b\":2}]}");
 
                     // since there's not a model loaded why should get 100% exploration
                     Assert.AreEqual(1f, recorder.LastExplorerState.Probability);
@@ -57,7 +59,7 @@ namespace ClientDecisionServiceTest
                     model.Position = 0;
                     ds.UpdateModel(model);
 
-                    decision = ds.ChooseAction("abc", "{\"a\":1,\"_multi\":[{\"b\":2}, {\"b\":3}]}");
+                    decision = ds.ChooseRanking("abc", "{\"a\":1,\"_multi\":[{\"b\":2}, {\"b\":3}]}");
                     Assert.AreNotEqual(1f, recorder.LastExplorerState.Probability);
 
                     var vwState = recorder.LastMapperState as VWState;

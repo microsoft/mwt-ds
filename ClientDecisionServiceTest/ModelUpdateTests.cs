@@ -73,7 +73,7 @@ namespace ClientDecisionServiceTest
         public async Task TestNoModelFoundForImmediateDownload()
         {
             // create mock blobs for settings and models
-            this.commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false);
+            this.commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false, vwArgs: "--cb_explore_adf --epsilon 0.2");
 
             var serviceConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri)
             {
@@ -81,8 +81,7 @@ namespace ClientDecisionServiceTest
                 LoggingServiceAddress = MockJoinServer.MockJoinServerAddress,
             };
 
-            using (var service = DecisionService.Create<TestADFContextWithFeatures>(serviceConfig)
-                .WithTopSlotEpsilonGreedy(epsilon: .2f))
+            using (var service = DecisionService.Create<TestADFContextWithFeatures>(serviceConfig))
             {
                 await service.DownloadModelAndUpdate(new System.Threading.CancellationToken());
             }

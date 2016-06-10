@@ -16,7 +16,7 @@ namespace ClientDecisionServiceTest
         {
             joinServer.Reset();
 
-            commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false, "--cb_explore_adf --epsilon 0.5");
+            commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false, vwArgs:"--cb_explore_adf --epsilon 0.5");
 
             var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri)
             {
@@ -65,7 +65,7 @@ namespace ClientDecisionServiceTest
                 PollingForSettingsPeriod = TimeSpan.MinValue
             };
 
-            using (var ds = DecisionService.Create<TestADFContextWithFeatures>()
+            using (var ds = DecisionService.Create<TestADFContextWithFeatures>(dsConfig)
                 .ExploitUntilModelReady(new ConstantPolicy<TestADFContextWithFeatures>(ctx => ctx.ActionDependentFeatures.Count)))
             {
                 string uniqueKey = "eventid";
@@ -87,7 +87,7 @@ namespace ClientDecisionServiceTest
                     int numActions = rg.Next(5, 20);
                     var context = TestADFContextWithFeatures.CreateRandom(numActions, rg);
 
-                    int[] action = ds.ChooseAction(uniqueKey, context);
+                    int[] action = ds.ChooseRanking(uniqueKey, context);
 
                     Assert.AreEqual(numActions, action.Length);
 

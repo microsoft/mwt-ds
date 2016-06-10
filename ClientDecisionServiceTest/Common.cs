@@ -141,7 +141,7 @@ namespace ClientDecisionServiceTest
 
     class TestOutcome { }
 
-    public class ConstantPolicy<T> : IContextMapper<T, PolicyDecision<ActionProbability[]>>
+    public class ConstantPolicy<T> : IContextMapper<T, ActionProbability[]>
     {
         private Func<T, int> numActionsFunc;
 
@@ -153,11 +153,11 @@ namespace ClientDecisionServiceTest
                 this.numActionsFunc = _ => Constants.NumberOfActions - 1;
         }
 
-        public PolicyDecision<PolicyDecision<ActionProbability[]>> MapContext(T context)
+        public PolicyDecision<ActionProbability[]> MapContext(T context)
         {
-            return Enumerable.Range(1, this.numActionsFunc(context))
+            return PolicyDecision.Create(Enumerable.Range(1, this.numActionsFunc(context))
                 .Select(a => new ActionProbability { Action = a, Probability = a == 1 ? 1f : 0 })
-                .ToArray();
+                .ToArray());
         }
     }
 

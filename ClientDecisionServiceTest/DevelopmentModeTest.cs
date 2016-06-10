@@ -53,7 +53,7 @@ namespace ClientDecisionServiceTest
                     Random rg = new Random(i);
                     int numActions = rg.Next(5, 20);
                     var context = TestADFContextWithFeatures.CreateRandom(numActions, rg);
-                    int[] action = ds.ChooseAction(interId, context);
+                    int[] action = ds.ChooseRanking(interId, context);
                     ds.ReportReward(i / 100f, obserId);
 
                     eventIdList.Add(interId);

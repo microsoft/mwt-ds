@@ -40,7 +40,7 @@
     <Compile Include="BootstrapExplorer.cs" />
     <Compile Include="Decision.cs" />
     <Compile Include="EpsilonGreedyExplorer.cs" />
-    <Compile Include="EpsilonGreedyInitialExplorer.cs" />
+    <Compile Include="InitialExplorer.cs" />
     <Compile Include="EpsilonGreedySlateExplorer.cs" />
     <Compile Include="Feature.cs" />
     <Compile Include="GenericExplorer.cs" />

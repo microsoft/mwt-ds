@@ -46,6 +46,13 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         void EnableExplore(bool explore);
     }
 
+    public interface IInitialExplorer<TPolicyValue, TActionValue>
+    {
+        // IEnumerable<TPolicyValue> Explore(int defaultValue, int numActions);
+
+        TPolicyValue Explore(TActionValue defaultValues);
+    }
+
     public interface IFullExplorer<TAction>
     {
         ExplorerDecision<TAction> Explore(PRG random, int numActions); 

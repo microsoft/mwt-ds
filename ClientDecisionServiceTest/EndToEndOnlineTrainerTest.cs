@@ -65,6 +65,7 @@ namespace ClientDecisionServiceTest
         private Random rnd;
 
         [TestMethod]
+        [Ignore]
         public void EndToEndOnlineTrainerTest()
         {
             // configure VW parameters: 

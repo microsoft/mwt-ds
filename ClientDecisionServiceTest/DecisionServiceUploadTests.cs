@@ -84,7 +84,7 @@ namespace ClientDecisionServiceTest
             var chosenActions = new ConcurrentBag<int>();
             using (var ds = DecisionService
                 .Create<TestContext>(dsConfig)
-                .WithEpsilonGreedy(.2f)
+                // .WithEpsilonGreedy(.2f)
                 .ExploitUntilModelReady(new ConstantPolicy<TestContext>()))
             {
                 Parallel.For(0, numEvents, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, (i) =>

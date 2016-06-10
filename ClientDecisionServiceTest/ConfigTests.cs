@@ -38,11 +38,11 @@ namespace ClientDecisionServiceTest
                     if (i % 2 == 0)
                     {
                         // change the settings blob's etag frequently to make sure polling detects it
-                        commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false, "abc", 0.3);
+                        commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false, vwArgs: "abc", initialExplorationEpsilon: 0.3f);
                     }
                 }
 
-                Assert.IsTrue(Enumerable.SequenceEqual(settingsBytes, commandCenter.GetSettingsBlobContent("abc", 0.3)));
+                Assert.IsTrue(Enumerable.SequenceEqual(settingsBytes, commandCenter.GetSettingsBlobContent("abc", 0.3f)));
             }
         }
 
