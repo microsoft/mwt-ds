@@ -48,8 +48,6 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 
     public interface IInitialExplorer<TPolicyValue, TActionValue>
     {
-        // IEnumerable<TPolicyValue> Explore(int defaultValue, int numActions);
-
         TPolicyValue Explore(TActionValue defaultValues);
     }
 

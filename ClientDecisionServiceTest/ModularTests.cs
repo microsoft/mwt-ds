@@ -17,7 +17,12 @@ namespace ClientDecisionServiceTest
             var dsConfig = new DecisionServiceConfiguration("") { OfflineMode = true, OfflineApplicationID = "" };
             try
             {
-                using (var ds = DecisionService.Create<TestContext>(dsConfig))
+                var metaData = new ApplicationClientMetadata
+                {
+                    TrainArguments = "--cb_explore_adf --epsilon 0.3",
+                    InitialExplorationEpsilon = 1f
+                };
+                using (var ds = DecisionService.Create<TestContext>(dsConfig, metaData: metaData))
                 { }
             }
             catch (ArgumentException ex)
@@ -31,9 +36,15 @@ namespace ClientDecisionServiceTest
         {
             var dsConfig = new DecisionServiceConfiguration("") { OfflineMode = true, OfflineApplicationID = "" };
 
+            var metaData = new ApplicationClientMetadata
+            {
+                TrainArguments = "--cb_explore_adf --epsilon 0.3",
+                InitialExplorationEpsilon = 1f
+            };
+
             var recorder = new TestLogger();
             int numChooseAction = 100;
-            using (var ds = DecisionService.Create<TestContext>(dsConfig)
+            using (var ds = DecisionService.Create<TestContext>(dsConfig, metaData: metaData)
                 .WithRecorder(recorder)
                 .ExploitUntilModelReady(new ConstantPolicy<TestContext>()))
             {
@@ -116,7 +127,14 @@ namespace ClientDecisionServiceTest
         [ExpectedException(typeof(Exception))]
         public void TestMultiActionOfflineModeArgument()
         {
-            using (var ds = DecisionService.CreateJson(new DecisionServiceConfiguration("") { OfflineMode = true, OfflineApplicationID = "" }))
+            var metaData = new ApplicationClientMetadata
+            {
+                TrainArguments = "--cb_explore_adf --epsilon 0.3",
+                InitialExplorationEpsilon = 1f
+            };
+            using (var ds = DecisionService.CreateJson(
+                new DecisionServiceConfiguration("") { OfflineMode = true, OfflineApplicationID = "" },
+                metaData))
             {
                 ds.ChooseAction("", "{}");
             }
