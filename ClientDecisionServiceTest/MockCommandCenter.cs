@@ -35,7 +35,7 @@ namespace ClientDecisionServiceTest
             rblf.SetValue(null, "http://decisionservicestorage.blob.core.windows.net/app-locations/{0}");
         }
 
-        public void CreateBlobs(bool createSettingsBlob, bool createModelBlob, int modelId = 1)
+        public void CreateBlobs(bool createSettingsBlob, bool createModelBlob, int modelId = 1, string vwArgs = null, float initialExplorationEpsilon = 0f)
         {
             if (createSettingsBlob || createModelBlob)
             {
@@ -63,7 +63,7 @@ namespace ClientDecisionServiceTest
                 if (createSettingsBlob)
                 {
                     var settingsBlob = localContainer.GetBlockBlobReference(this.localAzureSettingsBlobName);
-                    byte[] settingsContent = this.GetSettingsBlobContent();
+                    byte[] settingsContent = this.GetSettingsBlobContent(vwArgs, initialExplorationEpsilon);
                     settingsBlob.UploadFromByteArray(settingsContent, 0, settingsContent.Length);
                     SettingsBlobUri = settingsBlob.Uri.ToString();
                 }
@@ -71,14 +71,16 @@ namespace ClientDecisionServiceTest
             }
         }
 
-        public byte[] GetSettingsBlobContent()
+        public byte[] GetSettingsBlobContent(string vwArgs, float initialExplorationEpsilon)
         {
             var metadata = new ApplicationClientMetadata
             {
                 ApplicationID = TestAppID,
                 IsExplorationEnabled = true,
                 ModelBlobUri = this.localAzureModelBlobUri,
-                NumActions = 2
+                NumActions = 2,
+                InitialExplorationEpsilon = initialExplorationEpsilon,
+                TrainArguments = vwArgs
             };
             return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(metadata));
         }

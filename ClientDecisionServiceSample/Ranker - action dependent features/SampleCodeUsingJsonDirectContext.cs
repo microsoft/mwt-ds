@@ -20,9 +20,7 @@ namespace ClientDecisionServiceSample
             // Create configuration for the decision service
             var serviceConfig = new DecisionServiceConfiguration(settingsBlobUri: SettingsBlobUri);
 
-            using (var service = DecisionService
-                .Create<FoodContext>(serviceConfig)
-                .ExploitUntilModelReady(new FoodPolicy()))
+            using (var service = DecisionService.Create<FoodContext>(serviceConfig))
             {
                 System.Threading.Thread.Sleep(10000);
 
@@ -54,7 +52,7 @@ namespace ClientDecisionServiceSample
                     currentContext.UserLocation = location;
                     currentContext.Actions = Enumerable.Range(1, numActions).ToArray();
 
-                    int[] action = service.ChooseAction(key, currentContext);
+                    int[] action = service.ChooseRanking(key, currentContext);
 
                     counterTotal += 1;
 

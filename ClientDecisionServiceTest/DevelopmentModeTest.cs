@@ -39,7 +39,7 @@ namespace ClientDecisionServiceTest
                 .Create<TestADFContextWithFeatures>(dsConfig)
                 // .With<TestADFContextWithFeatures, TestADFFeatures>(context => context.ActionDependentFeatures)
                 // TODO .WithTopSlotEpsilonGreedy(.5f)
-                .ExploitUntilModelReady(new TestADFWithFeaturesPolicy()))
+                .ExploitUntilModelReady(new ConstantPolicy<TestADFContextWithFeatures>(ctx => ctx.ActionDependentFeatures.Count)))
             {
                 byte[] modelContent = commandCenter.GetCBADFModelBlobContent(numExamples: 5, numFeatureVectors: 10);
                 using (var modelStream = new MemoryStream(modelContent))

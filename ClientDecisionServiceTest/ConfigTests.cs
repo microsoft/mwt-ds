@@ -26,7 +26,7 @@ namespace ClientDecisionServiceTest
             using (var ds = DecisionService
                 .Create<TestContext>(dsConfig)
                 // TODO: update settinsg blob with .WithEpsilonGreedy(.2f)
-                .ExploitUntilModelReady(new TestSingleActionPolicy()))
+                .ExploitUntilModelReady(new ConstantPolicy<TestContext>()))
             {
                 byte[] settingsBytes = null;
 
@@ -38,11 +38,11 @@ namespace ClientDecisionServiceTest
                     if (i % 2 == 0)
                     {
                         // change the settings blob's etag frequently to make sure polling detects it
-                        commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false);
+                        commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false, "abc", 0.3);
                     }
                 }
 
-                Assert.IsTrue(Enumerable.SequenceEqual(settingsBytes, commandCenter.GetSettingsBlobContent()));
+                Assert.IsTrue(Enumerable.SequenceEqual(settingsBytes, commandCenter.GetSettingsBlobContent("abc", 0.3)));
             }
         }
 
@@ -61,7 +61,7 @@ namespace ClientDecisionServiceTest
             using (var ds = DecisionService
                 .Create<TestContext>(dsConfig)
                 // TODO .WithTopSlotEpsilonGreedy(.2f)
-                .ExploitUntilModelReady(new TestMultiActionPolicy()))
+                .ExploitUntilModelReady(new ConstantPolicy<TestContext>()))
             {
                 byte[] settingsBytes = null;
 
@@ -73,12 +73,12 @@ namespace ClientDecisionServiceTest
                     if (i % 2 == 0)
                     {
                         // change the settings blob's etag frequently to make sure polling detects it
-                        commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false);
+                        commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false, vwArgs:"abc", initialExplorationEpsilon: 0.4f);
                     }
                 }
 
                 Assert.IsNotNull(settingsBytes);
-                Assert.IsTrue(Enumerable.SequenceEqual(settingsBytes, commandCenter.GetSettingsBlobContent()));
+                Assert.IsTrue(Enumerable.SequenceEqual(settingsBytes, commandCenter.GetSettingsBlobContent("abc", 0.4f)));
             }
         }
     }

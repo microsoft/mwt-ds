@@ -16,7 +16,7 @@ namespace ClientDecisionServiceTest
         {
             joinServer.Reset();
 
-            commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false);
+            commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false, "--cb_explore_adf --epsilon 0.5");
 
             var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri)
             {
@@ -27,8 +27,7 @@ namespace ClientDecisionServiceTest
             };
 
             using (var ds = DecisionService.Create<TestADFContext>(dsConfig)
-                // TODO .WithTopSlotEpsilonGreedy(.5f)
-                .ExploitUntilModelReady(new TestADFPolicy()))
+                .ExploitUntilModelReady(new ConstantPolicy<TestADFContext>(ctx => ctx.ActionDependentFeatures.Count)))
             {
                 string uniqueKey = "eventid";
 
@@ -56,7 +55,7 @@ namespace ClientDecisionServiceTest
         {
             joinServer.Reset();
 
-            commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false);
+            commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false, vwArgs:"--cb_explore_adf --epsilon 0.5");
 
             var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri)
             {
@@ -66,11 +65,8 @@ namespace ClientDecisionServiceTest
                 PollingForSettingsPeriod = TimeSpan.MinValue
             };
 
-            using (var ds = DecisionService
-                .WithRanker(dsConfig)
-                .With<TestADFContextWithFeatures, TestADFFeatures>(context => context.ActionDependentFeatures)
-                .WithTopSlotEpsilonGreedy(.5f)
-                .ExploitUntilModelReady(new TestADFWithFeaturesPolicy()))
+            using (var ds = DecisionService.Create<TestADFContextWithFeatures>()
+                .ExploitUntilModelReady(new ConstantPolicy<TestADFContextWithFeatures>(ctx => ctx.ActionDependentFeatures.Count)))
             {
                 string uniqueKey = "eventid";
 

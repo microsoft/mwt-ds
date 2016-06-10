@@ -19,12 +19,7 @@ namespace ClientDecisionServiceSample
             // Create configuration for the decision service
             var serviceConfig = new DecisionServiceConfiguration(settingsBlobUri: SettingsBlobUri);
 
-            using (var service = DecisionService
-                .Create<FoodContext, FoodFeature>()
-                .WithRanker(serviceConfig)
-                .With<FoodContext, FoodFeature>(context => FoodContext.GetFeaturesFromContext(context))
-                .WithTopSlotEpsilonGreedy(epsilon: .8f)
-                .ExploitUntilModelReady(new FoodPolicy()))
+            using (var service = DecisionService.Create<FoodContext>(serviceConfig))
             {
                 string uniqueKey = "scratch-key-";
                 string baseLocation = "Washington-";
@@ -37,7 +32,7 @@ namespace ClientDecisionServiceSample
                     string key = uniqueKey + Guid.NewGuid().ToString();
 
                     var context = new FoodContext { Actions = new int[] { 1, 2, 3 }, UserLocation = baseLocation + rg.Next(100) };
-                    int[] action = service.ChooseAction(key, context);
+                    int[] action = service.ChooseRanking(key, context);
                     service.ReportReward(i / 100f, key);
 
                     System.Threading.Thread.Sleep(1);

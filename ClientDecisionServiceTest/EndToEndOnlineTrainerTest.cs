@@ -72,7 +72,8 @@ namespace ClientDecisionServiceTest
             var uri = "https://mcdel8storage.blob.core.windows.net/mwt-settings/client";
 
             var metaData = ApplicationMetadataUtil.DownloadMetadata<ApplicationClientMetadata>(uri);
-            Assert.IsTrue(metaData.TrainArguments.Contains("--cb 4"));
+            Assert.IsTrue(metaData.TrainArguments.Contains("--cb_explore 4 --epsilon 0"));
+            Assert.AreEqual(1f, metaData.InitialExplorationEpsilon);
             
             // 4 Actions
             var config = new DecisionServiceConfiguration(uri)
@@ -103,8 +104,7 @@ namespace ClientDecisionServiceTest
             
             {
                 var expectedEvents = 0;
-                using (var client = DecisionService.Create<MyContext>(config)
-                    .WithEpsilonGreedy(1f))
+                using (var client = DecisionService.Create<MyContext>(config))
                 {
                     // need to send events for at least experimental unit duration, so ASA is triggered
                     for (int i = 0; i < 100; i++)

@@ -63,9 +63,9 @@ namespace ClientDecisionServiceTest
 
     public class TestADFContextWithFeatures
     {
-        [Feature]
         public string[] Shared { get; set; }
 
+        [JsonProperty("_multi")]
         public IReadOnlyList<TestADFFeatures> ActionDependentFeatures { get; set; }
 
         public static TestADFContextWithFeatures CreateRandom(int numActions, Random rg)
@@ -141,47 +141,23 @@ namespace ClientDecisionServiceTest
 
     class TestOutcome { }
 
-    class TestSingleActionPolicy : IPolicy<TestContext>
+    public class ConstantPolicy<T> : IContextMapper<T, PolicyDecision<ActionProbability[]>>
     {
-        public PolicyDecision<int> MapContext(TestContext context)
-        {
-            // Always returns the same action regardless of context
-            return Constants.NumberOfActions - 1;
-        }
-    }
+        private Func<T, int> numActionsFunc;
 
-    class TestMultiActionPolicy : IRanker<TestContext>
-    {
-        public PolicyDecision<int[]> MapContext(TestContext context)
+        public ConstantPolicy(Func<T, int> numActionsFunc = null)
         {
-            // Always returns the same action regardless of context
-            return Enumerable.Range(1, (int)Constants.NumberOfActions).ToArray();
+            if (numActionsFunc != null)
+                this.numActionsFunc = numActionsFunc ;
+            else
+                this.numActionsFunc = _ => Constants.NumberOfActions - 1;
         }
-    }
 
-    public class TestRcv1ContextPolicy : IPolicy<TestRcv1Context>
-    {
-        public PolicyDecision<int> MapContext(TestRcv1Context context)
+        public PolicyDecision<PolicyDecision<ActionProbability[]>> MapContext(T context)
         {
-            return 1;
-        }
-    }
-
-    class TestADFPolicy : IRanker<TestADFContext>
-    {
-        public PolicyDecision<int[]> MapContext(TestADFContext context)
-        {
-            // Always returns the same action regardless of context
-            return Enumerable.Range(1, (int)context.ActionDependentFeatures.Count).ToArray();
-        }
-    }
-
-    class TestADFWithFeaturesPolicy : IRanker<TestADFContextWithFeatures>
-    {
-        public PolicyDecision<int[]> MapContext(TestADFContextWithFeatures context)
-        {
-            // Always returns the same action regardless of context
-            return Enumerable.Range(1, context.ActionDependentFeatures.Count).ToArray();
+            return Enumerable.Range(1, this.numActionsFunc(context))
+                .Select(a => new ActionProbability { Action = a, Probability = a == 1 ? 1f : 0 })
+                .ToArray();
         }
     }
 

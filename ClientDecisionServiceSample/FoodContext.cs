@@ -42,14 +42,6 @@ namespace ClientDecisionServiceSample
         }
     }
 
-    class FoodPolicy : IRanker<FoodContext>
-    {
-        public PolicyDecision<int[]> MapContext(FoodContext context)
-        {
-            return context.Actions.Select((a, i) => (int)i + 1).ToArray();
-        }
-    }
-
     class FoodRecorder : IRecorder<FoodContext, int[]>
     {
         Dictionary<string, float> keyToProb = new Dictionary<string, float>();

@@ -23,7 +23,7 @@ namespace ClientDecisionServiceTest
             int numFeatures = 1024;
 
             var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri)
-            //explorer: new EpsilonGreedyExplorer<TestRcv1Context>(new TestRcv1ContextPolicy(), epsilon: 0.5f, numActions: (int)numActions))
+            //explorer: new EpsilonGreedyExplorer<TestRcv1Context>(new ConstantPolicy<TestRcv1Context>(ctx => ctx.ActionDependentFeatures.Count), epsilon: 0.5f, numActions: (int)numActions))
             {
                 JoinServerType = JoinServerType.CustomSolution,
                 LoggingServiceAddress = MockJoinServer.MockJoinServerAddress,
@@ -34,7 +34,7 @@ namespace ClientDecisionServiceTest
             using (var ds = DecisionService
                 .Create<TestRcv1Context>(dsConfig)
                 // TODOD: .WithEpsilonGreedy(.5f)
-                .ExploitUntilModelReady(new TestRcv1ContextPolicy()))
+                .ExploitUntilModelReady(new ConstantPolicy<TestRcv1Context>(ctx => ctx.Features.Count)))
             {
                 string uniqueKey = "eventid";
 
@@ -81,9 +81,7 @@ namespace ClientDecisionServiceTest
                 LoggingServiceAddress = MockJoinServer.MockJoinServerAddress,
             };
 
-            using (var service = DecisionService
-                .WithRanker(serviceConfig)
-                .With<TestADFContextWithFeatures, TestADFFeatures>(context => context.ActionDependentFeatures)
+            using (var service = DecisionService.Create<TestADFContextWithFeatures>(serviceConfig)
                 .WithTopSlotEpsilonGreedy(epsilon: .2f))
             {
                 await service.DownloadModelAndUpdate(new System.Threading.CancellationToken());
@@ -94,7 +92,7 @@ namespace ClientDecisionServiceTest
         public void TestModelImmediateDownload()
         {
             // create mock blobs for settings and models
-            this.commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: true);
+            this.commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: true, vwArgs: "--cb_explore_adf --epsilon 0.2");
 
             var serviceConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri)
             {
@@ -102,10 +100,7 @@ namespace ClientDecisionServiceTest
                 LoggingServiceAddress = MockJoinServer.MockJoinServerAddress,
             };
 
-            using (var service = DecisionService
-                .WithRanker(serviceConfig)
-                .With<TestADFContextWithFeatures, TestADFFeatures>(context => context.ActionDependentFeatures)
-                .WithTopSlotEpsilonGreedy(epsilon: .2f))
+            using (var service = DecisionService.Create<TestADFContextWithFeatures>(serviceConfig))
             {
                 // download model right away
                 service.DownloadModelAndUpdate(new System.Threading.CancellationToken()).Wait();

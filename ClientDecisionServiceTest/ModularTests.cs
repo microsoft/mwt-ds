@@ -32,9 +32,9 @@ namespace ClientDecisionServiceTest
 
             var recorder = new TestLogger();
             int numChooseAction = 100;
-            using (var ds = DecisionService.Create<TestContext>(dsConfig))
+            using (var ds = DecisionService.Create<TestContext>(dsConfig)
                 .WithRecorder(recorder)
-                .ExploitUntilModelReady(new TestSingleActionPolicy()))
+                .ExploitUntilModelReady(new ConstantPolicy<TestContext>()))
             {
                 for (int i = 0; i < numChooseAction; i++)
                 {
@@ -80,7 +80,7 @@ namespace ClientDecisionServiceTest
                 .Create<TestContext>(dsConfig)
                 // TODO: .WithEpsilonGreedy(.2f)
                 .WithRecorder(recorder)
-                .ExploitUntilModelReady(new TestSingleActionPolicy()))
+                .ExploitUntilModelReady(new ConstantPolicy<TestContext>()))
             {
                 for (int i = 0; i < numChooseAction; i++)
                 {
@@ -115,9 +115,7 @@ namespace ClientDecisionServiceTest
         [ExpectedException(typeof(Exception))]
         public void TestMultiActionOfflineModeArgument()
         {
-            using (var ds = DecisionService
-                .WithRanker(new DecisionServiceConfiguration("") { OfflineMode = true, OfflineApplicationID = "" })
-                .WithJson())
+            using (var ds = DecisionService.CreateJson(new DecisionServiceConfiguration("") { OfflineMode = true, OfflineApplicationID = "" }))
             {
                 ds.ChooseAction("", "{}");
             }
@@ -129,12 +127,10 @@ namespace ClientDecisionServiceTest
             var dsConfig = new DecisionServiceConfiguration("") { OfflineMode = true, OfflineApplicationID = "" };
             var recorder = new TestLogger();
             int numChooseAction = 100;
-            using (var ds = DecisionService
-                .WithRanker(dsConfig)
-                .With<TestContext>()
-                .WithTopSlotEpsilonGreedy(.2f)
+            using (var ds = DecisionService.Create<TestContext>(dsConfig)
+                //.WithTopSlotEpsilonGreedy(.2f)
                 .WithRecorder(recorder)
-                .ExploitUntilModelReady(new TestMultiActionPolicy()))
+                .ExploitUntilModelReady(new ConstantPolicy<TestContext>()))
             {
                 for (int i = 0; i < numChooseAction; i++)
                 {
@@ -177,12 +173,10 @@ namespace ClientDecisionServiceTest
             dsConfig.JoinServerType = JoinServerType.CustomSolution;
 
             int numChooseAction = 100;
-            using (var ds = DecisionService
-                .WithRanker(dsConfig)
-                .With<TestContext>(JsonTypeInspector.Default)
-                .WithTopSlotEpsilonGreedy(.2f)
+            using (var ds = DecisionService.Create<TestContext>(dsConfig, JsonTypeInspector.Default)
+                //.WithTopSlotEpsilonGreedy(.2f)
                 .WithRecorder(recorder)
-                .ExploitUntilModelReady(new TestMultiActionPolicy()))
+                .ExploitUntilModelReady(new ConstantPolicy<TestContext>()))
             {
                 for (int i = 0; i < numChooseAction; i++)
                 {
