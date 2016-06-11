@@ -339,7 +339,7 @@
   "outputs": {
     "WebApiUrl": {
       "type": "string",
-      "value": "[concat('http://', variables('webSiteName'), '.azurewebsites.net')]"
+      "value": "[concat('https://', variables('webSiteName'), '.azurewebsites.net')]"
     }
   }
 }
