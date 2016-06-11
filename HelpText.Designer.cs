@@ -61,7 +61,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Application Id ::: The name of this application which is set to the Azure Resource Group name..
+        ///   Looks up a localized string similar to Application Id ::: The name of this application, which becomes the Azure Resource Group name..
         /// </summary>
         public static string ApplicationId {
             get {
@@ -79,7 +79,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Azure Stream Analytics Policy Evaluation ::: Decision Service has the ability to offline evaluate and compare many policies. It achieves this partly by leveraging Azure Stream Analytics to collect real-time performance results of each policy. To see how this is done, view the policy evaluation query in ASA by clicking on the arrow to the right. .
+        ///   Looks up a localized string similar to Azure Stream Analytics Policy Evaluation ::: Decision Service has the ability to evaluate and compare many policies retrospectively. It achieves this partly by leveraging Azure Stream Analytics to collect real-time performance results of each policy. To see how this is done, view the policy evaluation query in ASA by clicking on the arrow to the right. .
         /// </summary>
         public static string ASAEvalName {
             get {
@@ -124,7 +124,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Decision Type ::: Whether the decision uses regular features or action-dependent features..
+        ///   Looks up a localized string similar to Context Type ::: Whether the context uses action-dependent features or only regular features..
         /// </summary>
         public static string DecisionType {
             get {
@@ -142,7 +142,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Event Hub Observation Connection String ::: Connection string of the Event Hub associated with ASA Join Server which accepts observation data (e.g. reward) from the Client Library or Web Service..
+        ///   Looks up a localized string similar to Event Hub Observation Connection String ::: Connection string of the Event Hub associated with ASA Join Server which accepts observation data (i.e. rewards) from the Client Library or Web Service..
         /// </summary>
         public static string EventHubObservationConnectionString {
             get {
@@ -169,7 +169,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Number of Actions ::: The number of actions that is fixed for all interactions. This value is only relevant if not using action dependent features..
+        ///   Looks up a localized string similar to Number of Actions ::: The number of actions, which is fixed for all interactions. This value is relevant only if not using action dependent features..
         /// </summary>
         public static string NumActions {
             get {
@@ -187,7 +187,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Trained Models ::: The list of trained models detected in Azure Storage. The selected model will be deployed to all clients..
+        ///   Looks up a localized string similar to Model to Deploy ::: The list of trained models detected in Azure Storage. The selected model will be deployed to all clients..
         /// </summary>
         public static string SelectedModelId {
             get {
@@ -196,7 +196,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Settings Blob Address ::: The address of the settings for the application. This is required by the Client Library to initialize with the proper configurations..
+        ///   Looks up a localized string similar to Settings Blob Address ::: The address of the settings for the application..
         /// </summary>
         public static string SettingsBlobUri {
             get {
@@ -205,7 +205,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to VW Training Arguments ::: The training arguments used by the training service..
+        ///   Looks up a localized string similar to VW Arguments ::: VW arguments that control training and exploration..
         /// </summary>
         public static string TrainArguments {
             get {
@@ -214,7 +214,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Training Frequency ::: High frequency corresponds to online training where data points are continuously used for learning. Low frequency corresponds to batch training which occurs at higher time intervals (e.g. every 5 minutes or once a day)..
+        ///   Looks up a localized string similar to Training Frequency ::: High frequency corresponds to online training where data points are continuously used for learning. Low frequency corresponds to batch training which occurs at longer time intervals (e.g. every 5 minutes or once a day)..
         /// </summary>
         public static string TrainFrequency {
             get {
@@ -223,7 +223,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to REST Endpoint ::: The address of the Web Service which can accept HTTP requests. This serves as an alternative data entry point to the Decision Service..
+        ///   Looks up a localized string similar to HTTP Endpoint ::: The address of the Web Service which can accept HTTP requests. This serves as an alternative data entry point to the Decision Service..
         /// </summary>
         public static string WebApiAddress {
             get {
