@@ -10,7 +10,7 @@
   "variables": {
     "siteExtName": "MSDeploy",
     "hostingPlanName": "WebApiPlan",
-    "webSiteName": "[concat(resourceGroup().name, '-webapi')]"
+    "webSiteName": "[concat(resourceGroup().name, '-webapi-', uniqueString(concat(subscription().subscriptionId, resourceGroup().name)))]"
   },
   "resources": [
     {

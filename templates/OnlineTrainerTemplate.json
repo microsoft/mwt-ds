@@ -8,7 +8,7 @@
     "cscfg": { "type": "object" }
   },
   "variables": {
-    "name": "[concat(resourceGroup().name,'-trainer')]"
+    "name": "[concat(resourceGroup().name, '-trainer-', uniqueString(concat(subscription().subscriptionId, resourceGroup().name)))]"
   },
   "resources": [
     {
