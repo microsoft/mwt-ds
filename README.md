@@ -2,7 +2,7 @@
 
 A default instance of the Decision Service currently includes the following Azure resources:
 * storage account
-* clasic cloud service with standard D5 worker role
+* classic cloud service with standard D5 worker role
 * service bus with 4 event hubs
 * 2 stream analytics jobs
 * web app service backed by app service plan, for the management console
