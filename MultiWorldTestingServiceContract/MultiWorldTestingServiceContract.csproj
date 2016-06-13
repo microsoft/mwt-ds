@@ -95,7 +95,7 @@
     <AssemblyInfo CodeLanguage="CS" OutputFile="$(MSBuildProjectDirectory)\Properties\AssemblyInfo.cs" AssemblyTitle="Microsoft.Research.MultiWorldTesting.Contract" AssemblyDescription="" AssemblyConfiguration="" AssemblyCompany="Microsoft Corp" AssemblyProduct="Microsoft.Research.MultiWorldTesting.Contract" AssemblyCopyright="Copyright (C) Microsoft Corp 2014-2016" AssemblyTrademark="" ComVisible="false" CLSCompliant="true" Guid="d9d80c55-19ce-48fa-a2ef-7eae466b1f9b" AssemblyVersion="$(ClientLibraryAssemblyVersion)" AssemblyFileVersion="$(ClientLibraryAssemblyVersion)" />
   </Target>
   <Target Name="AfterBuild">
-    <Exec Command="..\packages\gitlink.2.3.0\lib\net45\GitLink.exe .. -f $(SolutionDir)\Decision.sln -p $(Platform) -c $(Configuration) -d $(SolutionDir)\$(OutDir) -errorsaswarnings -u https://github.com/multiworldtesting/decision"  Condition="'$(BuildNuget)' == 'true'" />
-    <Exec Command="..\.nuget\nuget pack $(ProjectDir)\$(ProjectName).nuspec -Version $(ClientLibraryAssemblyVersion) -Prop &quot;Configuration=Release;Platform=x64&quot; -Prop SolutionDir=$(SolutionDir) -OutputDirectory $(SolutionDir)\$(OutDir) " Condition="'$(BuildNuget)' == 'true'"  />
+    <Exec Command="..\packages\gitlink.2.3.0\lib\net45\GitLink.exe .. -f $(SolutionDir)\Decision.sln -p $(Platform) -c $(Configuration) -d $(OutDir) -errorsaswarnings -u https://github.com/multiworldtesting/decision"  Condition="'$(BuildNuget)' == 'true'" />
+    <Exec Command="..\.nuget\nuget pack $(ProjectDir)\$(ProjectName).nuspec -Version $(ClientLibraryAssemblyVersion) -Prop &quot;Configuration=Release;Platform=x64&quot; -Prop SolutionDir=$(SolutionDir) -OutputDirectory $(OutDir) " Condition="'$(BuildNuget)' == 'true'"  />
   </Target>
 </Project>
