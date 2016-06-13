@@ -5,7 +5,7 @@
     "location": "[resourceGroup().location]",
     "sbVersion": "2015-08-01",
     "apiVersion": "[providers('Microsoft.ServiceBus', 'namespaces').apiVersions[0]]",
-    "sbName": "[concat(resourceGroup().name, 'sb')]",
+    "sbName": "[concat(resourceGroup().name, '-sb-', uniqueString(concat(subscription().subscriptionId, resourceGroup().name)))]",
     "sbKeyName": "OwnerKey"
   },
   "resources": [
