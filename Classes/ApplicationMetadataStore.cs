@@ -11,7 +11,7 @@ using System.Web;
 
 namespace DecisionServicePrivateWeb.Classes
 {
-    public class ApplicationMetadataStore : IHttpModule
+    public class ApplicationMetadataStore
     {
         public const string AKAzureResourceGroup = "resourceGroupName";
         public const string AKConnectionString = "AzureStorageConnectionString";
@@ -24,17 +24,11 @@ namespace DecisionServicePrivateWeb.Classes
         public const string AKExpUnitDuration = "experimentalUnitDurationInSeconds";
         public const string AKAppInsightsKey = "APPINSIGHTS_INSTRUMENTATIONKEY";
 
-        public void Init(HttpApplication context)
+        public static void CreateSettingsBlobIfNotExists(out string clSASTokenUri, out string webSASTokenUri)
         {
-            var telemetry = new TelemetryClient();
-            telemetry.TrackTrace("HttpModule Init triggered, attempting to create settings blobs.");
-            ApplicationMetadataStore.CreateSettingsBlobIfNotExists();
-        }
+            clSASTokenUri = null;
+            webSASTokenUri = null;
 
-        public void Dispose() { }
-
-        public static void CreateSettingsBlobIfNotExists()
-        {
             var telemetry = new TelemetryClient();
             string azureStorageConnectionString = ConfigurationManager.AppSettings[AKConnectionString];
             var storageAccount = CloudStorageAccount.Parse(azureStorageConnectionString);
@@ -49,9 +43,18 @@ namespace DecisionServicePrivateWeb.Classes
                 telemetry.TrackTrace("Settings blob not found, creating new one.");
 
                 settingsBlobContainer.CreateIfNotExists();
-                settingsBlobContainer.SetPermissions(new BlobContainerPermissions() { PublicAccess = BlobContainerPublicAccessType.Blob });
                 modelBlobContainer.CreateIfNotExists();
-                modelBlobContainer.SetPermissions(new BlobContainerPermissions() { PublicAccess = BlobContainerPublicAccessType.Blob });
+
+                // Create an empty model blob to generate SAS token for
+                var sasPolicy = new SharedAccessBlobPolicy
+                {
+                    Permissions = SharedAccessBlobPermissions.Read,
+                    SharedAccessStartTime = DateTime.UtcNow.AddMinutes(-1),
+                    SharedAccessExpiryTime = DateTime.UtcNow.AddYears(1)
+                };
+                var modelBlob = modelBlobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestModelBlobName);
+                modelBlob.UploadText(string.Empty);
+                var modelSASToken = modelBlob.GetSharedAccessSignature(sasPolicy);
 
                 var appSettings = new ApplicationSettings
                 {
@@ -68,14 +71,19 @@ namespace DecisionServicePrivateWeb.Classes
                     NumActions = Convert.ToInt32(ConfigurationManager.AppSettings[AKNumActions]),
                     TrainArguments = ConfigurationManager.AppSettings[AKTrainArguments],
                     TrainFrequency = TrainFrequency.High, // TODO: update depending on deployment option
-                    ModelBlobUri = modelBlobContainer.Uri.ToString() + "/" + ApplicationBlobConstants.LatestModelBlobName,
-                    SettingsBlobUri = settingsBlobContainer.Uri.ToString() + "/" + ApplicationBlobConstants.LatestClientSettingsBlobName,
+                    ModelBlobUri = modelBlob.Uri + modelSASToken,
                     AppInsightsKey = ConfigurationManager.AppSettings[AKAppInsightsKey]
                 };
-                ApplicationMetadataStore.UpdateMetadata(clientSettingsBlob, extraSettingsBlob, appSettings);
+                UpdateMetadata(clientSettingsBlob, extraSettingsBlob, appSettings);
+
+                var clSASToken = clientSettingsBlob.GetSharedAccessSignature(sasPolicy);
+                var webSASToken = clientSettingsBlob.GetSharedAccessSignature(sasPolicy);
+
+                clSASTokenUri = clientSettingsBlob.Uri + clSASToken;
+                webSASTokenUri = clientSettingsBlob.Uri + webSASToken;
 
                 telemetry.TrackTrace($"Model blob uri: {appSettings.ModelBlobUri}");
-                telemetry.TrackTrace($"Settings blob uri: {appSettings.SettingsBlobUri}");
+                telemetry.TrackTrace($"Settings blob uri for client library: {clSASTokenUri}, for web api: {webSASTokenUri}");
             }
         }
 

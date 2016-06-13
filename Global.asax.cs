@@ -15,7 +15,6 @@ namespace DecisionServicePrivateWeb
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
             TelemetryConfiguration.Active.InstrumentationKey = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKAppInsightsKey];
-            ApplicationMetadataStore.CreateSettingsBlobIfNotExists();
         }
     }
 }

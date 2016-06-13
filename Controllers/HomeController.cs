@@ -43,9 +43,6 @@ namespace DecisionServicePrivateWeb.Controllers
             {
                 Session[SKAuthenticated] = true;
 
-                // Create again in case the settings were not created at start up
-                ApplicationMetadataStore.CreateSettingsBlobIfNotExists();
-
                 string azureStorageConnectionString = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString];
                 var storageAccount = CloudStorageAccount.Parse(azureStorageConnectionString);
                 var blobClient = storageAccount.CreateCloudBlobClient();
