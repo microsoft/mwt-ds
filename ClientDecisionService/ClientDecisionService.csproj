@@ -207,7 +207,7 @@
                   AssemblyFileVersion="$(ClientLibraryAssemblyVersion)" />
   </Target>
   <Target Name="AfterBuild">
-    <Exec Command="..\packages\gitlink.2.3.0\lib\net45\GitLink.exe ..\.. -f $(SolutionDir)\DecisionService.sln -p $(Platform) -c $(Configuration) -d $(OutputDirectory) -errorsaswarnings"
+    <Exec Command="..\packages\gitlink.2.3.0\lib\net45\GitLink.exe ..\.. -f $(SolutionDir)\DecisionService.sln -p $(Platform) -c $(Configuration) -d $(OutputDirectory) -errorsaswarnings -u https://github.com/multiworldtesting/decision"
           Condition="'$(BuildNuget)' == 'true'" />
     <Exec Command="..\.nuget\nuget pack $(ProjectDir)\$(ProjectName).nuspec -Version $(ClientLibraryAssemblyVersion) -Prop &quot;Configuration=Release;Platform=x64&quot; -Prop SolutionDir=$(SolutionDir) -OutputDirectory $(OutputDirectory) "
           Condition="'$(BuildNuget)' == 'true'" />
