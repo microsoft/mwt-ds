@@ -172,6 +172,7 @@
     <Content Include="ApplicationInsights.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="App_Data\SASTokenGenerator.json" />
     <None Include="Properties\PublishProfiles\arm.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\d3.js" />
@@ -192,6 +193,7 @@
     <Compile Include="Classes\EvalD3.cs" />
     <Compile Include="Classes\EvalResult.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\SASTokenController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -219,7 +221,6 @@
     <Content Include="Views\Home\Settings.cshtml" />
     <Content Include="Views\Home\Evaluation.cshtml" />
     <Content Include="Views\Shared\_LoginPartial.cshtml" />
-    <Content Include="App_Data\sample-policy-eval.json" />
     <Content Include="Views\Shared\_OpenSvg.cshtml" />
     <Content Include="Views\web.config" />
     <None Include="Web.Debug.config">
