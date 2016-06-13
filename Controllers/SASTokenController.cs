@@ -32,9 +32,7 @@ namespace DecisionServicePrivateWeb.Controllers
                         telemetry.TrackTrace("Generated SAS tokens for settings URI");
 
                         string template = System.IO.File.ReadAllText(Path.Combine(Server.MapPath("~/App_Data"), "SASTokenGenerator.json"));
-                        template.Replace("$$ClientSettings$$", clSASTokenUri);
-                        template.Replace("$$WebSettings$$", webSASTokenUri);
-                        return template;
+                        return template.Replace("$$ClientSettings$$", clSASTokenUri).Replace("$$WebSettings$$", webSASTokenUri);
                     }
                 }
                 else
