@@ -22,7 +22,7 @@ namespace DecisionServicePrivateWeb.Controllers
             {
                 string azureStorageConnectionString = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString];
                 var storageAccountKey = Regex.Match(azureStorageConnectionString, ".*AccountKey=(.*)").Groups[1].Value;
-                if (key == storageAccountKey)
+                if (key.Replace(" ", "+") == storageAccountKey)
                 {
                     string clSASTokenUri;
                     string webSASTokenUri;
