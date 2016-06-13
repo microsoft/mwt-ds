@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <title>Multiworld Testing Service Contract</title>
-    <id>$id$</id>
+    <id>Microsoft.Research.MultiWorldTesting.Contract</id>
     <tags>Multiworld Testing</tags>
     <version>$version$</version>
     <authors>John Langford, Luong Hoang, Markus Cozowicz, Sarah Bird, Sid Sen (mwtdev@microsoft.com)</authors>
