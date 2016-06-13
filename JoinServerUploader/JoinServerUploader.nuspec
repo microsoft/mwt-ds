@@ -23,6 +23,7 @@
     </dependencies>
   </metadata>
   <files>
+    <file src="$SolutionDir$bin\x64\$Configuration$\Microsoft.Research.MultiWorldTesting.JoinUploader.dll" target="lib\net45" />
     <file src="$SolutionDir$bin\x64\$Configuration$\Microsoft.Research.MultiWorldTesting.JoinUploader.pdb" target="lib\net45" />
   </files>
 </package>
