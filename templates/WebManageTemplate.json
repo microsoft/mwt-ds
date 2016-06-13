@@ -62,7 +62,7 @@
   },
   "variables": {
     "hostingPlanName": "ManagementPlan",
-    "siteName": "[concat(resourceGroup().name, '-mc')]"
+    "siteName": "[concat(resourceGroup().name, '-mc-', uniqueString(concat(subscription().subscriptionId, resourceGroup().name)))]"
   },
   "resources": [
     {
@@ -150,7 +150,7 @@
   "outputs": {
     "url": {
       "type": "string",
-      "value": "[concat('http://', variables('siteName'), '.azurewebsites.net')]"
+      "value": "[concat('https://', variables('siteName'), '.azurewebsites.net')]"
     }
   }
 }

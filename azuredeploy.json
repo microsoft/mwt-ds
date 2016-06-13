@@ -65,14 +65,14 @@
     },
     "onlineTrainerCheckpointInterval": {
       "type": "string",
-      "defaultValue": "00:05:00",
+      "defaultValue": "",
       "metadata": {
         "description": "Checkpoint interval in event time used to checkpoint"
       }
     },
     "onlineTrainerCheckpointCount": {
       "type": "int",
-      "defaultValue": "0",
+      "defaultValue": "100",
       "metadata": {
         "description": "Checkpoint interval in event time used to checkpoint"
       }

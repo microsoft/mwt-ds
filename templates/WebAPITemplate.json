@@ -11,7 +11,7 @@
   "variables": {
     "siteExtName": "MSDeploy",
     "hostingPlanName": "WebApiPlan",
-    "webSiteName": "[concat(resourceGroup().name, '-webapi')]"
+    "webSiteName": "[concat(resourceGroup().name, '-webapi-', uniqueString(concat(subscription().subscriptionId, resourceGroup().name)))]"
   },
   "resources": [
     {
@@ -340,7 +340,7 @@
   "outputs": {
     "WebApiUrl": {
       "type": "string",
-      "value": "[concat('http://', variables('webSiteName'), '.azurewebsites.net')]"
+      "value": "[concat('https://', variables('webSiteName'), '.azurewebsites.net')]"
     }
   }
 }
