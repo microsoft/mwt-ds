@@ -5,7 +5,8 @@
     "binaryStorageAccountName": { "type": "string" },
     "InstrumentationKey": { "type": "string" },
     "UserStorageAccountName": { "type": "string" },
-    "UserToken": { "type": "string" }
+    "UserToken": { "type": "string" },
+    "SecureSettingsUri": { "type": "string" }
   },
   "variables": {
     "siteExtName": "MSDeploy",
@@ -100,7 +101,7 @@
           ],
           "properties": {
             "APPINSIGHTS_INSTRUMENTATIONKEY": "[parameters('InstrumentationKey')]",
-            "DecisionServiceSettingsUrl": "[concat('http://', parameters('UserStorageAccountName'), '.blob.core.windows.net/mwt-settings/client')]",
+            "DecisionServiceSettingsUrl": "[parameters('SecureSettingsUri')]",
             "UserToken": "[parameters('UserToken')]"
           }
         },
