@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <title>Multiworld Testing Decision Service Uploader</title>
-    <id>$id$</id>
+    <id>Microsoft.Research.MultiWorldTesting.JoinUploader</id>
     <tags>Multiworld Testing</tags>
     <version>$version$</version>
     <authors>John Langford, Luong Hoang, Markus Cozowicz, Sarah Bird, Sid Sen (mwtdev@microsoft.com)</authors>
