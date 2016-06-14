@@ -7,6 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
+using System.IO;
+using System.Net;
 using System.Web;
 
 namespace DecisionServicePrivateWeb.Classes
@@ -18,11 +20,18 @@ namespace DecisionServicePrivateWeb.Classes
         public const string AKPassword = "Password";
         public const string AKInterEHSendConnString = "interactionEventHubSendConnectionString";
         public const string AKObserEHSendConnString = "observationEventHubSendConnectionString";
+        public const string AKJoinedEHSendConnString = "joinedEventHubConnectionString";
+        public const string AKEvalEHSendConnString = "evalEventHubConnectionString";
+        public const string AKAdminToken = "adminToken";
+        public const string AKCheckpointPolicy = "checkpointPolicy";
         public const string AKTrainArguments = "vowpalWabbitTrainArguments";
         public const string AKNumActions = "numberOfActions";
         public const string AKSubscriptionId = "subscriptionId";
         public const string AKExpUnitDuration = "experimentalUnitDurationInSeconds";
         public const string AKAppInsightsKey = "APPINSIGHTS_INSTRUMENTATIONKEY";
+
+        public const string StorageARMDeployContainer = "arm-deploy";
+        public const string StorageOnlineTrainerPackageName = "OnlineTraining.cspkg";
 
         public static void CreateSettingsBlobIfNotExists(out string clSASTokenUri, out string webSASTokenUri)
         {
@@ -84,6 +93,45 @@ namespace DecisionServicePrivateWeb.Classes
 
                 telemetry.TrackTrace($"Model blob uri: {appSettings.ModelBlobUri}");
                 telemetry.TrackTrace($"Settings blob uri for client library: {clSASTokenUri}, for web api: {webSASTokenUri}");
+            }
+        }
+
+        public static void CreateOnlineTrainerCspkgBlobIfNotExists(string cspkgLink, out string cspkgSASToken)
+        {
+            cspkgSASToken = null;
+
+            var telemetry = new TelemetryClient();
+            string azureStorageConnectionString = ConfigurationManager.AppSettings[AKConnectionString];
+            var storageAccount = CloudStorageAccount.Parse(azureStorageConnectionString);
+            var blobClient = storageAccount.CreateCloudBlobClient();
+            var armDeployContainer = blobClient.GetContainerReference(StorageARMDeployContainer);
+
+            var cspkgBlob = armDeployContainer.GetBlockBlobReference(StorageOnlineTrainerPackageName);
+            if (!cspkgBlob.Exists())
+            {
+                telemetry.TrackTrace("Online Trainer Package blob not found, creating new one.");
+
+                armDeployContainer.CreateIfNotExists();
+
+                var sasPolicy = new SharedAccessBlobPolicy
+                {
+                    Permissions = SharedAccessBlobPermissions.Read,
+                    SharedAccessStartTime = DateTime.UtcNow.AddMinutes(-1),
+                    SharedAccessExpiryTime = DateTime.UtcNow.AddYears(1)
+                };
+
+                using (var wc = new WebClient())
+                using (var cspkgStream = new MemoryStream(wc.DownloadData(cspkgLink)))
+                {
+                    cspkgBlob.UploadFromStream(cspkgStream);
+                    cspkgSASToken = cspkgBlob.GetSharedAccessSignature(sasPolicy);
+
+                    telemetry.TrackTrace($"Online Trainer Package SAS token: {cspkgSASToken}");
+                }
+            }
+            else
+            {
+                telemetry.TrackTrace("Online Trainer Package already exists.");
             }
         }
 
