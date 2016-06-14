@@ -2,31 +2,6 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "basics": [
-      {
-        "name": "vmSize",
-        "type": "Microsoft.Common.DropDown",
-        "label": "Topology Size",
-        "defaultValue": "Small (A1 + A1)",
-        "toolTip": "The size of the virtual machines to use in the cluster.",
-        "constraints": {
-          "allowedValues": [
-            {
-              "label": "Small (A1 + A1)",
-              "value": "Small"
-            },
-            {
-              "label": "Medium (A2 + D1)",
-              "value": "Medium"
-            },
-            {
-              "label": "Large (A3 + D2)",
-              "value": "Large"
-            }
-          ]
-        }
-      }
-    ],
     "managementPassword": {
       "type": "string",
       "defaultValue": "",
