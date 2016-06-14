@@ -191,6 +191,10 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
         private void UpdateContextMapper(object sender, byte[] data)
         {
+            if (data == null || data.Length == 0)
+            {
+                Trace.TraceWarning("Empty model detected, skipping model update.");
+            }
             using (var stream = new MemoryStream(data))
             {
                 this.UpdateModel(stream);
@@ -205,6 +209,10 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             using (var wc = new WebClient())
             {
                 byte[] modelData = await wc.DownloadDataTaskAsync(this.metaData.ModelBlobUri);
+                if (modelData == null || modelData.Length == 0)
+                {
+                    Trace.TraceWarning("Empty model detected, skipping model update.");
+                }
                 using (var ms = new MemoryStream(modelData))
                 {
                     ms.Position = 0;
