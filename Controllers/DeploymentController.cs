@@ -18,6 +18,7 @@ namespace DecisionServicePrivateWeb.Controllers
         public string GenerateSASToken(string parameters)
         {
             var telemetry = new TelemetryClient();
+            string template = System.IO.File.ReadAllText(Path.Combine(Server.MapPath("~/App_Data"), "SASTokenGenerator.json"));
             try
             {
                 string azureStorageConnectionString = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString];
@@ -49,15 +50,11 @@ namespace DecisionServicePrivateWeb.Controllers
                     if (clSASTokenUri != null && webSASTokenUri != null && cspkgSASToken != null)
                     {
                         telemetry.TrackTrace("Generated SAS tokens for settings URI and online trainer package");
-
-                        string template = System.IO.File.ReadAllText(Path.Combine(Server.MapPath("~/App_Data"), "SASTokenGenerator.json"));
                         return template
                             .Replace("$$ClientSettings$$", clSASTokenUri)
                             .Replace("$$WebSettings$$", webSASTokenUri)
                             .Replace("$$OnlineTrainerCspkg$$", cspkgSASToken);
                     }
-
-
                 }
                 else
                 {
@@ -68,7 +65,7 @@ namespace DecisionServicePrivateWeb.Controllers
             {
                 telemetry.TrackException(ex);
             }
-            return string.Empty;
+            return template;
         }
 
         [HttpGet]

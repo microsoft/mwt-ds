@@ -40,6 +40,14 @@ namespace DecisionServicePrivateWeb.Classes
             webSASTokenUri = null;
 
             var telemetry = new TelemetryClient();
+
+            var sasPolicy = new SharedAccessBlobPolicy
+            {
+                Permissions = SharedAccessBlobPermissions.Read,
+                SharedAccessStartTime = DateTime.UtcNow.AddMinutes(-1),
+                SharedAccessExpiryTime = DateTime.UtcNow.AddYears(1)
+            };
+
             try
             {
                 string azureStorageConnectionString = ConfigurationManager.AppSettings[AKConnectionString];
@@ -58,12 +66,6 @@ namespace DecisionServicePrivateWeb.Classes
                     modelBlobContainer.CreateIfNotExists();
 
                     // Create an empty model blob to generate SAS token for
-                    var sasPolicy = new SharedAccessBlobPolicy
-                    {
-                        Permissions = SharedAccessBlobPermissions.Read,
-                        SharedAccessStartTime = DateTime.UtcNow.AddMinutes(-1),
-                        SharedAccessExpiryTime = DateTime.UtcNow.AddYears(1)
-                    };
                     var modelBlob = modelBlobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestModelBlobName);
                     modelBlob.UploadText(string.Empty);
                     var modelSASToken = modelBlob.GetSharedAccessSignature(sasPolicy);
@@ -89,19 +91,19 @@ namespace DecisionServicePrivateWeb.Classes
                     };
                     UpdateMetadata(clientSettingsBlob, extraSettingsBlob, appSettings);
 
-                    var clSASToken = clientSettingsBlob.GetSharedAccessSignature(sasPolicy);
-                    var webSASToken = clientSettingsBlob.GetSharedAccessSignature(sasPolicy);
-
-                    clSASTokenUri = clientSettingsBlob.Uri + clSASToken;
-                    webSASTokenUri = clientSettingsBlob.Uri + webSASToken;
-
                     telemetry.TrackTrace($"Model blob uri: {appSettings.ModelBlobUri}");
-                    telemetry.TrackTrace($"Settings blob uri for client library: {clSASTokenUri}, for web api: {webSASTokenUri}");
                 }
                 else
                 {
                     telemetry.TrackTrace("Settings blob already exists, skipping.");
                 }
+                var clSASToken = clientSettingsBlob.GetSharedAccessSignature(sasPolicy);
+                var webSASToken = clientSettingsBlob.GetSharedAccessSignature(sasPolicy);
+
+                clSASTokenUri = clientSettingsBlob.Uri + clSASToken;
+                webSASTokenUri = clientSettingsBlob.Uri + webSASToken;
+
+                telemetry.TrackTrace($"Settings blob uri for client library: {clSASTokenUri}, for web api: {webSASTokenUri}");
             }
             catch (Exception ex)
             {
@@ -126,27 +128,24 @@ namespace DecisionServicePrivateWeb.Classes
                 telemetry.TrackTrace("Online Trainer Package blob not found, creating new one.");
 
                 armDeployContainer.CreateIfNotExists();
-
-                var sasPolicy = new SharedAccessBlobPolicy
-                {
-                    Permissions = SharedAccessBlobPermissions.Read,
-                    SharedAccessStartTime = DateTime.UtcNow.AddMinutes(-1),
-                    SharedAccessExpiryTime = DateTime.UtcNow.AddYears(1)
-                };
-
                 using (var wc = new WebClient())
                 using (var cspkgStream = new MemoryStream(wc.DownloadData(cspkgLink)))
                 {
                     cspkgBlob.UploadFromStream(cspkgStream);
-                    cspkgSASToken = cspkgBlob.GetSharedAccessSignature(sasPolicy);
-
-                    telemetry.TrackTrace($"Online Trainer Package SAS token: {cspkgSASToken}");
                 }
             }
             else
             {
                 telemetry.TrackTrace("Online Trainer Package already exists.");
             }
+            var sasPolicy = new SharedAccessBlobPolicy
+            {
+                Permissions = SharedAccessBlobPermissions.Read,
+                SharedAccessStartTime = DateTime.UtcNow.AddMinutes(-1),
+                SharedAccessExpiryTime = DateTime.UtcNow.AddYears(1)
+            };
+            cspkgSASToken = cspkgBlob.GetSharedAccessSignature(sasPolicy);
+            telemetry.TrackTrace($"Online Trainer Package SAS token: {cspkgSASToken}");
         }
 
         public static void UpdateMetadata(CloudBlockBlob clientSettingsBlob, CloudBlockBlob extraSettingsBlob, ApplicationSettings appSettings)
