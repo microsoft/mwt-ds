@@ -2,6 +2,8 @@
 using System.Net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
+using System.Text;
+using System.Globalization;
 
 namespace ClientDecisionServiceTest
 {
@@ -26,34 +28,44 @@ namespace ClientDecisionServiceTest
     [TestClass]
     public class WebApiTest
     {
-        string authToken = "t4izmcj43icxi"; // insert auth token
-        string baseUrl = "http://dmforkdp2-webapi.azurewebsites.net/"; // insert API URL here
+        readonly string authToken = "qig2esedxdvx6"; // insert auth token
+        readonly string baseUrl = "dmdp2-webapi-hjus63xwh2t6y.azurewebsites.net/"; // insert API URL here
 
-        int numActions = 3;
+        readonly int numActions = 3;
 
-        string requestUri;
+        [TestMethod]
+        public void SiteExistsTest()
+        {
+            // Arrange
+            var wc = new WebClient();
+            var indexUrl = baseUrl + "index.html";
+            var response = wc.DownloadString(indexUrl);
+            Console.WriteLine(response);
+        }
 
         [TestMethod]
         public void HeartBeatTest()
         {
             // Arrange
             var wc = new WebClient();
-            wc.Headers.Add("Content-type: application/json");
+            //wc.Headers.Add("Content-type: application/json");
             // insert webAPI auth token here
             wc.Headers.Add("Authorization", authToken);
 
             // Act
-            requestUri = String.Format("https://{0}/api/decision?numActions={1}", baseUrl, numActions);
+            // string requestUri;
 
-            MyContext cxt = new MyContext { Age = 34, Location = "Seattle" };
-            string encodedCxt = JsonConvert.SerializeObject(cxt);
-            var response = wc.UploadString(requestUri, encodedCxt);
+            string requestUri = string.Format(CultureInfo.InvariantCulture, "https://{0}/api/decision?numActions={1}", baseUrl, numActions);
+            wc.QueryString.Add("Age", "34");
+            wc.QueryString.Add("Location", "Seattle");
+            //MyContext cxt = new MyContext { Age = 34, Location = "Seattle" };
+            //string encodedCxt = JsonConvert.SerializeObject(cxt);
+            var response = wc.UploadValues(requestUri, "POST", wc.QueryString);
 
-            // var response = UnicodeEncoding.UTF8.GetString(data);
-            Console.WriteLine(response);
+            var utf8response = UnicodeEncoding.UTF8.GetString(response);
 
             // Assert
-            Assert.AreEqual(response, "foo-tbd");
+            Assert.AreEqual("foo-tbd", utf8response);
 
 
             // wait for user keypress
@@ -64,7 +76,7 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         public void ThroughputTest()
         {
-
+            // stub
 
         }
     }
