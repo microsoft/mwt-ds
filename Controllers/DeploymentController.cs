@@ -15,14 +15,21 @@ namespace DecisionServicePrivateWeb.Controllers
     public class DeploymentController : Controller
     {
         [HttpGet]
-        public string GenerateSASToken(string key, string trainer_size)
+        public string GenerateSASToken(string parameters)
         {
             var telemetry = new TelemetryClient();
             try
             {
                 string azureStorageConnectionString = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString];
                 var storageAccountKey = Regex.Match(azureStorageConnectionString, ".*AccountKey=(.*)").Groups[1].Value;
-                if (key.Replace(" ", "+") == storageAccountKey)
+                var paramMatches = Regex.Match(parameters.Replace(" ", "+"), "key=(.*);trainer_size=(.*)");
+                if (paramMatches.Groups.Count < 3)
+                {
+                    throw new Exception("Request parameters are not valid.");
+                }
+                var key = paramMatches.Groups[1].Value;
+                var trainerSize = paramMatches.Groups[2].Value;
+                if (key == storageAccountKey)
                 {
                     // Generate SAS token URI for client settings blob.
                     // Two tokens are generated separately, one for consumption by the Client Library and the other for Web Service
@@ -30,13 +37,13 @@ namespace DecisionServicePrivateWeb.Controllers
                     string webSASTokenUri;
                     ApplicationMetadataStore.CreateSettingsBlobIfNotExists(out clSASTokenUri, out webSASTokenUri);
 
-                    telemetry.TrackTrace("Requested Online Trainer Size of " + trainer_size);
+                    telemetry.TrackTrace("Requested Online Trainer Size of " + trainerSize);
 
                     // Copy the .cspkg to user blob and generate SAS tokens for deployment
                     // NOTE: this has to live in blob storage, cannot be any random URL
                     string cspkgSASToken;
                     // TODO: take the link URL as parameter
-                    string cspkgLink = $"https://github.com/eisber/vowpal_wabbit/releases/download/v8.0.0.65-pre/VowpalWabbit.Azure.8.0.0.65.{trainer_size}.cspkg";
+                    string cspkgLink = $"https://github.com/eisber/vowpal_wabbit/releases/download/v8.0.0.65-pre/VowpalWabbit.Azure.8.0.0.65.{trainerSize}.cspkg";
                     ApplicationMetadataStore.CreateOnlineTrainerCspkgBlobIfNotExists(cspkgLink, out cspkgSASToken);
 
                     if (clSASTokenUri != null && webSASTokenUri != null && cspkgSASToken != null)
