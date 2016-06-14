@@ -5,7 +5,7 @@
     "binaryStorageAccountName": { "type": "string" },
     "instrumentationKey": { "type": "string" },
     "onlineTrainerCspkgToken": { "type": "string" },
-    "cscfg": { "type": "object" }
+    "configLink": { "type": "string" }
   },
   "variables": {
     "name": "[concat(resourceGroup().name, '-trainer-', uniqueString(concat(subscription().subscriptionId, resourceGroup().name)))]"
@@ -30,7 +30,7 @@
             },
             "deploymentLabel": "[variables('name')]",
             "ConfigurationLink": {
-              "uri": "[concat('https://serviceconfiguration.azurewebsites.net/', parameters('binaryStorageAccountName'), '/', base64(string(parameters('cscfg'))), '/high-frequency-train/ServiceConfiguration.cscfg')]"
+              "uri": "[parameters('configLink')]"
             },
             "deploymentOptions": "StartDeployment"
           }

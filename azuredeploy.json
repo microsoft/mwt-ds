@@ -63,25 +63,23 @@
         "description": "Number of actions"
       }
     },
-    "onlineTrainerCheckpointInterval": {
+    "onlineTrainerVMSize": {
       "type": "string",
-      "defaultValue": "",
+      "defaultValue": "Standard_D2_v2",
       "metadata": {
-        "description": "Checkpoint interval in event time used to checkpoint"
+        "description": "VM Size of the Online Trainer. Acceptable values are (in ascending order of performance and cost): ExtraSmall, Standard_D1_v2, Standard_D2_v2, Standard_D3_v2, Standard_D4_v2, Standard_D5_v2. For more information, refer to: https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-windows-sizes/"
       }
     },
-    "onlineTrainerCheckpointCount": {
-      "type": "int",
+    "onlineTrainerCheckpointPolicy": {
+      "type": "string",
       "defaultValue": "100",
       "metadata": {
-        "description": "Checkpoint interval in event time used to checkpoint"
+        "description": "Checkpoint policy: if a number is specified checkpoint will occur for every so number of examples, if a value is entered in the format HH:MM:SS then checkpoint will occur by time interval"
       }
     }
   },
   "variables": {
-    "assetLocation": "https://raw.githubusercontent.com/multiworldtesting/ds-provisioning/master/",
-    "binaryStorageAccountName": "dscode",
-    "onlineTrainerCspkgToken": "sr=b&sv=2015-02-21&st=2016-06-01T17%3A00%3A25Z&se=2099-06-01T18%3A00%3A00Z&sp=r&sig=BzvUAAilAs%2B0NYmnPUsc2TtdNzkQILH3bbFrgQcZ3x4%3D"
+    "assetLocation": "https://raw.githubusercontent.com/multiworldtesting/ds-provisioning/master/"
   },
   "resources": [
     {
@@ -235,7 +233,10 @@
         "Microsoft.Resources/deployments/Storage",
         "Microsoft.Resources/deployments/AppInsights",
         "Microsoft.Resources/deployments/EventHubInteraction",
-        "Microsoft.Resources/deployments/EventHubObservation"
+        "Microsoft.Resources/deployments/EventHubObservation",
+        "Microsoft.Resources/deployments/EventHubJoined",
+        "Microsoft.Resources/deployments/EventHubEval",
+        "Microsoft.Resources/deployments/AdminTokenGenerator"
       ],
       "properties": {
         "mode": "incremental",
@@ -250,7 +251,12 @@
 
           "experimentalUnitDurationInSeconds": { "value": "[parameters('experimentalUnitDurationInSeconds')]" },
           "vowpalWabbitTrainArguments": { "value": "[parameters('vowpalWabbitTrainArguments')]" },
-          "numberOfActions": { "value": "[parameters('numberOfActions')]" }
+          "numberOfActions": { "value": "[parameters('numberOfActions')]" },
+
+          "joinedEventHubConnectionString": { "value": "[reference('Microsoft.Resources/deployments/EventHubJoined').outputs.listenConnectionString.value]" },
+          "evalEventHubConnectionString": { "value": "[reference('Microsoft.Resources/deployments/EventHubEval').outputs.sendConnectionString.value]" },
+          "adminToken": { "value": "[reference('Microsoft.Resources/deployments/AdminTokenGenerator').outputs.FinalPassword.value]" },
+          "checkpointPolicy": { "value": "[parameters('onlineTrainerCheckpointPolicy')]" }
         }
       }
     },
@@ -263,7 +269,7 @@
       ],
       "properties": {
         "mode": "incremental",
-        "templateLink": { "uri": "[concat(reference('Microsoft.Resources/deployments/WebManage').outputs.url.value, '/SASToken/Generate?key=', reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value)]" }
+        "templateLink": { "uri": "[concat(reference('Microsoft.Resources/deployments/WebManage').outputs.url.value, '/Deployment/GenerateSASToken?key=', reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, ';trainer_size=', parameters('onlineTrainerVMSize'))]" }
       }
     },
     {
@@ -274,13 +280,12 @@
         "Microsoft.Resources/deployments/UserTokenGenerator",
         "Microsoft.Resources/deployments/Storage",
         "Microsoft.Resources/deployments/AppInsights",
-        "Microsoft.Resources/deployments/WebManage"
+        "Microsoft.Resources/deployments/SecureSettingsUri"
       ],
       "properties": {
         "mode": "incremental",
         "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/WebAPITemplate.json')]" },
         "parameters": {
-          "binaryStorageAccountName": { "value": "[variables('binaryStorageAccountName')]" },
           "instrumentationKey": { "value": "[reference('Microsoft.Resources/deployments/AppInsights').outputs.instrumentationKey.value]" },
           "userStorageAccountName": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountName.value]" },
           "userToken": { "value": "[reference('Microsoft.Resources/deployments/UserTokenGenerator').outputs.FinalPassword.value]" },
@@ -346,7 +351,8 @@
         "Microsoft.Resources/deployments/Storage",
         "Microsoft.Resources/deployments/AppInsights",
         "Microsoft.Resources/deployments/EventHubJoined",
-        "Microsoft.Resources/deployments/EventHubEval"
+        "Microsoft.Resources/deployments/EventHubEval",
+        "Microsoft.Resources/deployments/SecureSettingsUri"
       ],
       "properties": {
         "mode": "incremental",
@@ -355,21 +361,10 @@
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
-          "binaryStorageAccountName": { "value": "[variables('binaryStorageAccountName')]" },
+          "binaryStorageAccountName": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountName.value]" },
           "instrumentationKey": { "value": "[reference('Microsoft.Resources/deployments/AppInsights').outputs.instrumentationKey.value]" },
-          "onlineTrainerCspkgToken": { "value": "[variables('onlineTrainerCspkgToken')]" },
-
-          "cscfg": {
-            "value": {
-              "joinedEventHubConnectionString": "[reference('Microsoft.Resources/deployments/EventHubJoined').outputs.listenConnectionString.value]",
-              "evalEventHubConnectionString": "[reference('Microsoft.Resources/deployments/EventHubEval').outputs.sendConnectionString.value]",
-              "userStorageConnectionString": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageConnectionString.value]",
-              "instrumentationKey": "[reference('Microsoft.Resources/deployments/AppInsights').outputs.instrumentationKey.value]",
-              "adminToken": "[reference('Microsoft.Resources/deployments/AdminTokenGenerator').outputs.FinalPassword.value]",
-              "checkpointInterval": "[parameters('onlineTrainerCheckpointInterval')]",
-              "checkpointCount": "[parameters('onlineTrainerCheckpointCount')]"
-            }
-          }
+          "onlineTrainerCspkgToken": { "value": "[reference('Microsoft.Resources/deployments/SecureSettingsUri').outputs.SASTokenOnlineTrainerCspkg.value]" },
+          "configLink": { "value": "[concat(reference('Microsoft.Resources/deployments/WebManage').outputs.url.value, '/Deployment/GenerateTrainerConfig?key=', reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value)]" }
         }
       }
     }
