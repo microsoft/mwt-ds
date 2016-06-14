@@ -43,7 +43,7 @@ namespace DecisionServicePrivateWeb.Controllers
                     // NOTE: this has to live in blob storage, cannot be any random URL
                     string cspkgSASToken;
                     // TODO: take the link URL as parameter
-                    string cspkgLink = $"https://github.com/eisber/vowpal_wabbit/releases/download/v8.0.0.65-pre/VowpalWabbit.Azure.8.0.0.65.{trainerSize}.cspkg";
+                    string cspkgLink = $"https://github.com/eisber/vowpal_wabbit/releases/download/v8.0.0.65/VowpalWabbit.Azure.8.0.0.65.{trainerSize}.cspkg";
                     ApplicationMetadataStore.CreateOnlineTrainerCspkgBlobIfNotExists(cspkgLink, out cspkgSASToken);
 
                     if (clSASTokenUri != null && webSASTokenUri != null && cspkgSASToken != null)
