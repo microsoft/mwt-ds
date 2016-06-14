@@ -175,6 +175,7 @@
     <Content Include="App_Data\SASTokenGenerator.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="App_Data\OnlineTrainerConfiguration.cscfg" />
     <None Include="Properties\PublishProfiles\arm.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\d3.js" />
@@ -195,7 +196,7 @@
     <Compile Include="Classes\EvalD3.cs" />
     <Compile Include="Classes\EvalResult.cs" />
     <Compile Include="Controllers\HomeController.cs" />
-    <Compile Include="Controllers\SASTokenController.cs" />
+    <Compile Include="Controllers\DeploymentController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
