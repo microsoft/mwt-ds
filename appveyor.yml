@@ -9,6 +9,6 @@ build_script:
 - .nuget\nuget install -o packages explore\packages.config
 - .nuget\nuget install -o packages JoinServerUploader\packages.config
 - .nuget\nuget install -o packages MultiworldTestingServiceContract\packages.config
-- '"C:\Program Files (x86)\MSBuild\14.0\Bin\MSBuild.exe" "c:\projects\Decision.sln" /m /verbosity:normal /p:Configuration=Release;Platform=x64'
+- '"C:\Program Files (x86)\MSBuild\14.0\Bin\MSBuild.exe" "c:\projects\decision\Decision.sln" /m /verbosity:normal /p:Configuration=Release;Platform=x64'
 test_script:
 - ps: vstest.console /Platform:x64 /inIsolation bin\x64\Release\ClientDecisionServiceTest.dll
