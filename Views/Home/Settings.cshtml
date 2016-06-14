@@ -36,6 +36,7 @@
                             {
                                 case "String":
                                 case "Int32":
+                                case "Single":
                                 case "DecisionType":
                                 case "TrainFrequency":
                                     <input type="text" @readOnlyStyle style="display:inline;" class="form-control helptext-on-interaction" id="@item.Name" name="@item.Name" value="@item.Value" />
@@ -80,6 +81,14 @@
                 <button class="btn btn-primary outline">Save</button>
             </div>
         </div>
+
+        foreach (var item in Model)
+        {
+            if (item.IsEditable == true && item.IsVisible == true)
+            {
+                @Html.ValidationMessage(item.Name);
+            }
+        }
 
         foreach (var item in Model)
         {

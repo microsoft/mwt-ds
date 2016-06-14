@@ -25,6 +25,7 @@ namespace DecisionServicePrivateWeb.Models
         public int ExperimentalUnitDuration { get; set; }
         public SettingBlobListViewModel SelectedModelId { get; set; }
         public bool IsExplorationEnabled { get; set; }
+        public float InitialExplorationEpsilon { get; set; }
         public Dictionary<string, List<string>> NameHelpLink { get; set; }
     }
 

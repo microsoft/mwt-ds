@@ -35,7 +35,8 @@ namespace DecisionServicePrivateWeb.Controllers
                     // Copy the .cspkg to user blob and generate SAS tokens for deployment
                     // NOTE: this has to live in blob storage, cannot be any random URL
                     string cspkgSASToken;
-                    string cspkgLink = "https://github.com/eisber/vowpal_wabbit/releases/download/v8.0.0.65/VowpalWabbit-AzureCloudService-8.0.0.65.cspkg";
+                    // TODO: take the link URL as parameter
+                    string cspkgLink = $"https://github.com/eisber/vowpal_wabbit/releases/download/v8.0.0.65-pre/VowpalWabbit.Azure.8.0.0.65.{trainer_size}.cspkg";
                     ApplicationMetadataStore.CreateOnlineTrainerCspkgBlobIfNotExists(cspkgLink, out cspkgSASToken);
 
                     if (clSASTokenUri != null && webSASTokenUri != null && cspkgSASToken != null)

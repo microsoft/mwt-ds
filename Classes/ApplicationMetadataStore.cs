@@ -18,6 +18,7 @@ namespace DecisionServicePrivateWeb.Classes
         public const string AKAzureResourceGroup = "resourceGroupName";
         public const string AKConnectionString = "AzureStorageConnectionString";
         public const string AKPassword = "Password";
+        public const string AKInitialExplorationEpsilon = "initialExplorationEpsilon";
         public const string AKInterEHSendConnString = "interactionEventHubSendConnectionString";
         public const string AKObserEHSendConnString = "observationEventHubSendConnectionString";
         public const string AKJoinedEHSendConnString = "joinedEventHubConnectionString";
@@ -39,61 +40,74 @@ namespace DecisionServicePrivateWeb.Classes
             webSASTokenUri = null;
 
             var telemetry = new TelemetryClient();
-            string azureStorageConnectionString = ConfigurationManager.AppSettings[AKConnectionString];
-            var storageAccount = CloudStorageAccount.Parse(azureStorageConnectionString);
-            var blobClient = storageAccount.CreateCloudBlobClient();
-            var settingsBlobContainer = blobClient.GetContainerReference(ApplicationBlobConstants.SettingsContainerName);
-            var modelBlobContainer = blobClient.GetContainerReference(ApplicationBlobConstants.ModelContainerName);
-
-            var clientSettingsBlob = settingsBlobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestClientSettingsBlobName);
-            var extraSettingsBlob = settingsBlobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestExtraSettingsBlobName);
-            if (!clientSettingsBlob.Exists() || !extraSettingsBlob.Exists())
+            try
             {
-                telemetry.TrackTrace("Settings blob not found, creating new one.");
+                string azureStorageConnectionString = ConfigurationManager.AppSettings[AKConnectionString];
+                var storageAccount = CloudStorageAccount.Parse(azureStorageConnectionString);
+                var blobClient = storageAccount.CreateCloudBlobClient();
+                var settingsBlobContainer = blobClient.GetContainerReference(ApplicationBlobConstants.SettingsContainerName);
+                var modelBlobContainer = blobClient.GetContainerReference(ApplicationBlobConstants.ModelContainerName);
 
-                settingsBlobContainer.CreateIfNotExists();
-                modelBlobContainer.CreateIfNotExists();
-
-                // Create an empty model blob to generate SAS token for
-                var sasPolicy = new SharedAccessBlobPolicy
+                var clientSettingsBlob = settingsBlobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestClientSettingsBlobName);
+                var extraSettingsBlob = settingsBlobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestExtraSettingsBlobName);
+                if (!clientSettingsBlob.Exists() || !extraSettingsBlob.Exists())
                 {
-                    Permissions = SharedAccessBlobPermissions.Read,
-                    SharedAccessStartTime = DateTime.UtcNow.AddMinutes(-1),
-                    SharedAccessExpiryTime = DateTime.UtcNow.AddYears(1)
-                };
-                var modelBlob = modelBlobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestModelBlobName);
-                modelBlob.UploadText(string.Empty);
-                var modelSASToken = modelBlob.GetSharedAccessSignature(sasPolicy);
+                    telemetry.TrackTrace("Settings blob not found, creating new one.");
 
-                var appSettings = new ApplicationSettings
+                    settingsBlobContainer.CreateIfNotExists();
+                    modelBlobContainer.CreateIfNotExists();
+
+                    // Create an empty model blob to generate SAS token for
+                    var sasPolicy = new SharedAccessBlobPolicy
+                    {
+                        Permissions = SharedAccessBlobPermissions.Read,
+                        SharedAccessStartTime = DateTime.UtcNow.AddMinutes(-1),
+                        SharedAccessExpiryTime = DateTime.UtcNow.AddYears(1)
+                    };
+                    var modelBlob = modelBlobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestModelBlobName);
+                    modelBlob.UploadText(string.Empty);
+                    var modelSASToken = modelBlob.GetSharedAccessSignature(sasPolicy);
+
+                    var appSettings = new ApplicationSettings
+                    {
+                        ApplicationID = ConfigurationManager.AppSettings[AKAzureResourceGroup],
+                        AzureResourceGroupName = ConfigurationManager.AppSettings[AKAzureResourceGroup],
+                        ConnectionString = ConfigurationManager.AppSettings[AKConnectionString],
+                        ExperimentalUnitDuration = Convert.ToInt32(ConfigurationManager.AppSettings[AKExpUnitDuration]),
+                        InterEventHubSendConnectionString = ConfigurationManager.AppSettings[AKInterEHSendConnString],
+                        ObserEventHubSendConnectionString = ConfigurationManager.AppSettings[AKObserEHSendConnString],
+                        IsExplorationEnabled = true,
+                        SubscriptionId = ConfigurationManager.AppSettings[AKSubscriptionId],
+                        DecisionType = DecisionType.MultiActions, // TODO: update depending on deployment option
+                        ModelId = ApplicationSettingConstants.UseLatestModelSetting,
+                        NumActions = Convert.ToInt32(ConfigurationManager.AppSettings[AKNumActions]),
+                        TrainArguments = ConfigurationManager.AppSettings[AKTrainArguments],
+                        TrainFrequency = TrainFrequency.High, // TODO: update depending on deployment option
+                        ModelBlobUri = modelBlob.Uri + modelSASToken,
+                        AppInsightsKey = ConfigurationManager.AppSettings[AKAppInsightsKey],
+                        InitialExplorationEpsilon = Convert.ToSingle(ConfigurationManager.AppSettings[AKInitialExplorationEpsilon])
+                    };
+                    UpdateMetadata(clientSettingsBlob, extraSettingsBlob, appSettings);
+
+                    var clSASToken = clientSettingsBlob.GetSharedAccessSignature(sasPolicy);
+                    var webSASToken = clientSettingsBlob.GetSharedAccessSignature(sasPolicy);
+
+                    clSASTokenUri = clientSettingsBlob.Uri + clSASToken;
+                    webSASTokenUri = clientSettingsBlob.Uri + webSASToken;
+
+                    telemetry.TrackTrace($"Model blob uri: {appSettings.ModelBlobUri}");
+                    telemetry.TrackTrace($"Settings blob uri for client library: {clSASTokenUri}, for web api: {webSASTokenUri}");
+                }
+                else
                 {
-                    ApplicationID = ConfigurationManager.AppSettings[AKAzureResourceGroup],
-                    AzureResourceGroupName = ConfigurationManager.AppSettings[AKAzureResourceGroup],
-                    ConnectionString = ConfigurationManager.AppSettings[AKConnectionString],
-                    ExperimentalUnitDuration = Convert.ToInt32(ConfigurationManager.AppSettings[AKExpUnitDuration]),
-                    InterEventHubSendConnectionString = ConfigurationManager.AppSettings[AKInterEHSendConnString],
-                    ObserEventHubSendConnectionString = ConfigurationManager.AppSettings[AKObserEHSendConnString],
-                    IsExplorationEnabled = true,
-                    SubscriptionId = ConfigurationManager.AppSettings[AKSubscriptionId],
-                    DecisionType = DecisionType.MultiActions, // TODO: update depending on deployment option
-                    ModelId = ApplicationSettingConstants.UseLatestModelSetting,
-                    NumActions = Convert.ToInt32(ConfigurationManager.AppSettings[AKNumActions]),
-                    TrainArguments = ConfigurationManager.AppSettings[AKTrainArguments],
-                    TrainFrequency = TrainFrequency.High, // TODO: update depending on deployment option
-                    ModelBlobUri = modelBlob.Uri + modelSASToken,
-                    AppInsightsKey = ConfigurationManager.AppSettings[AKAppInsightsKey]
-                };
-                UpdateMetadata(clientSettingsBlob, extraSettingsBlob, appSettings);
-
-                var clSASToken = clientSettingsBlob.GetSharedAccessSignature(sasPolicy);
-                var webSASToken = clientSettingsBlob.GetSharedAccessSignature(sasPolicy);
-
-                clSASTokenUri = clientSettingsBlob.Uri + clSASToken;
-                webSASTokenUri = clientSettingsBlob.Uri + webSASToken;
-
-                telemetry.TrackTrace($"Model blob uri: {appSettings.ModelBlobUri}");
-                telemetry.TrackTrace($"Settings blob uri for client library: {clSASTokenUri}, for web api: {webSASTokenUri}");
+                    telemetry.TrackTrace("Settings blob already exists, skipping.");
+                }
             }
+            catch (Exception ex)
+            {
+                telemetry.TrackException(ex);
+            }
+            
         }
 
         public static void CreateOnlineTrainerCspkgBlobIfNotExists(string cspkgLink, out string cspkgSASToken)
@@ -174,7 +188,8 @@ namespace DecisionServicePrivateWeb.Classes
                     IsExplorationEnabled = appSettings.IsExplorationEnabled,
                     ModelBlobUri = appSettings.ModelBlobUri,
                     TrainArguments = appSettings.TrainArguments,
-                    AppInsightsKey = appSettings.AppInsightsKey
+                    AppInsightsKey = appSettings.AppInsightsKey,
+                    InitialExplorationEpsilon = appSettings.InitialExplorationEpsilon
                 },
                 new ApplicationExtraMetadata
                 {

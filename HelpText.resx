@@ -177,4 +177,7 @@
   <data name="WebManageName" xml:space="preserve">
     <value>Management Center Address ::: The address of the Management Center.</value>
   </data>
+  <data name="InitialExplorationEpsilon" xml:space="preserve">
+    <value>Initial Epsilon Exploration ::: The initial epsilon value to use in epsilon-greedy exploration when the client has not obtained a machine-learned model. Epsilon = 0 indicates no randomization while Epsilon = 1 implies uniform random</value>
+  </data>
 </root>

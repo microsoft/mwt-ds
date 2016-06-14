@@ -73,61 +73,60 @@ namespace DecisionServicePrivateWeb.Controllers
             {
                 return RedirectToAction("Index");
             }
-            string userName = User.Identity.Name;
-            ApplicationClientMetadata clientApp = null;
-            ApplicationExtraMetadata extraApp = null;
-            string settingsBlobUri = string.Empty;
             try
             {
-                var clientSettingsBlob = (CloudBlockBlob)Session[SKClientSettingsBlob];
-                settingsBlobUri = clientSettingsBlob.Uri.ToString();
-                clientApp = JsonConvert.DeserializeObject<ApplicationClientMetadata>(clientSettingsBlob.DownloadText());
-                Session[SKClientSettings] = clientApp;
-
-                var extraSettingsBlob = (CloudBlockBlob)Session[SKExtraSettingsBlob];
-                extraApp = JsonConvert.DeserializeObject<ApplicationExtraMetadata>(extraSettingsBlob.DownloadText());
-                Session[SKExtraSettings] = extraApp;
+                return View(SettingsView());
             }
             catch (Exception ex)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, $"Unable to load application metadata: {ex.ToString()}");
             }
-
-            return View(CreateAppView(clientApp, extraApp, settingsBlobUri));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Settings(SettingsSaveModel model)
         {
-            try
+            if (ModelState.IsValid)
             {
-                var clientMeta = (ApplicationClientMetadata)Session[SKClientSettings];
-                clientMeta.IsExplorationEnabled = model.IsExplorationEnabled;
-                clientMeta.TrainArguments = model.TrainArguments;
-                var clientSettingsBlob = (CloudBlockBlob)Session[SKClientSettingsBlob];
-                clientSettingsBlob.UploadText(JsonConvert.SerializeObject(clientMeta));
-
-                var extraMeta = (ApplicationExtraMetadata)Session[SKExtraSettings];
-                extraMeta.ModelId = model.SelectedModelId;
-                var extraSettingsBlob = (CloudBlockBlob)Session[SKExtraSettingsBlob];
-                extraSettingsBlob.UploadText(JsonConvert.SerializeObject(extraMeta));
-
                 try
                 {
-                    // copy selected model file to the latest file
-                    ApplicationMetadataStore.UpdateModel(model.SelectedModelId, ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString]);
+                    var clientMeta = (ApplicationClientMetadata)Session[SKClientSettings];
+                    clientMeta.IsExplorationEnabled = model.IsExplorationEnabled;
+                    clientMeta.InitialExplorationEpsilon = model.InitialExplorationEpsilon;
+                    clientMeta.TrainArguments = model.TrainArguments;
+                    var clientSettingsBlob = (CloudBlockBlob)Session[SKClientSettingsBlob];
+                    clientSettingsBlob.UploadText(JsonConvert.SerializeObject(clientMeta));
+
+                    var extraMeta = (ApplicationExtraMetadata)Session[SKExtraSettings];
+                    extraMeta.ModelId = model.SelectedModelId;
+                    var extraSettingsBlob = (CloudBlockBlob)Session[SKExtraSettingsBlob];
+                    extraSettingsBlob.UploadText(JsonConvert.SerializeObject(extraMeta));
+
+                    try
+                    {
+                        // copy selected model file to the latest file
+                        ApplicationMetadataStore.UpdateModel(model.SelectedModelId, ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString]);
+                    }
+                    catch (Exception ex)
+                    {
+                        return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, $"Unable to update model: {ex.ToString()}");
+                    }
+
+                    return View(CreateAppView(clientMeta, extraMeta, clientSettingsBlob.Uri.ToString()));
                 }
                 catch (Exception ex)
                 {
-                    return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, $"Unable to update model: {ex.ToString()}");
+                    return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, $"Unable to update application metadata: {ex.ToString()}");
                 }
-
-                return View(CreateAppView(clientMeta, extraMeta, clientSettingsBlob.Uri.ToString()));
+            }
+            try
+            {
+                return View(SettingsView());
             }
             catch (Exception ex)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, $"Unable to update application metadata: {ex.ToString()}");
+                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, $"Unable to load application metadata: {ex.ToString()}");
             }
         }
 
@@ -229,6 +228,23 @@ namespace DecisionServicePrivateWeb.Controllers
             return (Session[SKAuthenticated] != null && (bool)Session[SKAuthenticated]);
         }
 
+        private List<SettingItemViewModel> SettingsView()
+        {
+            ApplicationClientMetadata clientApp = null;
+            ApplicationExtraMetadata extraApp = null;
+            string settingsBlobUri = string.Empty;
+
+            var clientSettingsBlob = (CloudBlockBlob)Session[SKClientSettingsBlob];
+            settingsBlobUri = clientSettingsBlob.Uri.ToString();
+            clientApp = JsonConvert.DeserializeObject<ApplicationClientMetadata>(clientSettingsBlob.DownloadText());
+            Session[SKClientSettings] = clientApp;
+
+            var extraSettingsBlob = (CloudBlockBlob)Session[SKExtraSettingsBlob];
+            extraApp = JsonConvert.DeserializeObject<ApplicationExtraMetadata>(extraSettingsBlob.DownloadText());
+            Session[SKExtraSettings] = extraApp;
+            
+            return CreateAppView(clientApp, extraApp, settingsBlobUri);
+        }
 
         private static List<SettingItemViewModel> CreateAppView(
             ApplicationClientMetadata clientMetadata,
@@ -258,6 +274,7 @@ namespace DecisionServicePrivateWeb.Controllers
             {
                 new { Name = nameof(svm.TrainArguments), IsEditable = true },
                 new { Name = nameof(svm.IsExplorationEnabled), IsEditable = true },
+                new { Name = nameof(svm.InitialExplorationEpsilon), IsEditable = true },
                 new { Name = nameof(svm.SelectedModelId), IsEditable = true }
             };
             var nameToVisible = new[]
@@ -323,6 +340,7 @@ namespace DecisionServicePrivateWeb.Controllers
                     SelectedItem = extraMetadata.ModelId
                 },
                 IsExplorationEnabled = clientMetadata.IsExplorationEnabled,
+                InitialExplorationEpsilon = clientMetadata.InitialExplorationEpsilon,
                 SettingsBlobUri = settingsBlobUri
             };
             return svm;

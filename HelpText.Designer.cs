@@ -160,6 +160,15 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Initial Epsilon Exploration ::: The initial epsilon value to use in epsilon-greedy exploration when the client has not obtained a machine-learned model. Epsilon = 0 indicates no randomization while Epsilon = 1 implies uniform random.
+        /// </summary>
+        public static string InitialExplorationEpsilon {
+            get {
+                return ResourceManager.GetString("InitialExplorationEpsilon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Enable Exploration ::: Whether to enable exploration in Client Library or Web Service. This is useful as a safety mechanism in case exploration results in undesired application behavior..
         /// </summary>
         public static string IsExplorationEnabled {

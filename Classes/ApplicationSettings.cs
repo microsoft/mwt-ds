@@ -26,6 +26,8 @@ namespace DecisionServicePrivateWeb.Classes
 
         public string ModelId { get; set; }
 
+        public float InitialExplorationEpsilon { get; set; }
+
         public bool IsExplorationEnabled { get; set; }
 
         public int ExperimentalUnitDuration { get; set; }
