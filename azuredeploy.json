@@ -23,6 +23,13 @@
         "description": "Authentication token for online trainer, if empty a random value will be generated."
       }
     },
+    "initialExplorationEpsilon": {
+      "type": "string",
+      "defaultValue": "0.2",
+      "metadata": {
+        "description": "The initial epsilon value to use in epsilon-greedy exploration when the client has not obtained a machine-learned model. Epsilon = 0 indicates no randomization while Epsilon = 1 implies uniform random"
+      }
+    },
     "messageRetentionInDays": {
       "type": "int",
       "defaultValue": 1,
@@ -242,6 +249,8 @@
         "mode": "incremental",
         "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/WebManageTemplate.json')]" },
         "parameters": {
+          "initialExplorationEpsilon": { "value": "[parameters('initialExplorationEpsilon')]" },
+
           "instrumentationKey": { "value": "[reference('Microsoft.Resources/deployments/AppInsights').outputs.instrumentationKey.value]" },
           "userStorageConnectionString": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageConnectionString.value]" },
           "managementPassword": { "value": "[reference('Microsoft.Resources/deployments/ManagementPasswordGenerator').outputs.FinalPassword.value]" },
