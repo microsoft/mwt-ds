@@ -2,11 +2,19 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
+    "number_Of_Actions": {
+      "type": "int",
+      "defaultValue": "0",
+      "minValue": 0,
+      "metadata": {
+        "description": "The number of action choices, which is fixed for all interactions. This value is irrelevant for action-dependent features."
+      }
+    },
     "initial_Exploration_Epsilon": {
       "type": "string",
       "defaultValue": "0.2",
       "metadata": {
-        "description": "The initial epsilon value to use in epsilon-greedy exploration when the client has not obtained a machine-learned model. Epsilon = 0 indicates no randomization while Epsilon = 1 implies uniform random"
+        "description": "The initial epsilon value to use in epsilon-greedy exploration until the front end obtains a machine-learned model. Epsilon = 0 indicates no randomization, whereas epsilon = 1 indicates uniform randomization."
       }
     },
     "experimental_Unit_Duration_In_Seconds": {
@@ -14,43 +22,35 @@
       "minValue": 5,
       "defaultValue": 30,
       "metadata": {
-        "description": "Join Timeout (in seconds): The timeout duration of the interaction-observation join that occurs in Azure Stream Analytics."
+        "description": "Join Delay (in seconds): The fixed delay of the interaction-observation join that occurs in Azure Stream Analytics."
       }
     },
     "VowpalWabbit Arguments": {
       "type": "string",
       "defaultValue": "--cb_explore_adf --epsilon 0.2 --cb_type dr",
       "metadata": {
-        "description": "Training arguments that are passed to Vowpal Wabbit for policy learning."
-      }
-    },
-    "number_Of_Actions": {
-      "type": "int",
-      "defaultValue": "0",
-      "minValue": 0,
-      "metadata": {
-        "description": "The number of actions which is fixed for all interactions. This value is not relevant for action dependent features."
+        "description": "Switches that are passed to Vowpal Wabbit for exploration and policy learning."
       }
     },
     "management_Password": {
       "type": "string",
       "defaultValue": "",
       "metadata": {
-        "description": "Password for management center, if empty a random value will be generated."
+        "description": "Password for the management center. If empty, a random value will be generated."
       }
     },
     "user_Token": {
       "type": "string",
       "defaultValue": "",
       "metadata": {
-        "description": "Authentication token for the web service endpoint, if empty a random value will be generated."
+        "description": "Authentication token for the web service endpoint.  If empty, a random value will be generated."
       }
     },
     "admin_Token": {
       "type": "string",
       "defaultValue": "",
       "metadata": {
-        "description": "Authentication token for online trainer, if empty a random value will be generated."
+        "description": "Authentication token for the online trainer. If empty, a random value will be generated."
       }
     },
     "message_Retention_In_Days": {
@@ -59,7 +59,7 @@
       "minValue": 1,
       "maxValue": 7,
       "metadata": {
-        "description": "The number of days to retain the events for Event Hubs (such as interaction and observation events). This applies to all Event Hubs provisioned as part of the service."
+        "description": "The number of days to retain events in EventHubs (such as interaction and observation events). This applies to all EventHubs provisioned as part of the service."
       }
     },
     "partition_Count": {
@@ -67,21 +67,21 @@
       "defaultValue": 16,
       "minValue": 1,
       "metadata": {
-        "description": "The number of shards on Event Hub. This applies to all Event Hubs provisioned as part of the service."
+        "description": "The number of shards on each EventHub. This applies to all EventHubs provisioned as part of the service."
       }
     },
     "online_Trainer_VM_Size": {
       "type": "string",
       "defaultValue": "Standard_D2_v2",
       "metadata": {
-        "description": "VM Size of the Online Trainer. Acceptable values are (in ascending order of performance and cost): ExtraSmall, Standard_D1_v2, Standard_D2_v2, Standard_D3_v2, Standard_D4_v2, Standard_D5_v2. For more information, refer to: https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-windows-sizes/"
+        "description": "Size of the VM that runs the Online Trainer. Acceptable values are (in ascending order of performance and cost): ExtraSmall, Standard_D1_v2, Standard_D2_v2, Standard_D3_v2, Standard_D4_v2, Standard_D5_v2. For more information, refer to: https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-windows-sizes/"
       }
     },
-    "online_Trainer_Checkpoint_Policy": {
+    "online_Trainer_Checkpoint_Interval": {
       "type": "string",
       "defaultValue": "100",
       "metadata": {
-        "description": "Checkpoint policy: if a number is specified checkpoint will occur for every so number of examples, if a value is entered in the format HH:MM:SS then checkpoint will occur by time interval"
+        "description": "If a number is specified, checkpointing will occur after that many examples.  If a value is entered in the format HH:MM:SS, then checkpointing will occur according to that time interval."
       }
     }
   },
@@ -265,7 +265,7 @@
           "joinedEventHubConnectionString": { "value": "[reference('Microsoft.Resources/deployments/EventHubJoined').outputs.listenConnectionString.value]" },
           "evalEventHubConnectionString": { "value": "[reference('Microsoft.Resources/deployments/EventHubEval').outputs.sendConnectionString.value]" },
           "adminToken": { "value": "[reference('Microsoft.Resources/deployments/AdminTokenGenerator').outputs.FinalPassword.value]" },
-          "checkpointPolicy": { "value": "[parameters('online_Trainer_Checkpoint_Policy')]" }
+          "checkpointPolicy": { "value": "[parameters('online_Trainer_Checkpoint_Interval')]" }
         }
       }
     },
@@ -379,31 +379,31 @@
     }
   ],
   "outputs": {
-    "ManagementCenterAddress": {
+    "Management_Center_URL": {
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/WebManage').outputs.url.value]"
     },
-    "ManagementPassword": {
+    "Management_Center_Password": {
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/ManagementPasswordGenerator').outputs.FinalPassword.value]"
     },
-    "ClientLibraryUrl": {
+    "Client_Library_Url": {
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/SecureSettingsUri').outputs.SASTokenUriClientSettings.value]"
     },
-    "WebServiceAddress": {
+    "Web_Service_URL": {
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/WebAPI').outputs.WebApiUrl.value]"
     },
-    "WebServiceToken": {
+    "Web_Service_Token": {
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/UserTokenGenerator').outputs.FinalPassword.value]"
     },
-    "OnlineTrainerToken": {
+    "Online_Trainer_Token": {
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/AdminTokenGenerator').outputs.FinalPassword.value]"
     },
-    "OnlineTrainerAddress": {
+    "Online_Trainer_URL": {
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/OnlineTrainer').outputs.url.value]"
     }
