@@ -25,8 +25,8 @@ namespace Microsoft.Research.DecisionService.Test
             string passwd = ConfigurationManager.AppSettings["Password"];
             string tenantId = ConfigurationManager.AppSettings["TenantId"];
             string subscriptionId = ConfigurationManager.AppSettings["SubscriptionId"];
+            string prefix = ConfigurationManager.AppSettings["prefix"];
 
-            var prefix = "dsprov";
             var resourceGroupName = prefix + Guid.NewGuid().ToString().Replace("-","").Substring(4);
             var deploymentName = resourceGroupName + "_deployment";
             var location = "eastus";
@@ -57,6 +57,7 @@ namespace Microsoft.Research.DecisionService.Test
 
             Assert.AreEqual("Succeeded", rgResult.Properties.ProvisioningState);
 
+            DeploymentOperation failedOperation = null;
             using (var poller = Observable
                 .Interval(TimeSpan.FromSeconds(2))
                 .Delay(TimeSpan.FromSeconds(5))
@@ -76,7 +77,7 @@ namespace Microsoft.Research.DecisionService.Test
                                 case "Succeeded":
                                     break;
                                 default:
-                                    Assert.Fail("Failed to deploy: " + op.Properties.TargetResource.ResourceName);
+                                    failedOperation = op;
                                     break;
                             }
                         }
@@ -117,6 +118,7 @@ namespace Microsoft.Research.DecisionService.Test
                 }
             }
 
+            Assert.IsNull(failedOperation, $"Deployment operation failed: '{failedOperation.Properties.TargetResource.ResourceName}'");
         }
     }
 }
