@@ -112,10 +112,8 @@ namespace DecisionServicePrivateWeb.Classes
             
         }
 
-        public static void CreateOnlineTrainerCspkgBlobIfNotExists(string cspkgLink, out string cspkgSASToken)
+        public static string CreateOnlineTrainerCspkgBlobIfNotExists(string cspkgLink)
         {
-            cspkgSASToken = null;
-
             var telemetry = new TelemetryClient();
             string azureStorageConnectionString = ConfigurationManager.AppSettings[AKConnectionString];
             var storageAccount = CloudStorageAccount.Parse(azureStorageConnectionString);
@@ -144,8 +142,11 @@ namespace DecisionServicePrivateWeb.Classes
                 SharedAccessStartTime = DateTime.UtcNow.AddMinutes(-1),
                 SharedAccessExpiryTime = DateTime.UtcNow.AddYears(1)
             };
-            cspkgSASToken = cspkgBlob.GetSharedAccessSignature(sasPolicy);
-            telemetry.TrackTrace($"Online Trainer Package SAS token: {cspkgSASToken}");
+
+            var uri = cspkgBlob.Uri.ToString() + cspkgBlob.GetSharedAccessSignature(sasPolicy);
+            telemetry.TrackTrace($"Online Trainer Package URI: '{uri}'");
+
+            return uri;
         }
 
         public static void UpdateMetadata(CloudBlockBlob clientSettingsBlob, CloudBlockBlob extraSettingsBlob, ApplicationSettings appSettings)
