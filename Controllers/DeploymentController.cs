@@ -14,6 +14,9 @@ namespace DecisionServicePrivateWeb.Controllers
     [RequireHttps]
     public class DeploymentController : Controller
     {
+        // works as long as the MC is not in multiple processes and not on multiple machines
+        private static object lockObj = new object();
+
         [HttpGet]
         public string GenerateSASToken(string parameters)
         {
@@ -21,43 +24,46 @@ namespace DecisionServicePrivateWeb.Controllers
             string template = System.IO.File.ReadAllText(Path.Combine(Server.MapPath("~/App_Data"), "SASTokenGenerator.json"));
             try
             {
-                string azureStorageConnectionString = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString];
-                var storageAccountKey = Regex.Match(azureStorageConnectionString, ".*AccountKey=(.*)").Groups[1].Value;
-                var paramMatches = Regex.Match(parameters.Replace(" ", "+"), "key=(.*);trainer_size=(.*)");
-                if (paramMatches.Groups.Count < 3)
+                lock (lockObj)
                 {
-                    throw new Exception("Request parameters are not valid.");
-                }
-                var key = paramMatches.Groups[1].Value;
-                var trainerSize = paramMatches.Groups[2].Value;
-                if (key == storageAccountKey)
-                {
-                    // Generate SAS token URI for client settings blob.
-                    // Two tokens are generated separately, one for consumption by the Client Library and the other for Web Service
-                    string clSASTokenUri;
-                    string webSASTokenUri;
-                    ApplicationMetadataStore.CreateSettingsBlobIfNotExists(out clSASTokenUri, out webSASTokenUri);
-
-                    telemetry.TrackTrace("Requested Online Trainer Size of " + trainerSize);
-
-                    // Copy the .cspkg to user blob and generate SAS tokens for deployment
-                    // NOTE: this has to live in blob storage, cannot be any random URL
-                    // TODO: take the link URL as parameter
-                    string cspkgLink = $"https://github.com/eisber/vowpal_wabbit/releases/download/v8.0.0.65/VowpalWabbit.Azure.8.0.0.65.{trainerSize}.cspkg";
-                    var cspkgUri = ApplicationMetadataStore.CreateOnlineTrainerCspkgBlobIfNotExists(cspkgLink);
-
-                    if (clSASTokenUri != null && webSASTokenUri != null && cspkgUri != null)
+                    string azureStorageConnectionString = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString];
+                    var storageAccountKey = Regex.Match(azureStorageConnectionString, ".*AccountKey=(.*)").Groups[1].Value;
+                    var paramMatches = Regex.Match(parameters.Replace(" ", "+"), "key=(.*);trainer_size=(.*)");
+                    if (paramMatches.Groups.Count < 3)
                     {
-                        telemetry.TrackTrace("Generated SAS tokens for settings URI and online trainer package");
-                        return template
-                            .Replace("$$ClientSettings$$", clSASTokenUri)
-                            .Replace("$$WebSettings$$", webSASTokenUri)
-                            .Replace("$$OnlineTrainerCspkg$$", cspkgUri);
+                        throw new Exception("Request parameters are not valid.");
                     }
-                }
-                else
-                {
-                    telemetry.TrackTrace($"Provided key is not correct: { key }");
+                    var key = paramMatches.Groups[1].Value;
+                    var trainerSize = paramMatches.Groups[2].Value;
+                    if (key == storageAccountKey)
+                    {
+                        // Generate SAS token URI for client settings blob.
+                        // Two tokens are generated separately, one for consumption by the Client Library and the other for Web Service
+                        string clSASTokenUri;
+                        string webSASTokenUri;
+                        ApplicationMetadataStore.CreateSettingsBlobIfNotExists(out clSASTokenUri, out webSASTokenUri);
+
+                        telemetry.TrackTrace("Requested Online Trainer Size of " + trainerSize);
+
+                        // Copy the .cspkg to user blob and generate SAS tokens for deployment
+                        // NOTE: this has to live in blob storage, cannot be any random URL
+                        // TODO: take the link URL as parameter
+                        string cspkgLink = $"https://github.com/eisber/vowpal_wabbit/releases/download/v8.0.0.65/VowpalWabbit.Azure.8.0.0.65.{trainerSize}.cspkg";
+                        var cspkgUri = ApplicationMetadataStore.CreateOnlineTrainerCspkgBlobIfNotExists(cspkgLink);
+
+                        if (clSASTokenUri != null && webSASTokenUri != null && cspkgUri != null)
+                        {
+                            telemetry.TrackTrace("Generated SAS tokens for settings URI and online trainer package");
+                            return template
+                                .Replace("$$ClientSettings$$", clSASTokenUri)
+                                .Replace("$$WebSettings$$", webSASTokenUri)
+                                .Replace("$$OnlineTrainerCspkg$$", cspkgUri);
+                        }
+                    }
+                    else
+                    {
+                        telemetry.TrackTrace($"Provided key is not correct: { key }");
+                    }
                 }
             }
             catch (Exception ex)
