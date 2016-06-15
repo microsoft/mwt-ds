@@ -86,7 +86,7 @@
     }
   },
   "variables": {
-    "assetLocation": "https://raw.githubusercontent.com/multiworldtesting/ds-provisioning/master/"
+    "assetLocation": "https://raw.githubusercontent.com/danmelamed/ds-provisioning/master/"
   },
   "resources": [
     {
