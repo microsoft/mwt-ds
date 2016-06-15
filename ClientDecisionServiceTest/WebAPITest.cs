@@ -29,22 +29,23 @@ namespace ClientDecisionServiceTest
     public class WebApiTest
     {
         readonly string authToken = "qig2esedxdvx6"; // insert auth token
-        readonly string baseUrl = "dmdp2-webapi-hjus63xwh2t6y.azurewebsites.net/"; // insert API URL here
+        readonly string baseUrl = "https://dmdp2-webapi-hjus63xwh2t6y.azurewebsites.net/"; // insert API URL here
 
         readonly int numActions = 3;
 
         [TestMethod]
-        public void SiteExistsTest()
+        public void IndexExistsTest()
         {
             // Arrange
             var wc = new WebClient();
             var indexUrl = baseUrl + "index.html";
             var response = wc.DownloadString(indexUrl);
-            Console.WriteLine(response);
+
+            Assert.AreEqual("<!DOCTYPE html>", response.Substring(0,15));
         }
 
         [TestMethod]
-        public void HeartBeatTest()
+        public void PostTest()
         {
             // Arrange
             var wc = new WebClient();
@@ -55,7 +56,7 @@ namespace ClientDecisionServiceTest
             // Act
             // string requestUri;
 
-            string requestUri = string.Format(CultureInfo.InvariantCulture, "https://{0}/api/decision?numActions={1}", baseUrl, numActions);
+            string requestUri = string.Format(CultureInfo.InvariantCulture, "{0}/api/decision?numActions={1}", baseUrl, numActions);
             wc.QueryString.Add("Age", "34");
             wc.QueryString.Add("Location", "Seattle");
             //MyContext cxt = new MyContext { Age = 34, Location = "Seattle" };
