@@ -246,6 +246,8 @@ namespace ClientDecisionServiceTest
         {
             joinServer.Reset();
 
+            commandCenter.CreateBlobs(createSettingsBlob: true, createModelBlob: false, vwArgs: "--cb_explore_adf --epsilon 0.5");
+
             string uniqueKey = "test interaction";
 
             var createObservation = (Func<int, string>)((i) => { return string.Format("00000", i); });

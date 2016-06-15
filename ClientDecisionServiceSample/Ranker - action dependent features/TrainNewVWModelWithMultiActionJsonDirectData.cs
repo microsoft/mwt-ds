@@ -24,7 +24,7 @@ namespace ClientDecisionServiceSample
 
             var stringExamplesTrain = new StringBuilder();
             using (var vw = new VowpalWabbit<FoodContext>(
-                new VowpalWabbitSettings("--cb_adf --rank_all --cb_type dr -q ::")
+                new VowpalWabbitSettings("--cb_explore_adf --epsilon 0.2 --cb_type dr -q ::")
                     {
                         TypeInspector = JsonTypeInspector.Default,
                         EnableStringExampleGeneration = true,
@@ -102,7 +102,7 @@ namespace ClientDecisionServiceSample
                         stringExamplesTest.Append(vw.Serializer.Create(vw.Native).SerializeToString(context));
                         stringExamplesTest.Append("\r\n");
                     }
-                    stringExamplesPred.Append("\n");
+                    stringExamplesPred.Append("\r\n");
                 }
                 // write testing data in string format
                 File.WriteAllText(@"c:\users\lhoang\downloads\food_test.vw", stringExamplesTest.ToString());

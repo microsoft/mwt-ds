@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
-    [JsonObject(Id = "stgts")]
     public class GenericTopSlotExplorerState
     {
         [JsonProperty("p")]

@@ -261,7 +261,7 @@ namespace ClientDecisionServiceTest
     public class BaseCompleteExperimentalUnitFragment
     {
         [JsonProperty(PropertyName = "p")]
-        public float? Probability { get; set; }
+        public float[] Probabilities { get; set; }
 
         [JsonProperty(PropertyName = "c")]
         [JsonConverter(typeof(RawStringConverter))]

@@ -51,11 +51,11 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
             }
 
             // treat generic explorer specifically to keep the probability outside and a generic fallback
-            var genericExplorerState = v.ExplorerState as GenericExplorerState;
+            var genericExplorerState = v.ExplorerState as GenericTopSlotExplorerState;
             if (genericExplorerState != null)
             {
                 writer.WritePropertyName("p");
-                serializer.Serialize(writer, genericExplorerState.Probability);
+                serializer.Serialize(writer, genericExplorerState.Probabilities);
             }
             else if (v.ExplorerState != null)
             {
