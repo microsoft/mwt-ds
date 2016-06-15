@@ -402,6 +402,10 @@
     "OnlineTrainerToken": {
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/AdminTokenGenerator').outputs.FinalPassword.value]"
+    },
+    "OnlineTrainerAddress": {
+      "type": "string",
+      "value": "[reference('Microsoft.Resources/deployments/OnlineTrainer').outputs.url.value]"
     }
   }
 }

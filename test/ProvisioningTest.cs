@@ -70,7 +70,10 @@ namespace Microsoft.Research.DecisionService.Test
                         // {op.Properties.TargetResource.Id}
                         foreach (var op in operations)
                         {
-                            Trace.WriteLine($"Status: {op.Properties.TargetResource.ResourceName,-30} '{op.Properties.ProvisioningState}'");
+                            if (op == null || op.Properties == null || op.Properties.ProvisioningState == null)
+                                continue;
+
+                            Trace.WriteLine($"Status: {op?.Properties?.TargetResource?.ResourceName,-30} '{op?.Properties?.ProvisioningState}'");
                             switch(op.Properties.ProvisioningState)
                             {
                                 case "Running":
@@ -97,7 +100,7 @@ namespace Microsoft.Research.DecisionService.Test
                 {
                     Mode = DeploymentMode.Incremental,
                     TemplateLink = new TemplateLink("https://raw.githubusercontent.com/multiworldtesting/ds-provisioning/master/azuredeploy.json"),
-                    Parameters = JObject.Parse("{\"numberOfActions\":{\"value\":0}}")
+                    Parameters = JObject.Parse("{\"number_Of_Actions\":{\"value\":0}}")
                 };
 
                 try
@@ -118,7 +121,7 @@ namespace Microsoft.Research.DecisionService.Test
                 }
             }
 
-            Assert.IsNull(failedOperation, $"Deployment operation failed: '{failedOperation.Properties.TargetResource.ResourceName}'");
+            Assert.IsNull(failedOperation, $"Deployment operation failed: '{failedOperation}'");
         }
     }
 }
