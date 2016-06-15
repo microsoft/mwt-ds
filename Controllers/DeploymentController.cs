@@ -7,7 +7,6 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Web.Mvc;
 using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.Research.MultiWorldTesting.Contract;
 
 namespace DecisionServicePrivateWeb.Controllers
 {

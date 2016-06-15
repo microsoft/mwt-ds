@@ -195,6 +195,7 @@
     <Compile Include="Classes\ApplicationSettings.cs" />
     <Compile Include="Classes\EvalD3.cs" />
     <Compile Include="Classes\EvalResult.cs" />
+    <Compile Include="Controllers\AutomationController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\DeploymentController.cs" />
     <Compile Include="Global.asax.cs">
