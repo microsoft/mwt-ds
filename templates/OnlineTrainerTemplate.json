@@ -26,7 +26,7 @@
           ],
           "properties": {
             "packageLink": {
-              "uri": "[concat('https://', parameters('binaryStorageAccountName'), '.blob.core.windows.net/high-frequency-train/OnlineTraining.cspkg?', parameters('onlineTrainerCspkgToken'))]"
+              "uri": "[parameters('onlineTrainerCspkgToken')]"
             },
             "deploymentLabel": "[variables('name')]",
             "ConfigurationLink": {
