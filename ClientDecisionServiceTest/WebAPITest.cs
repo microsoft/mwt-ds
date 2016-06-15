@@ -28,15 +28,14 @@ namespace ClientDecisionServiceTest
     [TestClass]
     public class WebApiTest
     {
-        readonly string authToken = "qig2esedxdvx6"; // insert auth token
-        readonly string baseUrl = "https://dmdp2-webapi-hjus63xwh2t6y.azurewebsites.net/"; // insert API URL here
-
+        readonly string authToken = "mzf2xsxf4hjwe"; // insert auth token
+        readonly string baseUrl = "http://dmdp1-webapi-jvj7wdftvsdwe.azurewebsites.net"; // insert API URL here
+        readonly string contextType = "ranker";
         readonly int numActions = 3;
 
         [TestMethod]
         public void IndexExistsTest()
         {
-            // Arrange
             var wc = new WebClient();
             var indexUrl = baseUrl + "index.html";
             var response = wc.DownloadString(indexUrl);
@@ -47,34 +46,22 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         public void PostTest()
         {
-            // Arrange
             var wc = new WebClient();
-            //wc.Headers.Add("Content-type: application/json");
-            // insert webAPI auth token here
             wc.Headers.Add("Authorization", authToken);
 
-            // Act
-            // string requestUri;
-
-            string requestUri = string.Format(CultureInfo.InvariantCulture, "{0}/api/decision?numActions={1}", baseUrl, numActions);
-            wc.QueryString.Add("Age", "34");
-            wc.QueryString.Add("Location", "Seattle");
-            //MyContext cxt = new MyContext { Age = 34, Location = "Seattle" };
-            //string encodedCxt = JsonConvert.SerializeObject(cxt);
-            var response = wc.UploadValues(requestUri, "POST", wc.QueryString);
+            string requestUri = string.Format(CultureInfo.InvariantCulture, "{0}/{1}", baseUrl, contextType);
+            string payloadString = "{ Age: 25, Location: \"New York\", _multi: [{ a: 1}, { b: 2}]}";
+            byte[] payload = System.Text.Encoding.ASCII.GetBytes(payloadString);
+            var response = wc.UploadData(requestUri, "POST", payload);
 
             var utf8response = UnicodeEncoding.UTF8.GetString(response);
 
-            // Assert
-            Assert.AreEqual("foo-tbd", utf8response);
-
-
-            // wait for user keypress
-            Console.ReadLine();
-        }
-
+            // Compare only the decision, not the eventID
+            Assert.AreEqual("{\"Action\":[1,2]", utf8response.Substring(0,15));
+       }
 
         [TestMethod]
+        [Ignore]
         public void ThroughputTest()
         {
             // stub
