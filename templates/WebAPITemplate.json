@@ -2,15 +2,15 @@
   "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "binaryStorageAccountName": { "type": "string" },
     "InstrumentationKey": { "type": "string" },
     "UserStorageAccountName": { "type": "string" },
-    "UserToken": { "type": "string" }
+    "UserToken": { "type": "string" },
+    "SecureSettingsUri": { "type": "string" }
   },
   "variables": {
     "siteExtName": "MSDeploy",
     "hostingPlanName": "WebApiPlan",
-    "webSiteName": "[concat(resourceGroup().name, '-webapi')]"
+    "webSiteName": "[concat(resourceGroup().name, '-webapi-', uniqueString(concat(subscription().subscriptionId, resourceGroup().name)))]"
   },
   "resources": [
     {
@@ -100,7 +100,7 @@
           ],
           "properties": {
             "APPINSIGHTS_INSTRUMENTATIONKEY": "[parameters('InstrumentationKey')]",
-            "DecisionServiceSettingsUrl": "[concat('http://', parameters('UserStorageAccountName'), '.blob.core.windows.net/mwt-settings/client')]",
+            "DecisionServiceSettingsUrl": "[parameters('SecureSettingsUri')]",
             "UserToken": "[parameters('UserToken')]"
           }
         },

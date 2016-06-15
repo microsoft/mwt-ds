@@ -3,8 +3,15 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "instrumentationKey": { "type": "string" },
+    "initialExplorationEpsilon": { "type": "string" },
+
     "userStorageConnectionString": { "type": "string" },
+    "joinedEventHubConnectionString": { "type": "string" },
+    "evalEventHubConnectionString": { "type": "string" },
+
     "managementPassword": { "type": "string" },
+    "adminToken": { "type": "string" },
+    "checkpointPolicy": { "type": "string" },
 
     "interactionEventHub": { "type": "object" },
     "observationEventHub": { "type": "object" },
@@ -62,7 +69,7 @@
   },
   "variables": {
     "hostingPlanName": "ManagementPlan",
-    "siteName": "[concat(resourceGroup().name, '-mc')]"
+    "siteName": "[concat(resourceGroup().name, '-mc-', uniqueString(concat(subscription().subscriptionId, resourceGroup().name)))]"
   },
   "resources": [
     {
@@ -141,7 +148,13 @@
             "resourceGroupName": "[resourceGroup().name]",
             "interactionEventHubSendConnectionString": "[parameters('interactionEventHub').sendConnectionString.value]",
             "observationEventHubSendConnectionString": "[parameters('observationEventHub').sendConnectionString.value]",
-            "subscriptionId": "[subscription().subscriptionId]"
+            "subscriptionId": "[subscription().subscriptionId]",
+
+            "joinedEventHubConnectionString": "[parameters('joinedEventHubConnectionString')]",
+            "evalEventHubConnectionString": "[parameters('evalEventHubConnectionString')]",
+            "adminToken": "[parameters('adminToken')]",
+            "checkpointPolicy": "[parameters('checkpointPolicy')]",
+            "initialExplorationEpsilon": "[parameters('initialExplorationEpsilon')]"
           }
         }
       ]
