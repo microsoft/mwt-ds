@@ -1,6 +1,4 @@
 # ds-provisioning
-Create Decision Service 
-<a href="https://azuredeploy.net/" target="_blank"><img src="http://azuredeploy.net/deploybutton.png"/></a>
 
 A default instance of the Decision Service currently includes the following Azure resources:
 * storage account
