@@ -278,7 +278,7 @@
       ],
       "properties": {
         "mode": "incremental",
-        "templateLink": { "uri": "[concat(reference('Microsoft.Resources/deployments/WebManage').outputs.url.value, '/Deployment/GenerateSASToken?key=', reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, ';trainer_size=', parameters('onlineTrainerVMSize'))]" }
+        "templateLink": { "uri": "[concat(reference('Microsoft.Resources/deployments/WebManage').outputs.url.value, '/Deployment/GenerateSASToken?parameters=key=', reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, ';trainer_size=', parameters('onlineTrainerVMSize'))]" }
       }
     },
     {
