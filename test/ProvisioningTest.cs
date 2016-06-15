@@ -11,6 +11,7 @@ using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Configuration;
 
 namespace Microsoft.Research.DecisionService.Test
 {
@@ -20,7 +21,10 @@ namespace Microsoft.Research.DecisionService.Test
         [TestMethod]
         public async Task TestProvisioning()
         {
-// INSERT HERE
+            string clientId = ConfigurationManager.AppSettings["ClientId"];
+            string passwd = ConfigurationManager.AppSettings["Password"];
+            string tenantId = ConfigurationManager.AppSettings["TenantId"];
+            string subscriptionId = ConfigurationManager.AppSettings["SubscriptionId"];
 
             var prefix = "dsprov";
             var resourceGroupName = prefix + Guid.NewGuid().ToString().Replace("-","").Substring(4);
