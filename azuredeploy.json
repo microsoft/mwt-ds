@@ -2,6 +2,14 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
+    "number_Of_Actions": {
+      "type": "int",
+      "defaultValue": "0",
+      "minValue": 0,
+      "metadata": {
+        "description": "The number of actions which is fixed for all interactions. This value is not relevant for action dependent features."
+      }
+    },
     "initial_Exploration_Epsilon": {
       "type": "string",
       "defaultValue": "0.2",
@@ -17,19 +25,11 @@
         "description": "Join Timeout (in seconds): The timeout duration of the interaction-observation join that occurs in Azure Stream Analytics."
       }
     },
-    "vowpal_Wabbit_Arguments": {
+    "vowpal_Wabbit_Switches": {
       "type": "string",
       "defaultValue": "--cb_adf --rank_all --cb_type dr",
       "metadata": {
         "description": "Training arguments that are passed to Vowpal Wabbit for policy learning."
-      }
-    },
-    "number_Of_Actions": {
-      "type": "int",
-      "defaultValue": "0",
-      "minValue": 0,
-      "metadata": {
-        "description": "The number of actions which is fixed for all interactions. This value is not relevant for action dependent features."
       }
     },
     "management_Password": {
@@ -379,31 +379,31 @@
     }
   ],
   "outputs": {
-    "ManagementCenterAddress": {
+    "Management_Center_URL": {
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/WebManage').outputs.url.value]"
     },
-    "ManagementPassword": {
+    "Management_Center_Password": {
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/ManagementPasswordGenerator').outputs.FinalPassword.value]"
     },
-    "ClientLibraryUrl": {
+    "Client_Library_Url": {
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/SecureSettingsUri').outputs.SASTokenUriClientSettings.value]"
     },
-    "WebServiceAddress": {
+    "Web_Service_URL": {
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/WebAPI').outputs.WebApiUrl.value]"
     },
-    "WebServiceToken": {
+    "Web_Service_Token": {
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/UserTokenGenerator').outputs.FinalPassword.value]"
     },
-    "OnlineTrainerToken": {
+    "Online_Trainer_Token": {
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/AdminTokenGenerator').outputs.FinalPassword.value]"
     },
-    "OnlineTrainerAddress": {
+    "Online_Trainer_URL": {
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/OnlineTrainer').outputs.url.value]"
     }
