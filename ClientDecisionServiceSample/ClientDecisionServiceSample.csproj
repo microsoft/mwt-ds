@@ -145,9 +145,6 @@
     <Compile Include="Ranker - action dependent features\SampleCodeUsingASAJoinServer.cs" />
     <Compile Include="Ranker - action dependent features\SampleCodeUsingASAWithJsonContext.cs" />
     <Compile Include="Ranker - action dependent features\SampleCodeUsingEventHubUploader.cs" />
-    <Compile Include="Ranker - action dependent features\SampleCodeUsingJsonDirectContext.cs" />
-    <Compile Include="Ranker - action dependent features\TrainNewVWModelWithMultiActionJsonDirectData.cs" />
-    <Compile Include="Ranker - action dependent features\TrainNewVWModelWithRandomData.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">

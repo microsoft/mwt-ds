@@ -139,6 +139,7 @@
     <Compile Include="DecisionServiceUploadTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ModularTests.cs" />
+    <Compile Include="VWTest.cs" />
     <Compile Include="WebAPITest.cs" />
   </ItemGroup>
   <ItemGroup>

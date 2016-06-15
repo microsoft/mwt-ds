@@ -1,4 +1,6 @@
 ﻿using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,11 +11,13 @@ using VW;
 using VW.Labels;
 using VW.Serializer;
 
-namespace ClientDecisionServiceSample
+namespace ClientDecisionServiceTest
 {
-    public static class TrainNewVWModelWithMultiActionJsonDirectDataClass
+    [TestClass]
+    public class VWTest
     {
-        public static void TrainNewVWModelWithMultiActionJsonDirectData()
+        [TestMethod]
+        public void TrainNewVWModelWithMultiActionJsonDirectData()
         {
             int numLocations = 2; // user location
             string[] locations = new string[] { "HealthyTown", "LessHealthyTown" };
@@ -22,14 +26,13 @@ namespace ClientDecisionServiceSample
             int numExamplesPerActions = 10000;
             var recorder = new FoodRecorder();
 
-            var stringExamplesTrain = new StringBuilder();
             using (var vw = new VowpalWabbit<FoodContext>(
                 new VowpalWabbitSettings("--cb_explore_adf --epsilon 0.2 --cb_type dr -q ::")
-                    {
-                        TypeInspector = JsonTypeInspector.Default,
-                        EnableStringExampleGeneration = true,
-                        EnableStringFloatCompact = true
-                    }))
+                {
+                    TypeInspector = JsonTypeInspector.Default,
+                    EnableStringExampleGeneration = true,
+                    EnableStringFloatCompact = true
+                }))
             {
                 // Learn 
                 var rand = new Random(0);
@@ -71,19 +74,10 @@ namespace ClientDecisionServiceSample
                         Probability = recorder.GetProb(key)
                     };
                     vw.Learn(context, label, index: (int)label.Action - 1);
-
-                    stringExamplesTrain.Append(vw.Serializer.Create(vw.Native).SerializeToString(context, label, (int)label.Action));
-                    stringExamplesTrain.Append("\r\n");
                 }
-                // write training data in string format
-                File.WriteAllText(@"c:\users\lhoang\downloads\food_train.vw", stringExamplesTrain.ToString());
-
-                // Predict
-                var stringExamplesTest = new StringBuilder();
-                var stringExamplesPred = new StringBuilder();
-                stringExamplesPred.Append(string.Join(",", locations));
-                stringExamplesPred.Append("\r\n");
-
+                var expectedActions = new Dictionary<string, uint>();
+                expectedActions.Add("HealthyTown", 3);
+                expectedActions.Add("LessHealthyTown", 2);
                 for (int iE = 0; iE < numExamplesPerActions; iE++)
                 {
                     foreach (string location in locations)
@@ -92,24 +86,59 @@ namespace ClientDecisionServiceSample
 
                         var context = new FoodContext { Actions = new int[] { 1, 2, 3 }, UserLocation = location };
                         ActionScore[] predicts = vw.Predict(context, VowpalWabbitPredictionType.ActionScore);
-                        stringExamplesPred.Append(predicts[0].Action + 1);
-
-                        if (location == locations[0])
-                        {
-                            stringExamplesPred.Append(",");
-                        }
-
-                        stringExamplesTest.Append(vw.Serializer.Create(vw.Native).SerializeToString(context));
-                        stringExamplesTest.Append("\r\n");
+                        Assert.AreEqual(expectedActions[location], predicts[0].Action + 1);
                     }
-                    stringExamplesPred.Append("\r\n");
                 }
-                // write testing data in string format
-                File.WriteAllText(@"c:\users\lhoang\downloads\food_test.vw", stringExamplesTest.ToString());
-                // write model predictions
-                File.WriteAllText(@"c:\users\lhoang\downloads\food_csharp.pred", stringExamplesPred.ToString());
+            }
+        }
+    }
+
+    class FoodRecorder : IRecorder<FoodContext, int[]>
+    {
+        Dictionary<string, float> keyToProb = new Dictionary<string, float>();
+        public float GetProb(string key)
+        {
+            return keyToProb[key];
+        }
+
+        public void Record(FoodContext context, int[] value, object explorerState, object mapperState, string uniqueKey)
+        {
+            keyToProb.Add(uniqueKey, ((EpsilonGreedyState)explorerState).Probability);
+        }
+    }
+
+    public class FoodContext
+    {
+        public string UserLocation { get; set; }
+
+        [JsonIgnore]
+        public int[] Actions { get; set; }
+
+        [JsonProperty(PropertyName = "_multi")]
+        public FoodFeature[] ActionDependentFeatures
+        {
+            get
+            {
+                return this.Actions
+                    .Select((a, i) => new FoodFeature(this.Actions.Length, i))
+                    .ToArray();
             }
         }
 
+        public static IReadOnlyCollection<FoodFeature> GetFeaturesFromContext(FoodContext context)
+        {
+            return context.ActionDependentFeatures;
+        }
+    }
+
+    public class FoodFeature
+    {
+        public float[] Scores { get; set; }
+
+        internal FoodFeature(int numActions, int index)
+        {
+            Scores = Enumerable.Repeat(0f, numActions).ToArray();
+            Scores[index] = index + 1;
+        }
     }
 }
