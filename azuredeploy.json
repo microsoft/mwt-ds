@@ -17,9 +17,9 @@
         "description": "Join Timeout (in seconds): The timeout duration of the interaction-observation join that occurs in Azure Stream Analytics."
       }
     },
-    "vowpal_Wabbit_Arguments": {
+    "VowpalWabbit Arguments": {
       "type": "string",
-      "defaultValue": "--cb_adf --rank_all --cb_type dr",
+      "defaultValue": "--cb_explore_adf --epsilon 0.2 --cb_type dr",
       "metadata": {
         "description": "Training arguments that are passed to Vowpal Wabbit for policy learning."
       }
@@ -259,7 +259,7 @@
           "observationEventHub": { "value": "[reference('Microsoft.Resources/deployments/EventHubObservation').outputs]" },
 
           "experimentalUnitDurationInSeconds": { "value": "[parameters('experimental_Unit_Duration_In_Seconds')]" },
-          "vowpalWabbitTrainArguments": { "value": "[parameters('vowpal_Wabbit_Arguments')]" },
+          "vowpalWabbitTrainArguments": { "value": "[parameters('VowpalWabbit Arguments')]" },
           "numberOfActions": { "value": "[parameters('number_Of_Actions')]" },
 
           "joinedEventHubConnectionString": { "value": "[reference('Microsoft.Resources/deployments/EventHubJoined').outputs.listenConnectionString.value]" },
