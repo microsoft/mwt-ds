@@ -2,14 +2,14 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "initialExplorationEpsilon": {
+    "initial_Exploration_Epsilon": {
       "type": "string",
       "defaultValue": "0.2",
       "metadata": {
         "description": "The initial epsilon value to use in epsilon-greedy exploration when the client has not obtained a machine-learned model. Epsilon = 0 indicates no randomization while Epsilon = 1 implies uniform random"
       }
     },
-    "experimentalUnitDurationInSeconds": {
+    "experimental_Unit_Duration_In_Seconds": {
       "type": "int",
       "minValue": 5,
       "defaultValue": 30,
@@ -17,14 +17,14 @@
         "description": "Join Timeout (in seconds): The timeout duration of the interaction-observation join that occurs in Azure Stream Analytics."
       }
     },
-    "vowpalWabbitTrainArguments": {
+    "vowpal_Wabbit_Arguments": {
       "type": "string",
       "defaultValue": "--cb_adf --rank_all --cb_type dr",
       "metadata": {
         "description": "Training arguments that are passed to Vowpal Wabbit for policy learning."
       }
     },
-    "numberOfActions": {
+    "number_Of_Actions": {
       "type": "int",
       "defaultValue": "0",
       "minValue": 0,
@@ -32,28 +32,28 @@
         "description": "The number of actions which is fixed for all interactions. This value is not relevant for action dependent features."
       }
     },
-    "managementPassword": {
+    "management_Password": {
       "type": "string",
       "defaultValue": "",
       "metadata": {
         "description": "Password for management center, if empty a random value will be generated."
       }
     },
-    "userToken": {
+    "user_Token": {
       "type": "string",
       "defaultValue": "",
       "metadata": {
         "description": "Authentication token for the web service endpoint, if empty a random value will be generated."
       }
     },
-    "adminToken": {
+    "admin_Token": {
       "type": "string",
       "defaultValue": "",
       "metadata": {
         "description": "Authentication token for online trainer, if empty a random value will be generated."
       }
     },
-    "messageRetentionInDays": {
+    "message_Retention_In_Days": {
       "type": "int",
       "defaultValue": 1,
       "minValue": 1,
@@ -62,7 +62,7 @@
         "description": "The number of days to retain the events for Event Hubs (such as interaction and observation events). This applies to all Event Hubs provisioned as part of the service."
       }
     },
-    "partitionCount": {
+    "partition_Count": {
       "type": "int",
       "defaultValue": 16,
       "minValue": 1,
@@ -70,14 +70,14 @@
         "description": "The number of shards on Event Hub. This applies to all Event Hubs provisioned as part of the service."
       }
     },
-    "onlineTrainerVMSize": {
+    "online_Trainer_VM_Size": {
       "type": "string",
       "defaultValue": "Standard_D2_v2",
       "metadata": {
         "description": "VM Size of the Online Trainer. Acceptable values are (in ascending order of performance and cost): ExtraSmall, Standard_D1_v2, Standard_D2_v2, Standard_D3_v2, Standard_D4_v2, Standard_D5_v2. For more information, refer to: https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-windows-sizes/"
       }
     },
-    "onlineTrainerCheckpointPolicy": {
+    "online_Trainer_Checkpoint_Policy": {
       "type": "string",
       "defaultValue": "100",
       "metadata": {
@@ -107,7 +107,7 @@
         "mode": "incremental",
         "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" },
         "parameters": {
-          "Password": { "value": "[parameters('managementPassword')]" },
+          "Password": { "value": "[parameters('management_Password')]" },
           "RandomSeed": { "value": "[concat(reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, 'mc')]" }
         }
       }
@@ -121,7 +121,7 @@
         "mode": "incremental",
         "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" },
         "parameters": {
-          "Password": { "value": "[parameters('userToken')]" },
+          "Password": { "value": "[parameters('user_Token')]" },
           "RandomSeed": { "value": "[concat(reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, 'ut')]" }
         }
       }
@@ -135,7 +135,7 @@
         "mode": "incremental",
         "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" },
         "parameters": {
-          "Password": { "value": "[parameters('adminToken')]" },
+          "Password": { "value": "[parameters('admin_Token')]" },
           "RandomSeed": { "value": "[concat(reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, 'at')]" }
         }
       }
@@ -172,8 +172,8 @@
         "parameters": {
           "ehName": { "value": "interaction" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
-          "messageRetentionInDays": { "value": "[parameters('messageRetentionInDays')]" },
-          "partitionCount": { "value": "[parameters('partitionCount')]" }
+          "messageRetentionInDays": { "value": "[parameters('message_Retention_In_Days')]" },
+          "partitionCount": { "value": "[parameters('partition_Count')]" }
         }
       }
     },
@@ -191,8 +191,8 @@
         "parameters": {
           "ehName": { "value": "observation" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
-          "messageRetentionInDays": { "value": "[parameters('messageRetentionInDays')]" },
-          "partitionCount": { "value": "[parameters('partitionCount')]" }
+          "messageRetentionInDays": { "value": "[parameters('message_Retention_In_Days')]" },
+          "partitionCount": { "value": "[parameters('partition_Count')]" }
         }
       }
     },
@@ -210,8 +210,8 @@
         "parameters": {
           "ehName": { "value": "joined" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
-          "messageRetentionInDays": { "value": "[parameters('messageRetentionInDays')]" },
-          "partitionCount": { "value": "[parameters('partitionCount')]" }
+          "messageRetentionInDays": { "value": "[parameters('message_Retention_In_Days')]" },
+          "partitionCount": { "value": "[parameters('partition_Count')]" }
         }
       }
     },
@@ -226,8 +226,8 @@
         "parameters": {
           "ehName": { "value": "eval" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
-          "messageRetentionInDays": { "value": "[parameters('messageRetentionInDays')]" },
-          "partitionCount": { "value": "[parameters('partitionCount')]" }
+          "messageRetentionInDays": { "value": "[parameters('message_Retention_In_Days')]" },
+          "partitionCount": { "value": "[parameters('partition_Count')]" }
         }
       }
     },
@@ -249,7 +249,7 @@
         "mode": "incremental",
         "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/WebManageTemplate.json')]" },
         "parameters": {
-          "initialExplorationEpsilon": { "value": "[parameters('initialExplorationEpsilon')]" },
+          "initialExplorationEpsilon": { "value": "[parameters('initial_Exploration_Epsilon')]" },
 
           "instrumentationKey": { "value": "[reference('Microsoft.Resources/deployments/AppInsights').outputs.instrumentationKey.value]" },
           "userStorageConnectionString": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageConnectionString.value]" },
@@ -258,14 +258,14 @@
           "interactionEventHub": { "value": "[reference('Microsoft.Resources/deployments/EventHubInteraction').outputs]" },
           "observationEventHub": { "value": "[reference('Microsoft.Resources/deployments/EventHubObservation').outputs]" },
 
-          "experimentalUnitDurationInSeconds": { "value": "[parameters('experimentalUnitDurationInSeconds')]" },
-          "vowpalWabbitTrainArguments": { "value": "[parameters('vowpalWabbitTrainArguments')]" },
-          "numberOfActions": { "value": "[parameters('numberOfActions')]" },
+          "experimentalUnitDurationInSeconds": { "value": "[parameters('experimental_Unit_Duration_In_Seconds')]" },
+          "vowpalWabbitTrainArguments": { "value": "[parameters('vowpal_Wabbit_Arguments')]" },
+          "numberOfActions": { "value": "[parameters('number_Of_Actions')]" },
 
           "joinedEventHubConnectionString": { "value": "[reference('Microsoft.Resources/deployments/EventHubJoined').outputs.listenConnectionString.value]" },
           "evalEventHubConnectionString": { "value": "[reference('Microsoft.Resources/deployments/EventHubEval').outputs.sendConnectionString.value]" },
           "adminToken": { "value": "[reference('Microsoft.Resources/deployments/AdminTokenGenerator').outputs.FinalPassword.value]" },
-          "checkpointPolicy": { "value": "[parameters('onlineTrainerCheckpointPolicy')]" }
+          "checkpointPolicy": { "value": "[parameters('online_Trainer_Checkpoint_Policy')]" }
         }
       }
     },
@@ -278,7 +278,7 @@
       ],
       "properties": {
         "mode": "incremental",
-        "templateLink": { "uri": "[concat(reference('Microsoft.Resources/deployments/WebManage').outputs.url.value, '/Deployment/GenerateSASToken?parameters=key=', reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, ';trainer_size=', parameters('onlineTrainerVMSize'))]" }
+        "templateLink": { "uri": "[concat(reference('Microsoft.Resources/deployments/WebManage').outputs.url.value, '/Deployment/GenerateSASToken?parameters=key=', reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, ';trainer_size=', parameters('online_Trainer_VM_Size'))]" }
       }
     },
     {
@@ -322,9 +322,9 @@
           "interactionEventHub": { "value": "[reference('Microsoft.Resources/deployments/EventHubInteraction').outputs]" },
           "observationEventHub": { "value": "[reference('Microsoft.Resources/deployments/EventHubObservation').outputs]" },
           "joinedEventHub": { "value": "[reference('Microsoft.Resources/deployments/EventHubJoined').outputs]" },
-          "messageRetentionInDays": { "value": "[parameters('messageRetentionInDays')]" },
-          "partitionCount": { "value": "[parameters('partitionCount')]" },
-          "experimentalUnitDurationInSeconds": { "value": "[parameters('experimentalUnitDurationInSeconds')]" }
+          "messageRetentionInDays": { "value": "[parameters('message_Retention_In_Days')]" },
+          "partitionCount": { "value": "[parameters('partition_Count')]" },
+          "experimentalUnitDurationInSeconds": { "value": "[parameters('experimental_Unit_Duration_In_Seconds')]" }
         }
       }
     },
@@ -346,8 +346,8 @@
           "userStorageAccountKey": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value]" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
           "evalEventHub": { "value": "[reference('Microsoft.Resources/deployments/EventHubEval').outputs]" },
-          "messageRetentionInDays": { "value": "[parameters('messageRetentionInDays')]" },
-          "partitionCount": { "value": "[parameters('partitionCount')]" }
+          "messageRetentionInDays": { "value": "[parameters('message_Retention_In_Days')]" },
+          "partitionCount": { "value": "[parameters('partition_Count')]" }
         }
       }
     },
