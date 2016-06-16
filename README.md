@@ -1,4 +1,4 @@
-# Auto-deployment of MWT Decision Service
+# Auto Deployment of MWT Decision Service
 
 This repository contains Azure Resource Manager templates that allow for the auto deployment of MWT Decision Service into Azure. For more details about the MWT methodology or the Decision Service, visit http://aka.ms/mwt.  
 
