@@ -53,7 +53,7 @@
             "[resourceId('Microsoft.Web/Sites/config', variables('webSiteName'), 'appsettings')]"
           ],
           "properties": {
-            "RepoUrl": "https://github.com/multiworldtesting/ds-web-api.git",
+            "RepoUrl": "https://github.com/Microsoft/mwt-ds-web-api.git",
             "branch": "master",
             "IsManualIntegration": true
           }
