@@ -156,8 +156,8 @@
   <data name="NumActions" xml:space="preserve">
     <value>Number of Actions ::: The number of actions, which is fixed for all interactions. This value is relevant only if not using action dependent features.</value>
   </data>
-  <data name="OnlineTrainerName" xml:space="preserve">
-    <value>Online Trainer ::: The name of the cloud service that performs online training.</value>
+  <data name="OnlineTrainerAddress" xml:space="preserve">
+    <value>Online Trainer ::: The address of the cloud service that performs online training.</value>
   </data>
   <data name="SelectedModelId" xml:space="preserve">
     <value>Model to Deploy ::: The list of trained models detected in Azure Storage. The selected model will be deployed to all clients.</value>

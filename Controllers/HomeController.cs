@@ -242,16 +242,17 @@ namespace DecisionServicePrivateWeb.Controllers
             var extraSettingsBlob = (CloudBlockBlob)Session[SKExtraSettingsBlob];
             extraApp = JsonConvert.DeserializeObject<ApplicationExtraMetadata>(extraSettingsBlob.DownloadText());
             Session[SKExtraSettings] = extraApp;
-            
+
             return CreateAppView(clientApp, extraApp, settingsBlobUri);
         }
 
-        private static List<SettingItemViewModel> CreateAppView(
+        private List<SettingItemViewModel> CreateAppView(
             ApplicationClientMetadata clientMetadata,
             ApplicationExtraMetadata extraMetadata,
             string settingsBlobUri)
         {
-            CollectiveSettingsView svm = CreateCollectiveSettings(clientMetadata, extraMetadata, settingsBlobUri);
+            string uniqueStringInUrl = Regex.Match(Request.Url.ToString(), ".*mc-(.*).azurewebsites.*").Groups[1].Value;
+            CollectiveSettingsView svm = CreateCollectiveSettings(clientMetadata, extraMetadata, settingsBlobUri, uniqueStringInUrl);
             string azureStorageName = Regex.Match(svm.AzureStorageConnectionString, ".*AccountName=(.*);AccountKey.*").Groups[1].Value;
 
             var nameToValue = svm.GetType().GetProperties()
@@ -265,10 +266,10 @@ namespace DecisionServicePrivateWeb.Controllers
             {
                 new { Name = nameof(svm.AzureResourceGroupName), Tooltip = "View Azure Resource Group", Url = $"https://ms.portal.azure.com/#asset/HubsExtension/ResourceGroups/subscriptions/{svm.AzureSubscriptionId}/resourceGroups/{svm.AzureResourceGroupName}"},
                 new { Name = nameof(svm.AzureStorageConnectionString), Tooltip = "View Data", Url = $"https://ms.portal.azure.com/#blade/Microsoft_Azure_Storage/ContainersBlade/storageAccountId/%2Fsubscriptions%2F{svm.AzureSubscriptionId}%2FresourceGroups%2F{svm.AzureResourceGroupName}%2Fproviders%2FMicrosoft.Storage%2FstorageAccounts%2F{azureStorageName}"},
-                new { Name = nameof(svm.ApplicationInsightsInstrumentationKey), Tooltip = "View Application Logs", Url = $"https://ms.portal.azure.com/#blade/AppInsightsExtension/SearchBlade/ComponentId/%7B%22SubscriptionId%22%3A%22{svm.AzureSubscriptionId}%22%2C%22ResourceGroup%22%3A%22{svm.AzureResourceGroupName}%22%2C%22Name%22%3A%22{svm.AzureResourceGroupName + "-appinsights"}%22%7D/InitialFilter/%7B%22eventTypes%22%3A%5B4%2C1%2C3%2C5%2C2%2C6%5D%2C%22typeFacets%22%3A%7B%7D%2C%22isPermissive%22%3Afalse%7D/InitialTime/%7B%22durationMs%22%3A43200000%2C%22endTime%22%3Anull%2C%22isInitialTime%22%3Atrue%2C%22grain%22%3A1%7D/InitialQueryText//ConfigurationId/blankSearch%3A"},
+                new { Name = nameof(svm.ApplicationInsightsInstrumentationKey), Tooltip = "View Application Logs", Url = $"https://ms.portal.azure.com/#blade/AppInsightsExtension/SearchBlade/ComponentId/%7B%22SubscriptionId%22%3A%22{svm.AzureSubscriptionId}%22%2C%22ResourceGroup%22%3A%22{svm.AzureResourceGroupName}%22%2C%22Name%22%3A%22{svm.AzureResourceGroupName}-appinsights-{uniqueStringInUrl}%22%7D/InitialFilter/%7B%22eventTypes%22%3A%5B4%2C1%2C3%2C5%2C2%2C6%5D%2C%22typeFacets%22%3A%7B%7D%2C%22isPermissive%22%3Afalse%7D/InitialTime/%7B%22durationMs%22%3A43200000%2C%22endTime%22%3Anull%2C%22isInitialTime%22%3Atrue%2C%22grain%22%3A1%7D/InitialQueryText//ConfigurationId/blankSearch%3A"},
                 new { Name = nameof(svm.ASAJoinName), Tooltip = "View ASA Join Query", Url = $"https://ms.portal.azure.com/#resource/subscriptions/{svm.AzureSubscriptionId}/resourceGroups/{svm.AzureResourceGroupName}/providers/Microsoft.StreamAnalytics/streamingjobs/{svm.ASAJoinName}"},
                 new { Name = nameof(svm.ASAEvalName), Tooltip = "View ASA Policy Evaluation Query", Url = $"https://ms.portal.azure.com/#resource/subscriptions/{svm.AzureSubscriptionId}/resourceGroups/{svm.AzureResourceGroupName}/providers/Microsoft.StreamAnalytics/streamingjobs/{svm.ASAEvalName}"},
-                new { Name = nameof(svm.OnlineTrainerName), Tooltip = "Configure Online Trainer", Url = $"https://manage.windowsazure.com/microsoft.onmicrosoft.com#Workspaces/CloudServicesExtension/CloudService/{svm.OnlineTrainerName}/configure"}
+                new { Name = nameof(svm.OnlineTrainerAddress), Tooltip = "Configure Online Trainer", Url = $"https://manage.windowsazure.com/microsoft.onmicrosoft.com#Workspaces/CloudServicesExtension/CloudService/{svm.OnlineTrainerAddress}/configure"}
             };
             var nameToEditable = new[]
             {
@@ -308,7 +309,7 @@ namespace DecisionServicePrivateWeb.Controllers
             return settingItems.ToList();
         }
 
-        private static CollectiveSettingsView CreateCollectiveSettings(ApplicationClientMetadata clientMetadata, ApplicationExtraMetadata extraMetadata, string settingsBlobUri)
+        private CollectiveSettingsView CreateCollectiveSettings(ApplicationClientMetadata clientMetadata, ApplicationExtraMetadata extraMetadata, string settingsBlobUri, string uniqueStringInUrl)
         {
             var svm = new CollectiveSettingsView
             {
@@ -321,8 +322,8 @@ namespace DecisionServicePrivateWeb.Controllers
                 AzureStorageConnectionString = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString],
                 AzureResourceGroupName = extraMetadata.AzureResourceGroupName,
                 ApplicationInsightsInstrumentationKey = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKAppInsightsKey],
-                OnlineTrainerName = extraMetadata.AzureResourceGroupName + "-trainer",
-                WebApiAddress = $"https://{extraMetadata.AzureResourceGroupName}-webapi.azurewebsites.net",
+                OnlineTrainerAddress = $"http://{extraMetadata.AzureResourceGroupName}-trainer-{uniqueStringInUrl}",
+                WebApiAddress = $"https://{extraMetadata.AzureResourceGroupName}-webapi-{uniqueStringInUrl}.azurewebsites.net",
                 ASAEvalName = extraMetadata.AzureResourceGroupName + "-eval",
                 ASAJoinName = extraMetadata.AzureResourceGroupName + "-join",
                 EventHubInteractionConnectionString = clientMetadata.EventHubInteractionConnectionString,
