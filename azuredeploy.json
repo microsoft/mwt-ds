@@ -27,7 +27,7 @@
     },
     "vowpal Wabbit Switches": {
       "type": "string",
-      "defaultValue": "--cb_adf --rank_all --cb_type dr",
+      "defaultValue": "--cb_explore_adf --epsilon 0.2 --cb_type dr",
       "metadata": {
         "description": "Switches that are passed to Vowpal Wabbit for exploration and policy learning."
       }
