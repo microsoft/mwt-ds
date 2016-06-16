@@ -1,18 +1,9 @@
-# ds-provisioning
+# Auto-deployment of MWT Decision Service
 
-A default instance of the Decision Service currently includes the following Azure resources:
-* storage account
-* classic cloud service with standard D5 worker role
-* service bus with 4 event hubs
-* 2 stream analytics jobs
-* web app service backed by app service plan, for the management console
-* (optional) additional web app service backed by app service plan, for the HTTP endpoint
+This repository contains Azure Resource Manager templates that allow for the auto deployment of MWT Decision Service into Azure. For more details about the MWT methodology or the Decision Service, visit http://aka.ms/mwt.  
 
-The Decision Service currently does NOT use any third-party resources.  Of course, you are free to change the default configuration.
+To deploy Decision Service, please visit http://aka.ms/mwt and click Deploy To Azure. To see what components are contained in the deployment, click Visualize below:  
 
-Create Decision Service <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmultiworldtesting%2Fds-provisioning%2Fmaster%2Fazuredeploy.json" target="_blank">
-    <img src="http://azuredeploy.net/deploybutton.png"/>
-</a>
 <a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fmultiworldtesting%2Fds-provisioning%2Fmaster%2Fazuredeploy.json" target="_blank">
     <img src="http://armviz.io/visualizebutton.png"/>
 </a>
