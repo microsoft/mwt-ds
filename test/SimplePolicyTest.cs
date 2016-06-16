@@ -13,7 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace Microsoft.Research.DecisionService.Test
+namespace Microsoft.Research.DecisionServiceTest
 {
     [TestClass]
     public class SimplePolicyTestClass : ProvisioningBaseTest

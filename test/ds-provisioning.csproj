@@ -6,8 +6,8 @@
     <ProjectGuid>{26167826-AF8E-47D8-95BC-CA6B6CA9808F}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Microsoft.Research.DecisionService.Test</RootNamespace>
-    <AssemblyName>Microsoft.Research.DecisionService.Test</AssemblyName>
+    <RootNamespace>Microsoft.Research.DecisionServiceTest</RootNamespace>
+    <AssemblyName>Microsoft.Research.DecisionServiceTest</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -231,6 +231,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="EndToEndOnlineTrainerTest.cs" />
     <Compile Include="ProvisioningBaseTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SimplePolicyTest.cs" />

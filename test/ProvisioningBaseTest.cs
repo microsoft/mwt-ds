@@ -16,14 +16,15 @@ using System.Net;
 using System.Text;
 using System.Web;
 using Microsoft.Research.MultiWorldTesting.Contract;
+using System.Threading;
 
-namespace Microsoft.Research.DecisionService.Test
+namespace Microsoft.Research.DecisionServiceTest
 {
     public class ProvisioningBaseTest
     {
-        private bool deleteOnCleanup;
         private JObject deploymentOutput;
 
+        protected bool deleteOnCleanup;
         protected string managementCenterUrl;
         protected string managementPassword;
         protected string onlineTrainerUrl;
@@ -91,6 +92,7 @@ namespace Microsoft.Research.DecisionService.Test
             {
                 wc.Headers.Add($"Authorization: {onlineTrainerToken}");
                 wc.DownloadString($"{onlineTrainerUrl}/reset");
+                Thread.Sleep(TimeSpan.FromSeconds(3));
             }
         }
 
