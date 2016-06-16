@@ -6,3 +6,5 @@
 /test/.vs/config
 /test/obj/Debug
 /test/packages
+/test/bin/x64/Debug
+/test/obj/x64/Debug
