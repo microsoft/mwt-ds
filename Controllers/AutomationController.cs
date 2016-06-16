@@ -9,6 +9,7 @@ using System.Web.Mvc;
 using Microsoft.Research.MultiWorldTesting.Contract;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Microsoft.ApplicationInsights;
 
 namespace DecisionServicePrivateWeb.Controllers
 {
@@ -22,28 +23,38 @@ namespace DecisionServicePrivateWeb.Controllers
             if (token != ConfigurationManager.AppSettings[ApplicationMetadataStore.AKPassword])
                 throw new UnauthorizedAccessException();
 
-            string azureStorageConnectionString = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString];
-            var storageAccount = CloudStorageAccount.Parse(azureStorageConnectionString);
-            var blobClient = storageAccount.CreateCloudBlobClient();
-            var settingsBlobContainer = blobClient.GetContainerReference(ApplicationBlobConstants.SettingsContainerName);
+            var telemetry = new TelemetryClient();
+            try
+            {
+                telemetry.TrackTrace($"UpdateSettings(trainArguments={trainArguments}, initialExplorationEpsilon={initialExplorationEpsilon}, isExplorationEnabled={isExplorationEnabled})");
 
-            var blob = settingsBlobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestClientSettingsBlobName);
-            ApplicationClientMetadata clientMeta;
-            if (await blob.ExistsAsync())
-                clientMeta = ApplicationMetadataUtil.DownloadMetadata<ApplicationClientMetadata>(blob.Uri.ToString());
-            else
-                clientMeta = new ApplicationClientMetadata();
+                string azureStorageConnectionString = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString];
+                var storageAccount = CloudStorageAccount.Parse(azureStorageConnectionString);
+                var blobClient = storageAccount.CreateCloudBlobClient();
+                var settingsBlobContainer = blobClient.GetContainerReference(ApplicationBlobConstants.SettingsContainerName);
 
-            if (trainArguments != null)
-                clientMeta.TrainArguments = trainArguments;
+                var blob = settingsBlobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestClientSettingsBlobName);
+                ApplicationClientMetadata clientMeta;
+                if (await blob.ExistsAsync())
+                    clientMeta = JsonConvert.DeserializeObject<ApplicationClientMetadata>(await blob.DownloadTextAsync());
+                else
+                    clientMeta = new ApplicationClientMetadata();
 
-            if (initialExplorationEpsilon != null)
-                clientMeta.InitialExplorationEpsilon = (float)initialExplorationEpsilon;
+                if (trainArguments != null)
+                    clientMeta.TrainArguments = trainArguments;
 
-            if (isExplorationEnabled != null)
-                clientMeta.IsExplorationEnabled = (bool)isExplorationEnabled;
+                if (initialExplorationEpsilon != null)
+                    clientMeta.InitialExplorationEpsilon = (float)initialExplorationEpsilon;
 
-            await blob.UploadTextAsync(JsonConvert.SerializeObject(clientMeta));
+                if (isExplorationEnabled != null)
+                    clientMeta.IsExplorationEnabled = (bool)isExplorationEnabled;
+
+                await blob.UploadTextAsync(JsonConvert.SerializeObject(clientMeta));
+            }
+            catch (Exception e)
+            {
+                telemetry.TrackException(e);
+            }
         }
     }
 }
