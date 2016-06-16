@@ -72,9 +72,9 @@
     },
     "online Trainer VM Size": {
       "type": "string",
-      "defaultValue": "Standard D2 v2",
+      "defaultValue": "Standard_D2_v2",
       "metadata": {
-        "description": "Size of the VM that runs the Online Trainer. Acceptable values are (in ascending order of performance and cost): ExtraSmall, Standard D1 v2, Standard D2 v2, Standard D3 v2, Standard D4 v2, Standard D5 v2. For more information, refer to: https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-windows-sizes/"
+        "description": "Size of the VM that runs the Online Trainer. Acceptable values are (in ascending order of performance and cost): ExtraSmall, Standard_D1_v2, Standard_D2_v2, Standard_D3_v2, Standard_D4_v2, Standard_D5_v2. For more information, refer to: https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-windows-sizes/"
       }
     },
     "online Trainer Checkpoint Interval": {
@@ -278,7 +278,7 @@
       ],
       "properties": {
         "mode": "incremental",
-        "templateLink": { "uri": "[concat(reference('Microsoft.Resources/deployments/WebManage').outputs.url.value, '/Deployment/GenerateSASToken?parameters=key=', reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, ';trainer size=', parameters('online Trainer VM Size'))]" }
+        "templateLink": { "uri": "[concat(reference('Microsoft.Resources/deployments/WebManage').outputs.url.value, '/Deployment/GenerateSASToken?parameters=key=', reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, ';trainer_size=', parameters('online Trainer VM Size'))]" }
       }
     },
     {
