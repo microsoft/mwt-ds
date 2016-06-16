@@ -50,6 +50,7 @@ namespace DecisionServicePrivateWeb.Controllers
                         string cspkgLink = $"https://github.com/eisber/vowpal_wabbit/releases/download/v8.0.0.65/VowpalWabbit.Azure.8.0.0.65.{trainerSize}.cspkg";
                         var cspkgUri = ApplicationMetadataStore.CreateOnlineTrainerCspkgBlobIfNotExists(cspkgLink);
 
+                        telemetry.TrackTrace($"SASToken: clSASTokenUri: '{clSASTokenUri}' webSASTokenUri: '{webSASTokenUri}' cspkgUri: '{cspkgUri}'");
                         if (clSASTokenUri != null && webSASTokenUri != null && cspkgUri != null)
                         {
                             telemetry.TrackTrace("Generated SAS tokens for settings URI and online trainer package");
