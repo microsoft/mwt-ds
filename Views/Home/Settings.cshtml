@@ -71,6 +71,10 @@
                                 <a id="@item.Name" class="btn btn-primary outline form-control helptext-on-interaction" href="@item.Url" target="_blank">@item.Value</a>
                             }
                         }
+                        if (item.Value != null && item.IsResettable == true)
+                        {
+                            <a name="@item.Name" href="#" class="resetter">@Html.Partial("_ResetSvg")</a>
+                        }
                     }
                 </div>
             </div>

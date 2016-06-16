@@ -228,6 +228,7 @@
     <Content Include="Views\Shared\_LoginPartial.cshtml" />
     <Content Include="Views\Shared\_OpenSvg.cshtml" />
     <Content Include="Views\web.config" />
+    <Content Include="Views\Shared\_ResetSvg.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
       <SubType>Designer</SubType>

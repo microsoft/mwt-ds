@@ -11,6 +11,7 @@ using System.Configuration;
 using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Web;
 using System.Web.Mvc;
 
@@ -128,6 +129,22 @@ namespace DecisionServicePrivateWeb.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, $"Unable to load application metadata: {ex.ToString()}");
             }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Reset(string inputId, string inputValue)
+        {
+            if (inputId == nameof(CollectiveSettingsView.OnlineTrainerAddress))
+            {
+                using (var wc = new WebClient())
+                {
+                    wc.Headers.Add("Authorization: " + ConfigurationManager.AppSettings[ApplicationMetadataStore.AKAdminToken]);
+                    wc.DownloadString(inputValue);
+                    Thread.Sleep(TimeSpan.FromSeconds(3));
+                }
+            }
+            return new HttpStatusCodeResult(HttpStatusCode.OK);
         }
 
         [HttpGet]
@@ -282,13 +299,17 @@ namespace DecisionServicePrivateWeb.Controllers
             {
                 new { Name = nameof(svm.AzureResourceGroupName), IsSplotlightUrl = true }
             };
-
+            var nameToResettable = new[]
+            {
+                new { Name = nameof(svm.OnlineTrainerAddress), Resettable = true }
+            };
             var settingItems = from nv in nameToValue
                         from nht in nameToHelpText.Where(n => n.Name == nv.Name).DefaultIfEmpty()
                         from nu in nameToUrl.Where(n => n.Name == nv.Name).DefaultIfEmpty()
                         from ne in nameToEditable.Where(n => n.Name == nv.Name).DefaultIfEmpty()
                         from nvs in nameToVisible.Where(n => n.Name == nv.Name).DefaultIfEmpty()
                         from nsl in nameToSpotLightUrl.Where(n => n.Name == nv.Name).DefaultIfEmpty()
+                        from nrs in nameToResettable.Where(n => n.Name == nv.Name).DefaultIfEmpty()
                         select new SettingItemViewModel
                         {
                             Value = nv.Value,
@@ -299,7 +320,8 @@ namespace DecisionServicePrivateWeb.Controllers
                             Url = nu?.Url,
                             UrlToolTip = nu?.Tooltip,
                             IsVisible = nvs?.IsVisible,
-                            IsSplotlightUrl = nsl?.IsSplotlightUrl
+                            IsSplotlightUrl = nsl?.IsSplotlightUrl,
+                            IsResettable = nrs?.Resettable
                         };
 
             return settingItems.ToList();

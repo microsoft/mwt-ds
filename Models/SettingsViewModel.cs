@@ -54,6 +54,8 @@ namespace DecisionServicePrivateWeb.Models
         public bool? IsSplotlightUrl { get; set; }
 
         public bool? IsVisible { get; set; }
+
+        public bool? IsResettable { get; set; }
     }
 
     public class SettingBlobListViewModel
