@@ -48,12 +48,12 @@ namespace DecisionServicePrivateWeb.Classes
                 SharedAccessExpiryTime = DateTime.UtcNow.AddYears(1)
             };
 
+            string azureStorageConnectionString = ConfigurationManager.AppSettings[AKConnectionString];
+            var storageAccount = CloudStorageAccount.Parse(azureStorageConnectionString);
+            var blobClient = storageAccount.CreateCloudBlobClient();
+            var settingsBlobContainer = blobClient.GetContainerReference(ApplicationBlobConstants.SettingsContainerName);
             try
             {
-                string azureStorageConnectionString = ConfigurationManager.AppSettings[AKConnectionString];
-                var storageAccount = CloudStorageAccount.Parse(azureStorageConnectionString);
-                var blobClient = storageAccount.CreateCloudBlobClient();
-                var settingsBlobContainer = blobClient.GetContainerReference(ApplicationBlobConstants.SettingsContainerName);
                 var modelBlobContainer = blobClient.GetContainerReference(ApplicationBlobConstants.ModelContainerName);
 
                 var clientSettingsBlob = settingsBlobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestClientSettingsBlobName);
@@ -91,17 +91,25 @@ namespace DecisionServicePrivateWeb.Classes
                     };
                     UpdateMetadata(clientSettingsBlob, extraSettingsBlob, appSettings);
 
+                    var clSASToken = clientSettingsBlob.GetSharedAccessSignature(sasPolicy);
+                    var webSASToken = clientSettingsBlob.GetSharedAccessSignature(sasPolicy);
+
+                    clSASTokenUri = clientSettingsBlob.Uri + clSASToken;
+                    webSASTokenUri = clientSettingsBlob.Uri + webSASToken;
+
+                    appSettings.SettingsTokenUri1 = clSASTokenUri;
+                    appSettings.SettingsTokenUri2 = webSASTokenUri;
+                    UpdateMetadata(clientSettingsBlob, extraSettingsBlob, appSettings);
+
                     telemetry.TrackTrace($"Model blob uri: {appSettings.ModelBlobUri}");
                 }
                 else
                 {
                     telemetry.TrackTrace("Settings blob already exists, skipping.");
+                    var extraMetadata = JsonConvert.DeserializeObject<ApplicationExtraMetadata>(extraSettingsBlob.DownloadText());
+                    clSASTokenUri = extraMetadata.SettingsTokenUri1;
+                    webSASTokenUri = extraMetadata.SettingsTokenUri2;
                 }
-                var clSASToken = clientSettingsBlob.GetSharedAccessSignature(sasPolicy);
-                var webSASToken = clientSettingsBlob.GetSharedAccessSignature(sasPolicy);
-
-                clSASTokenUri = clientSettingsBlob.Uri + clSASToken;
-                webSASTokenUri = clientSettingsBlob.Uri + webSASToken;
 
                 telemetry.TrackTrace($"Settings blob uri for client library: {clSASTokenUri}, for web api: {webSASTokenUri}");
             }
@@ -198,7 +206,9 @@ namespace DecisionServicePrivateWeb.Classes
                     ExperimentalUnitDuration = appSettings.ExperimentalUnitDuration,
                     SubscriptionId = appSettings.SubscriptionId,
                     ModelId = appSettings.ModelId,
-                    TrainFrequency = appSettings.TrainFrequency
+                    TrainFrequency = appSettings.TrainFrequency,
+                    SettingsTokenUri1 = appSettings.SettingsTokenUri1,
+                    SettingsTokenUri2 = appSettings.SettingsTokenUri2
                 }
             );
         }

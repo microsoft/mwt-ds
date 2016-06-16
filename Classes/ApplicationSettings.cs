@@ -34,6 +34,8 @@ namespace DecisionServicePrivateWeb.Classes
 
         public string ModelBlobUri { get; set; }
 
-        public string SettingsBlobUri { get; set; }
+        public string SettingsTokenUri1 { get; set; }
+
+        public string SettingsTokenUri2 { get; set; }
     }
 }

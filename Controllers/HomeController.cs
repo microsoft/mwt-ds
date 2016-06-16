@@ -113,7 +113,7 @@ namespace DecisionServicePrivateWeb.Controllers
                         return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, $"Unable to update model: {ex.ToString()}");
                     }
 
-                    return View(CreateAppView(clientMeta, extraMeta, clientSettingsBlob.Uri.ToString()));
+                    return View(CreateAppView(clientMeta, extraMeta));
                 }
                 catch (Exception ex)
                 {
@@ -230,29 +230,25 @@ namespace DecisionServicePrivateWeb.Controllers
 
         private List<SettingItemViewModel> SettingsView()
         {
-            ApplicationClientMetadata clientApp = null;
-            ApplicationExtraMetadata extraApp = null;
-            string settingsBlobUri = string.Empty;
-
             var clientSettingsBlob = (CloudBlockBlob)Session[SKClientSettingsBlob];
-            settingsBlobUri = clientSettingsBlob.Uri.ToString();
-            clientApp = JsonConvert.DeserializeObject<ApplicationClientMetadata>(clientSettingsBlob.DownloadText());
+            ApplicationClientMetadata clientApp = JsonConvert.DeserializeObject<ApplicationClientMetadata>(clientSettingsBlob.DownloadText());
             Session[SKClientSettings] = clientApp;
 
             var extraSettingsBlob = (CloudBlockBlob)Session[SKExtraSettingsBlob];
-            extraApp = JsonConvert.DeserializeObject<ApplicationExtraMetadata>(extraSettingsBlob.DownloadText());
+            ApplicationExtraMetadata extraApp = JsonConvert.DeserializeObject<ApplicationExtraMetadata>(extraSettingsBlob.DownloadText());
             Session[SKExtraSettings] = extraApp;
 
-            return CreateAppView(clientApp, extraApp, settingsBlobUri);
+            return CreateAppView(clientApp, extraApp);
         }
 
         private List<SettingItemViewModel> CreateAppView(
             ApplicationClientMetadata clientMetadata,
-            ApplicationExtraMetadata extraMetadata,
-            string settingsBlobUri)
+            ApplicationExtraMetadata extraMetadata)
         {
             string uniqueStringInUrl = Regex.Match(Request.Url.ToString(), ".*mc-(.*).azurewebsites.*").Groups[1].Value;
-            CollectiveSettingsView svm = CreateCollectiveSettings(clientMetadata, extraMetadata, settingsBlobUri, uniqueStringInUrl);
+
+            CollectiveSettingsView svm = CreateCollectiveSettings(clientMetadata, extraMetadata, uniqueStringInUrl);
+
             string azureStorageName = Regex.Match(svm.AzureStorageConnectionString, ".*AccountName=(.*);AccountKey.*").Groups[1].Value;
 
             var nameToValue = svm.GetType().GetProperties()
@@ -309,7 +305,7 @@ namespace DecisionServicePrivateWeb.Controllers
             return settingItems.ToList();
         }
 
-        private CollectiveSettingsView CreateCollectiveSettings(ApplicationClientMetadata clientMetadata, ApplicationExtraMetadata extraMetadata, string settingsBlobUri, string uniqueStringInUrl)
+        private CollectiveSettingsView CreateCollectiveSettings(ApplicationClientMetadata clientMetadata, ApplicationExtraMetadata extraMetadata, string uniqueStringInUrl)
         {
             var svm = new CollectiveSettingsView
             {
@@ -342,7 +338,7 @@ namespace DecisionServicePrivateWeb.Controllers
                 },
                 IsExplorationEnabled = clientMetadata.IsExplorationEnabled,
                 InitialExplorationEpsilon = clientMetadata.InitialExplorationEpsilon,
-                SettingsBlobUri = settingsBlobUri
+                SettingsBlobUri = extraMetadata.SettingsTokenUri1
             };
             return svm;
         }
