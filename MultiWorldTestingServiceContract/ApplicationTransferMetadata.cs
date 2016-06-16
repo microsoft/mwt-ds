@@ -107,5 +107,16 @@ namespace Microsoft.Research.MultiWorldTesting.Contract
         /// The experimental unit duration for joining decisions with observations.
         /// </summary>
         public int ExperimentalUnitDuration { get; set; }
+
+        /// <summary>
+        /// First URI of the settings blob including the SAS token.
+        /// </summary>
+        public string SettingsTokenUri1 { get; set; }
+
+        /// <summary>
+        /// Second URI of the settings blob including the SAS token.
+        /// </summary>
+        public string SettingsTokenUri2 { get; set; }
     }
+
 }
