@@ -19,7 +19,7 @@ namespace Microsoft.Research.DecisionServiceTest
     {
         public EndToEndTest()
         {
-            this.deleteOnCleanup = false;
+            this.deleteOnCleanup = true;
         }
 
         [TestMethod]
