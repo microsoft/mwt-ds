@@ -11,7 +11,7 @@ namespace DecisionServicePrivateWeb.Models
         public string AzureResourceGroupName { get; set; }
         public string ApplicationInsightsInstrumentationKey { get; set; }
         public string SettingsBlobUri { get; set; }
-        public string OnlineTrainerName { get; set; }
+        public string OnlineTrainerAddress { get; set; }
         public string WebApiAddress { get; set; }
         public string ASAEvalName { get; set; }
         public string ASAJoinName { get; set; }
@@ -54,6 +54,8 @@ namespace DecisionServicePrivateWeb.Models
         public bool? IsSplotlightUrl { get; set; }
 
         public bool? IsVisible { get; set; }
+
+        public bool? IsResettable { get; set; }
     }
 
     public class SettingBlobListViewModel

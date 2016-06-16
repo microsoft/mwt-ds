@@ -187,11 +187,11 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Online Trainer ::: The name of the cloud service that performs online training..
+        ///   Looks up a localized string similar to Online Trainer ::: The address of the cloud service that performs online training..
         /// </summary>
-        public static string OnlineTrainerName {
+        public static string OnlineTrainerAddress {
             get {
-                return ResourceManager.GetString("OnlineTrainerName", resourceCulture);
+                return ResourceManager.GetString("OnlineTrainerAddress", resourceCulture);
             }
         }
         

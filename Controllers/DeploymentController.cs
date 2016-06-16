@@ -30,7 +30,7 @@ namespace DecisionServicePrivateWeb.Controllers
                     var paramMatches = Regex.Match(parameters.Replace(" ", "+"), "key=(.*);trainer_size=(.*)");
                     if (paramMatches.Groups.Count < 3)
                     {
-                        throw new Exception("Request parameters are not valid.");
+                        throw new Exception("Request parameters are not valid: " + parameters);
                     }
                     var key = paramMatches.Groups[1].Value;
                     var trainerSize = paramMatches.Groups[2].Value;
