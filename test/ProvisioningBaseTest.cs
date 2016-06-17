@@ -37,7 +37,7 @@ namespace Microsoft.Research.DecisionServiceTest
         {
             var value = Environment.GetEnvironmentVariable(name);
             if (value != null)
-                return name;
+                return value;
 
             return ConfigurationManager.AppSettings[name];
         }
