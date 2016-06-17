@@ -17,10 +17,10 @@ namespace Microsoft.Research.DecisionServiceTest
     [TestClass]
     public class EndToEndTest : ProvisioningBaseTest
     {
-        public EndToEndTest()
-        {
-            this.deleteOnCleanup = true;
-        }
+        //public EndToEndTest()
+        //{
+        //    this.deleteOnCleanup = true;
+        //}
 
         [TestMethod]
         public void E2ERankerStochasticRewards()

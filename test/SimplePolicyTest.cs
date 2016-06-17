@@ -22,31 +22,31 @@ namespace Microsoft.Research.DecisionServiceTest
 {
   ""management Center URL"": {
     ""type"": ""String"",
-    ""value"": ""https://mcunitd5395c8845b9951fe786e802964a-mc-dz564t66ivmi2.azurewebsites.net""
+    ""value"": ""https://mcunit46a1366f4943abf5160e3ca6c4fc-mc-go3stmbsb5obs.azurewebsites.net""
   },
   ""management Center Password"": {
     ""type"": ""String"",
-    ""value"": ""4uwwocm5jwwha""
+    ""value"": ""zokntsel2fhyy""
   },
   ""client Library Url"": {
     ""type"": ""String"",
-    ""value"": ""https://storagedz564t66ivmi2.blob.core.windows.net/mwt-settings/client?sv=2015-04-05&sr=b&sig=3hILsSaLwF9B0ZeuAokvqEfhenv%2BJjeIxBCY4sjRHwU%3D&st=2016-06-16T13%3A37%3A00Z&se=2017-06-16T13%3A38%3A00Z&sp=r""
+    ""value"": ""https://storagego3stmbsb5obs.blob.core.windows.net/mwt-settings/client?sv=2015-07-08&sr=b&sig=iqkCkJNtMei7Ybi2hG0vrHpxK5zWd68F2uYzigHE9Ms%3D&st=2016-06-17T14%3A05%3A26Z&se=2017-06-17T14%3A06%3A26Z&sp=r""
   },
   ""web Service URL"": {
     ""type"": ""String"",
-    ""value"": ""https://mcunitd5395c8845b9951fe786e802964a-webapi-dz564t66ivmi2.azurewebsites.net""
+    ""value"": ""https://mcunit46a1366f4943abf5160e3ca6c4fc-webapi-go3stmbsb5obs.azurewebsites.net""
   },
   ""web Service Token"": {
     ""type"": ""String"",
-    ""value"": ""ii2wmkr677njk""
+    ""value"": ""3nkc77prlljte""
   },
   ""online Trainer Token"": {
     ""type"": ""String"",
-    ""value"": ""l62oo233f3zig""
+    ""value"": ""f3wodae6w2rwm""
   },
   ""online Trainer URL"": {
     ""type"": ""String"",
-    ""value"": ""http://mcunitd5395c8845b9951fe786e802964a-trainer-dz564t66ivmi2.cloudapp.net""
+    ""value"": ""http://mcunit46a1366f4943abf5160e3ca6c4fc-trainer-go3stmbsb5obs.cloudapp.net""
   }
 }
 ";
@@ -56,7 +56,7 @@ namespace Microsoft.Research.DecisionServiceTest
         private Random rnd;
         private int eventCount;
 
-        public SimplePolicyTestClass() : base(deploymentOutput) { }
+        // public SimplePolicyTestClass() : base(deploymentOutput) { }
 
         [TestMethod]
         public async Task SimplePolicyTest()

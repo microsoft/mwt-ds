@@ -193,7 +193,7 @@ namespace Microsoft.Research.DecisionServiceTest
                 deployment.Properties = new DeploymentProperties
                 {
                     Mode = DeploymentMode.Incremental,
-                    TemplateLink = new TemplateLink("https://raw.githubusercontent.com/multiworldtesting/ds-provisioning/master/azuredeploy.json"),
+                    TemplateLink = new TemplateLink("https://raw.githubusercontent.com/Microsoft/mwt-ds-provisioning/master/azuredeploy.json"),
                     Parameters = JObject.Parse("{\"number Of Actions\":{\"value\":0}}")
                 };
 
@@ -219,9 +219,12 @@ namespace Microsoft.Research.DecisionServiceTest
             }
 
             Assert.IsNull(failedOperation, $"Deployment operation failed: '{failedOperation}'");
+
+            // give the deployment a bit of time to spin up completely
+            Thread.Sleep(TimeSpan.FromMinutes(2));
         }
 
-        [TestCleanup]
+        //[TestCleanup]
         public void Cleanup()
         {
             if (!deleteOnCleanup)

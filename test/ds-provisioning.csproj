@@ -234,6 +234,7 @@
     <Compile Include="EndToEndOnlineTrainerTest.cs" />
     <Compile Include="ProvisioningBaseTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ProvisionOnly.cs" />
     <Compile Include="SimplePolicyTest.cs" />
   </ItemGroup>
   <ItemGroup>
