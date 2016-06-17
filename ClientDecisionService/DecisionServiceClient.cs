@@ -194,6 +194,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             if (data == null || data.Length == 0)
             {
                 Trace.TraceWarning("Empty model detected, skipping model update.");
+                return;
             }
             using (var stream = new MemoryStream(data))
             {
@@ -212,6 +213,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 if (modelData == null || modelData.Length == 0)
                 {
                     Trace.TraceWarning("Empty model detected, skipping model update.");
+                    return;
                 }
                 using (var ms = new MemoryStream(modelData))
                 {
