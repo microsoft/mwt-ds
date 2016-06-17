@@ -253,6 +253,11 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             return this;
         }
 
+        public int ChooseAction(string uniqueKey, TContext context, IPolicy<TContext> defaultPolicy)
+        {
+            return ChooseAction(uniqueKey, context, defaultPolicy.MapContext(context).Value);
+        }
+
         public int ChooseAction(string uniqueKey, TContext context, int defaultAction)
         {
             var numActions = this.numActionsProvider.GetNumberOfActions(context);
@@ -274,6 +279,11 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         public int ChooseAction(string uniqueKey, TContext context)
         {
             return this.ChooseRanking(uniqueKey, context)[0];
+        }
+
+        public int[] ChooseRanking(string uniqueKey, TContext context, IRanker<TContext> defaultRanker)
+        {
+            return ChooseRanking(uniqueKey, context, defaultRanker.MapContext(context).Value);
         }
 
         public int[] ChooseRanking(string uniqueKey, TContext context, int[] defaultActions)

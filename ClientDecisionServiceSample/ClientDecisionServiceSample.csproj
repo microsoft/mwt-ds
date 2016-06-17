@@ -134,17 +134,10 @@
     <Compile Include="ADFContext.cs" />
     <Compile Include="ExpandedContext.cs" />
     <Compile Include="FoodContext.cs" />
-    <Compile Include="Policy - non-action dependent features\PaperSample.cs" />
-    <Compile Include="Policy - non-action dependent features\SampleCodeUsingASAWithJsonContext.cs" />
-    <Compile Include="Policy - non-action dependent features\SampleCodeUsingSimpleContext.cs" />
-    <Compile Include="Policy - non-action dependent features\SampleNewsRecommendation.cs" />
-    <Compile Include="Policy - non-action dependent features\SampleStandaloneUploader.cs" />
-    <Compile Include="Policy - non-action dependent features\SimpleContext.cs" />
+    <Compile Include="Sample1.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Ranker - action dependent features\SampleCodeUsingASAJoinServer.cs" />
-    <Compile Include="Ranker - action dependent features\SampleCodeUsingASAWithJsonContext.cs" />
-    <Compile Include="Ranker - action dependent features\SampleCodeUsingEventHubUploader.cs" />
+    <Compile Include="Sample2.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">

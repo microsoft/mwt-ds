@@ -10,9 +10,11 @@ using System.Threading.Tasks;
 
 namespace ClientDecisionServiceSample
 {
-    public static class Sample3
+    public static class Sample1
     {
-        /***** Copy & Paste your authorization token here *****/
+        /***** Copy & Paste your application settings URL here *****
+         ***** This value can either be found after deployment *****
+         ***** or in the Management Center of Decision Service *****/
         static readonly string SettingsBlobUri = "";
 
         /// <summary>
@@ -21,43 +23,32 @@ namespace ClientDecisionServiceSample
         /// In order to do so, it uses the <see cref="DecisionService{TContext}"/> API to optimize the decision
         /// to make given certain user context (or features).
         /// </summary>
-        public static void SampleNewsRecommendation()
+        public static void NewsRecommendation()
         {
             if (String.IsNullOrWhiteSpace(SettingsBlobUri))
             {
-                Console.WriteLine("Please specify a valid authorization token.");
+                Console.WriteLine("Please specify a valid settings URL.");
                 return;
             }
 
             Trace.Listeners.Add(new ConsoleTraceListener());
 
             int numTopics = 10; // number of different topic choices to show
-            float epsilon = 0.2f; // randomize the topics to show for 20% of traffic
             int numUsers = 100; // number of users for the news site
 
             // Create configuration for the decision service.
-            var serviceConfig = new DecisionServiceConfiguration(settingsBlobUri: SettingsBlobUri)
-            {
-                // TODO: louie: did you forget this one or left out on purpose?
-                // EventHubConnectionString = EventHubConnectionString,
-                // EventHubInputName = EventHubInputName,
-                // Optional: set the configuration for how often data is uploaded to the join server.
-                InteractionUploadConfiguration = new BatchingConfiguration
-                {
-                    MaxBufferSizeInBytes = 4 * 1024,
-                    MaxDuration = TimeSpan.FromSeconds(5),
-                    MaxEventCount = 1000,
-                    MaxUploadQueueCapacity = 100,
-                    UploadRetryPolicy = BatchUploadRetryPolicy.ExponentialRetry
-                }
-            };
+            var serviceConfig = new DecisionServiceConfiguration(settingsBlobUri: SettingsBlobUri);
 
             // Create the main service object with above configurations.
             // Specify the exploration algorithm to use, here we will use Epsilon-Greedy.
             // For more details about this and other algorithms, refer to the MWT onboarding whitepaper.
-            using (var service = DecisionService.Create<UserContext>(serviceConfig)
-                .ExploitUntilModelReady(new NewsDisplayPolicy(numTopics)))
+            using (var service = DecisionService.Create<UserContext>(serviceConfig))
             {
+                // Create a default policy which is used before a machine-learned model.
+                // This policy is used in epsilon-greedy exploration using the initial
+                // exploration epsilon specified at deployment time or in the Management Center.
+                var defaultPolicy = new NewsDisplayPolicy(numTopics);
+
                 var random = new Random();
                 for (int user = 0; user < numUsers; user++)
                 {
@@ -72,7 +63,7 @@ namespace ClientDecisionServiceSample
                     }
 
                     // Perform exploration given user features.
-                    int topicId = service.ChooseAction(userId, context: userContext);
+                    int topicId = service.ChooseAction(userId, userContext, defaultPolicy);
 
                     // Display the news topic chosen by exploration process.
                     DisplayNewsTopic(topicId, user + 1);
@@ -104,7 +95,7 @@ namespace ClientDecisionServiceSample
     /// <summary>
     /// The default policy for choosing topic to display given some user context.
     /// </summary>
-    class NewsDisplayPolicy : IContextMapper<UserContext, ActionProbability[]>
+    class NewsDisplayPolicy : IPolicy<UserContext>
     {
         private int numTopics;
 
@@ -113,15 +104,10 @@ namespace ClientDecisionServiceSample
             this.numTopics = numTopics;
         }
 
-        public PolicyDecision<ActionProbability[]> MapContext(UserContext context)
+        PolicyDecision<int> IContextMapper<UserContext, int>.MapContext(UserContext context)
         {
             int chosenAction = (int)Math.Round(context.Features.Sum(f => f.Value) / context.Features.Count + 1);
-            return PolicyDecision.Create(Enumerable.Range(1, this.numTopics)
-                .Select(action => new ActionProbability
-                {
-                    Action = action,
-                    Probability = action == chosenAction ? 1 : 0
-                }).ToArray());
+            return PolicyDecision.Create(chosenAction);
         }
     }
 
