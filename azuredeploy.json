@@ -4,7 +4,7 @@
   "parameters": {
     "number Of Actions": {
       "type": "int",
-      "defaultValue": "0",
+      "defaultValue": "2",
       "minValue": 0,
       "metadata": {
         "description": "The number of action choices, which is fixed for all interactions. This value is irrelevant for action-dependent features."
@@ -29,37 +29,28 @@
       "type": "string",
       "defaultValue": "--cb_explore_adf --epsilon 0.2 --cb_type dr",
       "metadata": {
-        "description": "Switches that are passed to Vowpal Wabbit for exploration and policy learning."
+        "description": "Switches that are passed to Vowpal Wabbit for exploration and policy learning. For more information, visit https://github.com/JohnLangford/vowpal_wabbit/wiki"
       }
     },
-    "management Password": {
+    "Management Center Password": {
       "type": "string",
       "defaultValue": "",
       "metadata": {
-        "description": "Password for the management center. If empty, a random value will be generated."
+        "description": "Password to log in to the Management Center. If empty, a random value will be generated."
       }
     },
-    "user Token": {
+    "Web Service Authorization Token": {
       "type": "string",
       "defaultValue": "",
       "metadata": {
-        "description": "Authentication token for the web service endpoint.  If empty, a random value will be generated."
+        "description": "Authorization token to include in the HTTP request to the web service endpoint.  If empty, a random value will be generated."
       }
     },
-    "admin Token": {
+    "Online Trainer Authorization Token": {
       "type": "string",
       "defaultValue": "",
       "metadata": {
-        "description": "Authentication token for the online trainer. If empty, a random value will be generated."
-      }
-    },
-    "message Retention In Days": {
-      "type": "int",
-      "defaultValue": 1,
-      "minValue": 1,
-      "maxValue": 7,
-      "metadata": {
-        "description": "The number of days to retain events in EventHubs (such as interaction and observation events). This applies to all EventHubs provisioned as part of the service."
+        "description": "Authorization token to include in the HTTP request to the online trainer. If empty, a random value will be generated."
       }
     },
     "partition Count": {
@@ -86,7 +77,8 @@
     }
   },
   "variables": {
-    "assetLocation": "https://raw.githubusercontent.com/Microsoft/mwt-ds-provisioning/master/"
+    "assetLocation": "https://raw.githubusercontent.com/Microsoft/mwt-ds-provisioning/master/",
+    "messageRetentionInDays": 7
   },
   "resources": [
     {
@@ -107,7 +99,7 @@
         "mode": "incremental",
         "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" },
         "parameters": {
-          "Password": { "value": "[parameters('management Password')]" },
+          "Password": { "value": "[parameters('Management Center Password')]" },
           "RandomSeed": { "value": "[concat(reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, 'mc')]" }
         }
       }
@@ -121,7 +113,7 @@
         "mode": "incremental",
         "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" },
         "parameters": {
-          "Password": { "value": "[parameters('user Token')]" },
+          "Password": { "value": "[parameters('Web Service Authorization Token')]" },
           "RandomSeed": { "value": "[concat(reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, 'ut')]" }
         }
       }
@@ -135,7 +127,7 @@
         "mode": "incremental",
         "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" },
         "parameters": {
-          "Password": { "value": "[parameters('admin Token')]" },
+          "Password": { "value": "[parameters('Online Trainer Authorization Token')]" },
           "RandomSeed": { "value": "[concat(reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, 'at')]" }
         }
       }
@@ -172,7 +164,7 @@
         "parameters": {
           "ehName": { "value": "interaction" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
-          "messageRetentionInDays": { "value": "[parameters('message Retention In Days')]" },
+          "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
           "partitionCount": { "value": "[parameters('partition Count')]" }
         }
       }
@@ -191,7 +183,7 @@
         "parameters": {
           "ehName": { "value": "observation" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
-          "messageRetentionInDays": { "value": "[parameters('message Retention In Days')]" },
+          "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
           "partitionCount": { "value": "[parameters('partition Count')]" }
         }
       }
@@ -210,7 +202,7 @@
         "parameters": {
           "ehName": { "value": "joined" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
-          "messageRetentionInDays": { "value": "[parameters('message Retention In Days')]" },
+          "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
           "partitionCount": { "value": "[parameters('partition Count')]" }
         }
       }
@@ -226,7 +218,7 @@
         "parameters": {
           "ehName": { "value": "eval" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
-          "messageRetentionInDays": { "value": "[parameters('message Retention In Days')]" },
+          "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
           "partitionCount": { "value": "[parameters('partition Count')]" }
         }
       }
@@ -322,7 +314,7 @@
           "interactionEventHub": { "value": "[reference('Microsoft.Resources/deployments/EventHubInteraction').outputs]" },
           "observationEventHub": { "value": "[reference('Microsoft.Resources/deployments/EventHubObservation').outputs]" },
           "joinedEventHub": { "value": "[reference('Microsoft.Resources/deployments/EventHubJoined').outputs]" },
-          "messageRetentionInDays": { "value": "[parameters('message Retention In Days')]" },
+          "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
           "partitionCount": { "value": "[parameters('partition Count')]" },
           "experimentalUnitDurationInSeconds": { "value": "[parameters('experimental Unit Duration In Seconds')]" }
         }
@@ -346,7 +338,7 @@
           "userStorageAccountKey": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value]" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
           "evalEventHub": { "value": "[reference('Microsoft.Resources/deployments/EventHubEval').outputs]" },
-          "messageRetentionInDays": { "value": "[parameters('message Retention In Days')]" },
+          "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
           "partitionCount": { "value": "[parameters('partition Count')]" }
         }
       }
@@ -395,11 +387,11 @@
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/WebAPI').outputs.WebApiUrl.value]"
     },
-    "Web Service Token": {
+    "Web Service Authorization Token": {
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/UserTokenGenerator').outputs.FinalPassword.value]"
     },
-    "Online Trainer Token": {
+    "Online Trainer Authorization Token": {
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/AdminTokenGenerator').outputs.FinalPassword.value]"
     },
