@@ -39,11 +39,6 @@ namespace Microsoft.Research.MultiWorldTesting.Contract
         public string ApplicationID { get; set; }
 
         /// <summary>
-        /// Number of actions available at decision time, this is only relevant if decision type is single.
-        /// </summary>
-        public int? NumActions { get; set; }
-
-        /// <summary>
         /// Training arguments to be used in training service.
         /// </summary>
         public string TrainArguments { get; set; }

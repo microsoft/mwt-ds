@@ -26,18 +26,21 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
         private IDisposable disposable;
 
-        private readonly string blobAddress;
-
+        private readonly Uri blobAddress;
+        private readonly CloudBlobClient cloudBlobClient;
         private string blobEtag;
 
         private bool downloadImmediately;
 
-        public AzureBlobBackgroundDownloader(string blobAddress, TimeSpan interval, bool downloadImmediately = false)
+        public AzureBlobBackgroundDownloader(string blobAddress, TimeSpan interval, bool downloadImmediately = false, string storageConnectionString = null)
         {
             if (blobAddress == null)
                 throw new ArgumentNullException("blobAddress");
 
-            this.blobAddress = blobAddress;
+            this.blobAddress = new Uri(blobAddress);
+            
+            if (storageConnectionString != null)
+                this.cloudBlobClient = CloudStorageAccount.Parse(storageConnectionString).CreateCloudBlobClient();
 
             // run background threadW
             var conn = Observable.Interval(interval)
@@ -54,8 +57,10 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             var uri = string.Empty;
             try
             {
-                ICloudBlob blob = new CloudBlockBlob(new Uri(this.blobAddress));
-                uri = blob.Uri.ToString();
+                ICloudBlob blob =
+                    this.cloudBlobClient != null ?
+                    this.cloudBlobClient.GetBlobReferenceFromServer(this.blobAddress) :
+                    new CloudBlockBlob(this.blobAddress);
 
                 // avoid not found exception
                 if (!await blob.ExistsAsync(cancellationToken))

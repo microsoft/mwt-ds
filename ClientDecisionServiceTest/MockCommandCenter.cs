@@ -79,7 +79,6 @@ namespace ClientDecisionServiceTest
                 ApplicationID = TestAppID,
                 IsExplorationEnabled = true,
                 ModelBlobUri = this.localAzureModelBlobUri,
-                NumActions = 2,
                 InitialExplorationEpsilon = initialExplorationEpsilon,
                 TrainArguments = vwArgs
             };
