@@ -28,7 +28,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         /// <summary>
         /// Optional storage connection string used in conjunction with <see cref="SettingsBlobUri"/> to pass authentication.
         /// </summary>
-        public string AzureStorageConnectionString { get; private set; }
+        public string AzureStorageConnectionString { get; set; }
 
         /// <summary>
         ///  TODO: comment
