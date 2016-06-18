@@ -50,15 +50,20 @@ namespace ClientDecisionServiceTest
             var wc = new WebClient();
             wc.Headers.Add("Authorization", authToken);
 
+            // prepare context
             string contextUri = string.Format(CultureInfo.InvariantCulture, "{0}/{1}", baseUrl, contextType);
             string contextString = "{ Age: 25, Location: \"New York\", _multi: [{ a: 1}, { b: 2}]}";
             byte[] context = System.Text.Encoding.ASCII.GetBytes(contextString);
+
+            // send context, and receive decision
             var response = wc.UploadData(contextUri, "POST", context);
 
+            // parse decision
             var utf8response = UnicodeEncoding.UTF8.GetString(response);
             JObject jobj = JObject.Parse(utf8response);
             JArray actions = (JArray)jobj["Action"];
             int topAction = (int)actions[0];
+
             // Compare only the decision, not the eventID
             Assert.IsTrue(topAction >= 1);
             Assert.IsTrue(topAction <= 2);
@@ -69,6 +74,8 @@ namespace ClientDecisionServiceTest
             string rewardString = "1";
             byte[] reward = System.Text.Encoding.ASCII.GetBytes(rewardString);
             response = wc.UploadData(rewardUri, "POST", reward);
+
+            // parse response to reward (should be empty)
             utf8response = UnicodeEncoding.UTF8.GetString(response);
 
             Assert.AreEqual("", utf8response);
