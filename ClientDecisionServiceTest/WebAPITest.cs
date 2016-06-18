@@ -26,6 +26,7 @@ namespace ClientDecisionServiceTest
         public string SessionId { get; set; }
     }
 
+    // TODO: move to ds-provisioning
     [TestClass]
     public class WebApiTest
     {
@@ -35,6 +36,7 @@ namespace ClientDecisionServiceTest
         // readonly int numActions = 3;
 
         [TestMethod]
+        [Ignore]
         public void IndexExistsTest()
         {
             var wc = new WebClient();
@@ -45,6 +47,7 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
+        [Ignore]
         public void PostTest()
         {
             var wc = new WebClient();
