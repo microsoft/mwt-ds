@@ -24,6 +24,7 @@ namespace DecisionServicePrivateWeb.Classes
         public const string AKJoinedEHSendConnString = "joinedEventHubConnectionString";
         public const string AKEvalEHSendConnString = "evalEventHubConnectionString";
         public const string AKAdminToken = "adminToken";
+        public const string AKUserToken = "userToken";
         public const string AKCheckpointPolicy = "checkpointPolicy";
         public const string AKTrainArguments = "vowpalWabbitTrainArguments";
         public const string AKNumActions = "numberOfActions";
