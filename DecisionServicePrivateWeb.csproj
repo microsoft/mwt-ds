@@ -97,8 +97,8 @@
       <HintPath>packages\Microsoft.Data.Services.Client.5.6.4\lib\net40\Microsoft.Data.Services.Client.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.Research.MultiWorldTesting.Contract, Version=1.0.0.50, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>packages\Microsoft.Research.MultiWorldTesting.Contract.1.0.0.50\lib\net45\Microsoft.Research.MultiWorldTesting.Contract.dll</HintPath>
+    <Reference Include="Microsoft.Research.MultiWorldTesting.Contract, Version=1.0.0.52, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>packages\Microsoft.Research.MultiWorldTesting.Contract.1.0.0.52\lib\net45\Microsoft.Research.MultiWorldTesting.Contract.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.WindowsAzure.Storage, Version=7.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -241,7 +241,7 @@
   <ItemGroup>
     <EmbeddedResource Include="HelpText.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>HelpText.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

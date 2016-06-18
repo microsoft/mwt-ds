@@ -16,7 +16,6 @@ namespace DecisionServicePrivateWeb.Models
         public string ASAEvalName { get; set; }
         public string ASAJoinName { get; set; }
         public DecisionType DecisionType { get; set; }
-        public int? NumActions { get; set; }
         public TrainFrequency TrainFrequency { get; set; }
         public string TrainArguments { get; set; }
         public string AzureStorageConnectionString { get; set; }
@@ -52,8 +51,6 @@ namespace DecisionServicePrivateWeb.Models
         public bool? IsEditable { get; set; }
 
         public bool? IsSplotlightUrl { get; set; }
-
-        public bool? IsVisible { get; set; }
 
         public bool? IsResettable { get; set; }
     }

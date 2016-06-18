@@ -291,10 +291,6 @@ namespace DecisionServicePrivateWeb.Controllers
                 new { Name = nameof(svm.InitialExplorationEpsilon), IsEditable = true },
                 new { Name = nameof(svm.SelectedModelId), IsEditable = true }
             };
-            var nameToVisible = new[]
-            {
-                new { Name = nameof(svm.NumActions), IsVisible = (svm.DecisionType == DecisionType.SingleAction) }
-            };
             var nameToSpotLightUrl = new[]
             {
                 new { Name = nameof(svm.AzureResourceGroupName), IsSplotlightUrl = true }
@@ -307,7 +303,6 @@ namespace DecisionServicePrivateWeb.Controllers
                         from nht in nameToHelpText.Where(n => n.Name == nv.Name).DefaultIfEmpty()
                         from nu in nameToUrl.Where(n => n.Name == nv.Name).DefaultIfEmpty()
                         from ne in nameToEditable.Where(n => n.Name == nv.Name).DefaultIfEmpty()
-                        from nvs in nameToVisible.Where(n => n.Name == nv.Name).DefaultIfEmpty()
                         from nsl in nameToSpotLightUrl.Where(n => n.Name == nv.Name).DefaultIfEmpty()
                         from nrs in nameToResettable.Where(n => n.Name == nv.Name).DefaultIfEmpty()
                         select new SettingItemViewModel
@@ -319,7 +314,6 @@ namespace DecisionServicePrivateWeb.Controllers
                             Name = nv.Name,
                             Url = nu?.Url,
                             UrlToolTip = nu?.Tooltip,
-                            IsVisible = nvs?.IsVisible,
                             IsSplotlightUrl = nsl?.IsSplotlightUrl,
                             IsResettable = nrs?.Resettable
                         };
@@ -334,7 +328,6 @@ namespace DecisionServicePrivateWeb.Controllers
                 ApplicationId = clientMetadata.ApplicationID,
                 AzureSubscriptionId = extraMetadata.SubscriptionId,
                 DecisionType = extraMetadata.DecisionType,
-                NumActions = clientMetadata.NumActions,
                 TrainFrequency = extraMetadata.TrainFrequency,
                 TrainArguments = clientMetadata.TrainArguments,
                 AzureStorageConnectionString = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString],

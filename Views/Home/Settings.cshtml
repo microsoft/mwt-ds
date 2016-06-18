@@ -16,10 +16,6 @@
 
         foreach (var item in Model)
         {
-            if (item.IsVisible == false)
-            {
-                continue;
-            }
             var readOnlyStyle = item.IsEditable == true ? string.Empty : "readonly=readonly";
             <div class="form-group">
                 <label for="@item.Name" class="col-sm-2 control-label ds-label">@item.DisplayName</label>
@@ -88,7 +84,7 @@
 
         foreach (var item in Model)
         {
-            if (item.IsEditable == true && item.IsVisible == true)
+            if (item.IsEditable == true)
             {
                 @Html.ValidationMessage(item.Name);
             }

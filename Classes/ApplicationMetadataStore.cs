@@ -82,7 +82,6 @@ namespace DecisionServicePrivateWeb.Classes
                         SubscriptionId = ConfigurationManager.AppSettings[AKSubscriptionId],
                         DecisionType = DecisionType.MultiActions, // TODO: update depending on deployment option
                         ModelId = ApplicationSettingConstants.UseLatestModelSetting,
-                        NumActions = Convert.ToInt32(ConfigurationManager.AppSettings[AKNumActions]),
                         TrainArguments = ConfigurationManager.AppSettings[AKTrainArguments],
                         TrainFrequency = TrainFrequency.High, // TODO: update depending on deployment option
                         ModelBlobUri = modelBlob.Uri + modelSASToken,
@@ -190,7 +189,6 @@ namespace DecisionServicePrivateWeb.Classes
                 new ApplicationClientMetadata
                 {
                     ApplicationID = appSettings.ApplicationID,
-                    NumActions = appSettings.NumActions,
                     EventHubInteractionConnectionString = appSettings.InterEventHubSendConnectionString,
                     EventHubObservationConnectionString = appSettings.ObserEventHubSendConnectionString,
                     IsExplorationEnabled = appSettings.IsExplorationEnabled,

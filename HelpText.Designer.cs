@@ -178,15 +178,6 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Number of Actions ::: The number of actions, which is fixed for all interactions. This value is relevant only if not using action dependent features..
-        /// </summary>
-        public static string NumActions {
-            get {
-                return ResourceManager.GetString("NumActions", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Online Trainer ::: The address of the cloud service that performs online training..
         /// </summary>
         public static string OnlineTrainerAddress {

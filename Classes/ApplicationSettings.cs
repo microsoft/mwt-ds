@@ -10,8 +10,6 @@ namespace DecisionServicePrivateWeb.Classes
         public string AppInsightsKey { get; set; }
         public DecisionType DecisionType { get; set; }
 
-        public int? NumActions { get; set; }
-
         public TrainFrequency TrainFrequency { get; set; }
 
         public string TrainArguments { get; set; }
