@@ -63,12 +63,13 @@ namespace ClientDecisionServiceTest
             return responseJObj;
         }
 
-        public string InteractionPart3(string baseUrl, JObject responseJObj, string rewardString)
+        public string InteractionPart3(string baseUrl, JObject responseJObj, float reward)
         {
             string eventID = (string)responseJObj["EventId"];
             string rewardUri = string.Format(CultureInfo.InvariantCulture, "{0}/reward/{1}", baseUrl, eventID);
-            byte[] reward = System.Text.Encoding.ASCII.GetBytes(rewardString);
-            var response = wc.UploadData(rewardUri, "POST", reward);
+            string rewardString = reward.ToString();
+            byte[] rewardBytes = System.Text.Encoding.ASCII.GetBytes(rewardString);
+            var response = wc.UploadData(rewardUri, "POST", rewardBytes);
             string utf8response = UnicodeEncoding.UTF8.GetString(response);
             return utf8response;
         }
@@ -92,8 +93,8 @@ namespace ClientDecisionServiceTest
             Assert.IsTrue(topAction >= 1);
 
             // now post the reward
-            string rewardString = "1";
-            string utf8response = InteractionPart3(baseUrl, responseJObj, rewardString);
+            float reward = 1.0F;
+            string utf8response = InteractionPart3(baseUrl, responseJObj, reward);
 
             // parse response to reward (should be empty)
             Assert.AreEqual("", utf8response);
@@ -118,8 +119,8 @@ namespace ClientDecisionServiceTest
             Assert.IsTrue(topAction >= 1);
 
             // now post the reward
-            string rewardString = "1";
-            string utf8response = InteractionPart3(baseUrl, responseJObj, rewardString);
+            float reward = 1.0F;
+            string utf8response = InteractionPart3(baseUrl, responseJObj, reward);
 
             // parse response to reward (should be empty)
             Assert.AreEqual("", utf8response);
