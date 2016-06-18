@@ -55,7 +55,7 @@
     },
     "partition Count": {
       "type": "int",
-      "defaultValue": 16,
+      "defaultValue": 2,
       "minValue": 1,
       "metadata": {
         "description": "The number of shards on each EventHub. This applies to all EventHubs provisioned as part of the service."
