@@ -30,57 +30,98 @@ namespace ClientDecisionServiceTest
     [TestClass]
     public class WebApiTest
     {
-        readonly string authToken = "mzf2xsxf4hjwe"; // insert auth token
-        readonly string baseUrl = "http://dmdp1-webapi-jvj7wdftvsdwe.azurewebsites.net"; // insert API URL here
-        readonly string contextType = "ranker";
-        // readonly int numActions = 3;
+        static string ADFUrl = "http://dmdp1-webapi-jvj7wdftvsdwe.azurewebsites.net";
+        static string ADFAuthToken = "mzf2xsxf4hjwe";
+        static string nonADFUrl = "http://dmdp6-webapi-q3wdu6gx5gnxm.azurewebsites.net/";
+        static string nonADFAuthToken = "d2t67awl6jdre";
+        // static int numActions = 3;
+
+        WebClient wc;
+
+        public WebApiTest()
+        {
+            wc = new WebClient();
+        }
 
         [TestMethod]
         [Ignore]
         public void IndexExistsTest()
         {
-            var wc = new WebClient();
-            var indexUrl = baseUrl + "index.html";
+            var indexUrl = ADFUrl + "index.html";
             var response = wc.DownloadString(indexUrl);
 
             Assert.AreEqual("<!DOCTYPE html>", response.Substring(0,15));
         }
 
-        [TestMethod]
-        [Ignore]
-        public void PostTest()
+        public JObject InteractionParts1and2(string baseUrl, string contextType, string contextString)
         {
-            var wc = new WebClient();
-            wc.Headers.Add("Authorization", authToken);
-
-            // prepare context
             string contextUri = string.Format(CultureInfo.InvariantCulture, "{0}/{1}", baseUrl, contextType);
-            string contextString = "{ Age: 25, Location: \"New York\", _multi: [{ a: 1}, { b: 2}]}";
             byte[] context = System.Text.Encoding.ASCII.GetBytes(contextString);
-
-            // send context, and receive decision
             var response = wc.UploadData(contextUri, "POST", context);
+            var utf8response = UnicodeEncoding.UTF8.GetString(response);
+            JObject responseJObj = JObject.Parse(utf8response);
+            return responseJObj;
+        }
+
+        public string InteractionPart3(string baseUrl, JObject responseJObj, string rewardString)
+        {
+            string eventID = (string)responseJObj["EventId"];
+            string rewardUri = string.Format(CultureInfo.InvariantCulture, "{0}/reward/{1}", baseUrl, eventID);
+            byte[] reward = System.Text.Encoding.ASCII.GetBytes(rewardString);
+            var response = wc.UploadData(rewardUri, "POST", reward);
+            string utf8response = UnicodeEncoding.UTF8.GetString(response);
+            return utf8response;
+        }
+
+        [TestMethod]
+        public void ADFPostTest()
+        {
+            wc.Headers.Clear();
+            wc.Headers.Add("Authorization", ADFAuthToken);
+            string baseUrl = ADFUrl;
+            // send context, and receive decision(s)
+            string contextType = "ranker";
+            string contextString = "{ Age: 25, Location: \"New York\", _multi: [{ a: 1}, { b: 2}]}";
+            JObject responseJObj = InteractionParts1and2(baseUrl, contextType, contextString);
 
             // parse decision
-            var utf8response = UnicodeEncoding.UTF8.GetString(response);
-            JObject jobj = JObject.Parse(utf8response);
-            JArray actions = (JArray)jobj["Action"];
+            JArray actions = (JArray)responseJObj["Action"];
             int topAction = (int)actions[0];
 
             // Compare only the decision, not the eventID
             Assert.IsTrue(topAction >= 1);
-            Assert.IsTrue(topAction <= 2);
 
             // now post the reward
-            string eventID = (string)jobj["EventId"];
-            string rewardUri = string.Format(CultureInfo.InvariantCulture, "{0}/reward/{1}", baseUrl, eventID);
             string rewardString = "1";
-            byte[] reward = System.Text.Encoding.ASCII.GetBytes(rewardString);
-            response = wc.UploadData(rewardUri, "POST", reward);
+            string utf8response = InteractionPart3(baseUrl, responseJObj, rewardString);
 
             // parse response to reward (should be empty)
-            utf8response = UnicodeEncoding.UTF8.GetString(response);
+            Assert.AreEqual("", utf8response);
+        }
 
+        [TestMethod]
+        public void nonADFPostTest()
+        {
+            wc.Headers.Clear();
+            wc.Headers.Add("Authorization", nonADFAuthToken);
+            string baseUrl = nonADFUrl;
+
+            // send context, and receive decision(s)
+            string contextType = "policy";
+            string contextString = "{ Age: 25, Location: \"New York\"}";
+            JObject responseJObj = InteractionParts1and2(baseUrl, contextType, contextString);
+
+            // parse decision
+            int topAction = (int)responseJObj["Action"];
+
+            // Compare only the decision, not the eventID
+            Assert.IsTrue(topAction >= 1);
+
+            // now post the reward
+            string rewardString = "1";
+            string utf8response = InteractionPart3(baseUrl, responseJObj, rewardString);
+
+            // parse response to reward (should be empty)
             Assert.AreEqual("", utf8response);
         }
 
@@ -89,7 +130,6 @@ namespace ClientDecisionServiceTest
         public void ThroughputTest()
         {
             // stub
-
         }
     }
 }
