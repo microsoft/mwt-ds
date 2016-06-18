@@ -31,18 +31,18 @@
         "description": "Random value if empty."
       }
     },
-    "user Token": {
+    "Web Service Authorization Token": {
       "type": "string",
       "defaultValue": "",
       "metadata": {
-        "description": "Authentication token for the web service endpoint.  If empty, a random value will be generated."
+        "description": "Authorization token to include in the HTTP request to the web service endpoint.  If empty, a random value will be generated."
       }
     },
-    "admin Token": {
+    "Online Trainer Authorization Token": {
       "type": "string",
       "defaultValue": "",
       "metadata": {
-        "description": "Authentication token for the online trainer. If empty, a random value will be generated."
+        "description": "Authorization token to include in the HTTP request to the online trainer. If empty, a random value will be generated."
       }
     },
     "message Retention In Days": {
@@ -78,7 +78,8 @@
     }
   },
   "variables": {
-    "assetLocation": "https://raw.githubusercontent.com/Microsoft/mwt-ds-provisioning/master/"
+    "assetLocation": "https://raw.githubusercontent.com/Microsoft/mwt-ds-provisioning/master/",
+    "messageRetentionInDays": 7
   },
   "resources": [
     {
@@ -99,7 +100,7 @@
         "mode": "incremental",
         "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" },
         "parameters": {
-          "Password": { "value": "[parameters('management Password')]" },
+          "Password": { "value": "[parameters('Management Center Password')]" },
           "RandomSeed": { "value": "[concat(reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, 'mc')]" }
         }
       }
@@ -113,7 +114,7 @@
         "mode": "incremental",
         "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" },
         "parameters": {
-          "Password": { "value": "[parameters('user Token')]" },
+          "Password": { "value": "[parameters('Web Service Authorization Token')]" },
           "RandomSeed": { "value": "[concat(reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, 'ut')]" }
         }
       }
@@ -127,7 +128,7 @@
         "mode": "incremental",
         "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" },
         "parameters": {
-          "Password": { "value": "[parameters('admin Token')]" },
+          "Password": { "value": "[parameters('Online Trainer Authorization Token')]" },
           "RandomSeed": { "value": "[concat(reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, 'at')]" }
         }
       }
@@ -386,11 +387,11 @@
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/WebAPI').outputs.WebApiUrl.value]"
     },
-    "Web Service Token": {
+    "Web Service Authorization Token": {
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/UserTokenGenerator').outputs.FinalPassword.value]"
     },
-    "Online Trainer Token": {
+    "Online Trainer Authorization Token": {
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/AdminTokenGenerator').outputs.FinalPassword.value]"
     },
