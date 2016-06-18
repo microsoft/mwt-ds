@@ -97,7 +97,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 var settingsBlobPollDelay = config.PollingForSettingsPeriod == TimeSpan.Zero ? DecisionServiceConstants.PollDelay : config.PollingForSettingsPeriod;
                 if (settingsBlobPollDelay != TimeSpan.MinValue)
                 {
-                    this.settingsDownloader = new AzureBlobBackgroundDownloader(config.SettingsBlobUri, settingsBlobPollDelay, downloadImmediately: false);
+                    this.settingsDownloader = new AzureBlobBackgroundDownloader(config.SettingsBlobUri, settingsBlobPollDelay, downloadImmediately: false, storageConnectionString: config.AzureStorageConnectionString);
                     this.settingsDownloader.Downloaded += this.UpdateSettings;
                     this.settingsDownloader.Failed += settingsDownloader_Failed;
                 }
@@ -105,7 +105,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 var modelBlobPollDelay = config.PollingForModelPeriod == TimeSpan.Zero ? DecisionServiceConstants.PollDelay : config.PollingForModelPeriod;
                 if (modelBlobPollDelay != TimeSpan.MinValue)
                 {
-                    this.modelDownloader = new AzureBlobBackgroundDownloader(metaData.ModelBlobUri, modelBlobPollDelay, downloadImmediately: true);
+                    this.modelDownloader = new AzureBlobBackgroundDownloader(metaData.ModelBlobUri, modelBlobPollDelay, downloadImmediately: true, storageConnectionString: config.AzureStorageConnectionString);
                     this.modelDownloader.Downloaded += this.UpdateContextMapper;
                     this.modelDownloader.Failed += modelDownloader_Failed;
                 }
