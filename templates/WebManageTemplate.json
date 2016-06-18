@@ -18,7 +18,6 @@
 
     "experimentalUnitDurationInSeconds": { "type": "int" },
     "vowpalWabbitTrainArguments": { "type": "string" },
-    "numberOfActions": { "type": "int" },
     "sku": {
       "type": "string",
       "allowedValues": [
@@ -144,7 +143,6 @@
             "AzureStorageConnectionString": "[parameters('userStorageConnectionString')]",
             "experimentalUnitDurationInSeconds": "[parameters('experimentalUnitDurationInSeconds')]",
             "vowpalWabbitTrainArguments": "[parameters('vowpalWabbitTrainArguments')]",
-            "numberOfActions": "[parameters('numberOfActions')]",
             "resourceGroupName": "[resourceGroup().name]",
             "interactionEventHubSendConnectionString": "[parameters('interactionEventHub').sendConnectionString.value]",
             "observationEventHubSendConnectionString": "[parameters('observationEventHub').sendConnectionString.value]",

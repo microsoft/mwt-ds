@@ -2,41 +2,33 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "number Of Actions": {
-      "type": "int",
-      "defaultValue": "0",
-      "minValue": 0,
+    "vowpal Wabbit Switches": {
+      "type": "string",
+      "defaultValue": "--cb_explore 4 --epsilon 0.2 --cb_type dr",
       "metadata": {
-        "description": "The number of action choices, which is fixed for all interactions. This value is irrelevant for action-dependent features."
+        "description": "Flags for learning and exploration.  See http://hunch.net/~vw."
       }
     },
     "initial Exploration Epsilon": {
       "type": "string",
       "defaultValue": "0.2",
       "metadata": {
-        "description": "The initial epsilon value to use in epsilon-greedy exploration until the front end obtains a machine-learned model. Epsilon = 0 indicates no randomization, whereas epsilon = 1 indicates uniform randomization."
+        "description": "Epsilon in [0,1] for exploration before first model is learned."
       }
     },
     "experimental Unit Duration In Seconds": {
       "type": "int",
       "minValue": 5,
-      "defaultValue": 30,
+      "defaultValue": 10,
       "metadata": {
-        "description": "Join Delay (in seconds): The fixed delay of the interaction-observation join that occurs in Azure Stream Analytics."
-      }
-    },
-    "vowpal Wabbit Switches": {
-      "type": "string",
-      "defaultValue": "--cb_explore_adf --epsilon 0.2 --cb_type dr",
-      "metadata": {
-        "description": "Switches that are passed to Vowpal Wabbit for exploration and policy learning."
+        "description": "Allowed seconds after interaction to observe reward."
       }
     },
     "management Password": {
       "type": "string",
       "defaultValue": "",
       "metadata": {
-        "description": "Password for the management center. If empty, a random value will be generated."
+        "description": "Random value if empty."
       }
     },
     "user Token": {
@@ -62,12 +54,12 @@
         "description": "The number of days to retain events in EventHubs (such as interaction and observation events). This applies to all EventHubs provisioned as part of the service."
       }
     },
-    "partition Count": {
+    "MB/s": {
       "type": "int",
-      "defaultValue": 16,
-      "minValue": 1,
+      "defaultValue": 2,
+      "minValue": 2,
       "metadata": {
-        "description": "The number of shards on each EventHub. This applies to all EventHubs provisioned as part of the service."
+        "description": "Bandwidth required, minimum 2."
       }
     },
     "online Trainer VM Size": {
@@ -77,11 +69,11 @@
         "description": "Size of the VM that runs the Online Trainer. Acceptable values are (in ascending order of performance and cost): ExtraSmall, Standard_D1_v2, Standard_D2_v2, Standard_D3_v2, Standard_D4_v2, Standard_D5_v2. For more information, refer to: https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-windows-sizes/"
       }
     },
-    "online Trainer Checkpoint Interval": {
+    "model update interval (s)": {
       "type": "string",
-      "defaultValue": "100",
+      "defaultValue": "10",
       "metadata": {
-        "description": "If a number is specified, checkpointing will occur after that many examples.  If a value is entered in the format HH:MM:SS, then checkpointing will occur according to that time interval."
+        "description": "Seconds between front end model updates."
       }
     }
   },
@@ -173,7 +165,7 @@
           "ehName": { "value": "interaction" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
           "messageRetentionInDays": { "value": "[parameters('message Retention In Days')]" },
-          "partitionCount": { "value": "[parameters('partition Count')]" }
+          "partitionCount": { "value": "[parameters('MB/s')]" }
         }
       }
     },
@@ -192,7 +184,7 @@
           "ehName": { "value": "observation" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
           "messageRetentionInDays": { "value": "[parameters('message Retention In Days')]" },
-          "partitionCount": { "value": "[parameters('partition Count')]" }
+          "partitionCount": { "value": "[parameters('MB/s')]" }
         }
       }
     },
@@ -211,7 +203,7 @@
           "ehName": { "value": "joined" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
           "messageRetentionInDays": { "value": "[parameters('message Retention In Days')]" },
-          "partitionCount": { "value": "[parameters('partition Count')]" }
+          "partitionCount": { "value": "[parameters('MB/s')]" }
         }
       }
     },
@@ -227,7 +219,7 @@
           "ehName": { "value": "eval" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
           "messageRetentionInDays": { "value": "[parameters('message Retention In Days')]" },
-          "partitionCount": { "value": "[parameters('partition Count')]" }
+          "partitionCount": { "value": "[parameters('MB/s')]" }
         }
       }
     },
@@ -260,12 +252,11 @@
 
           "experimentalUnitDurationInSeconds": { "value": "[parameters('experimental Unit Duration In Seconds')]" },
           "vowpalWabbitTrainArguments": { "value": "[parameters('vowpal Wabbit Switches')]" },
-          "numberOfActions": { "value": "[parameters('number Of Actions')]" },
 
           "joinedEventHubConnectionString": { "value": "[reference('Microsoft.Resources/deployments/EventHubJoined').outputs.listenConnectionString.value]" },
           "evalEventHubConnectionString": { "value": "[reference('Microsoft.Resources/deployments/EventHubEval').outputs.sendConnectionString.value]" },
           "adminToken": { "value": "[reference('Microsoft.Resources/deployments/AdminTokenGenerator').outputs.FinalPassword.value]" },
-          "checkpointPolicy": { "value": "[parameters('online Trainer Checkpoint Interval')]" }
+          "checkpointPolicy": { "value": "[parameters('model update interval (s)')]" }
         }
       }
     },
@@ -323,7 +314,7 @@
           "observationEventHub": { "value": "[reference('Microsoft.Resources/deployments/EventHubObservation').outputs]" },
           "joinedEventHub": { "value": "[reference('Microsoft.Resources/deployments/EventHubJoined').outputs]" },
           "messageRetentionInDays": { "value": "[parameters('message Retention In Days')]" },
-          "partitionCount": { "value": "[parameters('partition Count')]" },
+          "partitionCount": { "value": "[parameters('MB/s')]" },
           "experimentalUnitDurationInSeconds": { "value": "[parameters('experimental Unit Duration In Seconds')]" }
         }
       }
@@ -347,7 +338,7 @@
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
           "evalEventHub": { "value": "[reference('Microsoft.Resources/deployments/EventHubEval').outputs]" },
           "messageRetentionInDays": { "value": "[parameters('message Retention In Days')]" },
-          "partitionCount": { "value": "[parameters('partition Count')]" }
+          "partitionCount": { "value": "[parameters('MB/s')]" }
         }
       }
     },
