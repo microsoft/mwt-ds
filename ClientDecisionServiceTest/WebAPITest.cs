@@ -127,10 +127,36 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
-        [Ignore]
         public void ThroughputTest()
         {
-            // stub
+            wc.Headers.Clear();
+            wc.Headers.Add("Authorization", nonADFAuthToken);
+            string baseUrl = nonADFUrl;
+
+            // send context, and receive decision(s)
+            string contextType = "policy";
+            string contextString = "{ Age: 25, Location: \"New York\"}";
+
+
+            DateTime start = DateTime.Now;
+            for (int i = 0; i < 1000; ++i)
+            {
+                JObject responseJObj = InteractionParts1and2(baseUrl, contextType, contextString);
+
+                // parse decision
+                int topAction = (int)responseJObj["Action"];
+
+                // Compare only the decision, not the eventID
+                Assert.IsTrue(topAction >= 1);
+
+                // now post the reward
+                float reward = 1.0F;
+                string utf8response = InteractionPart3(baseUrl, responseJObj, reward);
+            }
+            var duration = (DateTime.Now - start).TotalSeconds;
+
+            // parse response to reward (should be empty)
+            Assert.IsTrue(duration < 100);
         }
     }
 }
