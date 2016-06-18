@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using System.Text;
 using System.Globalization;
+using Newtonsoft.Json.Linq;
 
 namespace ClientDecisionServiceTest
 {
@@ -31,7 +32,7 @@ namespace ClientDecisionServiceTest
         readonly string authToken = "mzf2xsxf4hjwe"; // insert auth token
         readonly string baseUrl = "http://dmdp1-webapi-jvj7wdftvsdwe.azurewebsites.net"; // insert API URL here
         readonly string contextType = "ranker";
-        readonly int numActions = 3;
+        // readonly int numActions = 3;
 
         [TestMethod]
         public void IndexExistsTest()
@@ -49,16 +50,29 @@ namespace ClientDecisionServiceTest
             var wc = new WebClient();
             wc.Headers.Add("Authorization", authToken);
 
-            string requestUri = string.Format(CultureInfo.InvariantCulture, "{0}/{1}", baseUrl, contextType);
-            string payloadString = "{ Age: 25, Location: \"New York\", _multi: [{ a: 1}, { b: 2}]}";
-            byte[] payload = System.Text.Encoding.ASCII.GetBytes(payloadString);
-            var response = wc.UploadData(requestUri, "POST", payload);
+            string contextUri = string.Format(CultureInfo.InvariantCulture, "{0}/{1}", baseUrl, contextType);
+            string contextString = "{ Age: 25, Location: \"New York\", _multi: [{ a: 1}, { b: 2}]}";
+            byte[] context = System.Text.Encoding.ASCII.GetBytes(contextString);
+            var response = wc.UploadData(contextUri, "POST", context);
 
             var utf8response = UnicodeEncoding.UTF8.GetString(response);
-
+            JObject jobj = JObject.Parse(utf8response);
+            JArray actions = (JArray)jobj["Action"];
+            int topAction = (int)actions[0];
             // Compare only the decision, not the eventID
-            Assert.AreEqual("{\"Action\":[1,2]", utf8response.Substring(0,15));
-       }
+            Assert.IsTrue(topAction >= 1);
+            Assert.IsTrue(topAction <= 2);
+
+            // now post the reward
+            string eventID = (string)jobj["EventId"];
+            string rewardUri = string.Format(CultureInfo.InvariantCulture, "{0}/reward/{1}", baseUrl, eventID);
+            string rewardString = "1";
+            byte[] reward = System.Text.Encoding.ASCII.GetBytes(rewardString);
+            response = wc.UploadData(rewardUri, "POST", reward);
+            utf8response = UnicodeEncoding.UTF8.GetString(response);
+
+            Assert.AreEqual("", utf8response);
+        }
 
         [TestMethod]
         [Ignore]

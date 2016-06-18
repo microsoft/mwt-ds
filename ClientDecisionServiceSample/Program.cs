@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
+using System.Threading;
 
 namespace ClientDecisionServiceSample
 {
@@ -16,24 +18,14 @@ namespace ClientDecisionServiceSample
             Trace.Listeners.Add(new ConsoleTraceListener());
 
             // Sample code showing how to use the simple interface of the client library
-            // to optimize an action from a set of actions.
-            //SingleActionSamples.SampleCodeUsingSimpleContext();
+            // to perform news recommendation. This example assumes the set of topics 
+            // is constant for each decision varies.
+            Sample.NewsRecommendation();
 
-            // Sample code showing how to use ASA join server along with
-            // context objects which are json-formatted, where the objective
-            // is to choose one single action.
-            //SingleActionSamples.SampleCodeUsingASAWithJsonContext();
-
-            // Sample code showing how to tell the client to upload data
-            // to the ASA join server.
-            //MultiActionSamples.SampleCodeUsingASAJoinServer();
-            SampleCodeUsingJsonDirectContextClass.SampleCodeUsingJsonDirectContext();
-            //MultiActionSamples.TrainNewVWModelWithMultiActionJsonDirectData();
-
-            // Sample code showing how to use ASA join server along with
-            // context objects which are json-formatted, where the objective
-            // is to choose a ranking over actions.
-            //MultiActionSamples.SampleCodeUsingASAWithJsonContext();
+            // Sample code showing how to use the simple interface of the client library
+            // to perform news recommendation. This example assumes each topic has its 
+            // own set of features and the set of topics available for each decision varies.
+            SampleActionDependentFeature.NewsRecommendation();
         }
     }
 }
