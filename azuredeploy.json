@@ -39,11 +39,11 @@
         "description": "Size of the VM that runs the Online Trainer. Acceptable values are (in ascending order of performance and cost): ExtraSmall, Standard_D1_v2, Standard_D2_v2, Standard_D3_v2, Standard_D4_v2, Standard_D5_v2. For more information, refer to: https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-windows-sizes/"
       }
     },
-    "model update interval (s)": {
+    "model update interval": {
       "type": "string",
       "defaultValue": "10",
       "metadata": {
-        "description": "Seconds between front end model updates."
+        "description": "Number of examples between front end model updates. For time interval, use the format HH:MM:SS."
       }
     }
   },
@@ -213,7 +213,7 @@
           "joinedEventHubConnectionString": { "value": "[reference('Microsoft.Resources/deployments/EventHubJoined').outputs.listenConnectionString.value]" },
           "evalEventHubConnectionString": { "value": "[reference('Microsoft.Resources/deployments/EventHubEval').outputs.sendConnectionString.value]" },
           "adminToken": { "value": "[reference('Microsoft.Resources/deployments/AdminTokenGenerator').outputs.FinalPassword.value]" },
-          "checkpointPolicy": { "value": "[parameters('model update interval (s)')]" }
+          "checkpointPolicy": { "value": "[parameters('model update interval')]" }
         }
       }
     },
