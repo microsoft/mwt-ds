@@ -77,20 +77,6 @@
     },
     {
       "apiVersion": "2015-01-01",
-      "name": "UserTokenGenerator",
-      "type": "Microsoft.Resources/deployments",
-      "dependsOn": [ "Microsoft.Resources/deployments/Storage" ],
-      "properties": {
-        "mode": "incremental",
-        "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" },
-        "parameters": {
-          "Password": { "value": "" },
-          "RandomSeed": { "value": "[concat(reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, 'ut')]" }
-        }
-      }
-    },
-    {
-      "apiVersion": "2015-01-01",
       "name": "AdminTokenGenerator",
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [ "Microsoft.Resources/deployments/Storage" ],
@@ -245,27 +231,6 @@
     },
     {
       "apiVersion": "2015-01-01",
-      "name": "WebAPI",
-      "type": "Microsoft.Resources/deployments",
-      "dependsOn": [
-        "Microsoft.Resources/deployments/UserTokenGenerator",
-        "Microsoft.Resources/deployments/Storage",
-        "Microsoft.Resources/deployments/AppInsights",
-        "Microsoft.Resources/deployments/SecureSettingsUri"
-      ],
-      "properties": {
-        "mode": "incremental",
-        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/WebAPITemplate.json')]" },
-        "parameters": {
-          "instrumentationKey": { "value": "[reference('Microsoft.Resources/deployments/AppInsights').outputs.instrumentationKey.value]" },
-          "userStorageAccountName": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountName.value]" },
-          "userToken": { "value": "[reference('Microsoft.Resources/deployments/UserTokenGenerator').outputs.FinalPassword.value]" },
-          "SecureSettingsUri": { "value": "[reference('Microsoft.Resources/deployments/SecureSettingsUri').outputs.SASTokenUriWebSettings.value]" }
-        }
-      }
-    },
-    {
-      "apiVersion": "2015-01-01",
       "name": "JoinQuery",
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [
@@ -352,14 +317,6 @@
     "Client Library Url": {
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/SecureSettingsUri').outputs.SASTokenUriClientSettings.value]"
-    },
-    "Web Service URL": {
-      "type": "string",
-      "value": "[reference('Microsoft.Resources/deployments/WebAPI').outputs.WebApiUrl.value]"
-    },
-    "Web Service Token": {
-      "type": "string",
-      "value": "[reference('Microsoft.Resources/deployments/UserTokenGenerator').outputs.FinalPassword.value]"
     },
     "Online Trainer Token": {
       "type": "string",
