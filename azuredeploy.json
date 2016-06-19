@@ -16,33 +16,12 @@
         "description": "Epsilon in [0,1] for exploration before first model is learned."
       }
     },
-    "experimental Unit Duration In Seconds": {
+    "experimental Unit Duration (s)": {
       "type": "int",
       "minValue": 5,
       "defaultValue": 10,
       "metadata": {
         "description": "Allowed seconds after interaction to observe reward."
-      }
-    },
-    "management Password": {
-      "type": "string",
-      "defaultValue": "",
-      "metadata": {
-        "description": "Random value if empty."
-      }
-    },
-    "Web Service Token": {
-      "type": "string",
-      "defaultValue": "",
-      "metadata": {
-        "description": "Authorization token to include in the HTTP request to the web service endpoint.  If empty, a random value will be generated."
-      }
-    },
-    "Online Trainer Token": {
-      "type": "string",
-      "defaultValue": "",
-      "metadata": {
-        "description": "Authorization token to include in the HTTP request to the online trainer. If empty, a random value will be generated."
       }
     },
     "MB/s": {
@@ -91,7 +70,7 @@
         "mode": "incremental",
         "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" },
         "parameters": {
-          "Password": { "value": "[parameters('management Password')]" },
+          "Password": { "value": "" },
           "RandomSeed": { "value": "[concat(reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, 'mc')]" }
         }
       }
@@ -105,7 +84,7 @@
         "mode": "incremental",
         "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" },
         "parameters": {
-          "Password": { "value": "[parameters('Web Service Token')]" },
+          "Password": { "value": "" },
           "RandomSeed": { "value": "[concat(reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, 'ut')]" }
         }
       }
@@ -119,7 +98,7 @@
         "mode": "incremental",
         "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" },
         "parameters": {
-          "Password": { "value": "[parameters('Online Trainer Token')]" },
+          "Password": { "value": "" },
           "RandomSeed": { "value": "[concat(reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, 'at')]" }
         }
       }
@@ -242,7 +221,7 @@
           "interactionEventHub": { "value": "[reference('Microsoft.Resources/deployments/EventHubInteraction').outputs]" },
           "observationEventHub": { "value": "[reference('Microsoft.Resources/deployments/EventHubObservation').outputs]" },
 
-          "experimentalUnitDurationInSeconds": { "value": "[parameters('experimental Unit Duration In Seconds')]" },
+          "experimentalUnitDurationInSeconds": { "value": "[parameters('experimental Unit Duration (s)')]" },
           "vowpalWabbitTrainArguments": { "value": "[parameters('vowpal Wabbit Switches')]" },
 
           "joinedEventHubConnectionString": { "value": "[reference('Microsoft.Resources/deployments/EventHubJoined').outputs.listenConnectionString.value]" },
@@ -307,7 +286,7 @@
           "joinedEventHub": { "value": "[reference('Microsoft.Resources/deployments/EventHubJoined').outputs]" },
           "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
           "partitionCount": { "value": "[parameters('MB/s')]" },
-          "experimentalUnitDurationInSeconds": { "value": "[parameters('experimental Unit Duration In Seconds')]" }
+          "experimentalUnitDurationInSeconds": { "value": "[parameters('experimental Unit Duration (s)')]" }
         }
       }
     },
