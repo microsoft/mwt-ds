@@ -31,27 +31,18 @@
         "description": "Random value if empty."
       }
     },
-    "Web Service Authorization Token": {
+    "Web Service Token": {
       "type": "string",
       "defaultValue": "",
       "metadata": {
         "description": "Authorization token to include in the HTTP request to the web service endpoint.  If empty, a random value will be generated."
       }
     },
-    "Online Trainer Authorization Token": {
+    "Online Trainer Token": {
       "type": "string",
       "defaultValue": "",
       "metadata": {
         "description": "Authorization token to include in the HTTP request to the online trainer. If empty, a random value will be generated."
-      }
-    },
-    "message Retention In Days": {
-      "type": "int",
-      "defaultValue": 1,
-      "minValue": 1,
-      "maxValue": 7,
-      "metadata": {
-        "description": "The number of days to retain events in EventHubs (such as interaction and observation events). This applies to all EventHubs provisioned as part of the service."
       }
     },
     "MB/s": {
@@ -64,7 +55,7 @@
     },
     "online Trainer VM Size": {
       "type": "string",
-      "defaultValue": "Standard_D2_v2",
+      "defaultValue": "Standard_D1_v2",
       "metadata": {
         "description": "Size of the VM that runs the Online Trainer. Acceptable values are (in ascending order of performance and cost): ExtraSmall, Standard_D1_v2, Standard_D2_v2, Standard_D3_v2, Standard_D4_v2, Standard_D5_v2. For more information, refer to: https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-windows-sizes/"
       }
@@ -114,7 +105,7 @@
         "mode": "incremental",
         "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" },
         "parameters": {
-          "Password": { "value": "[parameters('Web Service Authorization Token')]" },
+          "Password": { "value": "[parameters('Web Service Token')]" },
           "RandomSeed": { "value": "[concat(reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, 'ut')]" }
         }
       }
@@ -128,7 +119,7 @@
         "mode": "incremental",
         "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" },
         "parameters": {
-          "Password": { "value": "[parameters('Online Trainer Authorization Token')]" },
+          "Password": { "value": "[parameters('Online Trainer Token')]" },
           "RandomSeed": { "value": "[concat(reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, 'at')]" }
         }
       }
@@ -165,7 +156,7 @@
         "parameters": {
           "ehName": { "value": "interaction" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
-          "messageRetentionInDays": { "value": "[parameters('message Retention In Days')]" },
+          "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
           "partitionCount": { "value": "[parameters('MB/s')]" }
         }
       }
@@ -184,7 +175,7 @@
         "parameters": {
           "ehName": { "value": "observation" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
-          "messageRetentionInDays": { "value": "[parameters('message Retention In Days')]" },
+          "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
           "partitionCount": { "value": "[parameters('MB/s')]" }
         }
       }
@@ -203,7 +194,7 @@
         "parameters": {
           "ehName": { "value": "joined" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
-          "messageRetentionInDays": { "value": "[parameters('message Retention In Days')]" },
+          "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
           "partitionCount": { "value": "[parameters('MB/s')]" }
         }
       }
@@ -219,7 +210,7 @@
         "parameters": {
           "ehName": { "value": "eval" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
-          "messageRetentionInDays": { "value": "[parameters('message Retention In Days')]" },
+          "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
           "partitionCount": { "value": "[parameters('MB/s')]" }
         }
       }
@@ -314,7 +305,7 @@
           "interactionEventHub": { "value": "[reference('Microsoft.Resources/deployments/EventHubInteraction').outputs]" },
           "observationEventHub": { "value": "[reference('Microsoft.Resources/deployments/EventHubObservation').outputs]" },
           "joinedEventHub": { "value": "[reference('Microsoft.Resources/deployments/EventHubJoined').outputs]" },
-          "messageRetentionInDays": { "value": "[parameters('message Retention In Days')]" },
+          "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
           "partitionCount": { "value": "[parameters('MB/s')]" },
           "experimentalUnitDurationInSeconds": { "value": "[parameters('experimental Unit Duration In Seconds')]" }
         }
@@ -338,7 +329,7 @@
           "userStorageAccountKey": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value]" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/ServiceBus').outputs.ServiceBusName.value]" },
           "evalEventHub": { "value": "[reference('Microsoft.Resources/deployments/EventHubEval').outputs]" },
-          "messageRetentionInDays": { "value": "[parameters('message Retention In Days')]" },
+          "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
           "partitionCount": { "value": "[parameters('MB/s')]" }
         }
       }
@@ -387,11 +378,11 @@
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/WebAPI').outputs.WebApiUrl.value]"
     },
-    "Web Service Authorization Token": {
+    "Web Service Token": {
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/UserTokenGenerator').outputs.FinalPassword.value]"
     },
-    "Online Trainer Authorization Token": {
+    "Online Trainer Token": {
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/AdminTokenGenerator').outputs.FinalPassword.value]"
     },
