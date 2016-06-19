@@ -1,0 +1,31 @@
+﻿@using DecisionServicePrivateWeb.Models
+@model string
+@{
+    ViewBag.Title = "API";
+}
+
+<div class="row api-simulator">
+    <input id="userToken" value="@Model" style="visibility: hidden;" />
+    <div id="jsoneditor" style="width: 400px; height: 400px;"></div>
+
+    <div id="status"></div>
+    <button class="btn btn-primary" id="submit-interaction">Send Interaction</button>
+
+    <br />
+    <input id="reward" value="1" type="number" />
+    <button class="btn btn-primary" id="submit-observation">Send Observation</button>
+    <br />
+
+    Event Id: <span id="EventId"></span> <br />
+    TimeStamp: <span id="TimeStamp"></span> <br />
+    VW String: <span id="vwstr"></span> <br />
+</div>
+
+@section styles {
+    <link href="~/Content/jsoneditor.min.css" rel="stylesheet" type="text/css">
+}
+
+@section scripts {
+    <script type="text/javascript" src="~/Scripts/jsoneditor.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/api-simulator.js"></script>
+}

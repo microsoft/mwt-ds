@@ -30,6 +30,18 @@ namespace DecisionServicePrivateWeb.Controllers
         const string SKExtraSettings = "ExtraSettings";
 
         [HttpGet]
+        [AllowAnonymous]
+        public ActionResult APITest()
+        {
+            if (!IsAuthenticated(Session))
+            {
+                return RedirectToAction("Index");
+            }
+            return View();
+        }
+
+
+        [HttpGet]
         public ActionResult Index()
         {
             return View(new IndexViewModel { Authenticated = IsAuthenticated(Session) });

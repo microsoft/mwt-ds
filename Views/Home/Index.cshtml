@@ -8,13 +8,24 @@
     <h1>Management Center</h1>
     <p class="lead">
         The Management Center is a tool for modifying various properties of your Multiworld Testing Decision Service.
+        It also exposes an HTTP endpoint for sending data to the service. 
+        To see how this works, visit the <a href="~/Demo/guide.html">API Demo Page</a>. 
+        @if (!Model.Authenticated)
+        {
+            <label style="font-weight: normal;">
+                To manage the service, enter the password below(which can be found in the Application Settings of this site in Azure portal):
+            </label>
+        }
+        else
+        {
+            <label style="font-weight: normal;">
+                Click below to manage your application:
+            </label>
+        }
     </p>
     <p style="text-align:center;">
         @if (!Model.Authenticated)
         {
-            <p class="lead">
-                To get started, enter the password below (which can be found in the Application Settings of this site in Azure portal):
-            </p>
             using (Html.BeginForm("Index", "Home", FormMethod.Post, new { role = "form" }))
             {
                 @Html.AntiForgeryToken()
@@ -36,9 +47,6 @@
         }
         else
         {
-            <p class="lead">
-                Click below to manage your application:
-            </p>
             <div style="text-align: center">
                 <a href="@Url.Action("Settings", "Home")" class="btn btn-primary">Manage Decision Service &raquo;</a>
             </div>

@@ -30,6 +30,7 @@ namespace DecisionServicePrivateWeb.Classes
         public const string AKSubscriptionId = "subscriptionId";
         public const string AKExpUnitDuration = "experimentalUnitDurationInSeconds";
         public const string AKAppInsightsKey = "APPINSIGHTS_INSTRUMENTATIONKEY";
+        public const string AKDecisionServiceSettingsUrl = "DecisionServiceSettingsUrl";
 
         public const string StorageARMDeployContainer = "arm-deploy";
         public const string StorageOnlineTrainerPackageName = "OnlineTraining.cspkg";

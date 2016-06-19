@@ -1,0 +1,42 @@
+﻿body {
+
+    background-color:#363179; 
+    color:white; 
+    font-family:'Segoe UI'
+}
+
+
+body {
+    padding-top: 50px;
+    padding-bottom: 20px;
+}
+
+p {
+    font-size:20px;
+}
+
+code {
+    background-color : transparent;
+}
+
+
+
+
+
+.lead {
+    font-size:30px;
+}
+
+
+.body-content {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.content-item {
+    overflow:hidden; 
+    width:200px; 
+    text-align: center;
+     margin: 0 auto; 
+     display: table;
+}
