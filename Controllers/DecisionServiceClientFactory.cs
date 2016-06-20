@@ -13,7 +13,7 @@ namespace DecisionServicePrivateWeb.Controllers
 {
     public static class DecisionServiceClientFactory
     {
-        public static DecisionServiceClient<string> AddOrGetExisting()
+        public static DecisionServiceClient<string> AddOrGetExisting(Action<byte[]> modelSuccessNotifier)
         {
             return DecisionServiceStaticClient.AddOrGetExisting("single", _ =>
             {
@@ -41,6 +41,7 @@ namespace DecisionServicePrivateWeb.Controllers
                         MaxUploadQueueCapacity = 1,
                         UploadRetryPolicy = BatchUploadRetryPolicy.ExponentialRetry
                     },
+                    ModelPollSuccessCallback = modelSuccessNotifier,
                     ModelPollFailureCallback = e => telemetry.TrackException(e, new Dictionary<string, string> { { "Pool failure", "model" } }),
                     SettingsPollFailureCallback = e => telemetry.TrackException(e, new Dictionary<string, string> { { "Pool failure", "settings" } }),
                     AzureStorageConnectionString = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString]

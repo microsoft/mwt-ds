@@ -188,11 +188,10 @@
                 },
             })
             .done(function (data) {
-
-                // console.log(data);
                 eventId = data.EventId;
+                modelTime = data.ModelTime;
                 $("#article").attr("src", actions[data.Action - 1].image);
-                $("#articleText").text(actions[data.Action - 1].text);
+                $("#articleText").text(actions[data.Action - 1].text + ', model: ' + new Date(parseInt(modelTime.substr(6))));
             })
             .fail(function (jqXHR, textStatus, errorThrown) {
                 $("#status").text("Error: " + textStatus + "  " + errorThrown);
@@ -239,12 +238,11 @@
                 method: "POST",
                 url: "/API/reset",
                 headers: {
-                    "auth": "@Model.WebServiceToken"
+                    "auth": "@Model.TrainerToken"
                 },
             })
             .done(function (data) {
-                $("#statusReward").text("Success " + thisEventId + ": " + reward);
-                chooseAction();
+                $("#statusReward").text("Successfully reset.");
             })
             .fail(function (jqXHR, textStatus, errorThrown) {
                 $("#status").text("Error: " + textStatus + "  " + errorThrown);

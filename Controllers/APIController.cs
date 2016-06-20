@@ -32,6 +32,8 @@ namespace DecisionServicePrivateWeb.Controllers
 
         private const string AuthHeaderName = "auth";
 
+        private static DateTime ModelUpdateTime;
+
         [HttpPost]
         public ActionResult Validate()
         {
@@ -76,7 +78,7 @@ namespace DecisionServicePrivateWeb.Controllers
             {
                 APIUtil.Authenticate(this.Request);
 
-                var client = DecisionServiceClientFactory.AddOrGetExisting();
+                var client = DecisionServiceClientFactory.AddOrGetExisting(ModelSuccessNotifier);
                 var context = APIUtil.ReadBody(this.Request);
                 var eventId = APIUtil.CreateEventId();
                 var action = defaultAction != -1 ? client.ChooseAction(eventId, context, defaultAction) : client.ChooseAction(eventId, context);
@@ -84,7 +86,8 @@ namespace DecisionServicePrivateWeb.Controllers
                 return Json(new 
                 {
                     EventId = eventId,
-                    Action = action
+                    Action = action,
+                    ModelTime = ModelUpdateTime
                 });
             }
             catch (UnauthorizedAccessException ex)
@@ -105,7 +108,7 @@ namespace DecisionServicePrivateWeb.Controllers
             {
                 APIUtil.Authenticate(this.Request);
 
-                var client = DecisionServiceClientFactory.AddOrGetExisting();
+                var client = DecisionServiceClientFactory.AddOrGetExisting(ModelSuccessNotifier);
                 var context = APIUtil.ReadBody(this.Request);
                 var eventId = APIUtil.CreateEventId();
                 var actions = defaultActions != null && defaultActions.Length > 0 ?
@@ -115,7 +118,8 @@ namespace DecisionServicePrivateWeb.Controllers
                 return Json(new
                 {
                     EventId = eventId,
-                    Actions = actions
+                    Actions = actions,
+                    ModelTime = ModelUpdateTime
                 });
             }
             catch (UnauthorizedAccessException ex)
@@ -136,7 +140,7 @@ namespace DecisionServicePrivateWeb.Controllers
             {
                 APIUtil.Authenticate(this.Request);
 
-                var client = DecisionServiceClientFactory.AddOrGetExisting();
+                var client = DecisionServiceClientFactory.AddOrGetExisting(ModelSuccessNotifier);
                 var rewardStr = APIUtil.ReadBody(this.Request);
 
                 var rewardObj = JToken.Parse(rewardStr);
@@ -195,6 +199,11 @@ namespace DecisionServicePrivateWeb.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, ex.ToString());
             }
 
+        }
+
+        private void ModelSuccessNotifier(byte[] modelBytes)
+        {
+            ModelUpdateTime = DateTime.UtcNow;
         }
     }
 }
