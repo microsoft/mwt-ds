@@ -156,7 +156,7 @@ namespace DecisionServicePrivateWeb.Controllers
                     stopwatch.Stop();
                     telemetry.TrackRequest("ReportReward", DateTime.Now, stopwatch.Elapsed, "200", true);
 
-                    return new HttpStatusCodeResult(HttpStatusCode.OK);
+                    return Json(new { Reward = 1 });
                 }
             }
             catch (Exception e)

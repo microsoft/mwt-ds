@@ -20,28 +20,30 @@
 
     var lastJson = "";
     setInterval(function () {
-        var newJson = editor.getText();
+        var userToken = $("#userToken").val();
+        if (userToken != null && userToken.length > 0) {
 
-        if (lastJson == newJson)
-            return;
+            var newJson = editor.getText();
+            if (lastJson == newJson)
+                return;
 
-        lastJson = newJson;
-
-        $.ajax({
-            url: "/API/Validate/",
-            headers: { 'auth': $("#userToken").val() },
-            type: "POST",
-            data: newJson,
-            contentType: "application/json; charset=utf-8",
-            dataType: "json",
-            cache: false,
-            success: function (data) {
-                $("#vwstr").html("<pre>" + data.VWExample + "</pre>");
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                $("#vwstr").html("Unable to validate due to error = " + textStatus);
-            }
-        });
+            $.ajax({
+                url: "/API/Validate/",
+                headers: { 'auth': userToken },
+                type: "POST",
+                data: newJson,
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                cache: false,
+                success: function (data) {
+                    lastJson = newJson;
+                    $("#vwstr").html("<pre>" + data.VWExample + "</pre>");
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    $("#vwstr").html("Invalid JSON structure.");
+                }
+            });
+        }
     }, 500);
 
     function SubmitInteraction()
@@ -70,17 +72,14 @@
     function SubmitObservation() {
         $.ajax({
             method: "POST",
-            url: "/API/Reward/" + $("#EventId").text(),
-            data: $("#reward").val(),
+            url: "/API/Reward/?eventId=" + $("#EventId").text(),
+            data: $("#rewardInput").val(),
             headers: {
                 'auth': $("#userToken").val()
             },
         })
         .done(function (data) {
-            $("#status").text("Success");
-
-            $("#EventId").text(data.EventId);
-            $("#TimeStamp").text(data.TimeStamp);
+            $("#statusReward").text("Successfully sent reward of: " + data.Reward);
         })
         .fail(function (jqXHR, textStatus, errorThrown) {
             $("#status").text("Error sending reward: " + textStatus + "  " + errorThrown);
