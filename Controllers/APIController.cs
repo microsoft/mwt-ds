@@ -39,7 +39,7 @@ namespace DecisionServicePrivateWeb.Controllers
 
                 if (this.metaData == null || lastDownload + TimeSpan.FromMinutes(1) < DateTime.Now)
                 {
-                    var url = GetSettingsUrl();
+                    var url = APIUtil.GetSettingsUrl();
                     this.metaData = ApplicationMetadataUtil.DownloadMetadata<ApplicationClientMetadata>(url);
                     lastDownload = DateTime.Now;
                 }
@@ -146,22 +146,6 @@ namespace DecisionServicePrivateWeb.Controllers
                 new TelemetryClient().TrackException(ex);
                 return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, ex.ToString());
             }
-        }
-
-        private string GetSettingsUrl()
-        {
-            var settingsURL = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKDecisionServiceSettingsUrl];
-            if (settingsURL == null)
-            {
-                var storageAccount = CloudStorageAccount.Parse(ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString]);
-                var blobClient = storageAccount.CreateCloudBlobClient();
-                var settingsBlobContainer = blobClient.GetContainerReference(ApplicationBlobConstants.SettingsContainerName);
-                var extraSettingsBlob = settingsBlobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestExtraSettingsBlobName);
-                var extraSettings = JsonConvert.DeserializeObject<ApplicationExtraMetadata>(extraSettingsBlob.DownloadText());
-                settingsURL = extraSettings.SettingsTokenUri1;
-                ConfigurationManager.AppSettings.Set(ApplicationMetadataStore.AKDecisionServiceSettingsUrl, settingsURL);
-            }
-            return settingsURL;
         }
     }
 }

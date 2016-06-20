@@ -1,5 +1,8 @@
 ﻿using DecisionServicePrivateWeb.Classes;
 using Microsoft.Research.MultiWorldTesting.ClientLibrary;
+using Microsoft.Research.MultiWorldTesting.Contract;
+using Microsoft.WindowsAzure.Storage;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -39,6 +42,22 @@ namespace DecisionServicePrivateWeb.Controllers
         internal static string CreateEventId()
         {
             return Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
+        }
+
+        internal static string GetSettingsUrl()
+        {
+            var settingsURL = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKDecisionServiceSettingsUrl];
+            if (settingsURL == null)
+            {
+                var storageAccount = CloudStorageAccount.Parse(ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString]);
+                var blobClient = storageAccount.CreateCloudBlobClient();
+                var settingsBlobContainer = blobClient.GetContainerReference(ApplicationBlobConstants.SettingsContainerName);
+                var extraSettingsBlob = settingsBlobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestExtraSettingsBlobName);
+                var extraSettings = JsonConvert.DeserializeObject<ApplicationExtraMetadata>(extraSettingsBlob.DownloadText());
+                settingsURL = extraSettings.SettingsTokenUri1;
+                ConfigurationManager.AppSettings.Set(ApplicationMetadataStore.AKDecisionServiceSettingsUrl, settingsURL);
+            }
+            return settingsURL;
         }
     }
 }

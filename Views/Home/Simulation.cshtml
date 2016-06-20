@@ -130,8 +130,9 @@
 
             <div class="thumbnail" style="text-align:center; width:650px; margin: 0 auto">
                 <div class="caption article">
-
-                    <p>Graph here</p>
+                    <div id="chart">
+                        <svg style="height: 500px;"></svg>
+                    </div>
                 </div>
             </div>
 
@@ -197,12 +198,12 @@
             // Get Decision
             $.ajax({
                 method: "POST",
-                url: "/API/Ranker",
+                url: "/API/Policy",
                 data: JSON.stringify(context),
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
                 headers: {
-                    "Auth": $("#userToken").val()
+                    "auth": $("#userToken").val()
                 },
             })
             .done(function (data) {
@@ -240,7 +241,7 @@
                 url: "/API/Reward/?eventId" + eventId,
                 data: "" + reward,
                 headers: {
-                    "Auth": $("#userToken").val()
+                    "auth": $("#userToken").val()
                 },
             })
             .done(function (data) {
