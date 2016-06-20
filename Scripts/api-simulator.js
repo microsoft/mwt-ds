@@ -29,7 +29,7 @@
 
         $.ajax({
             url: "/API/Validate/",
-            headers: { 'auth': 'sandbox' },
+            headers: { 'auth': $("#userToken").val() },
             type: "POST",
             data: newJson,
             contentType: "application/json; charset=utf-8",
