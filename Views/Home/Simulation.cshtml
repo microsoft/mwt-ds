@@ -202,7 +202,7 @@
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
                 headers: {
-                    "Authorization": $("#userToken").val()
+                    "Auth": $("#userToken").val()
                 },
             })
             .done(function (data) {
@@ -240,7 +240,7 @@
                 url: "/API/Reward/?eventId" + eventId,
                 data: "" + reward,
                 headers: {
-                    "Authorization": $("#userToken").val()
+                    "Auth": $("#userToken").val()
                 },
             })
             .done(function (data) {
