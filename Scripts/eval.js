@@ -56,6 +56,6 @@
 
     $('#eval-window-filter').on('change', function () {
         windowType = this.value;
-        updateData();
+        updateChart();
     });
 })

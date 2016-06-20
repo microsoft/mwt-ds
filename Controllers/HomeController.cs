@@ -196,7 +196,7 @@ namespace DecisionServicePrivateWeb.Controllers
                 return RedirectToAction("Index");
             }
 
-            return View(new EvaluationViewModel { WindowFilters = new List<string>(new string[] { "5m", "20m", "1h", "3h", "6h" }), SelectedFilter = "5m" });
+            return View(new EvaluationViewModel { WindowFilters = new List<string>(GetEvalFilterWindowTypes()), SelectedFilter = "1m" });
         }
 
         [HttpGet]
@@ -302,12 +302,18 @@ namespace DecisionServicePrivateWeb.Controllers
             return (Session[SKAuthenticated] != null && (bool)Session[SKAuthenticated]);
         }
 
+        private static string[] GetEvalFilterWindowTypes()
+        {
+            return new string[] { "1m", "20m", "1h", "3h", "6h" };
+        }
+
         private SimulationViewModel SimulationView()
         {
             return new SimulationViewModel
             {
                 WebServiceToken = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKWebServiceToken],
-                TrainerToken = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKAdminToken]
+                TrainerToken = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKAdminToken],
+                EvaluationView = new EvaluationViewModel { WindowFilters = new List<string>(GetEvalFilterWindowTypes()), SelectedFilter = "1m" }
             };
         }
 
