@@ -58,7 +58,8 @@ namespace Microsoft.Research.DecisionServiceTest
         [TestMethod]
         public async Task SimplePolicyHttpTest()
         {
-            this.ConfigureDecisionService("--cb_explore 4 --epsilon 0", initialExplorationEpsilon: 1, isExplorationEnabled: true);
+            this.ConfigureDecisionService("--cb_explore 4 --epsilon 1", initialExplorationEpsilon: 1, isExplorationEnabled: true);
+            Thread.Sleep(TimeSpan.FromSeconds(5));
 
             // 4 Actions
             // why does this need to be different from default?
@@ -88,7 +89,7 @@ namespace Microsoft.Research.DecisionServiceTest
 
             Console.WriteLine("Exploration");
             var expectedEvents = 0;
-            for (int i = 0; i < 128; i++)
+            for (int i = 0; i < 1000; i++)
             {
                 int featureIndex = i % features.Length;
                 expectedEvents += SendEvents(wc, featureIndex);
@@ -104,18 +105,19 @@ namespace Microsoft.Research.DecisionServiceTest
             foreach (var k in freq.Keys.OrderBy(k => k))
             {
                 var f = freq[k] / (float)total;
-                Assert.IsTrue(f < 0.08);
+                Assert.IsTrue(f < 0.08); // 1/(4*4) = 0.0625
                 Console.WriteLine("{0} | {1}", k, f);
             }
 
             freq.Clear();
 
-            // TODO: update eps to 0
+            this.ConfigureDecisionService("--cb_explore 4 --epsilon 0", initialExplorationEpsilon: 1, isExplorationEnabled: false);
+            Thread.Sleep(TimeSpan.FromSeconds(5));
 
             // check here to make sure model was updated
             Console.WriteLine("Exploitation");
             expectedEvents = 0;
-            for (int i = 0; i < 1024; i++)
+            for (int i = 0; i < 1000; i++)
             {
                 var featureIndex = i % features.Length;
                 expectedEvents += SendEvents(wc, featureIndex, false);
