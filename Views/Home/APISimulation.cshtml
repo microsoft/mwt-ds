@@ -1,6 +1,8 @@
-﻿@{
+﻿@using DecisionServicePrivateWeb.Models
+@{
     Layout = null;
 }
+@model SimulationViewModel
 
 <!DOCTYPE html>
 
@@ -41,7 +43,7 @@
 
     <div class="input-group" style="margin: 0 auto; width:300px">
         <div class="input-group-addon" style="color:black">Authorization token: </div>
-        <input type="text" class="form-control" id="userToken" placeholder="Web service token" value="@Model.AuthToken">
+        <input type="text" class="form-control" id="userToken" placeholder="Web service token" value="@Model.WebServiceToken">
     </div>
 
     <br /><br />
@@ -265,7 +267,7 @@
                 method: "POST",
                 url: "/API/reset",
                 headers: {
-                    "auth": "@Model.AdminToken"
+                    "auth": "@Model.WebServiceToken"
                 },
             })
             .done(function (data) {

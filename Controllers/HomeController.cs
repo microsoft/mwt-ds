@@ -110,7 +110,7 @@ namespace DecisionServicePrivateWeb.Controllers
             {
                 return RedirectToAction("Index");
             }
-            return View();
+            return View(SimulationView());
         }
 
         [HttpGet]
@@ -256,16 +256,16 @@ namespace DecisionServicePrivateWeb.Controllers
                             }
                             if (evalData.ContainsKey(evalResult.PolicyName))
                             {
-                                var timeToCost = evalData[evalResult.PolicyName].values;
+                                var timeToReward = evalData[evalResult.PolicyName].values;
                                 //.Add(new object[] { evalResult.LastWindowTime, evalResult.AverageCost });
 
-                                if (timeToCost.ContainsKey(evalResult.LastWindowTime))
+                                if (timeToReward.ContainsKey(evalResult.LastWindowTime))
                                 {
-                                    timeToCost[evalResult.LastWindowTime] = evalResult.AverageCost;
+                                    timeToReward[evalResult.LastWindowTime] = -evalResult.AverageCost;
                                 }
                                 else
                                 {
-                                    timeToCost.Add(evalResult.LastWindowTime, evalResult.AverageCost);
+                                    timeToReward.Add(evalResult.LastWindowTime, -evalResult.AverageCost);
                                 }
                             }
                             else
@@ -306,8 +306,8 @@ namespace DecisionServicePrivateWeb.Controllers
         {
             return new SimulationViewModel
             {
-                AuthToken = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKWebServiceToken],
-                AdminToken = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKAdminToken]
+                WebServiceToken = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKWebServiceToken],
+                TrainerToken = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKAdminToken]
             };
         }
 
