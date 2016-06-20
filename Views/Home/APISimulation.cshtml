@@ -63,15 +63,17 @@
                     <div class="thumbnail" style="text-align: center; margin: 0 auto; display: table; width:200px;">
                         <div class="caption">
                             <p>Location:</p>
-                            <div class="radio" style="text-align:left">
-                                <label><input type="radio" name="optradio" checked="checked" value="Seattle" id="contextDefaultRadio">Seattle</label>
-                            </div>
-                            <div class="radio" style="text-align:left">
-                                <label><input type="radio" name="optradio" value="DC">Washington D.C.</label>
-                            </div>
-                            <div class="radio" style="text-align:left">
-                                <label><input type="radio" name="optradio" value="NYC">New York City</label>
-                            </div>
+                            <form id="LocationForm">
+                                <div class="radio" style="text-align:left">
+                                    <label><input type="radio" name="optradio" checked="checked" value="Seattle" id="contextDefaultRadio">Seattle</label>
+                                </div>
+                                <div class="radio" style="text-align:left">
+                                    <label><input type="radio" name="optradio" value="DC">Washington D.C.</label>
+                                </div>
+                                <div class="radio" style="text-align:left">
+                                    <label><input type="radio" name="optradio" value="NYC">New York City</label>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -261,6 +263,11 @@
                     reportReward(-2);
                     break;
             }
+        });
+
+
+        $('#LocationForm input').on('change', function () {
+            chooseAction();
         });
     </script>
 </body>
