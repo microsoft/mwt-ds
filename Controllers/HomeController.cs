@@ -181,16 +181,34 @@ namespace DecisionServicePrivateWeb.Controllers
         [AllowAnonymous]
         public ActionResult EvalJson(string windowType = "3h", int maxNumPolicies = 5)
         {
-            var policyRegex = "Constant Policy (.*)";
-            var regex = new Regex(policyRegex);
-
             if (!IsAuthenticated(Session))
             {
                 return new HttpStatusCodeResult(HttpStatusCode.Unauthorized);
             }
 
+            return GetEvalData(windowType, maxNumPolicies);
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        public ActionResult EvalJsonAPI(string windowType = "5m", int maxNumPolicies = 5)
+        {
+            var userToken = Request.Headers["auth"];
+            if (userToken != ConfigurationManager.AppSettings[ApplicationMetadataStore.AKPassword])
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.Unauthorized, "A valid token must be specified.");
+            }
+
+            return GetEvalData(windowType, maxNumPolicies);
+        }
+
+        private ActionResult GetEvalData(string windowType, int maxNumPolicies)
+        {
             try
             {
+                var policyRegex = "Constant Policy (.*)";
+                var regex = new Regex(policyRegex);
+
                 var evalContainer = (CloudBlobContainer)Session[SKEvalContainer];
                 var evalBlobs = evalContainer.ListBlobs(useFlatBlobListing: true);
                 var evalData = new Dictionary<string, EvalD3>();
@@ -218,7 +236,7 @@ namespace DecisionServicePrivateWeb.Controllers
                             if (evalData.ContainsKey(evalResult.PolicyName))
                             {
                                 var timeToCost = evalData[evalResult.PolicyName].values;
-                                    //.Add(new object[] { evalResult.LastWindowTime, evalResult.AverageCost });
+                                //.Add(new object[] { evalResult.LastWindowTime, evalResult.AverageCost });
 
                                 if (timeToCost.ContainsKey(evalResult.LastWindowTime))
                                 {

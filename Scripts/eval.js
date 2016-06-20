@@ -1,14 +1,8 @@
 ﻿$(function () {
-    windowType = '3h';
+    windowType = '5m';
 
-    updateData();
-
-    var inter = setInterval(function () {
-        updateData();
-    }, 1000 * 60);
-
-    function updateData() {
-        d3.json('/Home/EvalJson?windowType=' + windowType, function (error, response) {
+    function updateDataD3(baseEvalAddress, chartId) {
+        d3.json(baseEvalAddress + '?windowType=' + windowType, function (error, response) {
             nv.addGraph(function () {
                 var chart = nv.models.cumulativeLineChart()
                               .x(function (d) { return parseInt(d[0].substr(6)) })
@@ -27,7 +21,7 @@
                 if (response == null) {
                     response = [];
                 }
-                d3.select('#chart svg')
+                d3.select('#' + chartId + ' svg')
                     .datum(response)
                     .call(chart);
 
@@ -37,6 +31,26 @@
             });
         });
     }
+
+    function updateData() {
+        updateDataD3('/Home/EvalJson', 'chart');
+    }
+    function updateDataAPI() { // update chart for API demo
+        updateDataD3('/Home/EvalJsonAPI', 'chart-api');
+    }
+    function updateChart() {
+        if ($("#chart").length) {
+            updateData();
+        }
+        if ($("#chart-api").length) {
+            updateDataAPI();
+        }
+    }
+    updateChart();
+
+    var inter = setInterval(function () {
+        updateChart();
+    }, 1000 * 60);
 
     $('#eval-window-filter').on('change', function () {
         windowType = this.value;
