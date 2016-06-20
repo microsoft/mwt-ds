@@ -11,6 +11,7 @@
 
     "managementPassword": { "type": "string" },
     "adminToken": { "type": "string" },
+    "webServiceToken": { "type": "string" },
     "checkpointPolicy": { "type": "string" },
 
     "interactionEventHub": { "type": "object" },
@@ -151,6 +152,7 @@
             "joinedEventHubConnectionString": "[parameters('joinedEventHubConnectionString')]",
             "evalEventHubConnectionString": "[parameters('evalEventHubConnectionString')]",
             "adminToken": "[parameters('adminToken')]",
+            "webServiceToken": "[parameters('webServiceToken')]",
             "checkpointPolicy": "[parameters('checkpointPolicy')]",
             "initialExplorationEpsilon": "[parameters('initialExplorationEpsilon')]"
           }
