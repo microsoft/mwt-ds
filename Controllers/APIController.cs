@@ -59,7 +59,7 @@ namespace DecisionServicePrivateWeb.Controllers
                 using (var serializer = new VowpalWabbitJsonSerializer(vw))
                 using (var example = serializer.ParseAndCreate(new JsonTextReader(new StringReader(await inputReader.ReadToEndAsync()))))
                 {
-                    return new HttpStatusCodeResult(HttpStatusCode.OK, example.VowpalWabbitString);
+                    return Json(new { VWExample = example.VowpalWabbitString });
                 }
             }
             catch (Exception ex)
@@ -215,7 +215,7 @@ namespace DecisionServicePrivateWeb.Controllers
                 var extraSettingsBlob = settingsBlobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestExtraSettingsBlobName);
                 var extraSettings = JsonConvert.DeserializeObject<ApplicationExtraMetadata>(extraSettingsBlob.DownloadText());
                 settingsURL = extraSettings.SettingsTokenUri1;
-                ConfigurationManager.AppSettings.Add(ApplicationMetadataStore.AKDecisionServiceSettingsUrl, settingsURL);
+                ConfigurationManager.AppSettings.Set(ApplicationMetadataStore.AKDecisionServiceSettingsUrl, settingsURL);
             }
             return settingsURL;
         }

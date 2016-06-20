@@ -36,7 +36,7 @@
             dataType: "json",
             cache: false,
             success: function (data) {
-                $("#vwstr").html("<pre>" + data + "</pre>");
+                $("#vwstr").html("<pre>" + data.VWExample + "</pre>");
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 $("#vwstr").html("Unable to validate due to error = " + textStatus);
