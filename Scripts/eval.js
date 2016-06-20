@@ -4,7 +4,7 @@
     function updateDataD3(baseEvalAddress, chartId) {
         d3.json(baseEvalAddress + '?windowType=' + windowType, function (error, response) {
             nv.addGraph(function () {
-                var chart = nv.models.cumulativeLineChart()
+                var chart = nv.models.lineChart()
                               .x(function (d) { return parseInt(d[0].substr(6)) })
                               .y(function (d) { return d[1] })
                               .color(d3.scale.category10().range())
