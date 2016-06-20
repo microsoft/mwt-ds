@@ -23,7 +23,7 @@ namespace DecisionServicePrivateWeb.Controllers
         const string SKAuthenticated = "Authenticated";
 
         const string SKClientSettingsBlob = "ClientSettingsBlob";
-        const string SKExtraSettingsBlob = "ExtraSettingsBlob";
+        internal const string SKExtraSettingsBlob = "ExtraSettingsBlob";
         const string SKEvalContainer = "EvalContainer";
 
         const string SKClientSettings = "ClientSettings";
@@ -306,7 +306,8 @@ namespace DecisionServicePrivateWeb.Controllers
         {
             return new SimulationViewModel
             {
-                AuthToken = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKWebServiceToken]
+                AuthToken = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKWebServiceToken],
+                AdminToken = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKAdminToken]
             };
         }
 

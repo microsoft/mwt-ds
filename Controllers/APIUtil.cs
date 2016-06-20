@@ -18,8 +18,11 @@ namespace DecisionServicePrivateWeb.Controllers
     {
         private const string AuthHeaderName = "auth";
 
-        internal static void Authenticate(HttpRequestBase request)
+        internal static string Authenticate(HttpRequestBase request, string token = null)
         {
+            if (token == null)
+                token = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKWebServiceToken];
+
             var authToken = request.Headers[AuthHeaderName];
 
             if (authToken == null)
@@ -28,8 +31,10 @@ namespace DecisionServicePrivateWeb.Controllers
             if (string.IsNullOrWhiteSpace(authToken))
                 throw new UnauthorizedAccessException("AuthorizationToken missing");
 
-            if (authToken != ConfigurationManager.AppSettings[ApplicationMetadataStore.AKWebServiceToken])
+            if (authToken != token)
                 throw new UnauthorizedAccessException();
+
+            return token;
         }
 
         internal static string ReadBody(HttpRequestBase request)

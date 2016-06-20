@@ -4,6 +4,7 @@ using Microsoft.Research.MultiWorldTesting.ClientLibrary;
 using Microsoft.Research.MultiWorldTesting.Contract;
 using Microsoft.Research.MultiWorldTesting.JoinUploader;
 using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -14,6 +15,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
@@ -72,6 +74,8 @@ namespace DecisionServicePrivateWeb.Controllers
         {
             try
             {
+                APIUtil.Authenticate(this.Request);
+
                 var client = DecisionServiceClientFactory.AddOrGetExisting();
                 var context = APIUtil.ReadBody(this.Request);
                 var eventId = APIUtil.CreateEventId();
@@ -99,6 +103,8 @@ namespace DecisionServicePrivateWeb.Controllers
         {
             try
             {
+                APIUtil.Authenticate(this.Request);
+
                 var client = DecisionServiceClientFactory.AddOrGetExisting();
                 var context = APIUtil.ReadBody(this.Request);
                 var eventId = APIUtil.CreateEventId();
@@ -128,6 +134,8 @@ namespace DecisionServicePrivateWeb.Controllers
         {
             try
             {
+                APIUtil.Authenticate(this.Request);
+
                 var client = DecisionServiceClientFactory.AddOrGetExisting();
                 var rewardStr = APIUtil.ReadBody(this.Request);
 
@@ -146,6 +154,39 @@ namespace DecisionServicePrivateWeb.Controllers
                 new TelemetryClient().TrackException(ex);
                 return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, ex.ToString());
             }
+        }
+
+        [HttpPost]
+        public ActionResult Reset()
+        {
+            try
+            {
+                var token = APIUtil.Authenticate(this.Request, ConfigurationManager.AppSettings[ApplicationMetadataStore.AKAdminToken]);
+
+                using (var wc = new WebClient())
+                {
+                    string uniqueStringInUrl = Regex.Match(Request.Url.ToString(), ".*mc-(.*).azurewebsites.*").Groups[1].Value;
+
+                    // TODO: cache me?!
+                    var extraSettingsBlob = (CloudBlockBlob)Session[HomeController.SKExtraSettingsBlob];
+                    ApplicationExtraMetadata extraApp = JsonConvert.DeserializeObject<ApplicationExtraMetadata>(extraSettingsBlob.DownloadText());
+
+                    wc.Headers.Add($"Authorization: {token}");
+                    wc.DownloadString($"http://{extraApp.AzureResourceGroupName}-trainer-{uniqueStringInUrl}.cloudapp.net/reset");
+                }
+
+                return new HttpStatusCodeResult(HttpStatusCode.OK);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.Unauthorized, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                new TelemetryClient().TrackException(ex);
+                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, ex.ToString());
+            }
+
         }
     }
 }

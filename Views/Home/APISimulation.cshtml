@@ -121,6 +121,8 @@
 
             <div id="status"></div>
             <div id="statusReward"></div>
+
+            <a href="javascript:resetModel();">Reset Model</a>
         </div>
 
 
@@ -246,6 +248,23 @@
                 data: "" + reward,
                 headers: {
                     "auth": $("#userToken").val()
+                },
+            })
+            .done(function (data) {
+                $("#statusReward").text("Success " + thisEventId + ": " + reward);
+                chooseAction();
+            })
+            .fail(function (jqXHR, textStatus, errorThrown) {
+                $("#status").text("Error: " + textStatus + "  " + errorThrown);
+            });
+        }
+        
+        function resetModel() {
+            $.ajax({
+                method: "POST",
+                url: "/API/reset",
+                headers: {
+                    "auth": "@Model.AdminToken"
                 },
             })
             .done(function (data) {
