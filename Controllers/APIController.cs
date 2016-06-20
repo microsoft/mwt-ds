@@ -3,6 +3,7 @@ using Microsoft.ApplicationInsights;
 using Microsoft.Research.MultiWorldTesting.ClientLibrary;
 using Microsoft.Research.MultiWorldTesting.Contract;
 using Microsoft.Research.MultiWorldTesting.JoinUploader;
+using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -42,7 +43,7 @@ namespace DecisionServicePrivateWeb.Controllers
             {
                 if (this.metaData == null || lastDownload + TimeSpan.FromMinutes(1) < DateTime.Now)
                 {
-                    var url = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKDecisionServiceSettingsUrl];
+                    var url = GetSettingsUrl();
                     this.metaData = ApplicationMetadataUtil.DownloadMetadata<ApplicationClientMetadata>(url);
                     lastDownload = DateTime.Now;
                 }
@@ -74,7 +75,7 @@ namespace DecisionServicePrivateWeb.Controllers
                 "Policy",
                 (telemetry, input) =>
                 {
-                    var url = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKDecisionServiceSettingsUrl];
+                    var url = GetSettingsUrl();
                     var client = DecisionServiceClientFactory.AddOrGetExisting(url);
                     return defaultAction != -1 ?
                         client.ChooseAction(input.EventId, input.Context, defaultAction) :
@@ -89,7 +90,7 @@ namespace DecisionServicePrivateWeb.Controllers
                 "Ranker",
                 (telemetry, input) =>
                 {
-                    var url = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKDecisionServiceSettingsUrl];
+                    var url = GetSettingsUrl();
                     var client = DecisionServiceClientFactory.AddOrGetExisting(url);
                     var action = defaultActions != null && defaultActions.Length > 0 ?
                         client.ChooseRanking(input.EventId, input.Context, defaultActions) :
@@ -126,7 +127,7 @@ namespace DecisionServicePrivateWeb.Controllers
                     // parse input
                     var guid = Guid.ParseExact(eventId, "N");
 
-                    var url = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKDecisionServiceSettingsUrl];
+                    var url = GetSettingsUrl();
                     var eventUploader = DecisionServiceStaticClient.AddOrGetExisting("uploader" + url,
                         _ =>
                         {
@@ -201,6 +202,22 @@ namespace DecisionServicePrivateWeb.Controllers
                 telemetry.TrackException(e);
                 return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, e.Message);
             }
+        }
+
+        private string GetSettingsUrl()
+        {
+            var settingsURL = GetSettingsUrl();
+            if (settingsURL == null)
+            {
+                var storageAccount = CloudStorageAccount.Parse(ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString]);
+                var blobClient = storageAccount.CreateCloudBlobClient();
+                var settingsBlobContainer = blobClient.GetContainerReference(ApplicationBlobConstants.SettingsContainerName);
+                var extraSettingsBlob = settingsBlobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestExtraSettingsBlobName);
+                var extraSettings = JsonConvert.DeserializeObject<ApplicationExtraMetadata>(extraSettingsBlob.DownloadText());
+                settingsURL = extraSettings.SettingsTokenUri1;
+                ConfigurationManager.AppSettings.Add(ApplicationMetadataStore.AKDecisionServiceSettingsUrl, settingsURL);
+            }
+            return settingsURL;
         }
 
         internal sealed class Input
