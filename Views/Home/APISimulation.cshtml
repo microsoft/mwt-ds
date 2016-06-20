@@ -98,6 +98,7 @@
             <a href="javascript:reportReward(-2);">don't like</a> &nbsp;  <br />
 
             <div id="status"></div>
+            <div id="statusModel"></div>
             <div id="statusReward"></div>
 
             <a href="javascript:resetModel();">Reset Model</a>
@@ -191,7 +192,8 @@
                 eventId = data.EventId;
                 modelTime = data.ModelTime;
                 $("#article").attr("src", actions[data.Action - 1].image);
-                $("#articleText").text(actions[data.Action - 1].text + ', model: ' + new Date(parseInt(modelTime.substr(6))));
+                $("#articleText").text(actions[data.Action - 1].text);
+                $("#statusModel").text('Model Time: ' + new Date(parseInt(modelTime.substr(6))));
             })
             .fail(function (jqXHR, textStatus, errorThrown) {
                 $("#status").text("Error: " + textStatus + "  " + errorThrown);
