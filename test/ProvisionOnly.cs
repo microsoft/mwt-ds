@@ -13,7 +13,12 @@ namespace Microsoft.Research.DecisionServiceTest
         [TestMethod]
         public void ProvisionOnlyTest()
         {
-            // TestInitialize does all the work!
+            Assert.IsNotNull(this.managementCenterUrl);
+            Assert.IsNotNull(this.managementPassword);
+            Assert.IsNotNull(this.onlineTrainerUrl);
+            Assert.IsNotNull(this.onlineTrainerToken);
+            Assert.IsNotNull(this.webServiceToken);
+            Assert.IsNotNull(this.settingsUrl);
         }
     }
 }

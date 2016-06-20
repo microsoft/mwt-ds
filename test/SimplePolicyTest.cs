@@ -16,25 +16,30 @@ namespace Microsoft.Research.DecisionServiceTest
 {
   ""management Center URL"": {
     ""type"": ""String"",
-    ""value"": ""https://dmunit410d4d0a4e29843ced1b757e5b97-mc-ym5fezh5r55zw.azurewebsites.net""
+    ""value"": ""https://mcunitc2fe50084aeb9158320f9ff760a7-mc-ftupw3x6ndhxq.azurewebsites.net""
   },
   ""management Center Password"": {
     ""type"": ""String"",
-    ""value"": ""komnkr4rwogcw""
+    ""value"": ""mv6t3nnz5uq7w""
   },
-  ""client Library Url"": {
+  ""client Library URL"": {
     ""type"": ""String"",
-    ""value"": ""https://storageym5fezh5r55zw.blob.core.windows.net/mwt-settings/client?sv=2015-07-08&sr=b&sig=m5A0Av%2FIqeCu8WAb0vkzuUx9J%2FV5Mh%2BbvbxDzwvZed0%3D&st=2016-06-20T01%3A05%3A18Z&se=2017-06-20T01%3A06%3A18Z&sp=r""
+    ""value"": ""https://storageftupw3x6ndhxq.blob.core.windows.net/mwt-settings/client?sv=2015-07-08&sr=b&sig=BOgAw8%2Fxk7h7Rq5Qep2k1REmcLy0KNyU8ZbMaI%2F6FQI%3D&st=2016-06-20T17%3A16%3A39Z&se=2017-06-20T17%3A17%3A39Z&sp=r""
+  },
+  ""web Service Token"": {
+    ""type"": ""String"",
+    ""value"": ""bd6v3grappmxo""
   },
   ""online Trainer Token"": {
     ""type"": ""String"",
-    ""value"": ""suqyxydzuavqm""
+    ""value"": ""t6ymqbvdphtvs""
   },
   ""online Trainer URL"": {
     ""type"": ""String"",
-    ""value"": ""http://dmunit410d4d0a4e29843ced1b757e5b97-trainer-ym5fezh5r55zw.cloudapp.net""
+    ""value"": ""http://mcunitc2fe50084aeb9158320f9ff760a7-trainer-ftupw3x6ndhxq.cloudapp.net""
   }
 }
+
 ";
 
         private Dictionary<string, int> freq;
@@ -42,7 +47,7 @@ namespace Microsoft.Research.DecisionServiceTest
         private Random rnd;
         private int eventCount;
 
-        public SimplePolicyTestClass() : base(deploymentOutput) { }
+        //public SimplePolicyTestClass() : base(deploymentOutput) { }
 
         [TestMethod]
         public async Task SimplePolicyTest()

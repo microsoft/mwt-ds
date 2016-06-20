@@ -95,14 +95,25 @@ namespace Microsoft.Research.DecisionServiceTest
             }
         }
 
+        private string GetDeploymentOutput(string name)
+        {
+            foreach (var output in this.deploymentOutput)
+            {
+                if (output.Key.Equals(name, StringComparison.OrdinalIgnoreCase))
+                    return output.Value["value"].ToObject<string>();
+            }
+
+            return null;
+        }
+
         private void ParseDeploymentOutputs()
         {
-            this.managementCenterUrl = this.deploymentOutput["Management Center URL"]["value"].ToObject<string>();
-            this.managementPassword = this.deploymentOutput["Management Center Password"]["value"].ToObject<string>();
-            this.onlineTrainerUrl = this.deploymentOutput["Online Trainer URL"]["value"].ToObject<string>();
-            this.onlineTrainerToken = this.deploymentOutput["Online Trainer Token"]["value"].ToObject<string>();
-            this.webServiceToken = this.deploymentOutput["Web Service Token"]["value"].ToObject<string>();
-            this.settingsUrl = this.deploymentOutput["Client Library URL"]["value"].ToObject<string>();
+            this.managementCenterUrl = this.GetDeploymentOutput("Management Center URL");
+            this.managementPassword = this.GetDeploymentOutput("Management Center Password");
+            this.onlineTrainerUrl = this.GetDeploymentOutput("Online Trainer URL");
+            this.onlineTrainerToken = this.GetDeploymentOutput("Online Trainer Token");
+            this.webServiceToken = this.GetDeploymentOutput("Web Service Token");
+            this.settingsUrl = this.GetDeploymentOutput("Client Library URL");
         }
 
         private ResourceManagementClient CreateResourceManagementClient()

@@ -13,6 +13,37 @@ namespace Microsoft.Research.DecisionServiceTest
     [TestClass]
     public class EndToEndTest : ProvisioningBaseTest
     {
+        private const string deploymentOutput = @"
+{
+  ""management Center URL"": {
+    ""type"": ""String"",
+    ""value"": ""https://mcunitc2fe50084aeb9158320f9ff760a7-mc-ftupw3x6ndhxq.azurewebsites.net""
+  },
+  ""management Center Password"": {
+    ""type"": ""String"",
+    ""value"": ""mv6t3nnz5uq7w""
+  },
+  ""client Library URL"": {
+    ""type"": ""String"",
+    ""value"": ""https://storageftupw3x6ndhxq.blob.core.windows.net/mwt-settings/client?sv=2015-07-08&sr=b&sig=BOgAw8%2Fxk7h7Rq5Qep2k1REmcLy0KNyU8ZbMaI%2F6FQI%3D&st=2016-06-20T17%3A16%3A39Z&se=2017-06-20T17%3A17%3A39Z&sp=r""
+  },
+  ""web Service Token"": {
+    ""type"": ""String"",
+    ""value"": ""bd6v3grappmxo""
+  },
+  ""online Trainer Token"": {
+    ""type"": ""String"",
+    ""value"": ""t6ymqbvdphtvs""
+  },
+  ""online Trainer URL"": {
+    ""type"": ""String"",
+    ""value"": ""http://mcunitc2fe50084aeb9158320f9ff760a7-trainer-ftupw3x6ndhxq.cloudapp.net""
+  }
+}
+
+";
+        //public EndToEndTest() : base(deploymentOutput) { }
+
         //public EndToEndTest()
         //{
         //    this.deleteOnCleanup = true;
