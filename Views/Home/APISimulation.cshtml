@@ -39,8 +39,6 @@
 
     <br />
 
-    <!--<p class="lead" style="text-align:center;">Enter authorization token</p>-->
-
     <div class="input-group" style="margin: 0 auto; width:300px">
         <div class="input-group-addon" style="color:black">Authorization token: </div>
         <input type="text" class="form-control" id="userToken" placeholder="Web service token" value="@Model.WebServiceToken">
@@ -62,16 +60,18 @@
             <!-- Articles -->
             <div class="row" style="text-align: center;">
                 <div class="col-md-6">
-                    <div class="thumbnail content-item" id="article1">
-                        <div class="caption" style="padding-bottom:0px">
-                            <p style="margin-bottom: 10px; margin-top: 0px;" id="locationText"></p>
-                            <div style="width: 230px; height: 200px; overflow:hidden">
-                                <img style="width: 230px; height: 316.8px;"
-                                     id="location"
-                                     src=""
-                                     alt="...">
+                    <div class="thumbnail" style="text-align: center; margin: 0 auto; display: table; width:200px;">
+                        <div class="caption">
+                            <p>Location:</p>
+                            <div class="radio" style="text-align:left">
+                                <label><input type="radio" name="optradio" checked="checked" value="Seattle" id="contextDefaultRadio">Seattle</label>
                             </div>
-
+                            <div class="radio" style="text-align:left">
+                                <label><input type="radio" name="optradio" value="DC">Washington D.C.</label>
+                            </div>
+                            <div class="radio" style="text-align:left">
+                                <label><input type="radio" name="optradio" value="NYC">New York City</label>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -91,32 +91,7 @@
                     </div>
                 </div>
             </div>
-            </br>
-            <!--<div class="row" style="text-align: center;">
-                <div class="col-md-6">
-                    <div class="thumbnail content-item" id="article3">
-                        <div class="caption" style="padding-bottom:0px">
-                            <p style="margin-bottom: 10px; margin-top: 0px;">Why the Federal Reserve isn't out of options yet</p>
-                            <div style="width: 230px; height: 200px; overflow:hidden">
-                                <img style="width: 360px; height: 200px; overflow:hidden; margin-left:-60px" src=" alt="...">
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-6">
-                    <div class="thumbnail content-item" id="article4">
-                        <div class="caption" style="padding-bottom:0px">
-                            <p style="margin-bottom: 10px; margin-top: 0px;"></p>
-                            <div style="width: 230px; height: 200px; overflow:hidden">
-                                <img style="width: 355px; height: 200px; overflow:hidden; margin-left:-60px; margin-bottom:-60px" src="" alt="...">
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-            </div>-->
+            <br />
 
             <br />
             <a href="javascript:reportReward(1);">like</a> &nbsp;
@@ -195,14 +170,11 @@
         var eventId;
 
         function chooseAction() {
-            locationIndex = (locationIndex + 1) % locations.length;
-            $("#location").attr("src", locations[locationIndex].image);
-            $("#locationText").text(locations[locationIndex].text);
             $("#article").attr("src", "");
 
             secondsLeft = 10;
 
-            var context = { "Location":locations[locationIndex].key };
+            var context = { "Location": $("input[name='optradio']:checked").val() };
 
             // Get Decision
             $.ajax({

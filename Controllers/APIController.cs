@@ -157,7 +157,7 @@ namespace DecisionServicePrivateWeb.Controllers
         }
 
         [HttpPost]
-        public ActionResult Reset()
+        public async Task<ActionResult> Reset()
         {
             try
             {
@@ -173,6 +173,14 @@ namespace DecisionServicePrivateWeb.Controllers
 
                     wc.Headers.Add($"Authorization: {token}");
                     wc.DownloadString($"http://{extraApp.AzureResourceGroupName}-trainer-{uniqueStringInUrl}.cloudapp.net/reset");
+
+                    var storageAccount = CloudStorageAccount.Parse(ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString]);
+                    var blobClient = storageAccount.CreateCloudBlobClient();
+                    var blobContainer = blobClient.GetContainerReference(ApplicationBlobConstants.OfflineEvalContainerName);
+                    await Task.WhenAll(blobContainer
+                        .ListBlobs(useFlatBlobListing: true)
+                        .OfType<CloudBlockBlob>()
+                        .Select(b => b.DeleteAsync()));
                 }
 
                 return new HttpStatusCodeResult(HttpStatusCode.OK);
