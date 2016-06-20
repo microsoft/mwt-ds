@@ -1,16 +1,12 @@
 ﻿using Microsoft.Research.MultiWorldTesting.ClientLibrary;
-using Microsoft.Research.MultiWorldTesting.Contract;
 using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Net;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Microsoft.Research.DecisionServiceTest
 {
