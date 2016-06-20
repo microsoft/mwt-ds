@@ -220,7 +220,7 @@
 
             $.ajax({
                 method: "POST",
-                url: "/API/Reward/?eventId" + eventId,
+                url: "/API/Reward/?eventId=" + eventId,
                 data: "" + reward,
                 headers: {
                     "auth": $("#userToken").val()
