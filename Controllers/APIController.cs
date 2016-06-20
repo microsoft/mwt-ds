@@ -206,7 +206,7 @@ namespace DecisionServicePrivateWeb.Controllers
 
         private string GetSettingsUrl()
         {
-            var settingsURL = GetSettingsUrl();
+            var settingsURL = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKDecisionServiceSettingsUrl];
             if (settingsURL == null)
             {
                 var storageAccount = CloudStorageAccount.Parse(ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString]);
