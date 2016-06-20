@@ -2,6 +2,8 @@
     windowType = '1m';
 
     function updateDataD3(baseEvalAddress, chartId) {
+        d3.selectAll(".nvtooltip").remove();
+
         d3.json(baseEvalAddress + '?windowType=' + windowType, function (error, response) {
             nv.addGraph(function () {
                 var chart = nv.models.lineChart()
