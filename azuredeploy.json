@@ -78,6 +78,20 @@
     },
     {
       "apiVersion": "2015-01-01",
+      "name": "WebServiceTokenGenerator",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [ "Microsoft.Resources/deployments/Storage" ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" },
+        "parameters": {
+          "Password": { "value": "" },
+          "RandomSeed": { "value": "[concat(reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, 'ut')]" }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
       "name": "AdminTokenGenerator",
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [ "Microsoft.Resources/deployments/Storage" ],
@@ -214,7 +228,8 @@
           "joinedEventHubConnectionString": { "value": "[reference('Microsoft.Resources/deployments/EventHubJoined').outputs.listenConnectionString.value]" },
           "evalEventHubConnectionString": { "value": "[reference('Microsoft.Resources/deployments/EventHubEval').outputs.sendConnectionString.value]" },
           "adminToken": { "value": "[reference('Microsoft.Resources/deployments/AdminTokenGenerator').outputs.FinalPassword.value]" },
-          "checkpointPolicy": { "value": "[parameters('model update interval')]" }
+          "checkpointPolicy": { "value": "[parameters('model update interval')]" },
+          "webServiceToken": { "value": "[reference('Microsoft.Resources/deployments/WebServiceTokenGenerator').outputs.FinalPassword.value]" }
         }
       }
     },
@@ -315,9 +330,13 @@
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/ManagementPasswordGenerator').outputs.FinalPassword.value]"
     },
-    "Client Library Url": {
+    "Client Library URL": {
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/SecureSettingsUri').outputs.SASTokenUriClientSettings.value]"
+    },
+    "Web Service Token": {
+      "type": "string",
+      "value": "[reference('Microsoft.Resources/deployments/WebServiceTokenGenerator').outputs.FinalPassword.value]"
     },
     "Online Trainer Token": {
       "type": "string",

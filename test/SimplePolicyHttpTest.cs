@@ -56,7 +56,8 @@ namespace Microsoft.Research.DecisionServiceTest
         }
 
         [TestMethod]
-        public async Task SimplePolicyHttpTest()
+        [Ignore]
+        public void SimplePolicyHttpTest()
         {
             this.ConfigureDecisionService("--cb_explore 4 --epsilon 1", initialExplorationEpsilon: 1, isExplorationEnabled: true);
             Thread.Sleep(TimeSpan.FromSeconds(5));
