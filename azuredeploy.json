@@ -35,6 +35,7 @@
     "online Trainer VM Size": {
       "type": "string",
       "defaultValue": "Standard_D1_v2",
+      "allowedValues": [ "ExtraSmall", "Standard_D1_v2", "Standard_D2_v2", "Standard_D3_v2", "Standard_D4_v2", "Standard_D5_v2" ],
       "metadata": {
         "description": "Size of the VM that runs the Online Trainer. Acceptable values are (in ascending order of performance and cost): ExtraSmall, Standard_D1_v2, Standard_D2_v2, Standard_D3_v2, Standard_D4_v2, Standard_D5_v2. For more information, refer to: https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-windows-sizes/"
       }
