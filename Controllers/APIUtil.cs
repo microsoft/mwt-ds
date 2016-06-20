@@ -11,11 +11,13 @@ using System.Web.Mvc;
 
 namespace DecisionServicePrivateWeb.Controllers
 {
-    internal static class ApiUtil
+    internal static class APIUtil
     {
+        private const string AuthHeaderName = "auth";
+
         internal static void Authenticate(HttpRequestBase request)
         {
-            var authToken = request.Headers["Authorization"];
+            var authToken = request.Headers[AuthHeaderName];
 
             if (authToken == null)
                 throw new UnauthorizedAccessException("AuthorizationToken missing");
@@ -23,7 +25,7 @@ namespace DecisionServicePrivateWeb.Controllers
             if (string.IsNullOrWhiteSpace(authToken))
                 throw new UnauthorizedAccessException("AuthorizationToken missing");
 
-            if (authToken != ConfigurationManager.AppSettings[ApplicationMetadataStore.AKUserToken])
+            if (authToken != ConfigurationManager.AppSettings[ApplicationMetadataStore.AKPassword])
                 throw new UnauthorizedAccessException();
         }
 

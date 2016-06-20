@@ -197,7 +197,7 @@
             // Get Decision
             $.ajax({
                 method: "POST",
-                url: "/DecisionPolicy",
+                url: "/API/Ranker",
                 data: JSON.stringify(context),
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
@@ -237,7 +237,7 @@
 
             $.ajax({
                 method: "POST",
-                url: "/controller/reward/" + eventId,
+                url: "/API/Reward/?eventId" + eventId,
                 data: "" + reward,
                 headers: {
                     "Authorization": $("#userToken").val()
