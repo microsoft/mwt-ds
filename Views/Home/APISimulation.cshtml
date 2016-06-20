@@ -95,7 +95,7 @@
 
             <br />
             <a href="javascript:reportReward(1);">like</a> &nbsp;
-            <a href="javascript:reportReward(-1);">don't like</a> &nbsp;  <br />
+            <a href="javascript:reportReward(-2);">don't like</a> &nbsp;  <br />
 
             <div id="status"></div>
             <div id="statusReward"></div>
@@ -250,6 +250,18 @@
                 $("#status").text("Error: " + textStatus + "  " + errorThrown);
             });
         }
+
+        $(document).keydown(function (e) {
+            switch (e.which)
+            {
+                case 38: // up
+                    reportReward(1);
+                    break;
+                case 40: // down
+                    reportReward(-2);
+                    break;
+            }
+        });
     </script>
 </body>
 </html>
