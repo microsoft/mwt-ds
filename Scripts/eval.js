@@ -50,7 +50,7 @@
 
     var inter = setInterval(function () {
         updateChart();
-    }, 1000 * 60);
+    }, 1000 * 15);
 
     $('#eval-window-filter').on('change', function () {
         windowType = this.value;
