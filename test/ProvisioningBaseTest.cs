@@ -29,8 +29,6 @@ namespace Microsoft.Research.DecisionServiceTest
         protected string managementPassword;
         protected string onlineTrainerUrl;
         protected string onlineTrainerToken;
-        protected string webServiceUrl;
-        protected string webServiceToken;
         protected string settingsUrl;
 
         private static string GetConfiguration(string name)
@@ -54,6 +52,7 @@ namespace Microsoft.Research.DecisionServiceTest
             this.ParseDeploymentOutputs();
         }
 
+        // update DS config via GET to MC
         protected void ConfigureDecisionService(string trainArguments = null, float? initialExplorationEpsilon = null, bool? isExplorationEnabled = null)
         {
             using (var wc = new WebClient())
@@ -86,6 +85,7 @@ namespace Microsoft.Research.DecisionServiceTest
                 Assert.AreEqual((bool)isExplorationEnabled, metaData.IsExplorationEnabled);
         }
 
+        // reset via GET to Trainer
         protected void OnlineTrainerReset()
         {
             using (var wc = new WebClient())
@@ -102,8 +102,6 @@ namespace Microsoft.Research.DecisionServiceTest
             this.managementPassword = this.deploymentOutput["management Center Password"]["value"].ToObject<string>();
             this.onlineTrainerUrl = this.deploymentOutput["online Trainer URL"]["value"].ToObject<string>();
             this.onlineTrainerToken = this.deploymentOutput["online Trainer Token"]["value"].ToObject<string>();
-            this.webServiceUrl = this.deploymentOutput["web Service URL"]["value"].ToObject<string>();
-            this.webServiceToken = this.deploymentOutput["web Service Token"]["value"].ToObject<string>();
             this.settingsUrl = this.deploymentOutput["client Library Url"]["value"].ToObject<string>();
         }
 
@@ -203,7 +201,8 @@ namespace Microsoft.Research.DecisionServiceTest
                     this.deploymentOutput = (JObject)dpResult.Properties.Outputs;
 
                     // make test case copy paste easy
-                    Console.WriteLine(deploymentOutput.ToString(Newtonsoft.Json.Formatting.Indented).Replace("\"", "\"\""));
+                    string dpOutString = deploymentOutput.ToString(Newtonsoft.Json.Formatting.Indented).Replace("\"", "\"\"");
+                    Console.WriteLine(dpOutString);
 
                     this.ParseDeploymentOutputs();
                 }

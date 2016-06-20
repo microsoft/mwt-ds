@@ -1,17 +1,11 @@
 ﻿using Microsoft.Research.MultiWorldTesting.ClientLibrary;
-using Microsoft.Research.MultiWorldTesting.Contract;
 using Microsoft.Research.MultiWorldTesting.JoinUploader;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Net;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace Microsoft.Research.DecisionServiceTest
 {
@@ -22,31 +16,23 @@ namespace Microsoft.Research.DecisionServiceTest
 {
   ""management Center URL"": {
     ""type"": ""String"",
-    ""value"": ""https://mcunit46a1366f4943abf5160e3ca6c4fc-mc-go3stmbsb5obs.azurewebsites.net""
+    ""value"": ""https://dmunit410d4d0a4e29843ced1b757e5b97-mc-ym5fezh5r55zw.azurewebsites.net""
   },
   ""management Center Password"": {
     ""type"": ""String"",
-    ""value"": ""zokntsel2fhyy""
+    ""value"": ""komnkr4rwogcw""
   },
   ""client Library Url"": {
     ""type"": ""String"",
-    ""value"": ""https://storagego3stmbsb5obs.blob.core.windows.net/mwt-settings/client?sv=2015-07-08&sr=b&sig=iqkCkJNtMei7Ybi2hG0vrHpxK5zWd68F2uYzigHE9Ms%3D&st=2016-06-17T14%3A05%3A26Z&se=2017-06-17T14%3A06%3A26Z&sp=r""
-  },
-  ""web Service URL"": {
-    ""type"": ""String"",
-    ""value"": ""https://mcunit46a1366f4943abf5160e3ca6c4fc-webapi-go3stmbsb5obs.azurewebsites.net""
-  },
-  ""web Service Token"": {
-    ""type"": ""String"",
-    ""value"": ""3nkc77prlljte""
+    ""value"": ""https://storageym5fezh5r55zw.blob.core.windows.net/mwt-settings/client?sv=2015-07-08&sr=b&sig=m5A0Av%2FIqeCu8WAb0vkzuUx9J%2FV5Mh%2BbvbxDzwvZed0%3D&st=2016-06-20T01%3A05%3A18Z&se=2017-06-20T01%3A06%3A18Z&sp=r""
   },
   ""online Trainer Token"": {
     ""type"": ""String"",
-    ""value"": ""f3wodae6w2rwm""
+    ""value"": ""suqyxydzuavqm""
   },
   ""online Trainer URL"": {
     ""type"": ""String"",
-    ""value"": ""http://mcunit46a1366f4943abf5160e3ca6c4fc-trainer-go3stmbsb5obs.cloudapp.net""
+    ""value"": ""http://dmunit410d4d0a4e29843ced1b757e5b97-trainer-ym5fezh5r55zw.cloudapp.net""
   }
 }
 ";
@@ -56,7 +42,7 @@ namespace Microsoft.Research.DecisionServiceTest
         private Random rnd;
         private int eventCount;
 
-        // public SimplePolicyTestClass() : base(deploymentOutput) { }
+        public SimplePolicyTestClass() : base(deploymentOutput) { }
 
         [TestMethod]
         public async Task SimplePolicyTest()
@@ -64,6 +50,7 @@ namespace Microsoft.Research.DecisionServiceTest
             this.ConfigureDecisionService("--cb_explore 4 --epsilon 0", initialExplorationEpsilon:1, isExplorationEnabled: true);
 
             // 4 Actions
+            // why does this need to be different from default?
             var config = new DecisionServiceConfiguration(settingsUrl)
             {
                 InteractionUploadConfiguration = new BatchingConfiguration
@@ -92,7 +79,6 @@ namespace Microsoft.Research.DecisionServiceTest
                 var expectedEvents = 0;
                 using (var client = Microsoft.Research.MultiWorldTesting.ClientLibrary.DecisionService.Create<MyContext>(config))
                 {
-                    // need to send events for at least experimental unit duration, so ASA is triggered
                     for (int i = 0; i < 100; i++)
                     {
                         expectedEvents += SendEvents(client, 128);
