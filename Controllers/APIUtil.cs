@@ -28,7 +28,7 @@ namespace DecisionServicePrivateWeb.Controllers
             if (string.IsNullOrWhiteSpace(authToken))
                 throw new UnauthorizedAccessException("AuthorizationToken missing");
 
-            if (authToken != ConfigurationManager.AppSettings[ApplicationMetadataStore.AKPassword])
+            if (authToken != ConfigurationManager.AppSettings[ApplicationMetadataStore.AKWebServiceToken])
                 throw new UnauthorizedAccessException();
         }
 

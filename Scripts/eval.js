@@ -1,5 +1,5 @@
 ﻿$(function () {
-    windowType = '5m';
+    windowType = '1m';
 
     function updateDataD3(baseEvalAddress, chartId) {
         d3.json(baseEvalAddress + '?windowType=' + windowType, function (error, response) {

@@ -213,10 +213,10 @@ namespace DecisionServicePrivateWeb.Controllers
 
         [HttpPost]
         [AllowAnonymous]
-        public ActionResult EvalJsonAPI(string windowType = "5m", int maxNumPolicies = 5)
+        public ActionResult EvalJsonAPI(string windowType = "1m", int maxNumPolicies = 5)
         {
             var userToken = Request.Headers["auth"];
-            if (userToken != ConfigurationManager.AppSettings[ApplicationMetadataStore.AKPassword])
+            if (userToken != ConfigurationManager.AppSettings[ApplicationMetadataStore.AKWebServiceToken])
             {
                 return new HttpStatusCodeResult(HttpStatusCode.Unauthorized, "A valid token must be specified.");
             }
@@ -307,7 +307,7 @@ namespace DecisionServicePrivateWeb.Controllers
         {
             return new SimulationViewModel
             {
-                AuthToken = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKUserToken]
+                AuthToken = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKWebServiceToken]
             };
         }
 
