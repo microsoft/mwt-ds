@@ -84,6 +84,24 @@ namespace DecisionServicePrivateWeb.Controllers
             }
         }
 
+        [HttpGet]
+        [AllowAnonymous]
+        public ActionResult Simulation()
+        {
+            if (!IsAuthenticated(Session))
+            {
+                return RedirectToAction("Index");
+            }
+            try
+            {
+                return View(SimulationView());
+            }
+            catch (Exception ex)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, $"Unable to load application metadata: {ex.ToString()}");
+            }
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Settings(SettingsSaveModel model)
@@ -243,6 +261,14 @@ namespace DecisionServicePrivateWeb.Controllers
         public static bool IsAuthenticated(HttpSessionStateBase Session)
         {
             return (Session[SKAuthenticated] != null && (bool)Session[SKAuthenticated]);
+        }
+
+        private SimulationViewModel SimulationView()
+        {
+            return new SimulationViewModel
+            {
+                AuthToken = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKUserToken]
+            };
         }
 
         private List<SettingItemViewModel> SettingsView()
