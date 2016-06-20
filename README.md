@@ -16,7 +16,7 @@ The library is most conveniently used as part of a Decision Service deployment, 
   }
 ```
 
-See the [sample code repository](https://github.com/Microsoft/mwt-ds-decision/tree/master/ClientDecisionServiceSample) for more details.
+See the [sample code repository](https://github.com/Microsoft/mwt-ds-decision/tree/master/ClientDecisionServiceSample) for more details.  
 
-
+Build Prerequisites: Visual Studio 2013 or Visual Studio 2015.
 
