@@ -211,11 +211,10 @@ namespace DecisionServicePrivateWeb.Controllers
             return GetEvalData(windowType, maxNumPolicies);
         }
 
-        [HttpPost]
+        [HttpGet]
         [AllowAnonymous]
-        public ActionResult EvalJsonAPI(string windowType = "1m", int maxNumPolicies = 5)
+        public ActionResult EvalJsonAPI(string userToken, string windowType = "1m", int maxNumPolicies = 5)
         {
-            var userToken = Request.Headers["auth"];
             if (userToken != ConfigurationManager.AppSettings[ApplicationMetadataStore.AKWebServiceToken])
             {
                 return new HttpStatusCodeResult(HttpStatusCode.Unauthorized, "A valid token must be specified.");
