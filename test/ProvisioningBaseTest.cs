@@ -193,8 +193,8 @@ namespace Microsoft.Research.DecisionServiceTest
                 deployment.Properties = new DeploymentProperties
                 {
                     Mode = DeploymentMode.Incremental,
-                    TemplateLink = new TemplateLink("https://raw.githubusercontent.com/Microsoft/mwt-ds-provisioning/master/azuredeploy.json"),
-                    Parameters = JObject.Parse("{\"number Of Actions\":{\"value\":0}}")
+                    TemplateLink = new TemplateLink("https://raw.githubusercontent.com/Microsoft/mwt-ds-provisioning/master/azuredeploy.json")
+                    // Parameters = JObject.Parse("{\"param\":{\"value\":0}}")
                 };
 
                 try
