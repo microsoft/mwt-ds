@@ -230,9 +230,8 @@
   <ItemGroup>
     <Content Include="Content\Demo.css" />
     <Content Include="Content\img\jsoneditor-icons.svg" />
-    <Content Include="Demo\game.html" />
-    <Content Include="Demo\guide.html" />
-    <Content Include="Demo\playground.html" />
+    <Content Include="Views\Home\APIGuide.cshtml" />
+    <Content Include="Views\Home\APITest.cshtml" />
     <Content Include="Scripts\jsoneditor.map" />
     <Content Include="Content\jsoneditor.min.css" />
     <Content Include="Scripts\jsoneditor.min.js" />
@@ -311,8 +310,7 @@
     <Content Include="Views\Shared\_OpenSvg.cshtml" />
     <Content Include="Views\web.config" />
     <Content Include="Views\Shared\_ResetSvg.cshtml" />
-    <Content Include="Views\Home\APITest.cshtml" />
-    <Content Include="Views\Home\Simulation.cshtml" />
+    <Content Include="Views\Home\APISimulation.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
       <SubType>Designer</SubType>

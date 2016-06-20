@@ -86,7 +86,7 @@ namespace DecisionServicePrivateWeb.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public ActionResult Simulation()
+        public ActionResult APISimulation()
         {
             if (!IsAuthenticated(Session))
             {
@@ -100,6 +100,28 @@ namespace DecisionServicePrivateWeb.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, $"Unable to load application metadata: {ex.ToString()}");
             }
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public ActionResult APIGuide()
+        {
+            if (!IsAuthenticated(Session))
+            {
+                return RedirectToAction("Index");
+            }
+            return View();
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public ActionResult APITest()
+        {
+            if (!IsAuthenticated(Session))
+            {
+                return RedirectToAction("Index");
+            }
+            return View();
         }
 
         [HttpPost]

@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
 <html>
 <head>
     <title>Decision Service Web API</title>
@@ -24,9 +28,9 @@
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
-                    <li><a href="/Demo/guide.html">Guide</a></li>
-                    <li><a href="/Demo/playground.html">Playground</a></li>
-                    <li><a href="/Demo/game.html">Test Game</a></li>
+                    <li><a href="@Url.Action("APIGuide", "Home")">Guide</a></li>
+                    <li><a href="@Url.Action("APISimulation", "Home")">Simulation</a></li>
+                    <li><a href="@Url.Action("APITest", "Home")">Test</a></li>
                 </ul>
             </div>
         </div>

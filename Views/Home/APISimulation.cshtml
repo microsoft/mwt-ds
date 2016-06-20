@@ -1,13 +1,16 @@
-﻿<!DOCTYPE html>
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
 <html>
 <head>
-    <title>Decision Service Web API</title>
-    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title></title>
 
-    <link href="../Content/jsoneditor.min.css" rel="stylesheet" type="text/css">
-
-    <link rel="stylesheet" type="text/css" href="../Content/bootstrap.css" />
-    <link rel="stylesheet" type="text/css" href="../Content/Demo.css" />
+    <link rel="stylesheet" type="text/css" href="~/Content/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="~/Content/Demo.css" />
 
 </head>
 <body>
@@ -19,12 +22,13 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
+
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
-                    <li><a href="/Demo/guide.html">Guide</a></li>
-                    <li><a href="/Demo/playground.html">Playground</a></li>
-                    <li><a href="/Demo/game.html">Test Game</a></li>
+                    <li><a href="@Url.Action("APIGuide", "Home")">Guide</a></li>
+                    <li><a href="@Url.Action("APISimulation", "Home")">Simulation</a></li>
+                    <li><a href="@Url.Action("APITest", "Home")">Test</a></li>
                 </ul>
             </div>
         </div>
@@ -36,14 +40,14 @@
 
     <div class="input-group" style="margin: 0 auto; width:300px">
         <div class="input-group-addon" style="color:black">Authorization token: </div>
-        <input type="text" class="form-control" id="userToken" placeholder="Web service token" value="abc">
+        <input type="text" class="form-control" id="userToken" placeholder="Web service token" value="@Model.AuthToken">
     </div>
 
     <br /><br />
 
-    Timer:  <div id="timer" > </div>
+    Timer:  <div id="timer"> </div>
 
-    <br/>
+    <br />
 
     <div class="row">
 
@@ -59,9 +63,9 @@
                         <div class="caption" style="padding-bottom:0px">
                             <p style="margin-bottom: 10px; margin-top: 0px;" id="locationText"></p>
                             <div style="width: 230px; height: 200px; overflow:hidden">
-                                <img style="width: 230px; height: 316.8px;" 
+                                <img style="width: 230px; height: 316.8px;"
                                      id="location"
-                                     src="" 
+                                     src=""
                                      alt="...">
                             </div>
 
@@ -74,9 +78,9 @@
                         <div class="caption" style="padding-bottom:0px">
                             <p style="margin-bottom: 10px; margin-top: 0px;" id="articleText"></p>
                             <div style="width: 230px; height: 200px; overflow:hidden">
-                                <img style="width: 260.7px; height: 200px; margin-left:-10px" 
+                                <img style="width: 260.7px; height: 200px; margin-left:-10px"
                                      id="article"
-                                     src="" 
+                                     src=""
                                      alt="...">
                             </div>
 
@@ -113,9 +117,9 @@
 
             <br />
             <a href="javascript:reportReward(1);">like</a> &nbsp;
-            <a href="javascript:reportReward(-1);">don't like</a> &nbsp;  <br/>
+            <a href="javascript:reportReward(-1);">don't like</a> &nbsp;  <br />
 
-            <div id="status" ></div>
+            <div id="status"></div>
             <div id="statusReward"></div>
         </div>
 
@@ -123,9 +127,11 @@
 
         <!-- Right pane -->
         <div class="col-md-6">
+
+
             <div class="thumbnail" style="text-align:center; width:650px; margin: 0 auto">
                 <div class="caption article">
-                    <div id="chart">
+                    <div id="chart-api">
                         <svg style="height: 500px;"></svg>
                     </div>
                 </div>
@@ -135,23 +141,25 @@
     </div>
 
 
-    <script type="text/javascript" src="../scripts/jquery-1.10.2.min.js"></script>
-    <script type="text/javascript" src="../scripts/bootstrap.js"></script>
-    <script type="text/javascript" src="../scripts/eval.js"></script>
+    <script type="text/javascript" src="/scripts/jquery-1.10.2.min.js"></script>
+    <script type="text/javascript" src="/scripts/bootstrap.min.js"></script>
+    <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src="https://cdn.rawgit.com/novus/nvd3/v1.8.1/build/nv.d3.min.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/scripts/eval.js"></script>
 
     <script>
         var locations = [
-            { 
+            {
                 key: "NYC",
                 text: "New York City",
                 image:"https://upload.wikimedia.org/wikipedia/commons/9/9d/NYC_Montage_2014_4_-_Jleon.jpg"
             },
-            { 
+            {
                 key: "DC",
                 text: "Washington D.C.",
                 image:"https://upload.wikimedia.org/wikipedia/commons/5/58/Washington_D.C._Montage_Proposal_6.jpg"
             },
-            { 
+            {
                 key: "Seattle",
                 text: "Seattle",
                 image:"https://upload.wikimedia.org/wikipedia/commons/2/2f/Space_Needle002.jpg"
@@ -194,16 +202,16 @@
             // Get Decision
             $.ajax({
                 method: "POST",
-                url: "/policy",
+                url: "/API/Policy",
                 data: JSON.stringify(context),
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
                 headers: {
-                    "Authorization": $("#userToken").val()
+                    "auth": $("#userToken").val()
                 },
             })
             .done(function (data) {
-                
+
                 // console.log(data);
                 eventId = data.EventId;
                 $("#article").attr("src", actions[data.Action - 1].image);
@@ -231,13 +239,13 @@
 
         function reportReward(reward) {
             var thisEventId = eventId;
-            
+
             $.ajax({
                 method: "POST",
-                url: "/reward/" + eventId,
+                url: "/API/Reward/?eventId" + eventId,
                 data: "" + reward,
                 headers: {
-                    "Authorization": $("#userToken").val()
+                    "auth": $("#userToken").val()
                 },
             })
             .done(function (data) {
@@ -246,7 +254,7 @@
             })
             .fail(function (jqXHR, textStatus, errorThrown) {
                 $("#status").text("Error: " + textStatus + "  " + errorThrown);
-            });            
+            });
         }
     </script>
 </body>
