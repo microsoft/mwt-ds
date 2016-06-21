@@ -105,20 +105,20 @@
       <HintPath>packages\EnterpriseLibrary.TransientFaultHandling.6.0.1304.0\lib\portable-net45+win+wp8\Microsoft.Practices.EnterpriseLibrary.TransientFaultHandling.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.Research.MultiWorldTesting.ClientLibrary, Version=1.0.0.55, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>packages\Microsoft.Research.MultiWorldTesting.ClientLibrary.1.0.0.55\lib\net45\Microsoft.Research.MultiWorldTesting.ClientLibrary.dll</HintPath>
+    <Reference Include="Microsoft.Research.MultiWorldTesting.ClientLibrary, Version=2.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>packages\Microsoft.Research.MultiWorldTesting.ClientLibrary.2.0.0.0\lib\net45\Microsoft.Research.MultiWorldTesting.ClientLibrary.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.Research.MultiWorldTesting.Contract, Version=1.0.0.55, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>packages\Microsoft.Research.MultiWorldTesting.Contract.1.0.0.55\lib\net45\Microsoft.Research.MultiWorldTesting.Contract.dll</HintPath>
+    <Reference Include="Microsoft.Research.MultiWorldTesting.Contract, Version=2.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>packages\Microsoft.Research.MultiWorldTesting.Contract.2.0.0.0\lib\net45\Microsoft.Research.MultiWorldTesting.Contract.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Research.MultiWorldTesting.ExploreLibrary, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.Research.MultiWorldTesting.ClientLibrary.1.0.0.55\lib\net45\Microsoft.Research.MultiWorldTesting.ExploreLibrary.dll</HintPath>
+      <HintPath>packages\Microsoft.Research.MultiWorldTesting.ClientLibrary.2.0.0.0\lib\net45\Microsoft.Research.MultiWorldTesting.ExploreLibrary.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.Research.MultiWorldTesting.JoinUploader, Version=1.0.0.55, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>packages\Microsoft.Research.MultiWorldTesting.JoinUploader.1.0.0.55\lib\net45\Microsoft.Research.MultiWorldTesting.JoinUploader.dll</HintPath>
+    <Reference Include="Microsoft.Research.MultiWorldTesting.JoinUploader, Version=2.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>packages\Microsoft.Research.MultiWorldTesting.JoinUploader.2.0.0.0\lib\net45\Microsoft.Research.MultiWorldTesting.JoinUploader.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.ServiceBus, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
