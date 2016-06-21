@@ -66,19 +66,16 @@
                         <p align="center" style="font-weight:100">
                             Available information/features (e.g. user location)
                         </p>
+                        @Html.DropDownList("context-richness",
+                            new SelectListItem[] {
+                                new SelectListItem { Text = "1", Value = "1", Selected = true },
+                                new SelectListItem { Text = "2", Value = "2" },
+                                new SelectListItem { Text = "3", Value = "3" },
+                                new SelectListItem { Text = "4", Value = "4" },
+                            },
+                            new { @id = "context-richness", @class = "form-control", @style = "display:inline" })
                     </div>
                     <div class="thumbnail content-item" id="article1">
-                        <div class="input-group-addon" style="color:black">Number of context features: </div>
-                        <div class="col-sm-10" style="padding-left:0px">
-                            @Html.DropDownList("context-richness",
-                                new SelectListItem[] {
-                                    new SelectListItem { Text = "1", Value = "1", Selected = true },
-                                    new SelectListItem { Text = "2", Value = "2" },
-                                    new SelectListItem { Text = "3", Value = "3" },
-                                    new SelectListItem { Text = "4", Value = "4" },
-                                },
-                                new { @id = "context-richness", @class = "form-control", @style = "display:inline" })
-                        </div>
                         <div class="caption" style="padding-bottom:0px">
                             <p style="margin-bottom: 10px; margin-top: 0px;" id="userContext-name"></p>
                             <p style="margin-bottom: 10px; margin-top: 0px;" id="userContext-age"></p>
