@@ -86,7 +86,7 @@ namespace DecisionServicePrivateWeb.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public ActionResult APISimulation()
+        public ActionResult APITestDrive()
         {
             if (!IsAuthenticated(Session))
             {

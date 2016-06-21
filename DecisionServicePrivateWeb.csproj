@@ -310,7 +310,7 @@
     <Content Include="Views\Shared\_OpenSvg.cshtml" />
     <Content Include="Views\web.config" />
     <Content Include="Views\Shared\_ResetSvg.cshtml" />
-    <Content Include="Views\Home\APISimulation.cshtml" />
+    <Content Include="Views\Home\APITestDrive.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
       <SubType>Designer</SubType>
