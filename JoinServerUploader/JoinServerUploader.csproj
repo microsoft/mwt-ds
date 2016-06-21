@@ -61,7 +61,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.ServiceBus, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\WindowsAzure.ServiceBus.3.1.7\lib\net45-full\Microsoft.ServiceBus.dll</HintPath>
+      <HintPath>..\packages\WindowsAzure.ServiceBus.3.2.2\lib\net45-full\Microsoft.ServiceBus.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
@@ -118,7 +118,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Explore\Explore.csproj">
@@ -142,17 +144,10 @@
   </Target>
   <Import Project="..\packages\MSBuildTasks.1.5.0.196\build\MSBuildTasks.targets" Condition="Exists('..\packages\MSBuildTasks.1.5.0.196\build\MSBuildTasks.targets')" />
   <Target Name="BeforeBuild">
-    <AssemblyInfo CodeLanguage="CS" OutputFile="$(MSBuildProjectDirectory)\Properties\AssemblyInfo.cs"
-                  AssemblyTitle="Microsoft.Research.MultiWorldTesting.JoinUploader" AssemblyDescription="" AssemblyConfiguration="" AssemblyCompany="Microsoft Corp"
-                  AssemblyProduct="Microsoft.Research.MultiWorldTesting.JoinUploader" AssemblyCopyright="Copyright (C) Microsoft Corp 2014-2016"
-                  AssemblyTrademark="" ComVisible="false" CLSCompliant="true" Guid="324bd225-38a8-476f-bc96-ad563697274d" AssemblyVersion="$(ClientLibraryAssemblyVersion)"
-                  AssemblyFileVersion="$(ClientLibraryAssemblyVersion)" />
+    <AssemblyInfo CodeLanguage="CS" OutputFile="$(MSBuildProjectDirectory)\Properties\AssemblyInfo.cs" AssemblyTitle="Microsoft.Research.MultiWorldTesting.JoinUploader" AssemblyDescription="" AssemblyConfiguration="" AssemblyCompany="Microsoft Corp" AssemblyProduct="Microsoft.Research.MultiWorldTesting.JoinUploader" AssemblyCopyright="Copyright (C) Microsoft Corp 2014-2016" AssemblyTrademark="" ComVisible="false" CLSCompliant="true" Guid="324bd225-38a8-476f-bc96-ad563697274d" AssemblyVersion="$(ClientLibraryAssemblyVersion)" AssemblyFileVersion="$(ClientLibraryAssemblyVersion)" />
   </Target>
   <Target Name="AfterBuild">
-    <Exec Command="..\packages\gitlink.2.3.0\lib\net45\GitLink.exe .. -f $(SolutionDir)\Decision.sln -p $(Platform) -c $(Configuration) -d $(OutDir) -errorsaswarnings -u https://github.com/multiworldtesting/decision"
-         Condition="'$(BuildNuget)' == 'true'"  />
-    <Exec Command=".nuget\nuget pack $(ProjectDir)\$(ProjectName).nuspec -Version $(ClientLibraryAssemblyVersion) -Prop &quot;Configuration=Release;Platform=x64&quot; -Prop SolutionDir=$(SolutionDir) -OutputDirectory $(OutDir) "
-	WorkingDirectory="$(SolutionDir)"
-         Condition="'$(BuildNuget)' == 'true'"  />
+    <Exec Command="..\packages\gitlink.2.3.0\lib\net45\GitLink.exe .. -f $(SolutionDir)\Decision.sln -p $(Platform) -c $(Configuration) -d $(OutDir) -errorsaswarnings -u https://github.com/multiworldtesting/decision" Condition="'$(BuildNuget)' == 'true'" />
+    <Exec Command=".nuget\nuget pack $(ProjectDir)\$(ProjectName).nuspec -Version $(ClientLibraryAssemblyVersion) -Prop &quot;Configuration=Release;Platform=x64&quot; -Prop SolutionDir=$(SolutionDir) -OutputDirectory $(OutDir) " WorkingDirectory="$(SolutionDir)" Condition="'$(BuildNuget)' == 'true'" />
   </Target>
 </Project>

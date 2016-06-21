@@ -13,7 +13,7 @@
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
-    <NuGetPackageImportStamp>d3f20b8a</NuGetPackageImportStamp>
+    <NuGetPackageImportStamp>1e26ac80</NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject />
@@ -57,8 +57,8 @@
       <HintPath>..\packages\gitlink.2.3.0\lib\net45\GitLink.exe</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.ApplicationInsights, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.ApplicationInsights.2.0.0\lib\net45\Microsoft.ApplicationInsights.dll</HintPath>
+    <Reference Include="Microsoft.ApplicationInsights, Version=2.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.ApplicationInsights.2.1.0\lib\net45\Microsoft.ApplicationInsights.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.ApplicationInsights.TraceListener, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -123,20 +123,20 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="VowpalWabbit, Version=8.0.0.65, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <HintPath>..\packages\VowpalWabbit.8.0.0.65\lib\net45\VowpalWabbit.dll</HintPath>
+    <Reference Include="VowpalWabbit, Version=8.2.0.0, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
+      <HintPath>..\packages\VowpalWabbit.8.2.0.0\lib\net45\VowpalWabbit.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="VowpalWabbit.Common, Version=8.0.0.65, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <HintPath>..\packages\VowpalWabbit.8.0.0.65\lib\net45\VowpalWabbit.Common.dll</HintPath>
+    <Reference Include="VowpalWabbit.Common, Version=8.2.0.0, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
+      <HintPath>..\packages\VowpalWabbit.8.2.0.0\lib\net45\VowpalWabbit.Common.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="VowpalWabbit.Core, Version=8.0.0.65, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <HintPath>..\packages\VowpalWabbit.8.0.0.65\lib\net45\VowpalWabbit.Core.dll</HintPath>
+    <Reference Include="VowpalWabbit.Core, Version=8.2.0.0, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
+      <HintPath>..\packages\VowpalWabbit.8.2.0.0\lib\net45\VowpalWabbit.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="VowpalWabbit.JSON, Version=8.0.0.65, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <HintPath>..\packages\VowpalWabbit.JSON.8.0.0.65\lib\net45\VowpalWabbit.JSON.dll</HintPath>
+    <Reference Include="VowpalWabbit.JSON, Version=8.2.0.0, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
+      <HintPath>..\packages\VowpalWabbit.JSON.8.2.0.0\lib\net45\VowpalWabbit.JSON.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
@@ -164,7 +164,9 @@
     <Compile Include="VW\VWState.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
@@ -191,26 +193,19 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
-    <Error Condition="!Exists('..\packages\VowpalWabbit.8.0.0.65\build\VowpalWabbit.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\VowpalWabbit.8.0.0.65\build\VowpalWabbit.targets'))" />
     <Error Condition="!Exists('..\packages\MSBuildTasks.1.5.0.196\build\MSBuildTasks.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MSBuildTasks.1.5.0.196\build\MSBuildTasks.targets'))" />
+    <Error Condition="!Exists('..\packages\VowpalWabbit.8.2.0.0\build\VowpalWabbit.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\VowpalWabbit.8.2.0.0\build\VowpalWabbit.targets'))" />
   </Target>
   <PropertyGroup>
     <PostBuildEvent>$(ProjectDir)\..\docgen.bat "$(ProjectDir)\..\"</PostBuildEvent>
   </PropertyGroup>
-  <Import Project="..\packages\VowpalWabbit.8.0.0.65\build\VowpalWabbit.targets" Condition="Exists('..\packages\VowpalWabbit.8.0.0.65\build\VowpalWabbit.targets')" />
   <Import Project="..\packages\MSBuildTasks.1.5.0.196\build\MSBuildTasks.targets" Condition="Exists('..\packages\MSBuildTasks.1.5.0.196\build\MSBuildTasks.targets')" />
   <Target Name="BeforeBuild">
-    <AssemblyInfo CodeLanguage="CS" OutputFile="$(MSBuildProjectDirectory)\Properties\AssemblyInfo.cs"
-                  AssemblyTitle="Microsoft.Research.MultiWorldTesting.ClientLibrary" AssemblyDescription="" AssemblyConfiguration="" AssemblyCompany="Microsoft Corp"
-                  AssemblyProduct="Microsoft.Research.MultiWorldTesting.ClientLibrary" AssemblyCopyright="Copyright (C) Microsoft Corp 2014-2016"
-                  AssemblyTrademark="" ComVisible="false" CLSCompliant="false" Guid="a991c863-165c-4fd5-b388-45b13df358a8" AssemblyVersion="$(ClientLibraryAssemblyVersion)"
-                  AssemblyFileVersion="$(ClientLibraryAssemblyVersion)" />
+    <AssemblyInfo CodeLanguage="CS" OutputFile="$(MSBuildProjectDirectory)\Properties\AssemblyInfo.cs" AssemblyTitle="Microsoft.Research.MultiWorldTesting.ClientLibrary" AssemblyDescription="" AssemblyConfiguration="" AssemblyCompany="Microsoft Corp" AssemblyProduct="Microsoft.Research.MultiWorldTesting.ClientLibrary" AssemblyCopyright="Copyright (C) Microsoft Corp 2014-2016" AssemblyTrademark="" ComVisible="false" CLSCompliant="false" Guid="a991c863-165c-4fd5-b388-45b13df358a8" AssemblyVersion="$(ClientLibraryAssemblyVersion)" AssemblyFileVersion="$(ClientLibraryAssemblyVersion)" />
   </Target>
   <Target Name="AfterBuild">
-    <Exec Command="..\packages\gitlink.2.3.0\lib\net45\GitLink.exe .. -f $(SolutionDir)\Decision.sln -p $(Platform) -c $(Configuration) -d $(OutDir) -errorsaswarnings -u https://github.com/multiworldtesting/decision"
-          Condition="'$(BuildNuget)' == 'true'" />
-    <Exec Command=".nuget\nuget pack $(ProjectDir)\$(ProjectName).nuspec -Version $(ClientLibraryAssemblyVersion) -Prop &quot;Configuration=Release;Platform=x64&quot; -Prop SolutionDir=$(SolutionDir) -OutputDirectory $(OutDir) "
-	WorkingDirectory="$(SolutionDir)"
-          Condition="'$(BuildNuget)' == 'true'" />
+    <Exec Command="..\packages\gitlink.2.3.0\lib\net45\GitLink.exe .. -f $(SolutionDir)\Decision.sln -p $(Platform) -c $(Configuration) -d $(OutDir) -errorsaswarnings -u https://github.com/multiworldtesting/decision" Condition="'$(BuildNuget)' == 'true'" />
+    <Exec Command=".nuget\nuget pack $(ProjectDir)\$(ProjectName).nuspec -Version $(ClientLibraryAssemblyVersion) -Prop &quot;Configuration=Release;Platform=x64&quot; -Prop SolutionDir=$(SolutionDir) -OutputDirectory $(OutDir) " WorkingDirectory="$(SolutionDir)" Condition="'$(BuildNuget)' == 'true'" />
   </Target>
+  <Import Project="..\packages\VowpalWabbit.8.2.0.0\build\VowpalWabbit.targets" Condition="Exists('..\packages\VowpalWabbit.8.2.0.0\build\VowpalWabbit.targets')" />
 </Project>
