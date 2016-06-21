@@ -55,16 +55,8 @@
 
     <br /><br />
 
-
-
     <div class="row">
-
-
-
-        <!-- Left pane -->
         <div class="col-md-6" style="border-right:1px solid; margin:0 auto">
-
-            <!-- Articles -->
             <div class="row" style="text-align: center;">
                 <div class="col-md-6">
                     <div class="section" style="width:100%; margin-bottom:14px">
@@ -75,38 +67,27 @@
                             Available information/features (e.g. user location)
                         </p>
                     </div>
-                    <!--<div class="thumbnail" style="text-align: center; margin: 0 auto; display: table; width:200px;">
-                        <div class="caption">
-                            <p>Location:</p>
-                            <form id="LocationForm">
-                                <div class="radio" style="text-align:left">
-                                    <label><input type="radio" name="optradio" checked="checked" value="Seattle" id="contextDefaultRadio">Seattle</label>
-                                </div>
-                                <div class="radio" style="text-align:left">
-                                    <label><input type="radio" name="optradio" value="DC">Washington D.C.</label>
-                                </div>
-                                <div class="radio" style="text-align:left">
-                                    <label><input type="radio" name="optradio" value="NYC">New York City</label>
-                                </div>
-                            </form>
-                        </div>
-
-                    </div>-->
                     <div class="thumbnail content-item" id="article1">
+                        <div class="input-group-addon" style="color:black">Number of context features: </div>
+                        <div class="col-sm-10" style="padding-left:0px">
+                            @Html.DropDownList("context-richness",
+                                new SelectListItem[] {
+                                    new SelectListItem { Text = "1", Value = "1", Selected = true },
+                                    new SelectListItem { Text = "2", Value = "2" },
+                                    new SelectListItem { Text = "3", Value = "3" },
+                                    new SelectListItem { Text = "4", Value = "4" },
+                                },
+                                new { @id = "context-richness", @class = "form-control", @style = "display:inline" })
+                        </div>
                         <div class="caption" style="padding-bottom:0px">
-                            <p style="margin-bottom: 10px; margin-top: 0px;" id="locationText"></p>
-                            <div style="width: 230px; height: 200px; overflow:hidden">
-                                <img style="width: 230px; height: 316.8px;"
-                                     id="location"
-                                     src=""
-                                     alt="...">
-                            </div>
-
+                            <p style="margin-bottom: 10px; margin-top: 0px;" id="userContext-name"></p>
+                            <p style="margin-bottom: 10px; margin-top: 0px;" id="userContext-age"></p>
+                            <p style="margin-bottom: 10px; margin-top: 0px; display: none;" id="userContext-gender"></p>
+                            <p style="margin-bottom: 10px; margin-top: 0px; display: none;" id="userContext-location"></p>
+                            <p style="margin-bottom: 10px; margin-top: 0px; display: none;" id="userContext-industry"></p>
                         </div>
                     </div>
-
                 </div>
-
                 <div class="col-md-6">
                     <div class="section" style="width:100%;">
                         <p align="center" style="font-size:20px">
@@ -125,13 +106,11 @@
                                      src="https://upload.wikimedia.org/wikipedia/commons/2/28/Artificial-intelligence-elon-musk-hawking.jpg"
                                      alt="...">
                             </div>
-
                         </div>
                     </div>
                 </div>
             </div>
             <br />
-
             <br />
             <div class="row">
                 <div class="col-xs-6" style="text-align: right;">
@@ -151,9 +130,6 @@
                 <div style="margin-bottom:15px" id="statusReward"></div>
                 <button onclick="resetModel()" class="btn btn-primary btn-group-sm">Reset Model</button>
             </div>
-
-
-
         </div>
 
         <!-- Right pane -->
@@ -164,18 +140,15 @@
 
                     <div class="col-sm-10" style="padding-left:0px">
                         @Html.DropDownList("eval-window-filter",
-                    Model.EvaluationView.WindowFilters.Select(m => new SelectListItem
-                    {
-                        Value = m,
-                        Text = m,
-                        Selected = (m == Model.EvaluationView.SelectedFilter)
-                    }),
-                    new { @id = "eval-window-filter", @class = "form-control", @style = "display:inline" })
+                            Model.EvaluationView.WindowFilters.Select(m => new SelectListItem
+                            {
+                                Value = m,
+                                Text = m,
+                                Selected = (m == Model.EvaluationView.SelectedFilter)
+                            }),
+                            new { @id = "eval-window-filter", @class = "form-control", @style = "display:inline" })
                     </div>
-
                 </div>
-
-
             </div>
             <label for="eval-window-filter" class="col-sm-2 control-label ds-label" style="max-width: 280px;"></label>
             <br /><br />
@@ -186,135 +159,15 @@
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
-
 
     <script type="text/javascript" src="/scripts/jquery-1.10.2.min.js"></script>
     <script type="text/javascript" src="/scripts/bootstrap.min.js"></script>
     <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
     <script src="https://cdn.rawgit.com/novus/nvd3/v1.8.1/build/nv.d3.min.js" charset="utf-8"></script>
     <script type="text/javascript" src="/scripts/eval.js"></script>
+    <script type="text/javascript" src="/scripts/api-test-drive.js"></script>
 
-    <script>
-        var locations = [
-            {
-                key: "NYC",
-                text: "New York City",
-                image:"https://upload.wikimedia.org/wikipedia/commons/9/9d/NYC_Montage_2014_4_-_Jleon.jpg"
-            },
-            {
-                key: "Seattle",
-                text: "Seattle",
-                image:"https://upload.wikimedia.org/wikipedia/commons/2/2f/Space_Needle002.jpg"
-            }
-        ];
-
-        var actions = [
-            {
-                text: "What counts as artificially intelligent? AI explained",
-                image: "https://upload.wikimedia.org/wikipedia/commons/2/28/Artificial-intelligence-elon-musk-hawking.jpg",
-                imgStyle: "width: 260.7px; height: 200px; margin-left:-10px"
-            },
-            {
-                text: "Why the Federal Reserve isn't out of options yet",
-                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Marriner_S._Eccles_Federal_Reserve_Board_Building.jpg/1280px-Marriner_S._Eccles_Federal_Reserve_Board_Building.jpg",
-                imgStyle: "width: 360px; height: 200px; overflow:hidden; margin-left:-60px"
-            }
-        ];
-
-        var secondsLeft = 10;
-        var locationIndex = 0;
-        var eventId;
-
-        function chooseAction() {
-            locationIndex = (locationIndex + 1) % locations.length;
-            $("#location").attr("src", locations[locationIndex].image);
-            $("#locationText").text(locations[locationIndex].text);
-            //$("#article").attr("src", "");
-
-            secondsLeft = 10;
-
-            var context = { "Location": locations[locationIndex].key };
-            // Get Decision
-            $.ajax({
-                method: "POST",
-                url: "/API/Policy",
-                data: JSON.stringify(context),
-                contentType: "application/json; charset=utf-8",
-                dataType: "json",
-                headers: {
-                    "auth": $("#userToken").val()
-                },
-            })
-            .done(function (data) {
-                eventId = data.EventId;
-                modelTime = data.ModelTime;
-                $("#article").attr("src", actions[data.Action - 1].image);
-                $("#article").attr("style", actions[data.Action - 1].imgStyle);
-                $("#articleText").text(actions[data.Action - 1].text);
-                $("#statusModel").text('Latest model: ' + new Date(parseInt(modelTime.substr(6))));
-            })
-            .fail(function (jqXHR, textStatus, errorThrown) {
-                $("#status").text("Error: " + textStatus + "  " + errorThrown);
-            });
-        };
-        chooseAction();
-
-        function reportReward(reward) {
-            var thisEventId = eventId;
-
-            $.ajax({
-                method: "POST",
-                url: "/API/Reward/?eventId=" + eventId,
-                data: "" + reward,
-                headers: {
-                    "auth": $("#userToken").val()
-                },
-            })
-            .done(function (data) {
-                $("#statusReward").text("Success. Event ID: " + thisEventId + " and reward: " + reward);
-                chooseAction();
-            })
-            .fail(function (jqXHR, textStatus, errorThrown) {
-                $("#status").text("Error: " + textStatus + "  " + errorThrown);
-            });
-        }
-
-        function resetModel() {
-            $.ajax({
-                method: "POST",
-                url: "/API/reset",
-                headers: {
-                    "auth": "@Model.TrainerToken"
-                },
-            })
-            .done(function (data) {
-                $("#statusReward").text("Successfully reset.");
-            })
-            .fail(function (jqXHR, textStatus, errorThrown) {
-                $("#status").text("Error: " + textStatus + "  " + errorThrown);
-            });
-        }
-
-        $(document).keydown(function (e) {
-            switch (e.which)
-            {
-                case 49: // '1' // 38: // up
-                    reportReward(1);
-                    break;
-                case 48: // '0' // 40: // down
-                    reportReward(-1);
-                    break;
-            }
-        });
-
-        /*
-        $('#LocationForm input').on('change', function () {
-            chooseAction();
-        });
-        */
-    </script>
 </body>
 </html>
