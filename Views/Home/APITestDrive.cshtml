@@ -39,6 +39,15 @@
 
     <br />
 
+    <div class="section" style="width:100%;">
+        <p align="center" class="lead">
+            Test Drive
+        </p>
+        <p align="center" style="font-weight:100; margin-bottom:20px">
+            Choose the reward and let the Decision Service learn your preferences
+        </p>
+    </div>
+
     <div class="input-group" style="margin: 0 auto; width:300px">
         <div class="input-group-addon" style="color:black">Authorization token: </div>
         <input type="text" class="form-control" id="userToken" placeholder="Web service token" value="@Model.WebServiceToken">
@@ -46,9 +55,7 @@
 
     <br /><br />
 
-    Timer:  <div id="timer"> </div>
 
-    <br />
 
     <div class="row">
 
@@ -60,6 +67,31 @@
             <!-- Articles -->
             <div class="row" style="text-align: center;">
                 <div class="col-md-6">
+                    <div class="section" style="width:100%; margin-bottom:14px">
+                        <p align="center" style="font-size:20px">
+                            Context
+                        </p>
+                        <p align="center" style="font-weight:100">
+                            Available information/features (e.g. user location)
+                        </p>
+                    </div>
+                    <!--<div class="thumbnail" style="text-align: center; margin: 0 auto; display: table; width:200px;">
+                        <div class="caption">
+                            <p>Location:</p>
+                            <form id="LocationForm">
+                                <div class="radio" style="text-align:left">
+                                    <label><input type="radio" name="optradio" checked="checked" value="Seattle" id="contextDefaultRadio">Seattle</label>
+                                </div>
+                                <div class="radio" style="text-align:left">
+                                    <label><input type="radio" name="optradio" value="DC">Washington D.C.</label>
+                                </div>
+                                <div class="radio" style="text-align:left">
+                                    <label><input type="radio" name="optradio" value="NYC">New York City</label>
+                                </div>
+                            </form>
+                        </div>
+
+                    </div>-->
                     <div class="thumbnail content-item" id="article1">
                         <div class="caption" style="padding-bottom:0px">
                             <p style="margin-bottom: 10px; margin-top: 0px;" id="locationText"></p>
@@ -72,16 +104,25 @@
 
                         </div>
                     </div>
+
                 </div>
 
                 <div class="col-md-6">
-                    <div class="thumbnail content-item" id="article2">
+                    <div class="section" style="width:100%;">
+                        <p align="center" style="font-size:20px">
+                            Action
+                        </p>
+                        <p align="center" style="font-weight:100">
+                            Chosen by the Decision Service based on the context
+                        </p>
+                    </div>
+                    <div class="thumbnail content-item" id="article2" style="width:260px">
                         <div class="caption" style="padding-bottom:0px">
-                            <p style="margin-bottom: 10px; margin-top: 0px;" id="articleText"></p>
+                            <p style="margin-bottom: 10px; margin-top: 0px;" id="articleText">What counts as artificially intelligent? AI explained</p>
                             <div style="width: 230px; height: 200px; overflow:hidden">
                                 <img style="width: 260.7px; height: 200px; margin-left:-10px"
                                      id="article"
-                                     src=""
+                                     src="https://upload.wikimedia.org/wikipedia/commons/2/28/Artificial-intelligence-elon-musk-hawking.jpg"
                                      alt="...">
                             </div>
 
@@ -92,22 +133,41 @@
             <br />
 
             <br />
-            <a href="javascript:reportReward(1);">like</a> &nbsp;
-            <a href="javascript:reportReward(-2);">don't like</a> &nbsp;  <br />
+            <div class="row">
+                <div class="col-md-6" style="text-align: right;">
+                    <a style="font-family:'Segoe UI'; font-size:120px; text-decoration:none" href="javascript:reportReward(1);">&#x1F44D</a> &nbsp;
+                    <br /><p style="padding-right:20px">(or press '1')</p>
+                </div>
+                <div class="col-md-6" style="text-align: left;">
+                    <a style="font-family:'Segoe UI'; font-size:120px; text-decoration:none" href="javascript:reportReward(-2);">&#x1F44E</a> &nbsp;
+                    <br /><p>(or press '0')</p>
+                </div>
+            </div>
+            <br />
+            <div style="text-align:center">
+                Time until next decision: <div id="timer">10 seconds left</div>
+            </div>
 
-            <div id="status"></div>
-            <div id="statusModel"></div>
-            <div id="statusReward"></div>
+            <br />
+            <div style="text-align:center;">
+                <div style="margin-bottom:15px" id="status"></div>
+                <div style="margin-bottom:15px" id="statusModel">Latest model: </div>
+                <div style="margin-bottom:15px" id="statusReward"></div>
+                <button onclick="resetModel()" class="btn btn-primary btn-group-sm">Reset Model</button>
+            </div>
 
-            <a href="javascript:resetModel();">Reset Model</a>
+
+
         </div>
 
         <!-- Right pane -->
         <div class="col-md-6">
             <div class="row">
-                <label for="eval-window-filter" class="col-sm-2 control-label ds-label" style="max-width: 280px;">show results for every</label>
-                <div class="col-sm-10">
-                    @Html.DropDownList("eval-window-filter",
+                <div class="input-group" style="margin: 0 auto; width:300px">
+                    <div class="input-group-addon" style="color:black">Show results for the past: </div>
+
+                    <div class="col-sm-10" style="padding-left:0px">
+                        @Html.DropDownList("eval-window-filter",
                     Model.EvaluationView.WindowFilters.Select(m => new SelectListItem
                     {
                         Value = m,
@@ -115,8 +175,14 @@
                         Selected = (m == Model.EvaluationView.SelectedFilter)
                     }),
                     new { @id = "eval-window-filter", @class = "form-control", @style = "display:inline" })
+                    </div>
+
                 </div>
+
+
             </div>
+            <label for="eval-window-filter" class="col-sm-2 control-label ds-label" style="max-width: 280px;"></label>
+            <br /><br />
             <div class="thumbnail" style="text-align:center; width:650px; margin: 0 auto">
                 <div class="caption article">
                     <div id="chart-api">
@@ -151,12 +217,14 @@
 
         var actions = [
             {
-                text: "Bloomberg says he will not enter presidential race",
-                image: "https://upload.wikimedia.org/wikipedia/commons/4/42/Michael_R_Bloomberg.jpg"
+                text: "What counts as artificially intelligent? AI explained",
+                image: "https://upload.wikimedia.org/wikipedia/commons/2/28/Artificial-intelligence-elon-musk-hawking.jpg",
+                imgStyle: "width: 260.7px; height: 200px; margin-left:-10px"
             },
             {
-                text: "What counts as artificially intelligent? AI explained",
-                image: "https://upload.wikimedia.org/wikipedia/commons/2/28/Artificial-intelligence-elon-musk-hawking.jpg"
+                text: "Why the Federal Reserve isn't out of options yet",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Marriner_S._Eccles_Federal_Reserve_Board_Building.jpg/1280px-Marriner_S._Eccles_Federal_Reserve_Board_Building.jpg",
+                imgStyle: "width: 360px; height: 200px; overflow:hidden; margin-left:-60px"
             }
         ];
 
@@ -168,12 +236,11 @@
             locationIndex = (locationIndex + 1) % locations.length;
             $("#location").attr("src", locations[locationIndex].image);
             $("#locationText").text(locations[locationIndex].text);
-            $("#article").attr("src", "");
+            //$("#article").attr("src", "");
 
             secondsLeft = 10;
 
             var context = { "Location": locations[locationIndex].key };
-
             // Get Decision
             $.ajax({
                 method: "POST",
@@ -189,8 +256,9 @@
                 eventId = data.EventId;
                 modelTime = data.ModelTime;
                 $("#article").attr("src", actions[data.Action - 1].image);
+                $("#article").attr("style", actions[data.Action - 1].imgStyle);
                 $("#articleText").text(actions[data.Action - 1].text);
-                $("#statusModel").text('Model Time: ' + new Date(parseInt(modelTime.substr(6))));
+                $("#statusModel").text('Latest model: ' + new Date(parseInt(modelTime.substr(6))));
             })
             .fail(function (jqXHR, textStatus, errorThrown) {
                 $("#status").text("Error: " + textStatus + "  " + errorThrown);
@@ -224,14 +292,14 @@
                 },
             })
             .done(function (data) {
-                $("#statusReward").text("Success " + thisEventId + ": " + reward);
+                $("#statusReward").text("Success. Event ID: " + thisEventId + " and reward: " + reward);
                 chooseAction();
             })
             .fail(function (jqXHR, textStatus, errorThrown) {
                 $("#status").text("Error: " + textStatus + "  " + errorThrown);
             });
         }
-        
+
         function resetModel() {
             $.ajax({
                 method: "POST",
@@ -259,6 +327,12 @@
                     break;
             }
         });
+
+        /*
+        $('#LocationForm input').on('change', function () {
+            chooseAction();
+        });
+        */
     </script>
 </body>
 </html>
