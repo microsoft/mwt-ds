@@ -4,7 +4,7 @@
   "parameters": {
     "vowpal Wabbit Switches": {
       "type": "string",
-      "defaultValue": "--cb_explore 4 --epsilon 0.2 --cb_type dr",
+      "defaultValue": "--cb_explore 2 --epsilon 0.2 --cb_type dr",
       "metadata": {
         "description": "Flags for learning and exploration.  See http://hunch.net/~vw."
       }
