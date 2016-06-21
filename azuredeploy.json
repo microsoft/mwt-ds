@@ -42,7 +42,7 @@
     },
     "model update interval": {
       "type": "string",
-      "defaultValue": "10",
+      "defaultValue": "00:00:10",
       "metadata": {
         "description": "Number of examples between front end model updates. For time interval, use the format HH:MM:SS."
       }
