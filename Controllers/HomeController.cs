@@ -45,15 +45,22 @@ namespace DecisionServicePrivateWeb.Controllers
                 Session[SKAuthenticated] = true;
 
                 string azureStorageConnectionString = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString];
-                var storageAccount = CloudStorageAccount.Parse(azureStorageConnectionString);
-                var blobClient = storageAccount.CreateCloudBlobClient();
-                var settingsBlobContainer = blobClient.GetContainerReference(ApplicationBlobConstants.SettingsContainerName);
+                CloudStorageAccount storageAccount;
+                if (CloudStorageAccount.TryParse(azureStorageConnectionString, out storageAccount) && storageAccount != null)
+                {
+                    var blobClient = storageAccount.CreateCloudBlobClient();
+                    var settingsBlobContainer = blobClient.GetContainerReference(ApplicationBlobConstants.SettingsContainerName);
 
-                Session[SKClientSettingsBlob] = settingsBlobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestClientSettingsBlobName);
-                Session[SKExtraSettingsBlob] = settingsBlobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestExtraSettingsBlobName);
-                Session[SKEvalContainer] = blobClient.GetContainerReference(ApplicationBlobConstants.OfflineEvalContainerName);
+                    Session[SKClientSettingsBlob] = settingsBlobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestClientSettingsBlobName);
+                    Session[SKExtraSettingsBlob] = settingsBlobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestExtraSettingsBlobName);
+                    Session[SKEvalContainer] = blobClient.GetContainerReference(ApplicationBlobConstants.OfflineEvalContainerName);
 
-                return Redirect(Url.Action("Settings"));
+                    return Redirect(Url.Action("Settings"));
+                }
+                else
+                {
+                    return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, "Unable to parse the storage account connection string.");
+                }
             }
             return View(new IndexViewModel { Authenticated = false, Error = "Invalid Password" });
         }
