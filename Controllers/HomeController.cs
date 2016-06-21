@@ -264,8 +264,6 @@ namespace DecisionServicePrivateWeb.Controllers
                             if (evalData.ContainsKey(evalResult.PolicyName))
                             {
                                 var timeToReward = evalData[evalResult.PolicyName].values;
-                                //.Add(new object[] { evalResult.LastWindowTime, evalResult.AverageCost });
-
                                 if (timeToReward.ContainsKey(evalResult.LastWindowTime))
                                 {
                                     timeToReward[evalResult.LastWindowTime] = -evalResult.AverageCost;
@@ -283,7 +281,7 @@ namespace DecisionServicePrivateWeb.Controllers
                     }
                 }
 
-                return Json(evalData.Values.Select(a => new { key = a.key, values = a.values.Select(v => new object[] { v.Key, v.Value }) }), JsonRequestBehavior.AllowGet);
+                return Json(evalData.Values.Select(a => new { key = GetDemoPolicyName(a.key), values = a.values.Select(v => new object[] { v.Key, v.Value }) }), JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
@@ -307,6 +305,19 @@ namespace DecisionServicePrivateWeb.Controllers
         public static bool IsAuthenticated(HttpSessionStateBase Session)
         {
             return (Session[SKAuthenticated] != null && (bool)Session[SKAuthenticated]);
+        }
+
+        private static string GetDemoPolicyName(string policyName)
+        {
+            switch (policyName)
+            {
+                case "Constant Policy 1":
+                    return "AI Article";
+                case "Constant Policy 2":
+                    return "Federal Reserve Article";
+                default:
+                    return policyName;
+            }
         }
 
         private static string[] GetEvalFilterWindowTypes()
