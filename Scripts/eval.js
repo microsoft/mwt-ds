@@ -4,7 +4,7 @@
     function updateDataD3(baseEvalAddress, chartId) {
         d3.selectAll(".nvtooltip").remove();
 
-        d3.json(baseEvalAddress + '?windowType=' + windowType, function (error, response) {
+        d3.json(baseEvalAddress + 'windowType=' + windowType, function (error, response) {
             nv.addGraph(function () {
                 var chart = nv.models.lineChart()
                               .x(function (d) { return parseInt(d[0].substr(6)) })
