@@ -20,6 +20,9 @@
                     .tickFormat(d3.format(',.1'))
                     .showMaxMin(false);
 
+                chart.xAxis.axisLabel("Time");
+                chart.yAxis.axisLabel("Average Reward");
+
                 if (response == null) {
                     response = [];
                 }
