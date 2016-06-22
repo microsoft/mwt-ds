@@ -17,7 +17,7 @@
                        return d3.time.format('%X')(new Date(d))
                    });
                 chart.yAxis
-                    .tickFormat(d3.format(',.1'))
+                    .tickFormat(d3.format(',.2f'))
                     .showMaxMin(false);
 
                 chart.xAxis.axisLabel("Time");
