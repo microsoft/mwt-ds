@@ -1,7 +1,7 @@
 ﻿var locs = ["Seattle", "New York"];
 var genders = ["Male", "Female"];
 var industries = ["Tech", "Law"];
-var ages = ["26-30", "31-35"];
+var ages = ["Young", "Old"];
 var persons = [
     { name: "John" }, { name: "Sid" }, { name: "Markus" }, { name: "Louie" },
     { name: "Dan" }, { name: "Gal" }, { name: "Alex" }, { name: "Alekh" },

@@ -261,21 +261,18 @@ namespace DecisionServicePrivateWeb.Controllers
                             {
                                 continue;
                             }
-                            if (evalData.ContainsKey(evalResult.PolicyName))
+                            if (!evalData.ContainsKey(evalResult.PolicyName))
                             {
-                                var timeToReward = evalData[evalResult.PolicyName].values;
-                                if (timeToReward.ContainsKey(evalResult.LastWindowTime))
-                                {
-                                    timeToReward[evalResult.LastWindowTime] = -evalResult.AverageCost;
-                                }
-                                else
-                                {
-                                    timeToReward.Add(evalResult.LastWindowTime, -evalResult.AverageCost);
-                                }
+                                evalData.Add(evalResult.PolicyName, new EvalD3 { key = evalResult.PolicyName, values = new Dictionary<DateTime, float>() });
+                            }
+                            var timeToReward = evalData[evalResult.PolicyName].values;
+                            if (timeToReward.ContainsKey(evalResult.LastWindowTime))
+                            {
+                                timeToReward[evalResult.LastWindowTime] = -evalResult.AverageCost;
                             }
                             else
                             {
-                                evalData.Add(evalResult.PolicyName, new EvalD3 { key = evalResult.PolicyName, values = new Dictionary<DateTime, float>() });
+                                timeToReward.Add(evalResult.LastWindowTime, -evalResult.AverageCost);
                             }
                         }
                     }
@@ -322,7 +319,7 @@ namespace DecisionServicePrivateWeb.Controllers
 
         private static string[] GetEvalFilterWindowTypes()
         {
-            return new string[] { "1m", "20m", "1h", "3h", "6h" };
+            return new string[] { "1m", "5m", "20m", "1h", "3h" };
         }
 
         private SimulationViewModel SimulationView()
