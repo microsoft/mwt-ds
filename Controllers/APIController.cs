@@ -184,7 +184,7 @@ namespace DecisionServicePrivateWeb.Controllers
                     await Task.WhenAll(blobContainer
                         .ListBlobs(useFlatBlobListing: true)
                         .OfType<CloudBlockBlob>()
-                        .Select(b => b.DeleteAsync()));
+                        .Select(b => b.UploadFromByteArrayAsync(new byte[0] { }, 0, 0)));
                 }
 
                 return new HttpStatusCodeResult(HttpStatusCode.OK);
