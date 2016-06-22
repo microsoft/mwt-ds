@@ -32,6 +32,8 @@
 
                 nv.utils.windowResize(chart.update);
 
+                $('#eval-chart-status').text('Graph Updated At: ' + new Date($.now()));
+
                 return chart;
             });
         });
