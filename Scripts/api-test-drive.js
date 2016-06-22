@@ -115,7 +115,7 @@ function resetModel() {
         method: "POST",
         url: "/API/reset",
         headers: {
-            "auth": "@Model.TrainerToken"
+            "auth": $('#trainerToken').val()
         },
     })
     .done(function (data) {
