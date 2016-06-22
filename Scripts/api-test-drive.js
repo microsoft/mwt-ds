@@ -119,10 +119,10 @@ function resetModel() {
         },
     })
     .done(function (data) {
-        $("#statusReward").text("Successfully reset.");
+        $("#statusModel").text("Successfully reset.");
     })
     .fail(function (jqXHR, textStatus, errorThrown) {
-        $("#status").text("Error: " + textStatus + "  " + errorThrown);
+        $("#statusModel").text("Error: " + textStatus + "  " + errorThrown);
     });
 }
 
