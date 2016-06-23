@@ -90,8 +90,7 @@
                   "ServiceBusNamespace": "[parameters('serviceBusName')]",
                   "eventHubName": "joined",
                   "sharedAccessPolicyName": "SendOnly",
-                  "sharedAccessPolicyKey": "[parameters('joinedEventHub').SendKey.value]",
-                  "partitionKey": "PartitionId"
+                  "sharedAccessPolicyKey": "[parameters('joinedEventHub').SendKey.value]"
                 },
                 "Type": "Microsoft.ServiceBus/EventHub"
               },
