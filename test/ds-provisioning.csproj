@@ -231,6 +231,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="APITestDriveTest.cs" />
     <Compile Include="EndToEndOnlineTrainerTest.cs" />
     <Compile Include="SimplePolicyHttpTest.cs" />
     <Compile Include="ProvisioningBaseTest.cs" />
