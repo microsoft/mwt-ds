@@ -6,7 +6,8 @@
     function updateDataD3(baseEvalAddress, chartId) {
         d3.selectAll(".nvtooltip").remove();
 
-        d3.json(baseEvalAddress + 'windowType=' + windowType, function (error, response) {
+        var noCacheParameter = Math.floor(Math.random() * 1000); // additional measure to prevent caching of JSON result in all browsers
+        d3.json(baseEvalAddress + 'windowType=' + windowType + '&' + noCacheParameter, function (error, response) {
             nv.addGraph(function () {
                 var chart = nv.models.lineChart()
                               .x(function (d) { return parseInt(d[0].substr(6)) })

@@ -1,4 +1,5 @@
-﻿using DecisionServicePrivateWeb.Classes;
+﻿using DecisionServicePrivateWeb.Attributes;
+using DecisionServicePrivateWeb.Classes;
 using DecisionServicePrivateWeb.Models;
 using Microsoft.ApplicationInsights;
 using Microsoft.Research.MultiWorldTesting.Contract;
@@ -208,6 +209,7 @@ namespace DecisionServicePrivateWeb.Controllers
 
         [HttpGet]
         [AllowAnonymous]
+        [NoCache]
         public ActionResult EvalJson(string windowType = "3h", int maxNumPolicies = 5)
         {
             if (!IsAuthenticated(Session))
@@ -220,6 +222,7 @@ namespace DecisionServicePrivateWeb.Controllers
 
         [HttpGet]
         [AllowAnonymous]
+        [NoCache]
         public ActionResult EvalJsonAPI(string userToken, string windowType = "3h", int maxNumPolicies = 5)
         {
             if (userToken != ConfigurationManager.AppSettings[ApplicationMetadataStore.AKWebServiceToken])
