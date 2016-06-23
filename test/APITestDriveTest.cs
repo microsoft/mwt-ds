@@ -73,14 +73,14 @@ namespace Microsoft.Research.DecisionServiceTest
                 var urlPolicy = $"{this.managementCenterUrl}/API/Policy";
                 var urlReward = $"{this.managementCenterUrl}/API/Reward";
 
-                for (int i = 0; i < 1000; i++)
+                for (int i = 0; i < 32*1024; i++)
                 {
                     var index = rnd.Next(2);
 
                     // mapping
                     var expectedAction = index;
-                    if (rnd.NextDouble() < .1)
-                        expectedAction++;
+                    //if (rnd.NextDouble() < .0)
+                    //    expectedAction++;
                     expectedAction = (expectedAction % 2) + 1;
 
                     var jsonContext = JsonConvert.SerializeObject(new { Location = locs[index] });
@@ -98,7 +98,16 @@ namespace Microsoft.Research.DecisionServiceTest
                     {
                         Trace.WriteLine($"Model {decision.ModelTime}");
                         for (int j = 0; j < 2; j++)
-                            Trace.WriteLine($"Location {locs[j],-15}: {confusionMatrix[j, 0],-4} {confusionMatrix[j, 1],-4}");
+                            Trace.WriteLine($"Location {locs[j],-9}: {confusionMatrix[j, 0],-4} {confusionMatrix[j, 1],-4}");
+
+                        // float sum = confusionMatrix.OfType<int>().Sum();
+                        for (int j = 0; j < 2; j++)
+                        {
+                            var a1 = confusionMatrix[j, 0];
+                            var a2 = confusionMatrix[j, 1];
+                            float sum = a1 + a2;
+                            Trace.WriteLine($"Location {locs[j],-9}: {a1/sum:0.00} {a2 / sum:0.00}");
+                        }
                         Trace.WriteLine("");
                     }
                 }
