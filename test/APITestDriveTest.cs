@@ -51,6 +51,8 @@ namespace Microsoft.Research.DecisionServiceTest
             public string EventId { get; set; }
 
             public int Action { get; set; }
+
+            public string ModelTime { get; set; }
         }
 
         [TestMethod]
@@ -73,12 +75,12 @@ namespace Microsoft.Research.DecisionServiceTest
 
                 for (int i = 0; i < 1000; i++)
                 {
-                    var index = rnd.Next(1);
+                    var index = rnd.Next(2);
 
                     // mapping
                     var expectedAction = index;
                     if (rnd.NextDouble() < .1)
-                        index++;
+                        expectedAction++;
                     expectedAction = (expectedAction % 2) + 1;
 
                     var jsonContext = JsonConvert.SerializeObject(new { Location = locs[index] });
@@ -94,6 +96,7 @@ namespace Microsoft.Research.DecisionServiceTest
 
                     if (i % 5 == 0)
                     {
+                        Trace.WriteLine($"Model {decision.ModelTime}");
                         for (int j = 0; j < 2; j++)
                             Trace.WriteLine($"Location {locs[j],-15}: {confusionMatrix[j, 0],-4} {confusionMatrix[j, 1],-4}");
                         Trace.WriteLine("");
