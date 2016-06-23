@@ -277,6 +277,7 @@ namespace DecisionServicePrivateWeb.Controllers
                         }
                     }
                 }
+                
 
                 return Json(evalData.Values.Select(a => new { key = GetDemoPolicyName(a.key), values = a.values.Select(v => new object[] { v.Key, v.Value }) }), JsonRequestBehavior.AllowGet);
             }
