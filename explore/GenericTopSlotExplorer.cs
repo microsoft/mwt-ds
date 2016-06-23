@@ -49,16 +49,30 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             }
 
             // top slot explorer
-            var actionList = actionProbs.Select(ap => ap.Action).ToArray();
-            MultiActionHelper.PutActionToList(actionChosen.Action, actionList);
+            var action = actionChosen.Action;
+            var probability = actionChosen.Probability;
+            var actionList = new int[actionProbs.Length]; 
+            var probabilityList = new float[actionProbs.Length];
+            for (int i = 0; i < actionList.Length; i++)
+            {
+                actionList[i] = actionProbs[i].Action;
+                probabilityList[i] = actionProbs[i].Probability;
+
+                if (action == actionList[i])
+                {
+                    // swap both
+                    actionList[i] = actionList[0];
+                    actionList[0] = action;
+
+                    probabilityList[i] = probabilityList[0];
+                    probabilityList[0] = probability;
+                }
+            }
 
             // action id is 1-based
             return ExplorerDecision.Create(
                 actionList,
-                new GenericTopSlotExplorerState 
-                {
-                    Probabilities = actionProbs.Select(ap => ap.Probability).ToArray()
-                },
+                new GenericTopSlotExplorerState { Probabilities = probabilityList },
                 true);
         }
     }
