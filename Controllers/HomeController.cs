@@ -203,7 +203,7 @@ namespace DecisionServicePrivateWeb.Controllers
                 return RedirectToAction("Index");
             }
 
-            return View(new EvaluationViewModel { WindowFilters = new List<string>(GetEvalFilterWindowTypes()), SelectedFilter = "1m" });
+            return View(new EvaluationViewModel { WindowFilters = new List<string>(GetEvalFilterWindowTypes()), SelectedFilter = "3h" });
         }
 
         [HttpGet]
@@ -220,7 +220,7 @@ namespace DecisionServicePrivateWeb.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public ActionResult EvalJsonAPI(string userToken, string windowType = "1m", int maxNumPolicies = 5)
+        public ActionResult EvalJsonAPI(string userToken, string windowType = "3h", int maxNumPolicies = 5)
         {
             if (userToken != ConfigurationManager.AppSettings[ApplicationMetadataStore.AKWebServiceToken])
             {
@@ -329,7 +329,7 @@ namespace DecisionServicePrivateWeb.Controllers
             {
                 WebServiceToken = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKWebServiceToken],
                 TrainerToken = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKAdminToken],
-                EvaluationView = new EvaluationViewModel { WindowFilters = new List<string>(GetEvalFilterWindowTypes()), SelectedFilter = "1m" }
+                EvaluationView = new EvaluationViewModel { WindowFilters = new List<string>(GetEvalFilterWindowTypes()), SelectedFilter = "3h" }
             };
         }
 

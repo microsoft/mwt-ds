@@ -1,5 +1,7 @@
 ﻿$(function () {
-    windowType = '1m';
+    $.ajaxSetup({ cache: false });
+
+    windowType = '3h';
 
     function updateDataD3(baseEvalAddress, chartId) {
         d3.selectAll(".nvtooltip").remove();

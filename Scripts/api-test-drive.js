@@ -1,4 +1,6 @@
-﻿var locs = ["Seattle", "New York"];
+﻿$.ajaxSetup({ cache: false });
+
+var locs = ["Seattle", "New York"];
 var genders = ["Male", "Female"];
 var industries = ["Tech", "Law"];
 var ages = ["Young", "Old"];

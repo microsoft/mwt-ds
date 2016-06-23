@@ -1,4 +1,6 @@
 ﻿$(function () {
+    $.ajaxSetup({ cache: false });
+
     // create the editor
     var container = document.getElementById("jsoneditor");
     var options = {
