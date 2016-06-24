@@ -1,6 +1,7 @@
 ﻿$(function () {
     $.ajaxSetup({ cache: false });
 
+
     // create the editor
     var container = document.getElementById("jsoneditor");
     var options = {
@@ -10,6 +11,7 @@
     var editor = new JSONEditor(container, options);
 
     // set json
+    /*
     var json = {
         "Age": 25,
         "Location": "New York",
@@ -18,7 +20,15 @@
             { "a": 2 }
         ]
     };
+    */
+    var json = {
+        "Age": 25,
+        "Location": "New York",
+        "Industry": "Tech"
+    };
     editor.set(json);
+
+    $(".Hostname").text(window.location.hostname);
 
     var lastJson = "";
     setInterval(function () {
@@ -48,12 +58,11 @@
         }
     }, 500);
 
-    function SubmitInteraction()
-    {
+    function SubmitInteraction() {
         // Get Decision
         $.ajax({
             method: "POST",
-            url: "/API/Ranker",
+            url: "/API/Policy",
             data: editor.getText(),
             contentType: "application/json; charset=utf-8",
             dataType: "json",
@@ -63,7 +72,9 @@
             },
         })
         .done(function (data) {
+            $("#chosenAction").text(data.Action)
             $("#EventId").text(data.EventId);
+            $("#rewardEventId").text(data.EventId);
         })
         .fail(function (jqXHR, textStatus, errorThrown) {
             $("#status").text("Error posting ineraction: " + textStatus + "  " + errorThrown);
@@ -81,7 +92,7 @@
             cache: false,
         })
         .done(function (data) {
-            $("#statusReward").text("Successfully sent reward of: " + $("#rewardInput").val());
+            $("#statusReward").text("Successfully sent reward of " + $("#rewardInput").val());
         })
         .fail(function (jqXHR, textStatus, errorThrown) {
             $("#status").text("Error sending reward: " + textStatus + "  " + errorThrown);
