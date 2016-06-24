@@ -226,6 +226,7 @@
   <ItemGroup>
     <Content Include="Content\Demo.css" />
     <Content Include="Content\img\jsoneditor-icons.svg" />
+    <Content Include="Scripts\api-guide.js" />
     <Content Include="Scripts\api-test-drive.js" />
     <Content Include="Views\Home\APIGuide.cshtml" />
     <Content Include="Views\Home\APITest.cshtml" />
@@ -310,6 +311,7 @@
     <Content Include="Views\web.config" />
     <Content Include="Views\Shared\_ResetSvg.cshtml" />
     <Content Include="Views\Home\APITestDrive.cshtml" />
+    <Content Include="Views\Shared\_TestDriveLayout.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
       <SubType>Designer</SubType>

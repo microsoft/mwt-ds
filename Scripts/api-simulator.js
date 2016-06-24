@@ -57,13 +57,12 @@
             data: editor.getText(),
             contentType: "application/json; charset=utf-8",
             dataType: "json",
+            cache: false,
             headers: {
                 'auth': $("#userToken").val()
             },
         })
         .done(function (data) {
-            $("#status").text("Success");
-
             $("#EventId").text(data.EventId);
         })
         .fail(function (jqXHR, textStatus, errorThrown) {
@@ -79,9 +78,10 @@
             headers: {
                 'auth': $("#userToken").val()
             },
+            cache: false,
         })
         .done(function (data) {
-            $("#statusReward").text("Successfully sent reward of: " + data.Reward);
+            $("#statusReward").text("Successfully sent reward of: " + $("#rewardInput").val());
         })
         .fail(function (jqXHR, textStatus, errorThrown) {
             $("#status").text("Error sending reward: " + textStatus + "  " + errorThrown);

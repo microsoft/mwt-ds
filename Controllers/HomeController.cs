@@ -102,7 +102,7 @@ namespace DecisionServicePrivateWeb.Controllers
             }
             try
             {
-                return View(SimulationView());
+                return View("APITestDrive", "_TestDriveLayout", SimulationView());
             }
             catch (Exception ex)
             {
@@ -118,7 +118,7 @@ namespace DecisionServicePrivateWeb.Controllers
             {
                 return RedirectToAction("Index");
             }
-            return View(SimulationView());
+            return View("APIGuide", "_TestDriveLayout", SimulationView());
         }
 
         [HttpGet]
@@ -129,7 +129,7 @@ namespace DecisionServicePrivateWeb.Controllers
             {
                 return RedirectToAction("Index");
             }
-            return View();
+            return View("APITest", "_TestDriveLayout", SimulationView());
         }
 
         [HttpPost]
