@@ -1,4 +1,4 @@
 # MWT-DS
-Umbrella repository for projects related to the MWT Decision Service
+Umbrella repository for projects related to the [MWT Decision Service](https://mwtds.azurewebsites.net/).
 
-The [wiki](https://github.com/Microsoft/mwt-ds/wiki) has Tutorials, White Papers, HOWTOs, and API References.
+The [documentation is in the wiki, including Tutorials, Troubleshooting Guide, White Papers, HOWTOs, FAQ List, API References, etc.](https://github.com/Microsoft/mwt-ds/wiki/Decision-Service-Documentation).
