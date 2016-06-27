@@ -34,11 +34,7 @@ namespace DecisionServicePrivateWeb.Controllers
                 {
                     InteractionUploadConfiguration = new BatchingConfiguration
                     {
-                        // TODO: these are not production ready configurations. do we need to move those to C&C as well?
-                        MaxBufferSizeInBytes = 1,
-                        MaxDuration = TimeSpan.FromSeconds(1),
-                        MaxEventCount = 1,
-                        MaxUploadQueueCapacity = 1,
+                        MaxDuration = TimeSpan.FromSeconds(2),
                         UploadRetryPolicy = BatchUploadRetryPolicy.ExponentialRetry
                     },
                     ModelPollSuccessCallback = modelSuccessNotifier,
