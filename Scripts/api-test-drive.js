@@ -160,3 +160,16 @@ $(document).keydown(function (e) {
             break;
     }
 });
+
+setInterval(function () {
+    $.ajax({
+        method: "POST",
+        url: "/API/trainerStatus"
+    })
+    .done(function (data) {
+        $("#statusTrainer").text("Trainer OK. " + data["Stage2_Learn_Total"]);
+    })
+    .fail(function (jqXHR, textStatus, errorThrown) {
+        $("#statusTrainer").text("Please wait as trainer has not started yet. Error: " + textStatus + "  " + errorThrown);
+    });
+}, 10 * 1000);
