@@ -198,7 +198,34 @@ namespace DecisionServicePrivateWeb.Controllers
                 new TelemetryClient().TrackException(ex);
                 return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, ex.ToString());
             }
+        }
 
+        [HttpGet]
+        public async Task<ActionResult> TrainerStatus()
+        {
+            try
+            {
+                using (var wc = new WebClient())
+                {
+                    string uniqueStringInUrl = Regex.Match(Request.Url.ToString(), ".*mc-(.*).azurewebsites.*").Groups[1].Value;
+
+                    // TODO: cache me?!
+                    var extraSettingsBlob = (CloudBlockBlob)Session[HomeController.SKExtraSettingsBlob];
+                    ApplicationExtraMetadata extraApp = JsonConvert.DeserializeObject<ApplicationExtraMetadata>(extraSettingsBlob.DownloadText());
+
+                    var json = await wc.DownloadStringTaskAsync($"http://{extraApp.AzureResourceGroupName}-trainer-{uniqueStringInUrl}.cloudapp.net/status");
+                    return Content(json, "application/json");
+                }
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.Unauthorized, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                new TelemetryClient().TrackException(ex);
+                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, ex.ToString());
+            }
         }
 
         private void ModelSuccessNotifier(byte[] modelBytes)
