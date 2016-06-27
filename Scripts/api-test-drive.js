@@ -163,7 +163,7 @@ $(document).keydown(function (e) {
 
 setInterval(function () {
     $.ajax({
-        method: "POST",
+        method: "GET",
         url: "/API/trainerStatus"
     })
     .done(function (data) {
