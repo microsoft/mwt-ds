@@ -167,7 +167,14 @@ setInterval(function () {
         url: "/API/trainerStatus"
     })
     .done(function (data) {
-        $("#statusTrainer").text("Trainer OK. " + data["Stage2_Learn_Total"]);
+        var str = "";
+        for (var property in data) {
+            if (data.hasOwnProperty(property)) {
+                str += property.replace("_", " ") + ": " + data[property] + " | ";
+            }
+        }
+
+        $("#statusTrainer").text("Trainer OK: " + str);
     })
     .fail(function (jqXHR, textStatus, errorThrown) {
         $("#statusTrainer").text("Please wait as trainer has not started yet. Error: " + textStatus + "  " + errorThrown);
