@@ -19,6 +19,7 @@
     "experimental Unit Duration (s)": {
       "type": "int",
       "minValue": 5,
+      "maxValue": 518400,
       "defaultValue": 10,
       "metadata": {
         "description": "Allowed seconds after interaction to observe reward."
