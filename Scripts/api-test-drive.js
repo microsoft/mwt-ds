@@ -94,7 +94,11 @@ function chooseAction() {
 
 function reportReward(reward) {
     var thisEventId = eventId;
-
+    if ($('#thumbUp').hasClass('disabled') || $('#thumbDown').hasClass('disabled')) {
+        return;
+    }
+    $('#thumbUp').addClass('disabled');
+    $('#thumbDown').addClass('disabled');
     $.ajax({
         method: "POST",
         url: "/API/Reward/?eventId=" + eventId,
@@ -109,6 +113,10 @@ function reportReward(reward) {
     })
     .fail(function (jqXHR, textStatus, errorThrown) {
         $("#status").text("Error: " + textStatus + "  " + errorThrown);
+    })
+    .always(function () {
+        $('#thumbUp').removeClass('disabled');
+        $('#thumbDown').removeClass('disabled');
     });
 }
 

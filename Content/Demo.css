@@ -40,3 +40,15 @@ code {
      margin: 0 auto; 
      display: table;
 }
+
+.disabled {
+    opacity: 0.1;
+}
+
+a.thumb:visited {
+    color:#428bca;
+}
+
+a.thumb:hover {
+    color:#2a6496;
+}
