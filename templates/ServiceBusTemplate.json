@@ -5,7 +5,7 @@
     "postfix": {
       "type": "string",
       // maximum name length is 63 - len('sb-') = 60
-      "maxValue": 60
+      "maxLength": 60
     }
   },
   "variables": {

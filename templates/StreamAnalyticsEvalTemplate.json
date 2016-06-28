@@ -13,7 +13,7 @@
     "postfix": {
       "type": "string",
       // maximum name length is 63 - len('eval-') = 58
-      "maxValue": 58
+      "maxLength": 58
     },
     "streamingUnits": {
       "type": "int",
