@@ -50,7 +50,7 @@
     }
   },
   "variables": {
-    "assetLocation": "https://raw.githubusercontent.com/Microsoft/mwt-ds-provisioning/master/provisioning/",
+    "assetLocation": "https://raw.githubusercontent.com/Microsoft/mwt-ds/master/provisioning/",
     "messageRetentionInDays": 7,
     "prefix": "[replace(replace(replace(replace(resourceGroup().name, '.', 'x'), '_', 'x'), ')', 'x'), '(', 'x')]"
   },
