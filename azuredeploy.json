@@ -130,7 +130,8 @@
         "parameters": {
           "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
         }
-      },
+      }
+    },
     {
       "apiVersion": "2015-01-01",
       "name": "Service_Bus",
