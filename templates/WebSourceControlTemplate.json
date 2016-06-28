@@ -1,0 +1,34 @@
+﻿{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {},
+  "variables": {
+    "siteName": "[concat(resourceGroup().name, '-mc-', uniqueString(concat(subscription().subscriptionId, resourceGroup().name)))]"
+  },
+  "resources": [
+    {
+      "apiVersion": "2015-08-01",
+      "name": "[variables('siteName')]",
+      "type": "Microsoft.Web/sites",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "serverFarmId": "ManagementPlan"
+      },
+      "resources": [
+        {
+          "apiVersion": "2015-08-01",
+          "name": "web",
+          "type": "sourcecontrols",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', variables('siteName'))]"
+          ],
+          "properties": {
+            "RepoUrl": "https://github.com/Microsoft/mwt-ds-management-center.git",
+            "branch": "master",
+            "IsManualIntegration": true
+          }
+        }
+      ]
+    }
+  ]
+}

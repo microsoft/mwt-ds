@@ -236,10 +236,24 @@
     },
     {
       "apiVersion": "2015-01-01",
-      "name": "SAS_Uri_Generator",
+      "name": "Management_Center_Github_Sync",
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [
         "Microsoft.Resources/deployments/Management_Center"
+      ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/WebSourceControlTemplate.json')]" },
+        "parameters": {
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "SAS_Uri_Generator",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/Management_Center_Github_Sync"
       ],
       "properties": {
         "mode": "incremental",
