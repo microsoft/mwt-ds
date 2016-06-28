@@ -1,0 +1,75 @@
+﻿@using DecisionServicePrivateWeb.Models
+@model SimulationViewModel
+
+@{
+    ViewBag.Title = "API Test";
+}
+
+<div class="input-group" style="margin: 0 auto; width:300px; visibility: collapse;">
+    <div class="input-group-addon" style="color:black">Authorization token: </div>
+    <input type="text" class="form-control" id="userToken" value="@Model.WebServiceToken">
+</div>
+
+<div style="max-width:700px; margin: 0 auto;" id="context">
+    <p class="lead" style="text-align:center;">1. Make a decision using context</p>
+    <code>
+        <div style="background-color:#e9f2ff; border-color:green; border-width:2px; border-style:solid; padding:10px 10px 10px 10px; border-radius:5px 5px;">
+            POST request URL:
+            <div class="Field FieldName-fieldExampleRequest FieldType-textLong FieldLabel-hidden">
+                <div class="Field-items">
+                    <div class="Field-items-item even ">
+                        <pre>https://<span class="Hostname">{hostname}</span>/API/Policy</pre>
+                    </div>
+                </div>
+            </div>
+            Request header:
+            <pre id="decisionRequestHeader">auth: <span class="authKeyText">@Model.WebServiceToken</span></pre>
+            Request body (context):
+            <div id="jsoneditor" style="height: 200px; margin: 0 auto;"></div>
+    </code>
+</div>
+
+<br />
+
+<button style="margin:0 auto; display: table" class="btn btn-primary btn-lg" type="button" id="submit-interaction">Send decision request</button>
+<br />
+<div style="text-align:center">
+    <p style="font-size:18px">Decision Results:</p>
+    Action: <span id="chosenAction"></span> <br />
+    Event Id: <span id="EventId"></span> <br />
+    VW String: <span id="vwstr"></span> <br />
+</div>
+
+<div style="max-width:700px; margin: 0 auto;" id="reward">
+    <p class="lead" style="text-align:center;">2. Assign a reward</p>
+    <code>
+        <div style="background-color:#e9f2ff; border-color:green; border-width:2px; border-style:solid; padding:10px 10px 10px 10px; border-radius:5px 5px;">
+            POST request URL:
+            <div class="Field FieldName-fieldExampleRequest FieldType-textLong FieldLabel-hidden">
+                <div class="Field-items">
+                    <div class="Field-items-item even ">
+                        <pre>https://<span class="Hostname">{hostname}</span>/API/Reward?eventId=<span id="rewardEventId"></span></pre>
+                    </div>
+                </div>
+            </div>
+            Request header:
+            <pre id="decisionRequestHeader">auth: <span class="authKeyText">@Model.WebServiceToken</span></pre>
+            Request body (reward):
+            <input class="form-control" id="rewardInput" type="number" value="1">
+    </code>
+</div>
+<br />
+
+<button style="margin:0 auto; display: table" class="btn btn-primary btn-lg" id="submit-observation">Send reward request</button>
+
+<br />
+<div style="text-align:center" id="statusReward"></div>
+
+@section styles {
+    <link href="../Content/jsoneditor.min.css" rel="stylesheet" type="text/css">
+}
+
+@section scripts {
+    <script type="text/javascript" src="../Scripts/jsoneditor.min.js"></script>
+    <script type="text/javascript" src="../Scripts/api-simulator.js"></script>
+}

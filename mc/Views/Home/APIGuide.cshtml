@@ -1,0 +1,194 @@
+﻿@using DecisionServicePrivateWeb.Models
+@model SimulationViewModel
+@{
+    ViewBag.Title = "API Guide";
+}
+
+<input type="text" id="userToken" value="@Model.WebServiceToken" hidden="hidden" />
+
+<div class="section" style="width:100%;">
+    <p align="center" class="lead">
+        Suppose we have a scenario where we need to choose from a set of actions
+    </p>
+    <p align="center" style="font-weight:100">
+        Let's say we have 2 news articles:
+    </p>
+</div>
+
+<br />
+
+<div class="row" style="text-align: center; margin: 0 auto; max-width:1400px">
+    <div class="col-md-3"></div>
+    <div class="col-md-3">
+        <div class="thumbnail" style="overflow:hidden; max-width: 280px; margin: 0 auto;">
+            <div class="caption">
+                <div style="width: 230px; height: 200px; overflow:hidden; margin:0 auto">
+                    <img style="width: 260.7px; height: 200px; margin-left:-10px" src="https://upload.wikimedia.org/wikipedia/commons/2/28/Artificial-intelligence-elon-musk-hawking.jpg" alt="...">
+                </div>
+                <p style="margin-bottom: 0px; margin-top: 10px;">What counts as artificially intelligent? AI explained</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="thumbnail" style="overflow:hidden; max-width: 280px; margin: 0 auto;">
+            <div class="caption">
+                <div style="width: 230px; height: 200px; overflow:hidden; margin:0 auto">
+                    <img style="width: 360px; height: 200px; overflow:hidden; margin-left:-60px" src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Marriner_S._Eccles_Federal_Reserve_Board_Building.jpg/1280px-Marriner_S._Eccles_Federal_Reserve_Board_Building.jpg" alt="...">
+                </div>
+                <p style="margin-bottom: 0px; margin-top: 10px;">Why the Fed isn't out of options yet</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3"></div>
+</div>
+
+<br />
+<p align="center" style="font-weight:100">
+    We will show how to use the decision service to decide on the best article based on the user's location
+</p>
+
+<br /><br /><br />
+
+<div id="context">
+    <p class="lead" style="text-align:center">1. Make a Decision</p>
+
+    <p style="font-weight:100; text-align:center">
+        The decision service makes it easy to make smarter decisions using the context you have available.
+        <!--It might be information
+        about the user or simply an ID for the campaign. -->
+    </p>
+    <p style="font-weight:100; text-align:center">Let's apply the decision service to a smart news application. The first step is to use the context available to make a decision.</p>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="thumbnail" style="text-align: center; margin: 0 auto; display: table; width:200px;">
+                <div class="caption">
+                    <p>Location:</p>
+                    <div class="radio" style="text-align:left">
+                        <label><input type="radio" name="optradio" checked="checked" value="Seattle" id="contextDefaultRadio">Seattle</label>
+                    </div>
+                    <div class="radio" style="text-align:left">
+                        <label><input type="radio" name="optradio" value="NYC">New York City</label>
+                    </div>
+
+                    <button id="getDecision" type="button" class="btn btn-default">Decide</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="decisionRequest">
+                <code>
+                    <div style="background-color:#e9f2ff; border-color:green; border-width:2px; border-style:solid; padding:10px 10px 10px 10px; border-radius:5px 5px;">
+                        POST request URL:
+                        <div class="Field FieldName-fieldExampleRequest FieldType-textLong FieldLabel-hidden">
+                            <div class="Field-items">
+                                <div class="Field-items-item even ">
+                                    <pre>https://{hostname}/API/Policy</pre>
+                                </div>
+                            </div>
+                        </div>
+                        Request header:
+                        <pre id="decisionRequestHeader">auth: <span class="authKeyText">@Model.WebServiceToken</span></pre>
+                        Request body:
+                        <pre id="decisionRequestBody">{"Location":"Seattle"}</pre>
+                    </div>
+                </code>
+            </div>
+        </div>
+    </div>
+</div>
+
+<br />
+<br />
+
+<div hidden id="decision">
+
+    <div id="decisionResponseDiv">
+
+
+        <p style="font-weight:100">The decision service returns an "action". In our example, this is a news article that was chosen based on the location.</p>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="thumbnail" style="overflow:hidden; width:260px; margin:auto; text-align: center;">
+                    <div class="caption">
+                        <div style="width: 230px; height: 200px; overflow:hidden">
+                            <img id="articleImage" style="width: 360px; height: 200px; margin-left:-60px" src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Marriner_S._Eccles_Federal_Reserve_Board_Building.jpg/1280px-Marriner_S._Eccles_Federal_Reserve_Board_Building.jpg" alt="...">
+                        </div>
+                        <p id="story" style="margin-bottom: 0px; margin-top: 10px;">Why the Fed isn't out of options</p>
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-md-8">
+                <div style="background-color:#e9f2ff; border-color:green; border-width:2px; border-style:solid; padding:10px 10px 10px 10px; border-radius:5px 5px;">
+                    <code>
+                        Response body:
+                        <div class=" Field FieldName-fieldExampleRequest FieldType-textLong FieldLabel-hidden "><div class="Field-items"><div class="Field-items-item even "><pre id="decisionResponse">{"Action" : 1, "EventId" : "BLABLABLA", "Timestamp" : "Wednesday"}</pre></div></div>
+                </div>
+                </code>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<hr />
+
+<div id="rewardDiv">
+    <p class="lead" style="text-align:center">2. Assign a Reward</p>
+
+    <p style="font-weight:100">We now need to report whether the action was successful or not so the decision service can learn to make better decisions. If this user clicks on the article, a reward of 1 is sent. Otherwise, a reward of 0 is sent.</p>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="thumbnail" style="text-align: center; margin: 0 auto; display: table; width:200px;">
+                <div class="caption">
+                    <p>Reward:</p>
+                    <div class="radio" style="text-align:left">
+                        <label><input type="radio" name="rewardRadio" checked="checked" value="Click" id="rewardDefaultRadio">1 - click</label>
+                    </div>
+                    <div class="radio" style="text-align:left">
+                        <label><input type="radio" name="rewardRadio" value="NoClick">0 - no click</label>
+                    </div>
+
+                    <button id="submitReward" type="button" class="btn btn-default">Submit</button>
+                </div>
+            </div>
+
+        </div>
+        <div class="col-md-8">
+            <code>
+                <div style="background-color:#e9f2ff; border-color:green; border-width:2px; border-style:solid; padding:10px 10px 10px 10px; border-radius:5px 5px;">
+                    POST request URL:
+                    <div class="Field FieldName-fieldExampleRequest FieldType-textLong FieldLabel-hidden">
+                        <div class="Field-items">
+                            <div class="Field-items-item even">
+                                <pre id="rewardRequest">https://{hostname}/API/Reward?eventId={EventId}</pre>
+                            </div>
+                        </div>
+                    </div>
+                    Request header:
+                    <pre id="decisionRequestHeader">auth: <span class="authKeyText">@Model.WebServiceToken</span></pre>
+                    Request body:
+                    <pre id="rewardRequestBody"></pre>
+                </div>
+            </code>
+        </div>
+    </div>
+</div>
+<div hidden id="training">
+    <hr />
+
+    <p class="lead" style="text-align:center">3. Repeat and make smarter decisions</p>
+
+    <p style="font-weight:100">
+        The decision service uses the information above to learn a model that maximizes reward. By collecting more and more data,
+        the service continuously improves upon the existing model.
+    </p>
+    <button id="resetButton" type="button" class="btn btn-default" style="text-align: center; margin: 0 auto; display: table; width:200px;">Next decision</button>
+</div>
+
+@section scripts {
+    <script type="text/javascript" src="../Scripts/api-guide.js"></script>
+}

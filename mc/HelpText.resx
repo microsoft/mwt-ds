@@ -1,0 +1,180 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ApplicationId" xml:space="preserve">
+    <value>Application Id ::: The name of this application, which becomes the Azure Resource Group name.</value>
+  </data>
+  <data name="ApplicationInsightsInstrumentationKey" xml:space="preserve">
+    <value>Application Insights Instrumentation Key ::: Application Insights is a diagnostics logging service to aid with debugging the system. By default, all components of the Decision Service send detailed logs to Application Insights. To log additional information, use the displayed instrumentation key to initialize the telemetry client.</value>
+  </data>
+  <data name="ASAEvalName" xml:space="preserve">
+    <value>Azure Stream Analytics Policy Evaluation ::: Decision Service has the ability to evaluate and compare many policies retrospectively. It achieves this partly by leveraging Azure Stream Analytics to collect real-time performance results of each policy. To see how this is done, view the policy evaluation query in ASA by clicking on the arrow to the right. </value>
+  </data>
+  <data name="ASAJoinName" xml:space="preserve">
+    <value>Azure Stream Analytics Join Server ::: Azure Stream Analytics is used to join interaction and observation data streams together. For more details view the join query in ASA by clicking on the arrow to the right.</value>
+  </data>
+  <data name="AzureResourceGroupName" xml:space="preserve">
+    <value>Azure Resource Group ::: Azure Resource Group name is the value chosen at deployment time. The resource group contains all Azure resources (such as cloud services, storage accounts, etc...) deployed as part of the Decision Service.</value>
+  </data>
+  <data name="AzureStorageConnectionString" xml:space="preserve">
+    <value>Azure Storage Connection String ::: Azure Storage contains all data produced and consumed by Decision Service. For example, the joined data and machine-learned models are created and stored here. The Azure Storage Connection String is needed to programmatically connect to the storage account and retrieve data. Click on the arrow to view these data from the Azure portal.</value>
+  </data>
+  <data name="AzureSubscriptionId" xml:space="preserve">
+    <value>Azure Subscription Id ::: The Id of the Azure Subscription containing all used for this deployment.</value>
+  </data>
+  <data name="DecisionType" xml:space="preserve">
+    <value>Context Type ::: Whether the context uses action-dependent features or only regular features.</value>
+  </data>
+  <data name="EventHubInteractionConnectionString" xml:space="preserve">
+    <value>Event Hub Interaction Connection String ::: Connection string of the Event Hub associated with ASA Join Server which accepts interaction data from the Client Library or Web Service..</value>
+  </data>
+  <data name="EventHubObservationConnectionString" xml:space="preserve">
+    <value>Event Hub Observation Connection String ::: Connection string of the Event Hub associated with ASA Join Server which accepts observation data (i.e. rewards) from the Client Library or Web Service.</value>
+  </data>
+  <data name="ExperimentalUnitDuration" xml:space="preserve">
+    <value>Join Timeout (in seconds) ::: The timeout duration of the interaction-observation join that occurs in ASA.</value>
+  </data>
+  <data name="IsExplorationEnabled" xml:space="preserve">
+    <value>Enable Exploration ::: Whether to enable exploration in Client Library or Web Service. This is useful as a safety mechanism in case exploration results in undesired application behavior.</value>
+  </data>
+  <data name="OnlineTrainerAddress" xml:space="preserve">
+    <value>Online Trainer ::: The address of the cloud service that performs online training.</value>
+  </data>
+  <data name="SelectedModelId" xml:space="preserve">
+    <value>Model to Deploy ::: The list of trained models detected in Azure Storage. The selected model will be deployed to all clients.</value>
+  </data>
+  <data name="SettingsBlobUri" xml:space="preserve">
+    <value>Settings Blob Address ::: The address of the settings for the application.</value>
+  </data>
+  <data name="TrainArguments" xml:space="preserve">
+    <value>VW Arguments ::: VW arguments that control training and exploration.</value>
+  </data>
+  <data name="TrainFrequency" xml:space="preserve">
+    <value>Training Frequency ::: High frequency corresponds to online training where data points are continuously used for learning. Low frequency corresponds to batch training which occurs at longer time intervals (e.g. every 5 minutes or once a day).</value>
+  </data>
+  <data name="WebApiAddress" xml:space="preserve">
+    <value>HTTP Endpoint ::: The address of the Web Service which can accept HTTP requests. This serves as an alternative data entry point to the Decision Service.</value>
+  </data>
+  <data name="WebManageName" xml:space="preserve">
+    <value>Management Center Address ::: The address of the Management Center.</value>
+  </data>
+  <data name="InitialExplorationEpsilon" xml:space="preserve">
+    <value>Initial Epsilon Exploration ::: The initial epsilon value to use in epsilon-greedy exploration when the client has not obtained a machine-learned model. Epsilon = 0 indicates no randomization while Epsilon = 1 implies uniform random</value>
+  </data>
+</root>

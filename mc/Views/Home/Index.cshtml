@@ -1,0 +1,66 @@
+﻿@using DecisionServicePrivateWeb.Models
+@model IndexViewModel
+@{
+    ViewBag.Title = "Management Center";
+}
+
+<div class="jumbotron" style="background-color:transparent; margin-bottom:0; padding-bottom:20px;">
+    <h1>Management Center</h1>
+    <p class="lead">
+        The Management Center is a tool for modifying various properties of your Multiworld Testing Decision Service.
+        It also exposes an HTTP endpoint for sending data to the service. 
+        To see how this works, visit the <a href="@Url.Action("APITestDrive", "Home")">API Test Drive</a>. 
+        @if (!Model.Authenticated)
+        {
+            <label style="font-weight: normal; display: inline;">
+                To manage the service, enter the management password found in the Application Settings of this site in Azure portal:
+            </label>
+        }
+        else
+        {
+            <label style="font-weight: normal; display: inline;">
+                Click below to manage your application:
+            </label>
+        }
+    </p>
+    <p style="text-align:center;">
+        @if (!Model.Authenticated)
+        {
+            using (Html.BeginForm("Index", "Home", FormMethod.Post, new { role = "form" }))
+            {
+                @Html.AntiForgeryToken()
+                <div class="form-group row">
+                    <div style="text-align: center">
+                        <input type="password" class="form-control" id="password" name="password" placeholder="Password" style="display:inline" autofocus>
+                    </div>
+                    <div style="text-align: center">
+                        <button class="btn btn-primary">Log In</button>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(Model.Error))
+                    {
+                        <div style="text-align: center">
+                            <label class="ds-error-message">@Model.Error</label>
+                        </div>
+                    }
+                </div>
+            }
+        }
+        else
+        {
+            <div style="text-align: center">
+                <a href="@Url.Action("Settings", "Home")" class="btn btn-primary">Manage Decision Service &raquo;</a>
+            </div>
+        }
+    </p>
+
+</div>
+<hr class="fancy-line" />
+<div class="row">
+    <div class="col-md-12" style="text-align:right;">
+        <div class="card">
+            <p class="text-muted" style="font-size: 14px;">
+                contact us at mwtservice@microsoft.com
+            </p>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,326 @@
+﻿body {
+    padding-top: 50px;
+    padding-bottom: 20px;
+}
+/* Set padding to keep content from hitting the edges */
+.body-content {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+/* Override the default bootstrap behavior where horizontal description lists 
+   will truncate terms that are too long to fit in the left column 
+*/
+.dl-horizontal dt {
+    white-space: normal;
+}
+
+/* Set width on the form input elements since they're 100% wide by default */
+input,
+select,
+textarea {
+    max-width: 280px;
+}
+
+.navbar-brand {
+    font-family: "Segoe UI light";
+    font-size: 17px;
+    color: #ffffff;
+    line-height: 18px;
+}
+
+.navbar-stress {
+    color: #71b1d1;
+}
+
+.navbar-inverse {
+    background-color: #3c454f;
+}
+
+.bar {
+    width:1px;
+    height:16px;
+    border-left: 1px solid #888e94;
+    margin-top:17px;
+}
+
+.ds-body-content {
+    width:auto;
+    left:0;
+    right:0;
+    margin-left:50px;
+    margin-right:50px;
+
+    position:absolute;
+    min-height:50%;
+    min-width:400px;
+    box-shadow: 0 0 85px rgba(0,0,0,.3);
+
+    padding-left:30px;
+    padding-right:30px;
+    padding-bottom:30px;
+}
+
+.ds-title {
+    font: 28px/40px "Segoe UI Light";
+}
+
+.ds-label {
+    display:block;
+    padding-top:4px;
+    font-size:11px;
+    font-family:"Segoe UI";
+    font-weight:500;
+    text-transform:uppercase;
+    float:left;
+    word-wrap:break-word;
+}
+
+.ds-status-label {
+    display:inline;
+    padding-left:10px;
+    font-size:16px;
+    font-family:"Segoe UI";
+    font-weight:500;
+    text-transform:uppercase;
+    max-width:240px;
+    word-wrap:break-word;
+}
+
+.ds-error-label {
+    display:inline-block;
+    padding-left:10px;
+    color: red;
+    font-size:16px;
+    font-family:"Segoe UI";
+    font-weight:500;
+    text-transform:uppercase;
+    word-wrap:break-word;
+    border: 0;
+}
+
+.divtext {
+    border: ridge 2px;
+    padding: 5px;
+    width: 20em;
+    min-height: 5em;
+    overflow: auto;
+}
+
+.ds-error-message {
+    color: red;
+    padding-top:4px;
+    font-size:11px;
+    font-family:"Segoe UI";
+    font-weight:500;
+    text-transform:uppercase;
+    margin-left: 20px;
+    word-wrap:break-word;
+}
+
+.ds-form {
+    border: 1px solid gainsboro;
+    border-radius: 5px;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    margin-bottom:30px;
+}
+
+.button-arrow {
+    font-size:22px; 
+    color:#fff; 
+    background-color:#28a8e0; 
+    padding: 5px 10px; 
+    display:inline-block; 
+    margin-bottom: 10px; 
+    text-decoration: none; 
+    border: 0;
+}
+
+p {
+    font-family: 'Segoe UI Light';
+    font-size: 18px;
+}
+
+.card {
+    margin: 5px;
+    padding: 5px;
+}
+
+.color-blue {
+    background-color:#28a8e0; 
+}
+
+.color-green {
+    background-color:#5cb85c; 
+}
+
+.img-cycle {
+    background-image: url('../../Images/cycle-default.png');
+}
+
+.img-cycle-explore {
+    background-image: url('../../Images/cycle-explore.png');
+}
+
+.img-cycle-log {
+    background-image: url('../../Images/cycle-log.png');
+}
+
+.img-cycle-learn {
+    background-image: url('../../Images/cycle-learn.png');
+}
+
+.img-cycle-deploy {
+    background-image: url('../../Images/cycle-deploy.png');
+}
+
+hr.fancy-line { 
+    border: 0; 
+    height: 1px;
+    position: relative;
+    margin: 0.5em 0; /* Keep other elements away from pseudo elements*/
+}
+hr.fancy-line:before {
+    top: -0.5em;
+    height: 1em;
+}
+hr.fancy-line:after {
+    content:'';
+    height: 0.5em;   /* half the height of :before */
+    top: 1px;        /* height of hr*/
+}
+
+hr.fancy-line:before, hr.fancy-line:after {
+    content: '';
+    position: absolute;
+    width: 100%;
+}
+
+hr.fancy-line, hr.fancy-line:before {
+    background: -moz-radial-gradient(center, ellipse cover, rgba(0,0,0,0.1) 0, rgba(0,0,0,0) 75%);
+    background: -webkit-gradient(radial, center center, 0, center center, 75%, color-stop(0,rgba(0,0,0,0.1)), color-stop(75%,rgba(0,0,0,0)));
+    background: -webkit-radial-gradient(center, ellipse cover, rgba(0,0,0,0.1) 0,rgba(0,0,0,0) 75%);
+    background: -o-radial-gradient(center, ellipse cover, rgba(0,0,0,0.1) 0,rgba(0,0,0,0) 75%);
+    background: -ms-radial-gradient(center, ellipse cover, rgba(0,0,0,0.1) 0,rgba(0,0,0,0) 75%);
+    background: radial-gradient(ellipse at center, rgba(0,0,0,0.1) 0,rgba(0,0,0,0) 75%);
+}
+
+.arrow_box {
+    margin-top:20px;
+	position: relative;
+	background: #fff;
+	border: 1px solid gainsboro;
+    border-radius: 10px;
+}
+.arrow_box:after, .arrow_box:before {
+	bottom: 100%;
+	left: 50%;
+	border: solid transparent;
+	content: " ";
+	height: 0;
+	width: 0;
+	position: absolute;
+	pointer-events: none;
+}
+
+.arrow_box:after {
+	border-color: rgba(255, 255, 255, 0);
+	border-bottom-color: #ffffff;
+	border-width: 30px;
+	margin-left: -30px;
+}
+.arrow_box:before {
+	border-color: rgba(194, 225, 245, 0);
+	border-bottom-color: gainsboro;
+	border-width: 31px;
+	margin-left: -31px;
+}
+
+.modal {
+  text-align: center;
+  padding: 0!important;
+}
+
+.modal:before {
+  content: '';
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+  margin-right: -4px;
+}
+
+.modal-dialog {
+  display: inline-block;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.modal-content {
+    max-height: 600px;
+    overflow: auto;
+}
+
+.progress-status {
+    padding: 30px;
+}
+
+/***********************
+  OUTLINE BUTTONS
+************************/
+
+.btn.outline {
+	background: none;
+    max-width: 280px;
+}
+.btn-primary.outline {
+	border: 2px solid #0099cc;
+	color: #0099cc;
+}
+.btn-primary.outline:hover, .btn-primary.outline:focus, .btn-primary.outline:active, .btn-primary.outline.active, .open > .dropdown-toggle.btn-primary {
+	color: #33a6cc;
+	border-color: #33a6cc;
+}
+.btn-primary.outline:active, .btn-primary.outline.active {
+	border-color: #007299;
+	color: #007299;
+	box-shadow: none;
+}
+
+/***********************
+  CUSTON BTN VALUES
+************************/
+
+.btn {
+	letter-spacing: 1px;
+	text-transform: uppercase;
+}
+.btn:focus, .btn:active:focus, .btn.active:focus {
+	outline: 0 none;
+}
+
+div.glossary {
+	position: relative;
+	background-color: white;
+	border: 1px solid #71b1d1;
+    border-radius: 10px;
+    box-shadow: 2px 2px 1px gainsboro;
+}
+
+@media (min-width: 1200px) {
+    div.glossary {
+	    position: absolute;
+        top: 80px;
+        right: 60px;
+        max-width: 500px;
+    }
+}
+
+svg.azure-icon {
+    width: 20px;
+    height: 20px;
+    display: inline;
+    margin-left: 8px;
+    vertical-align: middle;
+    fill: #0099cc;
+}

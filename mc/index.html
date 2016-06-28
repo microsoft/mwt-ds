@@ -1,0 +1,120 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Decision Service Web API</title>
+    <meta charset="utf-8" />
+
+    <link href="bower_components/jsoneditor/dist/jsoneditor.min.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="bower_components/jsoneditor/dist/jsoneditor.min.js"></script>
+
+    <script type="text/javascript" src="scripts/jquery-2.2.3.min.js"></script>
+</head>
+<body>
+    Authorization token: <input id="userToken" value="abc" />
+
+    <div id="jsoneditor" style="width: 400px; height: 400px;"></div>
+
+    <div id="status"></div>
+    <button onclick="Submit()">Interaction</button>
+
+    <br/>
+    <input id="reward" value="1" type="number" />
+    <button onclick="SubmitReward()">Observation</button>
+    <br />
+    Event Id: <span id="EventId"></span> <br />
+    TimeStamp: <span id="TimeStamp"></span> <br />
+    VW String: <span id="vwstr"></span> <br />
+
+    <script>
+        // create the editor
+        var container = document.getElementById("jsoneditor");
+        var options = {
+            mode: 'code',
+            modes: ['code', 'tree'], // allowed modes
+        };
+        var editor = new JSONEditor(container, options);
+
+        // set json
+        var json = {
+            "Age": 25,
+            "Location": "New York",
+            _multi: [
+                {"a":1},
+                { "a": 2 }
+            ]
+        };
+        editor.set(json);
+
+        var lastJson = "";
+        setInterval(function () {
+            var newJson = editor.getText();
+
+            if (lastJson == newJson)
+                return;
+
+            lastJson = newJson;
+
+            $.ajax({
+                method: "POST",
+                url: "/vowpalWabbitValidation",
+                data: newJson,
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                headers: {
+                    "Authorization": $("#userToken").val()
+                },
+            })
+            .done(function (data) {
+                $("#vwstr").html("<pre>" + data + "</pre>");
+            })
+            .fail(function (jqXHR, textStatus, errorThrown) {
+                $("#vwstr").html("<font color='red'>" + jqXHR.responseJSON.ExceptionMessage + "</font>");
+            });
+
+        }, 500);
+
+        function Submit()
+        {
+            // Get Decision
+            $.ajax({
+                method: "POST",
+                url: "/ranker",
+                data: editor.getText(),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                headers: {
+                    "Authorization": $("#userToken").val()
+                },
+            })
+            .done(function (data) {
+                $("#status").text("Success");
+
+                $("#EventId").text(data.EventId);
+            })
+            .fail(function (jqXHR, textStatus, errorThrown) {
+                $("#status").text("Error: " + textStatus + "  " + errorThrown);
+            });
+        }
+
+        function SubmitReward() {
+            $.ajax({
+                method: "POST",
+                url: "/reward/" + $("#EventId").text(),
+                data: $("#reward").val(),
+                headers: {
+                    "Authorization": $("#userToken").val()
+                },
+            })
+            .done(function (data) {
+                $("#status").text("Success");
+
+                $("#EventId").text(data.EventId);
+                $("#TimeStamp").text(data.TimeStamp);
+            })
+            .fail(function (jqXHR, textStatus, errorThrown) {
+                $("#status").text("Error: " + textStatus + "  " + errorThrown);
+            });
+        }
+    </script>
+</body>
+</html>
