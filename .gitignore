@@ -1,3 +1,4 @@
+# This .gitignore is an agglomeration from several projects, so there might be duplicate entries.
 
 **/bin/Debug
 **/.vs/config
@@ -10,3 +11,29 @@
 **/obj
 **/.vs
 **/packages
+
+# build folders
+**/x64
+**/obj
+**/Debug
+**/Release
+**/dll
+**/ipch
+**/packages
+**/bin
+
+# VS test results
+**/TestResults
+
+# VS files
+*.opensdf
+*.suo
+*.sdf
+*.user
+*.so
+*.nupkg
+
+# doxygen output folders
+html
+latex
+

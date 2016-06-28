@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <title>Multiworld Testing Service Contract</title>
+    <id>Microsoft.Research.MultiWorldTesting.Contract</id>
+    <tags>Multiworld Testing</tags>
+    <version>$version$</version>
+    <authors>John Langford, Luong Hoang, Markus Cozowicz, Sarah Bird, Sid Sen (mwtdev@microsoft.com)</authors>
+    <owners>Microsoft Research</owners>
+    <projectUrl>http://aka.ms/mwt</projectUrl>
+    <licenseUrl>https://github.com/JohnLangford/vowpal_wabbit/blob/master/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Binding contract between components of Multiworld Testing Service.</description>
+    <copyright>Copyright (C) 2015-2016 Microsoft Corporation</copyright>
+  </metadata>
+  <files>
+    <file src="$SolutionDir$bin\x64\$Configuration$\Microsoft.Research.MultiWorldTesting.Contract.dll" target="lib\net45" />
+    <file src="$SolutionDir$bin\x64\$Configuration$\Microsoft.Research.MultiWorldTesting.Contract.pdb" target="lib\net45" />
+   </files>
+</package>
+
