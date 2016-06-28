@@ -122,7 +122,7 @@
     },
     {
       "apiVersion": "2015-01-01",
-      "name": "Application_Insights",
+      "name": "[concat('Application_Insights_', reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]",
       "type": "Microsoft.Resources/deployments",
       "properties": {
         "mode": "incremental",
@@ -134,7 +134,7 @@
     },
     {
       "apiVersion": "2015-01-01",
-      "name": "Service_Bus",
+      "name": "[concat('Service_Bus_', reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]",
       "type": "Microsoft.Resources/deployments",
       "properties": {
         "mode": "incremental",
@@ -146,7 +146,7 @@
     },
     {
       "apiVersion": "2015-01-01",
-      "name": "Event_Hub_Interaction",
+      "name": "[concat('Event_Hub_Interaction_', reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]",
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [ "Microsoft.Resources/deployments/Service_Bus" ],
       "properties": {
@@ -165,7 +165,7 @@
     },
     {
       "apiVersion": "2015-01-01",
-      "name": "Event_Hub_Observation",
+      "name": "[concat('Event_Hub_Observation_', reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]",
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [ "Microsoft.Resources/deployments/Service_Bus" ],
       "properties": {
@@ -184,7 +184,7 @@
     },
     {
       "apiVersion": "2015-01-01",
-      "name": "Event_Hub_Joined",
+      "name": "[concat('Event_Hub_Joined_', reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]",
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [ "Microsoft.Resources/deployments/Service_Bus" ],
       "properties": {
@@ -203,7 +203,7 @@
     },
     {
       "apiVersion": "2015-01-01",
-      "name": "Event_Hub_Evaluation",
+      "name": "[concat('Event_Hub_Evaluation_', reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]",
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [ "Microsoft.Resources/deployments/Service_Bus" ],
       "properties": {
@@ -219,7 +219,7 @@
     },
     {
       "apiVersion": "2015-01-01",
-      "name": "Management_Center",
+      "name": "[concat('Management_Center_', reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]",
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [
         "Microsoft.Resources/deployments/Management_Password_Generator",
@@ -258,7 +258,7 @@
     },
     {
       "apiVersion": "2015-01-01",
-      "name": "Management_Center_Github_Sync",
+      "name": "[concat('Management_Center_Github_Sync_', reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]",
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [
         "Microsoft.Resources/deployments/Management_Center"
@@ -273,7 +273,7 @@
     },
     {
       "apiVersion": "2015-01-01",
-      "name": "SAS_Uri_Generator",
+      "name": "[concat('SAS_Uri_Generator_', reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]",
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [
         "Microsoft.Resources/deployments/Management_Center_Github_Sync"
@@ -285,7 +285,7 @@
     },
     {
       "apiVersion": "2015-01-01",
-      "name": "Join_Query",
+      "name": "[concat('Join_Query_', reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]",
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [
         "Microsoft.Resources/deployments/Storage",
@@ -312,7 +312,7 @@
     },
     {
       "apiVersion": "2015-01-01",
-      "name": "Evaluation_Query",
+      "name": "[concat('Evaluation_Query_', reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]",
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [
         "Microsoft.Resources/deployments/Service_Bus",
@@ -336,7 +336,7 @@
     },
     {
       "apiVersion": "2015-01-01",
-      "name": "Online_Trainer",
+      "name": "[concat('Online_Trainer_', reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]",
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [
         "Microsoft.Resources/deployments/Admin_Token_Generator",
