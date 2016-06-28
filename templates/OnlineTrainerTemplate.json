@@ -5,10 +5,15 @@
     "binaryStorageAccountName": { "type": "string" },
     "instrumentationKey": { "type": "string" },
     "onlineTrainerCspkgToken": { "type": "string" },
-    "configLink": { "type": "string" }
+    "configLink": { "type": "string" },
+    "postfix": {
+      "type": "string",
+      // maximum name length is 63 - len('trainer-') = 55
+      "maxValue": 55
+    }
   },
   "variables": {
-    "name": "[concat(resourceGroup().name, '-trainer-', uniqueString(concat(subscription().subscriptionId, resourceGroup().name)))]"
+    "name": "[concat('trainer-', parameters('postfix'))]"
   },
   "resources": [
     {

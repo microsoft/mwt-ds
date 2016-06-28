@@ -10,6 +10,11 @@
 
     "messageRetentionInDays": { "type": "int" },
     "partitionCount": { "type": "int" },
+    "postfix": {
+      "type": "string",
+      // maximum name length is 63 - len('eval-') = 58
+      "maxValue": 58
+    },
     "streamingUnits": {
       "type": "int",
       "defaultValue": 1
@@ -19,7 +24,7 @@
     {
       "apiVersion": "2015-10-01",
       "type": "Microsoft.StreamAnalytics/streamingjobs",
-      "name": "[concat(resourceGroup().name, '-eval')]",
+      "name": "[concat('eval-', parameters('postfix'))]",
       "location": "[resourceGroup().location]",
       "properties": {
         "sku": {
@@ -53,7 +58,7 @@
           }
         ],
         "Outputs": [
-          { 
+          {
             "Name": "outBlob",
             "Properties": {
               "DataSource": {

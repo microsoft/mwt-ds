@@ -19,6 +19,11 @@
 
     "experimentalUnitDurationInSeconds": { "type": "int" },
     "vowpalWabbitTrainArguments": { "type": "string" },
+    "postfix": {
+      "type": "string",
+      // maximum name length is 63 - len('mc-') = 60
+      "maxValue": 60
+    },
     "sku": {
       "type": "string",
       "allowedValues": [
@@ -55,7 +60,7 @@
   },
   "variables": {
     "hostingPlanName": "ManagementPlan",
-    "siteName": "[concat(resourceGroup().name, '-mc-', uniqueString(concat(subscription().subscriptionId, resourceGroup().name)))]"
+    "siteName": "[concat('mc-', parameters('postfix'))]"
   },
   "resources": [
     {

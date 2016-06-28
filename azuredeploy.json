@@ -51,7 +51,8 @@
   },
   "variables": {
     "assetLocation": "https://raw.githubusercontent.com/Microsoft/mwt-ds-provisioning/master/",
-    "messageRetentionInDays": 7
+    "messageRetentionInDays": 7,
+    "prefix": "[replace(replace(replace(replace(resourceGroup().name, '.', '-'), '_', '-'), ')', '-'), '(', '-')]"
   },
   "resources": [
     {
@@ -107,20 +108,39 @@
     },
     {
       "apiVersion": "2015-01-01",
+      "name": "Unique_Postfix_Generator",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [ "Microsoft.Resources/deployments/Storage" ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" },
+        "parameters": {
+          "Password": { "value": "" },
+          "RandomSeed": { "value": "[concat(reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, 'postfix')]" }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
       "name": "Application_Insights",
       "type": "Microsoft.Resources/deployments",
       "properties": {
         "mode": "incremental",
-        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/AppInsightsTemplate.json')]" }
-      }
-    },
+        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/AppInsightsTemplate.json')]" },
+        "parameters": {
+          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
+        }
+      },
     {
       "apiVersion": "2015-01-01",
       "name": "Service_Bus",
       "type": "Microsoft.Resources/deployments",
       "properties": {
         "mode": "incremental",
-        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/ServiceBusTemplate.json')]" }
+        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/ServiceBusTemplate.json')]" },
+        "parameters": {
+          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
+        }
       }
     },
     {
@@ -230,7 +250,8 @@
           "evalEventHubConnectionString": { "value": "[reference('Microsoft.Resources/deployments/Event_Hub_Evaluation').outputs.sendConnectionString.value]" },
           "adminToken": { "value": "[reference('Microsoft.Resources/deployments/Admin_Token_Generator').outputs.FinalPassword.value]" },
           "checkpointPolicy": { "value": "[parameters('model update interval')]" },
-          "webServiceToken": { "value": "[reference('Microsoft.Resources/deployments/Web_Service_Token_Generator').outputs.FinalPassword.value]" }
+          "webServiceToken": { "value": "[reference('Microsoft.Resources/deployments/Web_Service_Token_Generator').outputs.FinalPassword.value]" },
+          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
         }
       }
     },
@@ -245,6 +266,7 @@
         "mode": "incremental",
         "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/WebSourceControlTemplate.json')]" },
         "parameters": {
+          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
         }
       }
     },
@@ -282,7 +304,8 @@
           "joinedEventHub": { "value": "[reference('Microsoft.Resources/deployments/Event_Hub_Joined').outputs]" },
           "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
           "partitionCount": { "value": "[parameters('MB/s')]" },
-          "experimentalUnitDurationInSeconds": { "value": "[parameters('experimental Unit Duration (s)')]" }
+          "experimentalUnitDurationInSeconds": { "value": "[parameters('experimental Unit Duration (s)')]" },
+          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
         }
       }
     },
@@ -305,7 +328,8 @@
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/Service_Bus').outputs.ServiceBusName.value]" },
           "evalEventHub": { "value": "[reference('Microsoft.Resources/deployments/Event_Hub_Evaluation').outputs]" },
           "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
-          "partitionCount": { "value": "[parameters('MB/s')]" }
+          "partitionCount": { "value": "[parameters('MB/s')]" },
+          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
         }
       }
     },
@@ -331,7 +355,8 @@
           "binaryStorageAccountName": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountName.value]" },
           "instrumentationKey": { "value": "[reference('Microsoft.Resources/deployments/Application_Insights').outputs.instrumentationKey.value]" },
           "onlineTrainerCspkgToken": { "value": "[reference('Microsoft.Resources/deployments/SAS_Uri_Generator').outputs.SASTokenOnlineTrainerCspkg.value]" },
-          "configLink": { "value": "[concat(reference('Microsoft.Resources/deployments/Management_Center').outputs.url.value, '/Deployment/GenerateTrainerConfig?key=', reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value)]" }
+          "configLink": { "value": "[concat(reference('Microsoft.Resources/deployments/Management_Center').outputs.url.value, '/Deployment/GenerateTrainerConfig?key=', reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value)]" },
+          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
         }
       }
     }
