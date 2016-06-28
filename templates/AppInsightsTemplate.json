@@ -1,0 +1,24 @@
+﻿{
+  "$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentTemplate.json",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "postfix": { "type": "string" }
+  },
+  "variables": {
+    "name": "[concat('appinsights-', parameters('postfix'))]"
+  },
+  "resources": [
+    {
+      "apiVersion": "2014-04-01",
+      "type": "microsoft.insights/components",
+      "name": "[variables('name')]",
+      "location": "centralus"
+    }
+  ],
+  "outputs": {
+    "InstrumentationKey": {
+      "type": "string",
+      "value": "[reference(concat('microsoft.insights/components/', variables('name')), '2014-04-01').InstrumentationKey]"
+    }
+  }
+}

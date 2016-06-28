@@ -1,0 +1,98 @@
+﻿{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "assetLocation": { "type": "string" },
+    "userStorageAccountName": { "type": "string" },
+    "userStorageAccountKey": { "type": "string" },
+    "serviceBusName": { "type": "string" },
+    "evalEventHub": { "type": "object" },
+
+    "messageRetentionInDays": { "type": "int" },
+    "partitionCount": { "type": "int" },
+    "postfix": {
+      "type": "string",
+      // maximum name length is 63 - len('eval-') = 58
+      "maxLength": 58
+    },
+    "streamingUnits": {
+      "type": "int",
+      "defaultValue": 1
+    }
+  },
+  "resources": [
+    {
+      "apiVersion": "2015-10-01",
+      "type": "Microsoft.StreamAnalytics/streamingjobs",
+      "name": "[concat('eval-', parameters('postfix'))]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "sku": {
+          "name": "standard"
+        },
+        "OutputStartMode": "JobStartTime",
+        "EventsOutOfOrderMaxDelayInSeconds": 0,
+        "EventsLateArrivalMaxDelayInSeconds": 0,
+        "EventsOutOfOrderPolicy": "adjust",
+        "Inputs": [
+          {
+            "Name": "eval",
+            "Properties": {
+              "DataSource": {
+                "Properties": {
+                  "ServiceBusNamespace": "[parameters('serviceBusName')]",
+                  "eventHubName": "eval",
+                  "sharedAccessPolicyName": "ListenOnly",
+                  "sharedAccessPolicyKey": "[parameters('evalEventHub').ListenKey.value]"
+                },
+                "Type": "Microsoft.ServiceBus/EventHub"
+              },
+              "Serialization": {
+                "Properties": {
+                  "Encoding": "UTF8"
+                },
+                "Type": "Json"
+              },
+              "Type": "Stream"
+            }
+          }
+        ],
+        "Outputs": [
+          {
+            "Name": "outBlob",
+            "Properties": {
+              "DataSource": {
+                "Properties": {
+                  "Container": "mwt-offline-eval",
+                  "DateFormat": "yyyy/MM/dd",
+                  "TimeFormat": "HH",
+                  "PathPattern": "{date}/{time}",
+                  "StorageAccounts": [
+                    {
+                      "AccountName": "[parameters('userStorageAccountName')]",
+                      "AccountKey": "[parameters('userStorageAccountKey')]"
+                    }
+                  ]
+                },
+                "Type": "Microsoft.Storage/Blob"
+              },
+              "Serialization": {
+                "Properties": {
+                  "Encoding": "UTF8"
+                },
+                "Type": "Json"
+              }
+            }
+          }
+        ],
+        "Transformation": {
+          "Name": "theEvalQuery",
+          "Properties": {
+            "Query": "WITH alleval AS (SELECT Name, System.Timestamp LastEnqueuedTime, AVG(cost) AverageCost, '1m' Window \n    FROM eval\n    GROUP BY Name, TumblingWindow (Minute, 1)\nUNION\n    SELECT Name, System.Timestamp LastEnqueuedTime, AVG(cost) AverageCost, '5m' Window \n    FROM eval\n    GROUP BY Name, HOPPINGWINDOW (Minute, 5, 1)\n    UNION\n    SELECT Name, System.Timestamp LastEnqueuedTime, AVG(cost) AverageCost, '20m' Window \n    FROM eval\n    GROUP BY Name, HOPPINGWINDOW (Minute, 20, 1)\n    UNION\n    SELECT Name, System.Timestamp LastEnqueuedTime, AVG(cost) AverageCost, '1h' Window \n    FROM eval\n    GROUP BY Name, HOPPINGWINDOW (Minute, 60, 1)\n    UNION\n    SELECT Name, System.Timestamp LastEnqueuedTime, AVG(cost) AverageCost, '3h' Window \n    FROM eval\n    GROUP BY Name, HOPPINGWINDOW (Minute, 180, 1)\n)\n\nSELECT * INTO outBlob FROM alleval",
+            "StreamingUnits": "[parameters('streamingUnits')]"
+          }
+        }
+      }
+    }
+  ]
+}

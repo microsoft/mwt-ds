@@ -1,0 +1,391 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "vowpal Wabbit Switches": {
+      "type": "string",
+      "defaultValue": "--cb_explore 2 --epsilon 0.2 --cb_type dr",
+      "metadata": {
+        "description": "Flags for learning and exploration.  See http://hunch.net/~vw."
+      }
+    },
+    "initial Exploration Epsilon": {
+      "type": "string",
+      "defaultValue": "0.2",
+      "metadata": {
+        "description": "Epsilon in [0,1] for exploration before first model is learned."
+      }
+    },
+    "experimental Unit Duration (s)": {
+      "type": "int",
+      "minValue": 5,
+      "maxValue": 518400,
+      "defaultValue": 10,
+      "metadata": {
+        "description": "Allowed seconds after interaction to observe reward."
+      }
+    },
+    "MB/s": {
+      "type": "int",
+      "defaultValue": 2,
+      "minValue": 2,
+      "metadata": {
+        "description": "Bandwidth required, minimum 2."
+      }
+    },
+    "online Trainer VM Size": {
+      "type": "string",
+      "defaultValue": "Standard_D1_v2",
+      "allowedValues": [ "Standard_D1_v2", "Standard_D2_v2", "Standard_D3_v2", "Standard_D4_v2", "Standard_D5_v2" ],
+      "metadata": {
+        "description": "Size of the VM that runs the Online Trainer. Acceptable values are (in ascending order of performance and cost): ExtraSmall, Standard_D1_v2, Standard_D2_v2, Standard_D3_v2, Standard_D4_v2, Standard_D5_v2. For more information, refer to: https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-windows-sizes/"
+      }
+    },
+    "model update interval": {
+      "type": "string",
+      "defaultValue": "00:00:10",
+      "metadata": {
+        "description": "Number of examples between front end model updates. For time interval, use the format HH:MM:SS."
+      }
+    }
+  },
+  "variables": {
+    "assetLocation": "https://raw.githubusercontent.com/Microsoft/mwt-ds-provisioning/master/",
+    "messageRetentionInDays": 7,
+    "prefix": "[replace(replace(replace(replace(resourceGroup().name, '.', 'x'), '_', 'x'), ')', 'x'), '(', 'x')]"
+  },
+  "resources": [
+    {
+      "apiVersion": "2015-01-01",
+      "name": "Storage",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "incremental",
+        "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/StorageTemplate.json')]" }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "Management_Password_Generator",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [ "Microsoft.Resources/deployments/Storage" ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" },
+        "parameters": {
+          "Password": { "value": "" },
+          "RandomSeed": { "value": "[concat(reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, 'mc')]" }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "Web_Service_Token_Generator",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [ "Microsoft.Resources/deployments/Storage" ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" },
+        "parameters": {
+          "Password": { "value": "" },
+          "RandomSeed": { "value": "[concat(reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, 'ut')]" }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "Admin_Token_Generator",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [ "Microsoft.Resources/deployments/Storage" ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" },
+        "parameters": {
+          "Password": { "value": "" },
+          "RandomSeed": { "value": "[concat(reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, 'at')]" }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "Unique_Postfix_Generator",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [ "Microsoft.Resources/deployments/Storage" ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" },
+        "parameters": {
+          "Password": { "value": "" },
+          "RandomSeed": { "value": "[concat(reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, 'postfix')]" }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "Application_Insights",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "incremental",
+        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/AppInsightsTemplate.json')]" },
+        "parameters": {
+          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "Service_Bus",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "incremental",
+        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/ServiceBusTemplate.json')]" },
+        "parameters": {
+          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "Event_Hub_Interaction",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [ "Microsoft.Resources/deployments/Service_Bus" ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": {
+          "uri": "[concat(variables('assetLocation'), '/templates/EventHubTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "ehName": { "value": "interaction" },
+          "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/Service_Bus').outputs.ServiceBusName.value]" },
+          "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
+          "partitionCount": { "value": "[parameters('MB/s')]" }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "Event_Hub_Observation",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [ "Microsoft.Resources/deployments/Service_Bus" ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": {
+          "uri": "[concat(variables('assetLocation'), '/templates/EventHubTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "ehName": { "value": "observation" },
+          "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/Service_Bus').outputs.ServiceBusName.value]" },
+          "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
+          "partitionCount": { "value": "[parameters('MB/s')]" }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "Event_Hub_Joined",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [ "Microsoft.Resources/deployments/Service_Bus" ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": {
+          "uri": "[concat(variables('assetLocation'), '/templates/EventHubTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "ehName": { "value": "joined" },
+          "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/Service_Bus').outputs.ServiceBusName.value]" },
+          "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
+          "partitionCount": { "value": "[parameters('MB/s')]" }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "Event_Hub_Evaluation",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [ "Microsoft.Resources/deployments/Service_Bus" ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/EventHubTemplate.json')]" },
+        "parameters": {
+          "ehName": { "value": "eval" },
+          "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/Service_Bus').outputs.ServiceBusName.value]" },
+          "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
+          "partitionCount": { "value": "[parameters('MB/s')]" }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "Management_Center",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/Management_Password_Generator",
+        "Microsoft.Resources/deployments/Storage",
+        "Microsoft.Resources/deployments/Application_Insights",
+        "Microsoft.Resources/deployments/Event_Hub_Interaction",
+        "Microsoft.Resources/deployments/Event_Hub_Observation",
+        "Microsoft.Resources/deployments/Event_Hub_Joined",
+        "Microsoft.Resources/deployments/Event_Hub_Evaluation",
+        "Microsoft.Resources/deployments/Admin_Token_Generator"
+      ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/WebManageTemplate.json')]" },
+        "parameters": {
+          "initialExplorationEpsilon": { "value": "[parameters('initial Exploration Epsilon')]" },
+
+          "instrumentationKey": { "value": "[reference('Microsoft.Resources/deployments/Application_Insights').outputs.instrumentationKey.value]" },
+          "userStorageConnectionString": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageConnectionString.value]" },
+          "managementPassword": { "value": "[reference('Microsoft.Resources/deployments/Management_Password_Generator').outputs.FinalPassword.value]" },
+
+          "interactionEventHub": { "value": "[reference('Microsoft.Resources/deployments/Event_Hub_Interaction').outputs]" },
+          "observationEventHub": { "value": "[reference('Microsoft.Resources/deployments/Event_Hub_Observation').outputs]" },
+
+          "experimentalUnitDurationInSeconds": { "value": "[parameters('experimental Unit Duration (s)')]" },
+          "vowpalWabbitTrainArguments": { "value": "[parameters('vowpal Wabbit Switches')]" },
+
+          "joinedEventHubConnectionString": { "value": "[reference('Microsoft.Resources/deployments/Event_Hub_Joined').outputs.listenConnectionString.value]" },
+          "evalEventHubConnectionString": { "value": "[reference('Microsoft.Resources/deployments/Event_Hub_Evaluation').outputs.sendConnectionString.value]" },
+          "adminToken": { "value": "[reference('Microsoft.Resources/deployments/Admin_Token_Generator').outputs.FinalPassword.value]" },
+          "checkpointPolicy": { "value": "[parameters('model update interval')]" },
+          "webServiceToken": { "value": "[reference('Microsoft.Resources/deployments/Web_Service_Token_Generator').outputs.FinalPassword.value]" },
+          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "Management_Center_Github_Sync",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/Management_Center"
+      ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/WebSourceControlTemplate.json')]" },
+        "parameters": {
+          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "SAS_Uri_Generator",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/Management_Center_Github_Sync"
+      ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": { "uri": "[concat(reference('Microsoft.Resources/deployments/Management_Center').outputs.url.value, '/Deployment/GenerateSASToken?parameters=key=', reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, ';trainer_size=', parameters('online Trainer VM Size'))]" }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "Join_Query",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/Storage",
+        "Microsoft.Resources/deployments/Event_Hub_Interaction",
+        "Microsoft.Resources/deployments/Event_Hub_Observation",
+        "Microsoft.Resources/deployments/Event_Hub_Joined"
+      ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/StreamAnalyticsJoinTemplate.json')]" },
+        "parameters": {
+          "assetLocation": { "value": "[variables('assetLocation')]" },
+          "userStorage": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs]" },
+          "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/Service_Bus').outputs.ServiceBusName.value]" },
+          "interactionEventHub": { "value": "[reference('Microsoft.Resources/deployments/Event_Hub_Interaction').outputs]" },
+          "observationEventHub": { "value": "[reference('Microsoft.Resources/deployments/Event_Hub_Observation').outputs]" },
+          "joinedEventHub": { "value": "[reference('Microsoft.Resources/deployments/Event_Hub_Joined').outputs]" },
+          "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
+          "partitionCount": { "value": "[parameters('MB/s')]" },
+          "experimentalUnitDurationInSeconds": { "value": "[parameters('experimental Unit Duration (s)')]" },
+          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "Evaluation_Query",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/Service_Bus",
+        "Microsoft.Resources/deployments/Storage",
+        "Microsoft.Resources/deployments/Event_Hub_Evaluation"
+      ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/StreamAnalyticsEvalTemplate.json')]" },
+        "parameters": {
+          "assetLocation": { "value": "[variables('assetLocation')]" },
+          "userStorageAccountName": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountName.value]" },
+          "userStorageAccountKey": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value]" },
+          "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/Service_Bus').outputs.ServiceBusName.value]" },
+          "evalEventHub": { "value": "[reference('Microsoft.Resources/deployments/Event_Hub_Evaluation').outputs]" },
+          "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
+          "partitionCount": { "value": "[parameters('MB/s')]" },
+          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "Online_Trainer",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/Admin_Token_Generator",
+        "Microsoft.Resources/deployments/Storage",
+        "Microsoft.Resources/deployments/Application_Insights",
+        "Microsoft.Resources/deployments/Event_Hub_Joined",
+        "Microsoft.Resources/deployments/Event_Hub_Evaluation",
+        "Microsoft.Resources/deployments/SAS_Uri_Generator"
+      ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": {
+          "uri": "[concat(variables('assetLocation'), 'templates/OnlineTrainerTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "binaryStorageAccountName": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountName.value]" },
+          "instrumentationKey": { "value": "[reference('Microsoft.Resources/deployments/Application_Insights').outputs.instrumentationKey.value]" },
+          "onlineTrainerCspkgToken": { "value": "[reference('Microsoft.Resources/deployments/SAS_Uri_Generator').outputs.SASTokenOnlineTrainerCspkg.value]" },
+          "configLink": { "value": "[concat(reference('Microsoft.Resources/deployments/Management_Center').outputs.url.value, '/Deployment/GenerateTrainerConfig?key=', reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value)]" },
+          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "Management Center URL": {
+      "type": "string",
+      "value": "[reference('Microsoft.Resources/deployments/Management_Center').outputs.url.value]"
+    },
+    "Management Center Password": {
+      "type": "string",
+      "value": "[reference('Microsoft.Resources/deployments/Management_Password_Generator').outputs.FinalPassword.value]"
+    },
+    "Client Library URL": {
+      "type": "string",
+      "value": "[reference('Microsoft.Resources/deployments/SAS_Uri_Generator').outputs.SASTokenUriClientSettings.value]"
+    },
+    "Web Service Token": {
+      "type": "string",
+      "value": "[reference('Microsoft.Resources/deployments/Web_Service_Token_Generator').outputs.FinalPassword.value]"
+    },
+    "Online Trainer Token": {
+      "type": "string",
+      "value": "[reference('Microsoft.Resources/deployments/Admin_Token_Generator').outputs.FinalPassword.value]"
+    },
+    "Online Trainer URL": {
+      "type": "string",
+      "value": "[reference('Microsoft.Resources/deployments/Online_Trainer').outputs.url.value]"
+    }
+  }
+}

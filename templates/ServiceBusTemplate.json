@@ -1,0 +1,55 @@
+﻿{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "postfix": {
+      "type": "string",
+      // maximum name length is 63 - len('sb-') = 60
+      "maxLength": 60
+    }
+  },
+  "variables": {
+    "location": "[resourceGroup().location]",
+    "sbVersion": "2015-08-01",
+    "apiVersion": "[providers('Microsoft.ServiceBus', 'namespaces').apiVersions[0]]",
+    "sbName": "[concat('sb-', parameters('postfix'))]",
+    "sbKeyName": "OwnerKey"
+  },
+  "resources": [
+    {
+      "apiVersion": "[variables('sbVersion')]",
+      "name": "[variables('sbName')]",
+      "type": "Microsoft.ServiceBus/namespaces",
+      "location": "[variables('location')]",
+      "properties": {
+        "messagingSku": 1,
+        "region": "[variables('location')]"
+      },
+      "resources": [
+        {
+          "apiVersion": "[variables('sbVersion')]",
+          "name": "[concat(variables('sbName'), '/', variables('sbKeyName'))]",
+          "type": "Microsoft.ServiceBus/namespaces/authorizationRules",
+          "location": "[variables('location')]",
+          "dependsOn": [
+            "[concat('Microsoft.ServiceBus/namespaces/', variables('sbName'))]"
+          ],
+          "properties": {
+            "KeyName": "[variables('sbKeyName')]",
+            "ClaimType": "SharedAccessKey",
+            "ClaimValue": "None",
+            // can be send and/or listen, or those 2 plus "manage"
+            "Rights": [ "Send", "Listen" ],
+            "Revision": -1
+          }
+        }
+      ]
+    }
+  ],
+  "outputs": {
+    "ServiceBusName": {
+      "value": "[variables('sbName')]",
+      "type": "string"
+    }
+  }
+}
