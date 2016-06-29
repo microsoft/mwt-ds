@@ -175,14 +175,15 @@ setInterval(function () {
         url: "/API/trainerStatus"
     })
     .done(function (data) {
+        /*
         var str = "";
         for (var property in data) {
             if (data.hasOwnProperty(property)) {
                 str += property.replace("_", " ") + ": " + data[property] + " | ";
             }
         }
-
-        $("#statusTrainer").text("Trainer OK: " + str);
+        */
+        $("#statusTrainer").text("Trainer OK. Total learned examples: " + data['Stage2_Learn_Total']);
     })
     .fail(function (jqXHR, textStatus, errorThrown) {
         $("#statusTrainer").text("Please wait as trainer has not started yet. Error: " + textStatus + "  " + errorThrown);
