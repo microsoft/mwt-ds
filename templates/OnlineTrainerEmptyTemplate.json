@@ -1,0 +1,34 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01-preview/deploymentTemplate.json",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "name": { "type": "string" }
+  },
+  "resources": [
+    {
+      "apiVersion": "2014-06-01",
+      "type": "Microsoft.ClassicCompute/domainNames",
+      "name": "[parameters('name')]",
+      "location": "[resourceGroup().location]",
+      "resources": [
+        {
+          "apiVersion": "2014-06-01",
+          "name": "production",
+          "type": "deploymentSlots",
+          "dependsOn": [
+            "[resourceId('Microsoft.ClassicCompute/domainNames', parameters('name'))]"
+          ],
+          "properties": {
+            "deploymentLabel": "[parameters('name')]"
+          }
+        }
+      ]
+    }
+  ],
+  "outputs": {
+    "url": {
+      "type": "string",
+      "value": "[concat('http://',parameters('name'), '.cloudapp.net')]"
+    }
+  }
+}
