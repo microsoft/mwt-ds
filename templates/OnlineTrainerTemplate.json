@@ -2,24 +2,15 @@
   "$schema": "http://schema.management.azure.com/schemas/2015-01-01-preview/deploymentTemplate.json",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "binaryStorageAccountName": { "type": "string" },
-    "instrumentationKey": { "type": "string" },
     "onlineTrainerCspkgToken": { "type": "string" },
     "configLink": { "type": "string" },
-    "postfix": {
-      "type": "string",
-      // maximum name length is 63 - len('trainer-') = 55
-      "maxLength": 55
-    }
-  },
-  "variables": {
-    "name": "[concat('trainer-', parameters('postfix'))]"
+    "name": { "type": "string" }
   },
   "resources": [
     {
       "apiVersion": "2014-06-01",
       "type": "Microsoft.ClassicCompute/domainNames",
-      "name": "[variables('name')]",
+      "name": "[parameters('name')]",
       "location": "[resourceGroup().location]",
       "resources": [
         {
@@ -27,13 +18,13 @@
           "name": "production",
           "type": "deploymentSlots",
           "dependsOn": [
-            "[resourceId('Microsoft.ClassicCompute/domainNames', variables('name'))]"
+            "[resourceId('Microsoft.ClassicCompute/domainNames', parameters('name'))]"
           ],
           "properties": {
             "packageLink": {
               "uri": "[parameters('onlineTrainerCspkgToken')]"
             },
-            "deploymentLabel": "[variables('name')]",
+            "deploymentLabel": "[parameters('name')]",
             "ConfigurationLink": {
               "uri": "[parameters('configLink')]"
             },
@@ -42,11 +33,5 @@
         }
       ]
     }
-  ],
-  "outputs": {
-    "url": {
-      "type": "string",
-      "value": "[concat('http://',variables('name'), '.cloudapp.net')]"
-    }
-  }
+  ]
 }

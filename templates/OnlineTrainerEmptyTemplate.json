@@ -2,20 +2,31 @@
   "$schema": "http://schema.management.azure.com/schemas/2015-01-01-preview/deploymentTemplate.json",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "name": { "type": "string" }
+    "postfix": {
+      "type": "string",
+      // maximum name length is 63 - len('trainer-') = 55
+      "maxLength": 55
+    }
+  },
+  "variables": {
+    "name": "[concat('trainer-', parameters('postfix'))]"
   },
   "resources": [
     {
       "apiVersion": "2014-06-01",
       "type": "Microsoft.ClassicCompute/domainNames",
-      "name": "[parameters('name')]",
+      "name": "[variables('name')]",
       "location": "[resourceGroup().location]"
     }
   ],
   "outputs": {
+    "name": {
+      "type": "string",
+      "value": "[variables('name')]"
+    },
     "url": {
       "type": "string",
-      "value": "[concat('http://',parameters('name'), '.cloudapp.net')]"
+      "value": "[concat('http://',variables('name'), '.cloudapp.net')]"
     }
   }
 }
