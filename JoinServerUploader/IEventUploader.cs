@@ -47,5 +47,15 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// <param name="events">The list of events to be uploaded</param>
         /// <returns>true if all events were accepted into the buffer queue for processing.</returns>
         bool TryUpload(List<IEvent> events);
+
+        /// <summary>
+        /// Invoked if an error happened during the upload pipeline.
+        /// </summary>
+        event EventUploaderErrorEventHandler ErrorHandler;
+
+        /// <summary>
+        /// Invoked after the batch was successfully uploaded.
+        /// </summary>
+        event EventUploaderSuccessEventHandler SuccessHandler;
     }
 }

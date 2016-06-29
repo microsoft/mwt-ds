@@ -1,114 +1,170 @@
-﻿using System;
+﻿using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    public class PerformanceCounters
+        /// <summary>
+    /// Performance counters reporting various metrics.
+    /// </summary>
+    public sealed class PerformanceCounters : IDisposable
     {
+        public class PerformanceCounterTypeAttribute : Attribute
+        {
+            public PerformanceCounterTypeAttribute(PerformanceCounterType type, string name = null)
+            {
+                this.Type = type;
+                this.Name = name;
+            }
+
+            public PerformanceCounterType Type { get; private set; }
+
+            public string Name { get; private set; }
+        }
+
         private const string category = "Decision Service Client";
 
         static PerformanceCounters()
         {
             try
             {
-                // only if the counters below are changed
-                //if (PerformanceCounterCategory.Exists(category))
-                //    PerformanceCounterCategory.Delete(category);
+                if (PerformanceCounterCategory.Exists(category))
+                    PerformanceCounterCategory.Delete(category);
 
-                if (!PerformanceCounterCategory.Exists(category))
+                // order to be sure that *Base follows counter
+                var props = typeof(PerformanceCounters)
+                    .GetProperties()
+                    .Where(p => p.PropertyType == typeof(PerformanceCounter))
+                    .OrderBy(p => p.Name).ToList();
+
+                var counterCollection = new CounterCreationDataCollection();
+
+                foreach (var p in props)
                 {
-                    var counterCollection = new CounterCreationDataCollection();
-
-                    counterCollection.Add(new CounterCreationData() { CounterName = "InteractionExamplesQueue", CounterHelp = "", CounterType = PerformanceCounterType.NumberOfItems64 });
-                    counterCollection.Add(new CounterCreationData() { CounterName = "InteractionExamplesTotal", CounterHelp = "", CounterType = PerformanceCounterType.NumberOfItems64 });
-                    counterCollection.Add(new CounterCreationData() { CounterName = "InteractionExamplesSec", CounterHelp = "", CounterType = PerformanceCounterType.RateOfCountsPerSecond32 });
-                    counterCollection.Add(new CounterCreationData() { CounterName = "InteractionExamplesBytesSec", CounterHelp = "", CounterType = PerformanceCounterType.RateOfCountsPerSecond64 });
-                    counterCollection.Add(new CounterCreationData() { CounterName = "AverageInteractionExampleSize", CounterHelp = "", CounterType = PerformanceCounterType.AverageCount64 });
-                    counterCollection.Add(new CounterCreationData() { CounterName = "AverageInteractionExampleSizeBase", CounterHelp = "", CounterType = PerformanceCounterType.AverageBase });
-
-                    counterCollection.Add(new CounterCreationData() { CounterName = "ObservationExamplesQueue", CounterHelp = "", CounterType = PerformanceCounterType.NumberOfItems64 });
-                    counterCollection.Add(new CounterCreationData() { CounterName = "ObservationExamplesTotal", CounterHelp = "", CounterType = PerformanceCounterType.NumberOfItems64 });
-                    counterCollection.Add(new CounterCreationData() { CounterName = "ObservationExamplesSec", CounterHelp = "", CounterType = PerformanceCounterType.RateOfCountsPerSecond32 });
-                    counterCollection.Add(new CounterCreationData() { CounterName = "ObservationExamplesBytesSec", CounterHelp = "", CounterType = PerformanceCounterType.RateOfCountsPerSecond64 });
-                    counterCollection.Add(new CounterCreationData() { CounterName = "AverageObservationExampleSize", CounterHelp = "", CounterType = PerformanceCounterType.AverageCount64 });
-                    counterCollection.Add(new CounterCreationData() { CounterName = "AverageObservationExampleSizeBase", CounterHelp = "", CounterType = PerformanceCounterType.AverageBase });
-
-                    PerformanceCounterCategory.Create(category, "Decision Service Client", PerformanceCounterCategoryType.MultiInstance, counterCollection);
+                    var attr = (PerformanceCounterTypeAttribute)p.GetCustomAttributes(typeof(PerformanceCounterTypeAttribute), true).First();
+                    counterCollection.Add(new CounterCreationData() { CounterName = p.Name, CounterHelp = string.Empty, CounterType = attr.Type });
                 }
+
+                PerformanceCounterCategory.Create(category, "Online Trainer Perf Counters", PerformanceCounterCategoryType.MultiInstance, counterCollection);
             }
             catch (Exception e)
             {
-                Trace.TraceWarning("Failed to initialize performance counters. Run the process elevated. {0}.", e.Message);
+                new TelemetryClient().TrackException(e);
             }
         }
 
         private readonly bool initialized;
 
-        private PerformanceCounter interactionExamplesQueue;
-        private PerformanceCounter interactionExamplesTotal;
-        private PerformanceCounter interactionExamplesPerSec;
-        private PerformanceCounter interactionExamplesBytesPerSec;
-        private PerformanceCounter averageInteractionExampleSize;
-        private PerformanceCounter averageInteractionExampleSizeBase;
-
-        private PerformanceCounter observationExamplesQueue;
-        private PerformanceCounter observationExamplesTotal;
-        private PerformanceCounter observationExamplesPerSec;
-        private PerformanceCounter observationExamplesBytesPerSec;
-        private PerformanceCounter averageObservationExampleSize;
-        private PerformanceCounter averageObservationExampleSizeBase;
-
-
-        internal PerformanceCounters(string mwtToken)
+        public PerformanceCounters(string instance)
         {
-            try 
-	        {	        
-		        this.interactionExamplesQueue = new PerformanceCounter(category, "InteractionExamplesQueue", mwtToken, false);
-                this.interactionExamplesTotal = new PerformanceCounter(category, "InteractionExamplesTotal", mwtToken, false);
-                this.interactionExamplesPerSec = new PerformanceCounter(category, "InteractionExamplesSec", mwtToken, false);
-                this.interactionExamplesBytesPerSec = new PerformanceCounter(category, "InteractionExamplesBytesSec", mwtToken, false);
-                this.averageInteractionExampleSize = new PerformanceCounter(category, "AverageInteractionExampleSize", mwtToken, false);
-                this.averageInteractionExampleSizeBase = new PerformanceCounter(category, "AverageInteractionExampleSizeBase", mwtToken, false);
-                
-                this.interactionExamplesQueue.RawValue = 0;
-                this.interactionExamplesTotal.RawValue = 0;
+            try
+            {
+                var perfCollectorModule = new PerformanceCollectorModule();
+                var props = typeof(PerformanceCounters)
+                    .GetProperties()
+                    .Where(p => p.PropertyType == typeof(PerformanceCounter));
 
-                this.observationExamplesQueue = new PerformanceCounter(category, "ObservationExamplesQueue", mwtToken, false);
-                this.observationExamplesTotal = new PerformanceCounter(category, "ObservationExamplesTotal", mwtToken, false);
-                this.observationExamplesPerSec = new PerformanceCounter(category, "ObservationExamplesSec", mwtToken, false);
-                this.observationExamplesBytesPerSec = new PerformanceCounter(category, "ObservationExamplesBytesSec", mwtToken, false);
-                this.averageObservationExampleSize = new PerformanceCounter(category, "AverageObservationExampleSize", mwtToken, false);
-                this.averageObservationExampleSizeBase = new PerformanceCounter(category, "AverageObservationExampleSizeBase", mwtToken, false);
+                var all = new List<PerformanceCounter>();
+                foreach (var p in props)
+                {
+                    var counter = new PerformanceCounter(category, p.Name, instance, false);
+                    p.SetValue(this, counter);
+                    counter.RawValue = 0;
+                    all.Add(counter);
 
-                this.observationExamplesQueue.RawValue = 0;
-                this.observationExamplesTotal.RawValue = 0;
+                    if (!p.Name.EndsWith("Base", StringComparison.Ordinal))
+                    {
+                        var perfCounterSpec = string.Format(CultureInfo.InvariantCulture, "\\{0}({1})\\{2}", category, instance, p.Name);
+                        var reportAs = p.Name
+                            .Replace('_', ' ')
+                            .Replace("Per", "/");
 
-                this.initialized = true;
-	        }
-	        catch (Exception e)
-	        {
+                        perfCollectorModule.Counters.Add(new PerformanceCounterCollectionRequest(perfCounterSpec, reportAs));
+                    }
+                }
+
+                perfCollectorModule.Initialize(TelemetryConfiguration.Active);
+            }
+            catch (Exception e)
+            {
                 this.initialized = false;
-		        Trace.TraceError("Failed to initialize performance counters: {0}. {1}", e.Message, e.StackTrace);
-	        }
+                new TelemetryClient().TrackException(e);
+            }
+
+            this.initialized = true;
         }
+
+        public void Dispose()
+        {
+            foreach (var p in typeof(PerformanceCounters).GetProperties())
+            {
+                var perfCounter = (IDisposable)p.GetValue(this);
+                
+                if (perfCounter != null)
+                {
+                    perfCounter.Dispose();
+                    p.SetValue(this, null);
+                }
+            }
+        }
+
+        [PerformanceCounterType(PerformanceCounterType.NumberOfItems64)]
+        public PerformanceCounter InteractionExamplesQueue {get; private set; }
+
+        [PerformanceCounterType(PerformanceCounterType.NumberOfItems64)]
+        public PerformanceCounter InteractionExamplesTotal {get; private set; }
+
+        [PerformanceCounterType(PerformanceCounterType.RateOfCountsPerSecond32)]
+        public PerformanceCounter InteractionExamplesPerSec {get; private set; }
+
+        [PerformanceCounterType(PerformanceCounterType.RateOfCountsPerSecond64)]
+        public PerformanceCounter InteractionExamplesBytesPerSec { get; private set; }
+
+        [PerformanceCounterType(PerformanceCounterType.AverageCount64)]
+        public PerformanceCounter AverageInteractionExampleSize {get; private set; }
+
+        [PerformanceCounterType(PerformanceCounterType.AverageBase)]
+        public PerformanceCounter AverageInteractionExampleSizeBase {get; private set; }
+
+        [PerformanceCounterType(PerformanceCounterType.NumberOfItems64)]
+        public PerformanceCounter ObservationExamplesQueue {get; private set; }
+
+        [PerformanceCounterType(PerformanceCounterType.NumberOfItems64)]
+        public PerformanceCounter ObservationExamplesTotal {get; private set; }
+
+        [PerformanceCounterType(PerformanceCounterType.RateOfCountsPerSecond32)]
+        public PerformanceCounter ObservationExamplesPerSec { get; private set; }
+
+        [PerformanceCounterType(PerformanceCounterType.RateOfCountsPerSecond64)]
+        public PerformanceCounter ObservationExamplesBytesPerSec { get; private set; }
+
+        [PerformanceCounterType(PerformanceCounterType.AverageCount64)]
+        public PerformanceCounter AverageObservationExampleSize {get; private set; }
+
+        [PerformanceCounterType(PerformanceCounterType.AverageBase)]
+        public PerformanceCounter AverageObservationExampleSizeBase {get; private set; }
+
 
         internal void ReportInteraction(int eventCount, int sumSize)
         {
             if (this.initialized)
             {
-                this.interactionExamplesQueue.IncrementBy(-eventCount);
+                this.InteractionExamplesQueue.IncrementBy(-eventCount);
 
-                this.interactionExamplesTotal.IncrementBy(eventCount);
-                this.interactionExamplesPerSec.IncrementBy(eventCount);
+                this.InteractionExamplesTotal.IncrementBy(eventCount);
+                this.InteractionExamplesPerSec.IncrementBy(eventCount);
 
-                this.interactionExamplesBytesPerSec.IncrementBy(sumSize);
+                this.InteractionExamplesBytesPerSec.IncrementBy(sumSize);
 
-                this.averageInteractionExampleSize.IncrementBy(sumSize);
-                this.averageInteractionExampleSizeBase.IncrementBy(eventCount);
+                this.AverageInteractionExampleSize.IncrementBy(sumSize);
+                this.AverageInteractionExampleSizeBase.IncrementBy(eventCount);
             }
         }
 
@@ -116,15 +172,15 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         {
             if (this.initialized)
             {
-                this.observationExamplesQueue.IncrementBy(-eventCount);
+                this.ObservationExamplesQueue.IncrementBy(-eventCount);
 
-                this.observationExamplesTotal.IncrementBy(eventCount);
-                this.observationExamplesPerSec.IncrementBy(eventCount);
+                this.ObservationExamplesTotal.IncrementBy(eventCount);
+                this.ObservationExamplesPerSec.IncrementBy(eventCount);
 
-                this.observationExamplesBytesPerSec.IncrementBy(sumSize);
+                this.ObservationExamplesBytesPerSec.IncrementBy(sumSize);
 
-                this.averageObservationExampleSize.IncrementBy(sumSize);
-                this.averageObservationExampleSizeBase.IncrementBy(eventCount);
+                this.AverageObservationExampleSize.IncrementBy(sumSize);
+                this.AverageObservationExampleSizeBase.IncrementBy(eventCount);
             }
         }
 
@@ -132,7 +188,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         {
             if (this.initialized)
             {
-                this.interactionExamplesQueue.RawValue = queueSize;
+                this.InteractionExamplesQueue.RawValue = queueSize;
             }
         }
 
@@ -140,7 +196,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         {
             if (this.initialized)
             {
-                this.observationExamplesQueue.RawValue = queueSize;
+                this.ObservationExamplesQueue.RawValue = queueSize;
             }
         }
     }

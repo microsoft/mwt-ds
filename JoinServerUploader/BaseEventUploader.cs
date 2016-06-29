@@ -75,6 +75,34 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
             this.random = new Random(0);
         }
 
+        /// <summary>
+        /// Invoked if an error happened during the upload pipeline.
+        /// </summary>
+        public event EventUploaderErrorEventHandler ErrorHandler;
+
+        /// <summary>
+        /// Invoked after the batch was successfully uploaded.
+        /// </summary>
+        public event EventUploaderSuccessEventHandler SuccessHandler;
+
+        internal void FireErrorHandler(Exception e)
+        {
+            var handler = this.ErrorHandler;
+            if (handler != null)
+                handler(this, e);
+
+            this.batchConfig.FireErrorHandler(e);
+        }
+
+        internal void FireSuccessHandler(int eventCount, int sumSize, int inputQueueSize)
+        {
+            var handler = this.SuccessHandler;
+            if (handler != null)
+                handler(this, eventCount, sumSize, inputQueueSize);
+
+            this.batchConfig.FireSuccessHandler(eventCount, sumSize, inputQueueSize);
+        }
+
         private TTransformedEvent TransformEventInternal(IEvent sourceEvent)
         {
             try
@@ -83,7 +111,7 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
             }
             catch (Exception e)
             {
-                this.batchConfig.FireErrorHandler(e);
+                this.FireErrorHandler(e);
 
                 throw e;
             }
@@ -97,7 +125,7 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
             }
             catch (Exception e)
             {
-                this.batchConfig.FireErrorHandler(e);
+                this.FireErrorHandler(e);
 
                 throw e;
             }
@@ -108,14 +136,14 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
             try
             {
                 await this.UploadTransformedEvents(transformedEvents);
-                this.batchConfig.FireSuccessHandler(
+                this.FireSuccessHandler(
                     transformedEvents.Count, 
                     transformedEvents.Sum(e => this.MeasureTransformedEvent(e)),
                     this.eventProcessor.InputCount);
             }
             catch (Exception e)
             {
-                this.batchConfig.FireErrorHandler(e);
+                this.FireErrorHandler(e);
 
                 throw e;
             }
