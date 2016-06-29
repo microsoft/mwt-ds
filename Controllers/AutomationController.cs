@@ -10,6 +10,7 @@ using Microsoft.Research.MultiWorldTesting.Contract;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Microsoft.ApplicationInsights;
+using System.Xml.Linq;
 
 namespace DecisionServicePrivateWeb.Controllers
 {
@@ -55,6 +56,22 @@ namespace DecisionServicePrivateWeb.Controllers
             {
                 telemetry.TrackException(e);
             }
+        }
+
+        [HttpGet]
+        public string AppSettings()
+        {
+            var token = Request.Headers["Authorization"];
+            if (token != ConfigurationManager.AppSettings[ApplicationMetadataStore.AKPassword])
+                throw new UnauthorizedAccessException();
+
+            return new XElement("appSettings",
+                ConfigurationManager.AppSettings.AllKeys
+                    .Select(key => 
+                        new XElement("add", 
+                            new XAttribute("key", key), 
+                            new XAttribute("value", ConfigurationManager.AppSettings[key])))
+                ).ToString();
         }
     }
 }

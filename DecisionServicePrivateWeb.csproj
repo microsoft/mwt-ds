@@ -249,6 +249,7 @@
     </Content>
     <Content Include="App_Data\OnlineTrainerConfiguration.cscfg" />
     <None Include="Properties\PublishProfiles\arm.pubxml" />
+    <None Include="Properties\PublishProfiles\mc-mcdel4c7zanhpjnjycw - Web Deploy.pubxml" />
     <None Include="Properties\PublishProfiles\mcunitd5395c8845b9951fe786e802964a-mc-dz564t66ivmi2 - Web Deploy.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\d3.js" />
