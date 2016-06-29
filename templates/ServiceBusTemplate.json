@@ -19,6 +19,7 @@
   },
   "resources": [
     {
+      "apiVersion": "2015-08-01",
       "name": "[variables('sbName')]",
       "type": "Microsoft.ServiceBus/namespaces",
       "location": "[resourceGroup().location]",
