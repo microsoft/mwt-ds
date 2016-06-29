@@ -338,6 +338,22 @@
       "apiVersion": "2015-01-01",
       "name": "Online_Trainer",
       "type": "Microsoft.Resources/deployments",
+      "dependsOn": [ "Microsoft.Resources/deployments/Unique_Postfix_Generator" ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": {
+          "uri": "[concat(variables('assetLocation'), 'templates/OnlineTrainerEmptyTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "Online_Trainer_Deployment",
+      "type": "Microsoft.Resources/deployments",
       "dependsOn": [
         "Microsoft.Resources/deployments/Admin_Token_Generator",
         "Microsoft.Resources/deployments/Storage",
@@ -353,11 +369,9 @@
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
-          "binaryStorageAccountName": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountName.value]" },
-          "instrumentationKey": { "value": "[reference('Microsoft.Resources/deployments/Application_Insights').outputs.instrumentationKey.value]" },
           "onlineTrainerCspkgToken": { "value": "[reference('Microsoft.Resources/deployments/SAS_Uri_Generator').outputs.SASTokenOnlineTrainerCspkg.value]" },
           "configLink": { "value": "[concat(reference('Microsoft.Resources/deployments/Management_Center').outputs.url.value, '/Deployment/GenerateTrainerConfig?key=', reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value)]" },
-          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
+          "name": { "value": "[reference('Microsoft.Resources/deployments/Online_Trainer').outputs.name.value]" }
         }
       }
     }
