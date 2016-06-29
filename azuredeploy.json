@@ -219,6 +219,20 @@
     },
     {
       "apiVersion": "2015-01-01",
+      "name": "Management_Center_Placeholder",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [
+      ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/WebEmptyTemplate.json')]" },
+        "parameters": {
+          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
       "name": "Management_Center",
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [
@@ -229,7 +243,8 @@
         "Microsoft.Resources/deployments/Event_Hub_Observation",
         "Microsoft.Resources/deployments/Event_Hub_Joined",
         "Microsoft.Resources/deployments/Event_Hub_Evaluation",
-        "Microsoft.Resources/deployments/Admin_Token_Generator"
+        "Microsoft.Resources/deployments/Admin_Token_Generator",
+        "Microsoft.Resources/deployments/Management_Center_Placeholder"
       ],
       "properties": {
         "mode": "incremental",
@@ -258,25 +273,10 @@
     },
     {
       "apiVersion": "2015-01-01",
-      "name": "Management_Center_Github_Sync",
-      "type": "Microsoft.Resources/deployments",
-      "dependsOn": [
-        "Microsoft.Resources/deployments/Management_Center"
-      ],
-      "properties": {
-        "mode": "incremental",
-        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/WebSourceControlTemplate.json')]" },
-        "parameters": {
-          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
-        }
-      }
-    },
-    {
-      "apiVersion": "2015-01-01",
       "name": "SAS_Uri_Generator",
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [
-        "Microsoft.Resources/deployments/Management_Center_Github_Sync"
+        "Microsoft.Resources/deployments/Management_Center"
       ],
       "properties": {
         "mode": "incremental",
