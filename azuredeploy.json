@@ -149,6 +149,20 @@
     },
     {
       "apiVersion": "2015-01-01",
+      "name": "Service_Bus_Update",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [ "Microsoft.Resources/deployments/Service_Bus" ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/ServiceBusTemplate.json')]" },
+        "parameters": {
+          "MB/s": { "value": "[parameters('MB/s')]" },
+          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
       "name": "Event_Hub_Interaction",
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [ "Microsoft.Resources/deployments/Service_Bus" ],
