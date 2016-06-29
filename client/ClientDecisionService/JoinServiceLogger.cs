@@ -36,11 +36,10 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             BatchingConfiguration interactionBatchConfig,
             BatchingConfiguration observationsBatchConfig)
         {
-            interactionBatchConfig.SuccessHandler += interactionBatchConfig_SuccessHandler;
-            observationsBatchConfig.SuccessHandler += observationBatchConfig_SuccessHandler;
-
             this.interactionEventUploader = new EventUploaderASA(interactionEventHubConnectionString, interactionBatchConfig, developmentMode: this.developmentMode);
+            this.interactionEventUploader.SuccessHandler += interactionBatchConfig_SuccessHandler;
             this.observationEventUploader = new EventUploaderASA(observationEventHubConnectionString, observationsBatchConfig, developmentMode: this.developmentMode);
+            this.observationEventUploader.SuccessHandler += observationBatchConfig_SuccessHandler;
         }
 
         void interactionBatchConfig_SuccessHandler(object source, int eventCount, int sumSize, int inputQueueSize)

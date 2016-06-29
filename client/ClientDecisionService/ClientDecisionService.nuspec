@@ -15,11 +15,13 @@
     <dependencies>
 	<group>
 	    <dependency id="EnterpriseLibrary.TransientFaultHandling" version="6.0.1304.0" />
-	    <dependency id="Microsoft.ApplicationInsights.TraceListener" version="2.0.0" />
+      <dependency id="Microsoft.ApplicationInsights.TraceListener" version="2.0.0" />
+      <dependency id="Microsoft.ApplicationInsights.PerfCounterCollector" version="2.1.0"/>
 	    <dependency id="Rx-Main" version="2.2.5" />
-	    <dependency id="VowpalWabbit" version="8.2.0.0" />
-	    <dependency id="VowpalWabbit.JSON" version="8.2.0.0" />
-	    <dependency id="WindowsAzure.Storage" version="7.0.0" />
+	    <dependency id="VowpalWabbit" version="8.2.0.2" />
+	    <dependency id="VowpalWabbit.JSON" version="8.2.0.2" />
+      <dependency id="WindowsAzure.ServiceBus" version="3.2.4" />
+      <dependency id="WindowsAzure.Storage" version="7.0.0" />
 	    <dependency id="Microsoft.Research.MultiWorldTesting.JoinUploader" version="$version$" />
 	    <dependency id="Microsoft.Research.MultiWorldTesting.Contract" version="$version$" />
 	</group>
