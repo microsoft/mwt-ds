@@ -164,7 +164,7 @@ $(document).keydown(function (e) {
             reportReward(1);
             break;
         case 48: // '0' // 40: // down
-            reportReward(-1);
+            reportReward(0);
             break;
     }
 });
