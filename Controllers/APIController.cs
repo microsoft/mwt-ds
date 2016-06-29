@@ -176,7 +176,7 @@ namespace DecisionServicePrivateWeb.Controllers
                     ApplicationExtraMetadata extraApp = JsonConvert.DeserializeObject<ApplicationExtraMetadata>(extraSettingsBlob.DownloadText());
 
                     wc.Headers.Add($"Authorization: {token}");
-                    wc.DownloadString($"http://{extraApp.AzureResourceGroupName}-trainer-{uniqueStringInUrl}.cloudapp.net/reset");
+                    wc.DownloadString($"http://trainer-{uniqueStringInUrl}.cloudapp.net/reset");
 
                     var storageAccount = CloudStorageAccount.Parse(ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString]);
                     var blobClient = storageAccount.CreateCloudBlobClient();
@@ -213,7 +213,7 @@ namespace DecisionServicePrivateWeb.Controllers
                     var extraSettingsBlob = (CloudBlockBlob)Session[HomeController.SKExtraSettingsBlob];
                     ApplicationExtraMetadata extraApp = JsonConvert.DeserializeObject<ApplicationExtraMetadata>(extraSettingsBlob.DownloadText());
 
-                    var json = await wc.DownloadStringTaskAsync($"http://{extraApp.AzureResourceGroupName}-trainer-{uniqueStringInUrl}.cloudapp.net/status");
+                    var json = await wc.DownloadStringTaskAsync($"http://trainer-{uniqueStringInUrl}.cloudapp.net/status");
                     return Content(json, "application/json");
                 }
             }
