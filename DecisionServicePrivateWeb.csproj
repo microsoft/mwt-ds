@@ -105,24 +105,24 @@
       <HintPath>packages\EnterpriseLibrary.TransientFaultHandling.6.0.1304.0\lib\portable-net45+win+wp8\Microsoft.Practices.EnterpriseLibrary.TransientFaultHandling.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.Research.MultiWorldTesting.ClientLibrary, Version=2.0.0.1, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>packages\Microsoft.Research.MultiWorldTesting.ClientLibrary.2.0.0.1\lib\net45\Microsoft.Research.MultiWorldTesting.ClientLibrary.dll</HintPath>
+    <Reference Include="Microsoft.Research.MultiWorldTesting.ClientLibrary, Version=2.0.0.2, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>packages\Microsoft.Research.MultiWorldTesting.ClientLibrary.2.0.0.2\lib\net45\Microsoft.Research.MultiWorldTesting.ClientLibrary.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.Research.MultiWorldTesting.Contract, Version=2.0.0.1, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>packages\Microsoft.Research.MultiWorldTesting.Contract.2.0.0.1\lib\net45\Microsoft.Research.MultiWorldTesting.Contract.dll</HintPath>
+    <Reference Include="Microsoft.Research.MultiWorldTesting.Contract, Version=2.0.0.2, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>packages\Microsoft.Research.MultiWorldTesting.Contract.2.0.0.2\lib\net45\Microsoft.Research.MultiWorldTesting.Contract.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Research.MultiWorldTesting.ExploreLibrary, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.Research.MultiWorldTesting.ClientLibrary.2.0.0.1\lib\net45\Microsoft.Research.MultiWorldTesting.ExploreLibrary.dll</HintPath>
+      <HintPath>packages\Microsoft.Research.MultiWorldTesting.ClientLibrary.2.0.0.2\lib\net45\Microsoft.Research.MultiWorldTesting.ExploreLibrary.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.Research.MultiWorldTesting.JoinUploader, Version=2.0.0.1, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>packages\Microsoft.Research.MultiWorldTesting.JoinUploader.2.0.0.1\lib\net45\Microsoft.Research.MultiWorldTesting.JoinUploader.dll</HintPath>
+    <Reference Include="Microsoft.Research.MultiWorldTesting.JoinUploader, Version=2.0.0.2, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>packages\Microsoft.Research.MultiWorldTesting.JoinUploader.2.0.0.2\lib\net45\Microsoft.Research.MultiWorldTesting.JoinUploader.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.ServiceBus, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>packages\WindowsAzure.ServiceBus.3.2.3\lib\net45-full\Microsoft.ServiceBus.dll</HintPath>
+      <HintPath>packages\WindowsAzure.ServiceBus.3.2.4\lib\net45-full\Microsoft.ServiceBus.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.WindowsAzure.Storage, Version=7.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -179,20 +179,20 @@
     <Reference Include="System.Configuration" />
     <Reference Include="System.Web.Services" />
     <Reference Include="System.EnterpriseServices" />
-    <Reference Include="VowpalWabbit, Version=8.2.0.1, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <HintPath>packages\VowpalWabbit.8.2.0.1\lib\net45\VowpalWabbit.dll</HintPath>
+    <Reference Include="VowpalWabbit, Version=8.2.0.2, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
+      <HintPath>packages\VowpalWabbit.8.2.0.2\lib\net45\VowpalWabbit.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="VowpalWabbit.Common, Version=8.2.0.1, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <HintPath>packages\VowpalWabbit.8.2.0.1\lib\net45\VowpalWabbit.Common.dll</HintPath>
+    <Reference Include="VowpalWabbit.Common, Version=8.2.0.2, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
+      <HintPath>packages\VowpalWabbit.8.2.0.2\lib\net45\VowpalWabbit.Common.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="VowpalWabbit.Core, Version=8.2.0.1, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <HintPath>packages\VowpalWabbit.8.2.0.1\lib\net45\VowpalWabbit.Core.dll</HintPath>
+    <Reference Include="VowpalWabbit.Core, Version=8.2.0.2, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
+      <HintPath>packages\VowpalWabbit.8.2.0.2\lib\net45\VowpalWabbit.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="VowpalWabbit.JSON, Version=8.2.0.1, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <HintPath>packages\VowpalWabbit.JSON.8.2.0.1\lib\net45\VowpalWabbit.JSON.dll</HintPath>
+    <Reference Include="VowpalWabbit.JSON, Version=8.2.0.2, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
+      <HintPath>packages\VowpalWabbit.JSON.8.2.0.2\lib\net45\VowpalWabbit.JSON.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="WebGrease, Version=1.5.2.14234, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -375,9 +375,9 @@
     </PropertyGroup>
     <Error Condition="!Exists('packages\Microsoft.Net.Compilers.1.0.0\build\Microsoft.Net.Compilers.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.Net.Compilers.1.0.0\build\Microsoft.Net.Compilers.props'))" />
     <Error Condition="!Exists('packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.0\build\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.0\build\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props'))" />
-    <Error Condition="!Exists('packages\VowpalWabbit.8.2.0.1\build\VowpalWabbit.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\VowpalWabbit.8.2.0.1\build\VowpalWabbit.targets'))" />
+    <Error Condition="!Exists('packages\VowpalWabbit.8.2.0.2\build\VowpalWabbit.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\VowpalWabbit.8.2.0.2\build\VowpalWabbit.targets'))" />
   </Target>
-  <Import Project="packages\VowpalWabbit.8.2.0.1\build\VowpalWabbit.targets" Condition="Exists('packages\VowpalWabbit.8.2.0.1\build\VowpalWabbit.targets')" />
+  <Import Project="packages\VowpalWabbit.8.2.0.2\build\VowpalWabbit.targets" Condition="Exists('packages\VowpalWabbit.8.2.0.2\build\VowpalWabbit.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
