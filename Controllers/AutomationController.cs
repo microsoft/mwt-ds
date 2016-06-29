@@ -67,6 +67,7 @@ namespace DecisionServicePrivateWeb.Controllers
 
             return new XElement("appSettings",
                 ConfigurationManager.AppSettings.AllKeys
+                    .Where(key => !key.Contains(":")) // filter special ASP parameters
                     .Select(key => 
                         new XElement("add", 
                             new XAttribute("key", key), 
