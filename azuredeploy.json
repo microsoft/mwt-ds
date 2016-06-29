@@ -27,8 +27,9 @@
     },
     "MB/s": {
       "type": "int",
-      "defaultValue": 2,
-      "minValue": 2,
+      "defaultValue": 1,
+      "minValue": 1,
+      "maxValue": 20,
       "metadata": {
         "description": "Bandwidth required, minimum 2."
       }
@@ -52,7 +53,8 @@
   "variables": {
     "assetLocation": "https://raw.githubusercontent.com/Microsoft/mwt-ds-provisioning/master/",
     "messageRetentionInDays": 7,
-    "prefix": "[replace(replace(replace(replace(resourceGroup().name, '.', 'x'), '_', 'x'), ')', 'x'), '(', 'x')]"
+    "prefix": "[replace(replace(replace(replace(resourceGroup().name, '.', 'x'), '_', 'x'), ')', 'x'), '(', 'x')]",
+    "partitionCount":  "[mul(2, parameters('MB/s'))]"
   },
   "resources": [
     {
@@ -140,6 +142,7 @@
         "mode": "incremental",
         "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/ServiceBusTemplate.json')]" },
         "parameters": {
+          "MB/s": { "value": "[parameters('MB/s')]" },
           "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
         }
       }
@@ -159,7 +162,7 @@
           "ehName": { "value": "interaction" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/Service_Bus').outputs.ServiceBusName.value]" },
           "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
-          "partitionCount": { "value": "[parameters('MB/s')]" }
+          "partitionCount": { "value": "[variables('partitionCount')]" }
         }
       }
     },
@@ -178,7 +181,7 @@
           "ehName": { "value": "observation" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/Service_Bus').outputs.ServiceBusName.value]" },
           "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
-          "partitionCount": { "value": "[parameters('MB/s')]" }
+          "partitionCount": { "value": "[variables('partitionCount')]" }
         }
       }
     },
@@ -197,7 +200,7 @@
           "ehName": { "value": "joined" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/Service_Bus').outputs.ServiceBusName.value]" },
           "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
-          "partitionCount": { "value": "[parameters('MB/s')]" }
+          "partitionCount": { "value": "[variables('partitionCount')]" }
         }
       }
     },
@@ -213,7 +216,7 @@
           "ehName": { "value": "eval" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/Service_Bus').outputs.ServiceBusName.value]" },
           "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
-          "partitionCount": { "value": "[parameters('MB/s')]" }
+          "partitionCount": { "value": "[variables('partitionCount')]" }
         }
       }
     },

@@ -2,6 +2,11 @@
   "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
   "contentVersion": "1.0.0.0",
   "parameters": {
+    "MB/s": {
+      "type": "int",
+      "minValue": 1,
+      "maxValue": 20
+    },
     "postfix": {
       "type": "string",
       // maximum name length is 63 - len('sb-') = 60
@@ -21,9 +26,11 @@
       "name": "[variables('sbName')]",
       "type": "Microsoft.ServiceBus/namespaces",
       "location": "[variables('location')]",
-      "properties": {
-        "messagingSku": 1,
-        "region": "[variables('location')]"
+      "kind": "Messaging",
+      "sku": {
+        "name": "Standard",
+        "tier": "Standard",
+        "capacity": "[parameters('MB/s')]"
       },
       "resources": [
         {
