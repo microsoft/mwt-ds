@@ -9,20 +9,7 @@
       "apiVersion": "2014-06-01",
       "type": "Microsoft.ClassicCompute/domainNames",
       "name": "[parameters('name')]",
-      "location": "[resourceGroup().location]",
-      "resources": [
-        {
-          "apiVersion": "2014-06-01",
-          "name": "production",
-          "type": "deploymentSlots",
-          "dependsOn": [
-            "[resourceId('Microsoft.ClassicCompute/domainNames', parameters('name'))]"
-          ],
-          "properties": {
-            "deploymentLabel": "[parameters('name')]"
-          }
-        }
-      ]
+      "location": "[resourceGroup().location]"
     }
   ],
   "outputs": {
