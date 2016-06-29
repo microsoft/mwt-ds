@@ -31,7 +31,7 @@
       "minValue": 1,
       "maxValue": 20,
       "metadata": {
-        "description": "Bandwidth required, minimum 2."
+        "description": "Bandwidth required, minimum 1, maximum 20."
       }
     },
     "online Trainer VM Size": {
