@@ -19,43 +19,11 @@
 
     "experimentalUnitDurationInSeconds": { "type": "int" },
     "vowpalWabbitTrainArguments": { "type": "string" },
+    "trainerURL": { "type": "string" },
     "postfix": {
       "type": "string",
       // maximum name length is 63 - len('mc-') = 60
       "maxLength": 60
-    },
-    "sku": {
-      "type": "string",
-      "allowedValues": [
-        "F1",
-        "D1",
-        "B1",
-        "B2",
-        "B3",
-        "S1",
-        "S2",
-        "S3",
-        "P1",
-        "P2",
-        "P3",
-        "P4"
-      ],
-      "defaultValue": "B1",
-      "metadata": {
-        "description": "The pricing tier for the hosting plan."
-      }
-    },
-    "workerSize": {
-      "type": "string",
-      "allowedValues": [
-        "0",
-        "1",
-        "2"
-      ],
-      "defaultValue": "0",
-      "metadata": {
-        "description": "The instance size of the hosting plan (small, medium, or large)."
-      }
     }
   },
   "variables": {
@@ -65,47 +33,13 @@
   "resources": [
     {
       "apiVersion": "2015-08-01",
-      "name": "[variables('hostingPlanName')]",
-      "type": "Microsoft.Web/serverfarms",
-      "location": "[resourceGroup().location]",
-      "sku": {
-        "name": "[parameters('sku')]",
-        "capacity": "[parameters('workerSize')]"
-      },
-      "properties": {
-        "name": "[variables('hostingPlanName')]"
-      }
-    },
-    {
-      "apiVersion": "2015-08-01",
       "name": "[variables('siteName')]",
       "type": "Microsoft.Web/sites",
       "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]"
-      ],
       "properties": {
         "serverFarmId": "[variables('hostingPlanName')]"
       },
       "resources": [
-        {
-          "apiVersion": "2015-08-01",
-          "name": "web",
-          "type": "config",
-          "dependsOn": [
-            "[concat('Microsoft.Web/sites/', variables('siteName'))]"
-          ],
-          "tags": {
-            "displayName": "WebAppConfig"
-          },
-          "properties": {
-            "phpVersion": "5.6",
-            "netFrameworkVersion": "v4.6",
-            "use32BitWorkerProcess": false,
-            "webSocketsEnabled": true,
-            "alwaysOn": true
-          }
-        },
         {
           "apiVersion": "2016-03-01",
           "name": "appsettings",
@@ -129,7 +63,22 @@
             "adminToken": "[parameters('adminToken')]",
             "webServiceToken": "[parameters('webServiceToken')]",
             "checkpointPolicy": "[parameters('checkpointPolicy')]",
-            "initialExplorationEpsilon": "[parameters('initialExplorationEpsilon')]"
+            "initialExplorationEpsilon": "[parameters('initialExplorationEpsilon')]",
+            "trainerURL":  "[parameters('trainerURL')]"
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "name": "web",
+          "type": "sourcecontrols",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', variables('siteName'))]",
+            "[resourceId('Microsoft.Web/Sites/config', variables('siteName'), 'appsettings')]"
+          ],
+          "properties": {
+            "RepoUrl": "https://github.com/Microsoft/mwt-ds-management-center.git",
+            "branch": "master",
+            "IsManualIntegration": true
           }
         }
       ]

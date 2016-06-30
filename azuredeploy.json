@@ -27,10 +27,11 @@
     },
     "MB/s": {
       "type": "int",
-      "defaultValue": 2,
-      "minValue": 2,
+      "defaultValue": 1,
+      "minValue": 1,
+      "maxValue": 20,
       "metadata": {
-        "description": "Bandwidth required, minimum 2."
+        "description": "Bandwidth required, minimum 1, maximum 20."
       }
     },
     "online Trainer VM Size": {
@@ -52,7 +53,8 @@
   "variables": {
     "assetLocation": "https://raw.githubusercontent.com/Microsoft/mwt-ds/master/provisioning/",
     "messageRetentionInDays": 7,
-    "prefix": "[replace(replace(replace(replace(resourceGroup().name, '.', 'x'), '_', 'x'), ')', 'x'), '(', 'x')]"
+    "prefix": "[replace(replace(replace(replace(resourceGroup().name, '.', 'x'), '_', 'x'), ')', 'x'), '(', 'x')]",
+    "partitionCount":  "[mul(2, parameters('MB/s'))]"
   },
   "resources": [
     {
@@ -134,12 +136,27 @@
     },
     {
       "apiVersion": "2015-01-01",
-      "name": "Service_Bus",
+      "name": "Service_Bus_Initial",
       "type": "Microsoft.Resources/deployments",
       "properties": {
         "mode": "incremental",
         "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/ServiceBusTemplate.json')]" },
         "parameters": {
+          "MB/s": { "value": "[parameters('MB/s')]" },
+          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "Service_Bus",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [ "Microsoft.Resources/deployments/Service_Bus_Initial" ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/ServiceBusTemplate.json')]" },
+        "parameters": {
+          "MB/s": { "value": "[parameters('MB/s')]" },
           "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
         }
       }
@@ -159,7 +176,7 @@
           "ehName": { "value": "interaction" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/Service_Bus').outputs.ServiceBusName.value]" },
           "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
-          "partitionCount": { "value": "[parameters('MB/s')]" }
+          "partitionCount": { "value": "[variables('partitionCount')]" }
         }
       }
     },
@@ -178,7 +195,7 @@
           "ehName": { "value": "observation" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/Service_Bus').outputs.ServiceBusName.value]" },
           "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
-          "partitionCount": { "value": "[parameters('MB/s')]" }
+          "partitionCount": { "value": "[variables('partitionCount')]" }
         }
       }
     },
@@ -197,7 +214,7 @@
           "ehName": { "value": "joined" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/Service_Bus').outputs.ServiceBusName.value]" },
           "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
-          "partitionCount": { "value": "[parameters('MB/s')]" }
+          "partitionCount": { "value": "[variables('partitionCount')]" }
         }
       }
     },
@@ -213,7 +230,21 @@
           "ehName": { "value": "eval" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/Service_Bus').outputs.ServiceBusName.value]" },
           "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
-          "partitionCount": { "value": "[parameters('MB/s')]" }
+          "partitionCount": { "value": "[variables('partitionCount')]" }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "Management_Center_Placeholder",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [
+      ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/WebEmptyTemplate.json')]" },
+        "parameters": {
+          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
         }
       }
     },
@@ -223,13 +254,15 @@
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [
         "Microsoft.Resources/deployments/Management_Password_Generator",
+        "Microsoft.Resources/deployments/Online_Trainer",
         "Microsoft.Resources/deployments/Storage",
         "Microsoft.Resources/deployments/Application_Insights",
         "Microsoft.Resources/deployments/Event_Hub_Interaction",
         "Microsoft.Resources/deployments/Event_Hub_Observation",
         "Microsoft.Resources/deployments/Event_Hub_Joined",
         "Microsoft.Resources/deployments/Event_Hub_Evaluation",
-        "Microsoft.Resources/deployments/Admin_Token_Generator"
+        "Microsoft.Resources/deployments/Admin_Token_Generator",
+        "Microsoft.Resources/deployments/Management_Center_Placeholder"
       ],
       "properties": {
         "mode": "incremental",
@@ -246,6 +279,7 @@
 
           "experimentalUnitDurationInSeconds": { "value": "[parameters('experimental Unit Duration (s)')]" },
           "vowpalWabbitTrainArguments": { "value": "[parameters('vowpal Wabbit Switches')]" },
+          "trainerURL": { "value": "[reference('Microsoft.Resources/deployments/Online_Trainer').outputs.url.value]" },
 
           "joinedEventHubConnectionString": { "value": "[reference('Microsoft.Resources/deployments/Event_Hub_Joined').outputs.listenConnectionString.value]" },
           "evalEventHubConnectionString": { "value": "[reference('Microsoft.Resources/deployments/Event_Hub_Evaluation').outputs.sendConnectionString.value]" },
@@ -258,25 +292,10 @@
     },
     {
       "apiVersion": "2015-01-01",
-      "name": "Management_Center_Github_Sync",
-      "type": "Microsoft.Resources/deployments",
-      "dependsOn": [
-        "Microsoft.Resources/deployments/Management_Center"
-      ],
-      "properties": {
-        "mode": "incremental",
-        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/WebSourceControlTemplate.json')]" },
-        "parameters": {
-          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
-        }
-      }
-    },
-    {
-      "apiVersion": "2015-01-01",
       "name": "SAS_Uri_Generator",
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [
-        "Microsoft.Resources/deployments/Management_Center_Github_Sync"
+        "Microsoft.Resources/deployments/Management_Center"
       ],
       "properties": {
         "mode": "incremental",
@@ -338,6 +357,22 @@
       "apiVersion": "2015-01-01",
       "name": "Online_Trainer",
       "type": "Microsoft.Resources/deployments",
+      "dependsOn": [ "Microsoft.Resources/deployments/Unique_Postfix_Generator" ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": {
+          "uri": "[concat(variables('assetLocation'), 'templates/OnlineTrainerEmptyTemplate.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "Online_Trainer_Deployment",
+      "type": "Microsoft.Resources/deployments",
       "dependsOn": [
         "Microsoft.Resources/deployments/Admin_Token_Generator",
         "Microsoft.Resources/deployments/Storage",
@@ -353,11 +388,9 @@
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
-          "binaryStorageAccountName": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountName.value]" },
-          "instrumentationKey": { "value": "[reference('Microsoft.Resources/deployments/Application_Insights').outputs.instrumentationKey.value]" },
           "onlineTrainerCspkgToken": { "value": "[reference('Microsoft.Resources/deployments/SAS_Uri_Generator').outputs.SASTokenOnlineTrainerCspkg.value]" },
           "configLink": { "value": "[concat(reference('Microsoft.Resources/deployments/Management_Center').outputs.url.value, '/Deployment/GenerateTrainerConfig?key=', reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value)]" },
-          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
+          "name": { "value": "[reference('Microsoft.Resources/deployments/Online_Trainer').outputs.name.value]" }
         }
       }
     }

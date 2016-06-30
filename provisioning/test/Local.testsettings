@@ -2,7 +2,7 @@
 <TestSettings name="Local" id="2f1250c4-0310-433e-9aec-a5403ed05b07" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
   <Description>These are default test settings for a local test run.</Description>
   <Deployment enabled="false" />
-  <Execution>
+  <Execution hostProcessPlatform="MSIL">
     <TestTypeSpecific>
       <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
         <AssemblyResolution applicationBaseDirectory="%HOMEDRIVE%\work\mwt-ds-provisioning">

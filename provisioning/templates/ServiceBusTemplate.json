@@ -2,6 +2,11 @@
   "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
   "contentVersion": "1.0.0.0",
   "parameters": {
+    "MB/s": {
+      "type": "int",
+      "minValue": 1,
+      "maxValue": 20
+    },
     "postfix": {
       "type": "string",
       // maximum name length is 63 - len('sb-') = 60
@@ -9,28 +14,27 @@
     }
   },
   "variables": {
-    "location": "[resourceGroup().location]",
-    "sbVersion": "2015-08-01",
-    "apiVersion": "[providers('Microsoft.ServiceBus', 'namespaces').apiVersions[0]]",
     "sbName": "[concat('sb-', parameters('postfix'))]",
     "sbKeyName": "OwnerKey"
   },
   "resources": [
     {
-      "apiVersion": "[variables('sbVersion')]",
+      "apiVersion": "2015-08-01",
       "name": "[variables('sbName')]",
       "type": "Microsoft.ServiceBus/namespaces",
-      "location": "[variables('location')]",
-      "properties": {
-        "messagingSku": 1,
-        "region": "[variables('location')]"
+      "location": "[resourceGroup().location]",
+      "kind": "Messaging",
+      "sku": {
+        "name": "Standard",
+        "tier": "Standard",
+        "capacity": "[parameters('MB/s')]"
       },
       "resources": [
         {
-          "apiVersion": "[variables('sbVersion')]",
+          "apiVersion": "2015-08-01",
           "name": "[concat(variables('sbName'), '/', variables('sbKeyName'))]",
           "type": "Microsoft.ServiceBus/namespaces/authorizationRules",
-          "location": "[variables('location')]",
+          "location": "[resourceGroup().location]",
           "dependsOn": [
             "[concat('Microsoft.ServiceBus/namespaces/', variables('sbName'))]"
           ],

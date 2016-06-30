@@ -255,6 +255,9 @@
     <None Include="..\templates\EventHubTemplate.json">
       <Link>templates\EventHubTemplate.json</Link>
     </None>
+    <None Include="..\templates\OnlineTrainerEmptyTemplate.json">
+      <Link>templates\OnlineTrainerEmptyTemplate.json</Link>
+    </None>
     <None Include="..\templates\OnlineTrainerTemplate.json">
       <Link>templates\OnlineTrainerTemplate.json</Link>
     </None>
@@ -282,8 +285,8 @@
     <None Include="..\templates\WebManageTemplate.json">
       <Link>templates\WebManageTemplate.json</Link>
     </None>
-    <None Include="..\templates\WebSourceControlTemplate.json">
-      <Link>templates\WebSourceControlTemplate.json</Link>
+    <None Include="..\templates\WebEmptyTemplate.json">
+      <Link>templates\WebEmptyTemplate.json</Link>
     </None>
     <None Include="app.config" />
     <None Include="packages.config" />
