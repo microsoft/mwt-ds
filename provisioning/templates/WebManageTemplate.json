@@ -48,6 +48,7 @@
             "[resourceId('Microsoft.Web/Sites', variables('siteName'))]"
           ],
           "properties": {
+            "PROJECT": "mc\\DecisionServicePrivateWeb.csproj",
             "Password": "[parameters('managementPassword')]",
             "APPINSIGHTS_INSTRUMENTATIONKEY": "[parameters('instrumentationKey')]",
             "AzureStorageConnectionString": "[parameters('userStorageConnectionString')]",
@@ -64,7 +65,7 @@
             "webServiceToken": "[parameters('webServiceToken')]",
             "checkpointPolicy": "[parameters('checkpointPolicy')]",
             "initialExplorationEpsilon": "[parameters('initialExplorationEpsilon')]",
-            "trainerURL":  "[parameters('trainerURL')]"
+            "trainerURL": "[parameters('trainerURL')]"
           }
         },
         {
