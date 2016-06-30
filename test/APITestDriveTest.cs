@@ -43,7 +43,7 @@ namespace Microsoft.Research.DecisionServiceTest
   }
 }
 ";
-        public APITestDriveTestClass() : base(deploymentOutput) { }
+        // public APITestDriveTestClass() : base(deploymentOutput) { }
 
         public class PolicyDecision
         {

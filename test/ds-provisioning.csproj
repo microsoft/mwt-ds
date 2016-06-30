@@ -255,6 +255,9 @@
     <None Include="..\templates\EventHubTemplate.json">
       <Link>templates\EventHubTemplate.json</Link>
     </None>
+    <None Include="..\templates\OnlineTrainerEmptyTemplate.json">
+      <Link>templates\OnlineTrainerEmptyTemplate.json</Link>
+    </None>
     <None Include="..\templates\OnlineTrainerTemplate.json">
       <Link>templates\OnlineTrainerTemplate.json</Link>
     </None>

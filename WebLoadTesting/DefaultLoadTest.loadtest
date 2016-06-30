@@ -1,11 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<LoadTest Name="DefaultLoadTest" Description="" Owner="" storage="c:\work\mwt-ds-provisioning\webloadtesting\defaultloadtest.loadtest" Priority="2147483647" Enabled="true" CssProjectStructure="" CssIteration="" DeploymentItemsEditable="" WorkItemIds="" TraceLevel="None" CurrentRunConfig="Run Settings1" Id="b8f48a76-6c3a-4c18-bc99-09a6ba1dfe05" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+<LoadTest Name="DefaultLoadTest" Description="" Owner="" storage="c:\work\ds-provisioning\webloadtesting\defaultloadtest.loadtest" Priority="2147483647" Enabled="true" CssProjectStructure="" CssIteration="" DeploymentItemsEditable="" WorkItemIds="" TraceLevel="None" CurrentRunConfig="Run Settings1" Id="b8f48a76-6c3a-4c18-bc99-09a6ba1dfe05" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
   <Scenarios>
     <Scenario Name="DefaultScenario" DelayBetweenIterations="0" PercentNewUsers="0" IPSwitching="false" TestMixType="PercentageOfTestsStarted" ApplyDistributionToPacingDelay="true" MaxTestIterations="0" DisableDuringWarmup="false" DelayStartTime="0" AllowedAgents="">
       <ThinkProfile Value="0.2" Pattern="NormalDistribution" />
-      <LoadProfile Pattern="Constant" InitialUsers="25" />
+      <LoadProfile Pattern="Constant" InitialUsers="50" />
       <TestMix>
-        <TestProfile Name="TestDriveWebTest" Path="bin\debug\webloadtesting.dll" Id="046d4b3f-024b-3b75-59df-81f98e8b83e5" Percentage="100" Type="Microsoft.VisualStudio.TestTools.WebStress.CodedWebTestElement, Microsoft.VisualStudio.QualityTools.LoadTest, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestProfile Name="FloatFeaturesWebTest" Path="bin\debug\webloadtesting.dll" Id="6240a313-0e8b-31ca-945a-a56ca87d131e" Percentage="100" Type="Microsoft.VisualStudio.TestTools.WebStress.CodedWebTestElement, Microsoft.VisualStudio.QualityTools.LoadTest, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
       </TestMix>
       <BrowserMix>
         <BrowserProfile Percentage="100">
@@ -421,7 +421,7 @@
     </CounterSet>
   </CounterSets>
   <RunConfigurations>
-    <RunConfiguration Name="Run Settings1" Description="" ResultsStoreType="Database" TimingDetailsStorage="None" SaveTestLogsOnError="true" SaveTestLogsFrequency="0" MaxErrorDetails="200" MaxErrorsPerType="1000" MaxThresholdViolations="1000" MaxRequestUrlsReported="1000" UseTestIterations="false" RunDuration="300" WarmupTime="0" CoolDownTime="0" TestIterations="100" WebTestConnectionModel="ConnectionPerUser" WebTestConnectionPoolSize="50" SampleRate="15" ValidationLevel="High" SqlTracingConnectString="" SqlTracingConnectStringDisplayValue="" SqlTracingDirectory="" SqlTracingEnabled="false" SqlTracingFileCount="2" SqlTracingRolloverEnabled="true" SqlTracingMinimumDuration="500" RunUnitTestsInAppDomain="true" CoreCount="0" UseMultipleIPs="false" TestAgentConfiguration="Default" AgentDiagnosticsLevel="Warning">
+    <RunConfiguration Name="Run Settings1" Description="" ResultsStoreType="Database" TimingDetailsStorage="None" SaveTestLogsOnError="true" SaveTestLogsFrequency="0" MaxErrorDetails="200" MaxErrorsPerType="1000" MaxThresholdViolations="1000" MaxRequestUrlsReported="1000" UseTestIterations="false" RunDuration="300" WarmupTime="0" CoolDownTime="0" TestIterations="100" WebTestConnectionModel="ConnectionPerUser" WebTestConnectionPoolSize="50" SampleRate="60" ValidationLevel="High" SqlTracingConnectString="" SqlTracingConnectStringDisplayValue="" SqlTracingDirectory="" SqlTracingEnabled="false" SqlTracingFileCount="2" SqlTracingRolloverEnabled="true" SqlTracingMinimumDuration="500" RunUnitTestsInAppDomain="true" CoreCount="50" UseMultipleIPs="false" TestAgentConfiguration="Default" AgentDiagnosticsLevel="Warning">
       <CounterSetMappings>
         <CounterSetMapping ComputerName="[CONTROLLER MACHINE]">
           <CounterSetReferences>
@@ -435,12 +435,32 @@
           </CounterSetReferences>
         </CounterSetMapping>
       </CounterSetMappings>
+      <Applications>
+        <AutComponent Description="" Id="ApplicationInsights~/subscriptions/d65ae8da-b9bf-4839-9659-4f3c6f8727f7/resourceGroups/mcdel4/providers/microsoft.insights/components/appinsights-mcdel4c7zanhpjnjycw" Name="appinsights-mcdel4c7zanhpjnjycw" Type="ApplicationInsights" Separator="\" Version="2.0">
+          <AutCounters>
+            <AutCounter Description="" Id="/subscriptions/d65ae8da-b9bf-4839-9659-4f3c6f8727f7/resourceGroups/mcdel4/providers/microsoft.insights/components/appinsights-mcdel4c7zanhpjnjycw~Stage Batches/Sec~Avg" Name="Stage Batches/Sec" Path="\appinsights-mcdel4c7zanhpjnjycw\Custom\Stage Batches/Sec\Avg" />
+            <AutCounter Description="" Id="/subscriptions/d65ae8da-b9bf-4839-9659-4f3c6f8727f7/resourceGroups/mcdel4/providers/microsoft.insights/components/appinsights-mcdel4c7zanhpjnjycw~Stage JSON Deserialize/Sec~Avg" Name="Stage JSON Deserialize/Sec" Path="\appinsights-mcdel4c7zanhpjnjycw\Custom\Stage JSON Deserialize/Sec\Avg" />
+            <AutCounter Description="" Id="/subscriptions/d65ae8da-b9bf-4839-9659-4f3c6f8727f7/resourceGroups/mcdel4/providers/microsoft.insights/components/appinsights-mcdel4c7zanhpjnjycw~Stage JSON Queue~Avg" Name="Stage JSON Queue" Path="\appinsights-mcdel4c7zanhpjnjycw\Custom\Stage JSON Queue\Avg" />
+            <AutCounter Description="" Id="/subscriptions/d65ae8da-b9bf-4839-9659-4f3c6f8727f7/resourceGroups/mcdel4/providers/microsoft.insights/components/appinsights-mcdel4c7zanhpjnjycw~Stage JSON Queue~Max" Name="Stage JSON Queue" Path="\appinsights-mcdel4c7zanhpjnjycw\Custom\Stage JSON Queue\Max" />
+            <AutCounter Description="" Id="/subscriptions/d65ae8da-b9bf-4839-9659-4f3c6f8727f7/resourceGroups/mcdel4/providers/microsoft.insights/components/appinsights-mcdel4c7zanhpjnjycw~Stage Learn Examples/Sec~Avg" Name="Stage Learn Examples/Sec" Path="\appinsights-mcdel4c7zanhpjnjycw\Custom\Stage Learn Examples/Sec\Avg" />
+            <AutCounter Description="" Id="/subscriptions/d65ae8da-b9bf-4839-9659-4f3c6f8727f7/resourceGroups/mcdel4/providers/microsoft.insights/components/appinsights-mcdel4c7zanhpjnjycw~Stage Learn Features/Sec~Avg" Name="Stage Learn Features/Sec" Path="\appinsights-mcdel4c7zanhpjnjycw\Custom\Stage Learn Features/Sec\Avg" />
+            <AutCounter Description="Total bytes per second read and written to files, network and devices." Id="/subscriptions/d65ae8da-b9bf-4839-9659-4f3c6f8727f7/resourceGroups/mcdel4/providers/microsoft.insights/components/appinsights-mcdel4c7zanhpjnjycw~performanceCounter.io_data_bytes_per_sec.value~Max" Name="Process IO rate" Path="\appinsights-mcdel4c7zanhpjnjycw\PerformanceCounters\performanceCounter.io_data_bytes_per_sec.value\Max" />
+            <AutCounter Description="Exceptions thrown per second." Id="/subscriptions/d65ae8da-b9bf-4839-9659-4f3c6f8727f7/resourceGroups/mcdel4/providers/microsoft.insights/components/appinsights-mcdel4c7zanhpjnjycw~performanceCounter.number_of_exceps_thrown_per_sec.value~Sum" Name="Exception rate" Path="\appinsights-mcdel4c7zanhpjnjycw\PerformanceCounters\performanceCounter.number_of_exceps_thrown_per_sec.value\Sum" />
+            <AutCounter Description="The percentage of elapsed time of all process threads used by the processor to execution instructions for the applications process." Id="/subscriptions/d65ae8da-b9bf-4839-9659-4f3c6f8727f7/resourceGroups/mcdel4/providers/microsoft.insights/components/appinsights-mcdel4c7zanhpjnjycw~performanceCounter.percentage_processor_time.value~Max" Name="Process CPU" Path="\appinsights-mcdel4c7zanhpjnjycw\PerformanceCounters\performanceCounter.percentage_processor_time.value\Max" />
+            <AutCounter Description="The percentage of time that the processor spends in non-Idle threads." Id="/subscriptions/d65ae8da-b9bf-4839-9659-4f3c6f8727f7/resourceGroups/mcdel4/providers/microsoft.insights/components/appinsights-mcdel4c7zanhpjnjycw~performanceCounter.percentage_processor_total.value~Avg" Name="Processor time" Path="\appinsights-mcdel4c7zanhpjnjycw\PerformanceCounters\performanceCounter.percentage_processor_total.value\Avg" />
+            <AutCounter Description="Memory exclusively assigned to the monitored application's processes." Id="/subscriptions/d65ae8da-b9bf-4839-9659-4f3c6f8727f7/resourceGroups/mcdel4/providers/microsoft.insights/components/appinsights-mcdel4c7zanhpjnjycw~performanceCounter.process_private_bytes.value~Max" Name="Process private bytes" Path="\appinsights-mcdel4c7zanhpjnjycw\PerformanceCounters\performanceCounter.process_private_bytes.value\Max" />
+            <AutCounter Description="Time between receiving an HTTP request and finishing sending the response." Id="/subscriptions/d65ae8da-b9bf-4839-9659-4f3c6f8727f7/resourceGroups/mcdel4/providers/microsoft.insights/components/appinsights-mcdel4c7zanhpjnjycw~request.duration~Avg" Name="Server response time" Path="\appinsights-mcdel4c7zanhpjnjycw\Server\request.duration\Avg" />
+            <AutCounter Description="Time between receiving an HTTP request and finishing sending the response." Id="/subscriptions/d65ae8da-b9bf-4839-9659-4f3c6f8727f7/resourceGroups/mcdel4/providers/microsoft.insights/components/appinsights-mcdel4c7zanhpjnjycw~request.duration~Max" Name="Server response time" Path="\appinsights-mcdel4c7zanhpjnjycw\Server\request.duration\Max" />
+            <AutCounter Description="Rate of all requests to the application per second." Id="/subscriptions/d65ae8da-b9bf-4839-9659-4f3c6f8727f7/resourceGroups/mcdel4/providers/microsoft.insights/components/appinsights-mcdel4c7zanhpjnjycw~request.rate~Avg" Name="Request rate" Path="\appinsights-mcdel4c7zanhpjnjycw\Server\request.rate\Avg" />
+          </AutCounters>
+        </AutComponent>
+      </Applications>
       <LoadGeneratorLocations>
         <GeoLocation Location="East US" Percentage="100" />
       </LoadGeneratorLocations>
       <ContextParameters>
-        <ContextParameter Name="URL" Value="https://mcdel34-mc-jr4ywwjt2pgxi.azurewebsites.net" />
-        <ContextParameter Name="auth" Value="fvmhvs76ll4wq" />
+        <ContextParameter Name="URL" Value="https://mc-mcdele4eznqtkydvq5s.azurewebsites.net" />
+        <ContextParameter Name="auth" Value="a34bojp73bq3k" />
       </ContextParameters>
     </RunConfiguration>
   </RunConfigurations>
