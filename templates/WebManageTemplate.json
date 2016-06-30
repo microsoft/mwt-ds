@@ -19,6 +19,7 @@
 
     "experimentalUnitDurationInSeconds": { "type": "int" },
     "vowpalWabbitTrainArguments": { "type": "string" },
+    "trainerURL": { "type": "string" },
     "postfix": {
       "type": "string",
       // maximum name length is 63 - len('mc-') = 60
@@ -62,7 +63,8 @@
             "adminToken": "[parameters('adminToken')]",
             "webServiceToken": "[parameters('webServiceToken')]",
             "checkpointPolicy": "[parameters('checkpointPolicy')]",
-            "initialExplorationEpsilon": "[parameters('initialExplorationEpsilon')]"
+            "initialExplorationEpsilon": "[parameters('initialExplorationEpsilon')]",
+            "trainerURL":  "[parameters('trainerURL')]"
           }
         },
         {

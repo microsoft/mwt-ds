@@ -254,6 +254,7 @@
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [
         "Microsoft.Resources/deployments/Management_Password_Generator",
+        "Microsoft.Resources/deployments/Online_Trainer",
         "Microsoft.Resources/deployments/Storage",
         "Microsoft.Resources/deployments/Application_Insights",
         "Microsoft.Resources/deployments/Event_Hub_Interaction",
@@ -278,6 +279,7 @@
 
           "experimentalUnitDurationInSeconds": { "value": "[parameters('experimental Unit Duration (s)')]" },
           "vowpalWabbitTrainArguments": { "value": "[parameters('vowpal Wabbit Switches')]" },
+          "trainerURL": { "value": "[reference('Microsoft.Resources/deployments/Online_Trainer').outputs.url.value]" },
 
           "joinedEventHubConnectionString": { "value": "[reference('Microsoft.Resources/deployments/Event_Hub_Joined').outputs.listenConnectionString.value]" },
           "evalEventHubConnectionString": { "value": "[reference('Microsoft.Resources/deployments/Event_Hub_Evaluation').outputs.sendConnectionString.value]" },
