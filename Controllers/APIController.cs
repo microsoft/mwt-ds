@@ -1,23 +1,14 @@
 ﻿using DecisionServicePrivateWeb.Classes;
 using Microsoft.ApplicationInsights;
-using Microsoft.Research.MultiWorldTesting.ClientLibrary;
 using Microsoft.Research.MultiWorldTesting.Contract;
-using Microsoft.Research.MultiWorldTesting.JoinUploader;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
 using System.Configuration;
-using System.Diagnostics;
-using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
 using VW;
 using VW.Serializer;
@@ -169,14 +160,8 @@ namespace DecisionServicePrivateWeb.Controllers
 
                 using (var wc = new WebClient())
                 {
-                    string uniqueStringInUrl = Regex.Match(Request.Url.ToString(), ".*mc-(.*).azurewebsites.*").Groups[1].Value;
-
-                    // TODO: cache me?!
-                    var extraSettingsBlob = (CloudBlockBlob)Session[HomeController.SKExtraSettingsBlob];
-                    ApplicationExtraMetadata extraApp = JsonConvert.DeserializeObject<ApplicationExtraMetadata>(extraSettingsBlob.DownloadText());
-
                     wc.Headers.Add($"Authorization: {token}");
-                    wc.DownloadString($"http://trainer-{uniqueStringInUrl}.cloudapp.net/reset");
+                    wc.DownloadString(ConfigurationManager.AppSettings[ApplicationMetadataStore.AKTrainerURL] + "/reset");
 
                     var storageAccount = CloudStorageAccount.Parse(ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString]);
                     var blobClient = storageAccount.CreateCloudBlobClient();
@@ -207,13 +192,7 @@ namespace DecisionServicePrivateWeb.Controllers
             {
                 using (var wc = new WebClient())
                 {
-                    string uniqueStringInUrl = Regex.Match(Request.Url.ToString(), ".*mc-(.*).azurewebsites.*").Groups[1].Value;
-
-                    // TODO: cache me?!
-                    var extraSettingsBlob = (CloudBlockBlob)Session[HomeController.SKExtraSettingsBlob];
-                    ApplicationExtraMetadata extraApp = JsonConvert.DeserializeObject<ApplicationExtraMetadata>(extraSettingsBlob.DownloadText());
-
-                    var json = await wc.DownloadStringTaskAsync($"http://trainer-{uniqueStringInUrl}.cloudapp.net/status");
+                    var json = await wc.DownloadStringTaskAsync(ConfigurationManager.AppSettings[ApplicationMetadataStore.AKTrainerURL] + "/status");
                     return Content(json, "application/json");
                 }
             }
