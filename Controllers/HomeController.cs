@@ -432,7 +432,7 @@ namespace DecisionServicePrivateWeb.Controllers
                 AzureStorageConnectionString = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString],
                 AzureResourceGroupName = extraMetadata.AzureResourceGroupName,
                 ApplicationInsightsInstrumentationKey = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKAppInsightsKey],
-                OnlineTrainerAddress = $"http://trainer-{uniqueStringInUrl}.cloudapp.net",
+                OnlineTrainerAddress = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKTrainerURL],
                 WebApiAddress = $"https://{extraMetadata.AzureResourceGroupName}-webapi-{uniqueStringInUrl}.azurewebsites.net",
                 ASAEvalName = extraMetadata.AzureResourceGroupName + "-eval",
                 ASAJoinName = extraMetadata.AzureResourceGroupName + "-join",

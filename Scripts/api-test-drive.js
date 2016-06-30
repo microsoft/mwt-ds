@@ -176,7 +176,7 @@ $(document).keydown(function (e) {
     }
 });
 
-setInterval(function () {
+function trainerStatus() {
     $.ajax({
         method: "GET",
         url: "/API/trainerStatus"
@@ -195,4 +195,7 @@ setInterval(function () {
     .fail(function (jqXHR, textStatus, errorThrown) {
         $("#statusTrainer").text("Please wait as trainer has not started yet. Error: " + textStatus + "  " + errorThrown);
     });
-}, 10 * 1000);
+}
+
+trainerStatus();
+setInterval(trainerStatus, 10 * 1000);
