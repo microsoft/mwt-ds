@@ -316,6 +316,10 @@ namespace DecisionServicePrivateWeb.Controllers
                     return "AI Article";
                 case "Constant Policy 2":
                     return "Federal Reserve Article";
+                case "Deployed Policy":
+                    return "Offline Policy";
+                case "Latest Policy":
+                    return "Online Policy";
                 default:
                     return policyName;
             }
@@ -328,11 +332,15 @@ namespace DecisionServicePrivateWeb.Controllers
 
         private SimulationViewModel SimulationView()
         {
+            var clientSettingsBlob = (CloudBlockBlob)Session[SKClientSettingsBlob];
+            var clientApp = JsonConvert.DeserializeObject<ApplicationClientMetadata>(clientSettingsBlob.DownloadText());
+            
             return new SimulationViewModel
             {
                 WebServiceToken = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKWebServiceToken],
                 TrainerToken = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKAdminToken],
-                EvaluationView = new EvaluationViewModel { WindowFilters = new List<string>(GetEvalFilterWindowTypes()), SelectedFilter = "3h" }
+                EvaluationView = new EvaluationViewModel { WindowFilters = new List<string>(GetEvalFilterWindowTypes()), SelectedFilter = "3h" },
+                TrainerArguments = clientApp.TrainArguments
             };
         }
 
@@ -424,7 +432,7 @@ namespace DecisionServicePrivateWeb.Controllers
                 AzureStorageConnectionString = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString],
                 AzureResourceGroupName = extraMetadata.AzureResourceGroupName,
                 ApplicationInsightsInstrumentationKey = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKAppInsightsKey],
-                OnlineTrainerAddress = $"http://{extraMetadata.AzureResourceGroupName}-trainer-{uniqueStringInUrl}",
+                OnlineTrainerAddress = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKTrainerURL],
                 WebApiAddress = $"https://{extraMetadata.AzureResourceGroupName}-webapi-{uniqueStringInUrl}.azurewebsites.net",
                 ASAEvalName = extraMetadata.AzureResourceGroupName + "-eval",
                 ASAJoinName = extraMetadata.AzureResourceGroupName + "-join",

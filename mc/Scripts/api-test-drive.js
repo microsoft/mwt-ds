@@ -1,4 +1,11 @@
-﻿$.ajaxSetup({ cache: false });
+﻿if ($('#trainArguments').val().indexOf('--cb_explore 2') < 0) {
+    var reset = confirm("Invalid training arguments detected, the arguments must be using '--cb_explore 2', click Ok to visit the Settings management page");
+    if (reset == true) {
+        window.location = '/Home/Settings';
+    }
+}
+
+$.ajaxSetup({ cache: false });
 
 var locs = ["Seattle", "New York"];
 var genders = ["Male", "Female"];
@@ -164,27 +171,31 @@ $(document).keydown(function (e) {
             reportReward(1);
             break;
         case 48: // '0' // 40: // down
-            reportReward(-1);
+            reportReward(0);
             break;
     }
 });
 
-setInterval(function () {
+function trainerStatus() {
     $.ajax({
         method: "GET",
         url: "/API/trainerStatus"
     })
     .done(function (data) {
+        /*
         var str = "";
         for (var property in data) {
             if (data.hasOwnProperty(property)) {
                 str += property.replace("_", " ") + ": " + data[property] + " | ";
             }
         }
-
-        $("#statusTrainer").text("Trainer OK: " + str);
+        */
+        $("#statusTrainer").text("Trainer OK. Total learned examples: " + data['Stage2_Learn_Total']);
     })
     .fail(function (jqXHR, textStatus, errorThrown) {
         $("#statusTrainer").text("Please wait as trainer has not started yet. Error: " + textStatus + "  " + errorThrown);
     });
-}, 10 * 1000);
+}
+
+trainerStatus();
+setInterval(trainerStatus, 10 * 1000);
