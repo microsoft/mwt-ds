@@ -316,6 +316,10 @@ namespace DecisionServicePrivateWeb.Controllers
                     return "AI Article";
                 case "Constant Policy 2":
                     return "Federal Reserve Article";
+                case "Deployed Policy":
+                    return "Offline Policy";
+                case "Latest Policy":
+                    return "Online Policy";
                 default:
                     return policyName;
             }
@@ -328,12 +332,15 @@ namespace DecisionServicePrivateWeb.Controllers
 
         private SimulationViewModel SimulationView()
         {
+            var clientSettingsBlob = (CloudBlockBlob)Session[SKClientSettingsBlob];
+            var clientApp = JsonConvert.DeserializeObject<ApplicationClientMetadata>(clientSettingsBlob.DownloadText());
+            
             return new SimulationViewModel
             {
                 WebServiceToken = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKWebServiceToken],
                 TrainerToken = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKAdminToken],
                 EvaluationView = new EvaluationViewModel { WindowFilters = new List<string>(GetEvalFilterWindowTypes()), SelectedFilter = "3h" },
-                TrainerArguments = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKTrainArguments]
+                TrainerArguments = clientApp.TrainArguments
             };
         }
 
