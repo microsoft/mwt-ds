@@ -64,7 +64,7 @@ namespace Microsoft.Research.MultiWorldTesting.Contract
         public string ModelBlobUri { get; set; }
 
         /// <summary>
-        /// The instrumentation key of Application Insights used for diagnostics & event logging.
+        /// The instrumentation key of Application Insights used for diagnostics &amp; event logging.
         /// </summary>
         public string AppInsightsKey { get; set; }
 

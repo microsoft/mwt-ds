@@ -33,7 +33,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <DefineConstants>TRACE</DefineConstants>
-    <DocumentationFile>..\bin\AnyCPU\Release\Microsoft.Research.MultiWorldTesting.ExploreLibrary.XML</DocumentationFile>
+    <DocumentationFile>$(SolutionDir)bin\AnyCPU\Release\Microsoft.Research.MultiWorldTesting.ExploreLibrary.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="BaseExplorer.cs" />
@@ -61,11 +61,11 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="GitLink, Version=2.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\gitlink.2.3.0\lib\net45\GitLink.exe</HintPath>
+      <HintPath>$(SolutionDir)\packages\gitlink.2.3.0\lib\net45\GitLink.exe</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.8.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\Newtonsoft.Json.8.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />

@@ -56,56 +56,56 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Azure.KeyVault.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Azure.KeyVault.Core.1.0.0\lib\net40\Microsoft.Azure.KeyVault.Core.dll</HintPath>
+      <HintPath>$(SolutionDir)packages\Microsoft.Azure.KeyVault.Core.1.0.0\lib\net40\Microsoft.Azure.KeyVault.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Data.Edm, Version=5.7.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Data.Edm.5.7.0\lib\net40\Microsoft.Data.Edm.dll</HintPath>
+      <HintPath>$(SolutionDir)packages\Microsoft.Data.Edm.5.7.0\lib\net40\Microsoft.Data.Edm.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Data.OData, Version=5.7.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Data.OData.5.7.0\lib\net40\Microsoft.Data.OData.dll</HintPath>
+      <HintPath>$(SolutionDir)packages\Microsoft.Data.OData.5.7.0\lib\net40\Microsoft.Data.OData.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Data.Services.Client, Version=5.7.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Data.Services.Client.5.7.0\lib\net40\Microsoft.Data.Services.Client.dll</HintPath>
+      <HintPath>$(SolutionDir)packages\Microsoft.Data.Services.Client.5.7.0\lib\net40\Microsoft.Data.Services.Client.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Practices.EnterpriseLibrary.TransientFaultHandling, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\EnterpriseLibrary.TransientFaultHandling.6.0.1304.0\lib\portable-net45+win+wp8\Microsoft.Practices.EnterpriseLibrary.TransientFaultHandling.dll</HintPath>
+      <HintPath>$(SolutionDir)packages\EnterpriseLibrary.TransientFaultHandling.6.0.1304.0\lib\portable-net45+win+wp8\Microsoft.Practices.EnterpriseLibrary.TransientFaultHandling.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.ServiceBus, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\WindowsAzure.ServiceBus.3.2.4\lib\net45-full\Microsoft.ServiceBus.dll</HintPath>
+      <HintPath>$(SolutionDir)packages\WindowsAzure.ServiceBus.3.2.4\lib\net45-full\Microsoft.ServiceBus.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.WindowsAzure.Storage, Version=7.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\WindowsAzure.Storage.7.0.0\lib\net40\Microsoft.WindowsAzure.Storage.dll</HintPath>
+      <HintPath>$(SolutionDir)packages\WindowsAzure.Storage.7.0.0\lib\net40\Microsoft.WindowsAzure.Storage.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.8.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>$(SolutionDir)packages\Newtonsoft.Json.8.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Reactive.Core">
-      <HintPath>..\packages\Rx-Core.2.2.5\lib\net45\System.Reactive.Core.dll</HintPath>
+      <HintPath>$(SolutionDir)packages\Rx-Core.2.2.5\lib\net45\System.Reactive.Core.dll</HintPath>
     </Reference>
     <Reference Include="System.Reactive.Interfaces">
-      <HintPath>..\packages\Rx-Interfaces.2.2.5\lib\net45\System.Reactive.Interfaces.dll</HintPath>
+      <HintPath>$(SolutionDir)packages\Rx-Interfaces.2.2.5\lib\net45\System.Reactive.Interfaces.dll</HintPath>
     </Reference>
     <Reference Include="System.Reactive.Linq">
-      <HintPath>..\packages\Rx-Linq.2.2.5\lib\net45\System.Reactive.Linq.dll</HintPath>
+      <HintPath>$(SolutionDir)packages\Rx-Linq.2.2.5\lib\net45\System.Reactive.Linq.dll</HintPath>
     </Reference>
     <Reference Include="System.Reactive.PlatformServices">
-      <HintPath>..\packages\Rx-PlatformServices.2.2.5\lib\net45\System.Reactive.PlatformServices.dll</HintPath>
+      <HintPath>$(SolutionDir)packages\Rx-PlatformServices.2.2.5\lib\net45\System.Reactive.PlatformServices.dll</HintPath>
     </Reference>
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.Spatial, Version=5.7.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Spatial.5.7.0\lib\net40\System.Spatial.dll</HintPath>
+      <HintPath>$(SolutionDir)packages\System.Spatial.5.7.0\lib\net40\System.Spatial.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Xml.Linq" />
@@ -114,19 +114,19 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="VowpalWabbit, Version=8.2.0.2, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <HintPath>..\packages\VowpalWabbit.8.2.0.2\lib\net45\VowpalWabbit.dll</HintPath>
+      <HintPath>$(SolutionDir)packages\VowpalWabbit.8.2.0.2\lib\net45\VowpalWabbit.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="VowpalWabbit.Common, Version=8.2.0.2, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <HintPath>..\packages\VowpalWabbit.8.2.0.2\lib\net45\VowpalWabbit.Common.dll</HintPath>
+      <HintPath>$(SolutionDir)packages\VowpalWabbit.8.2.0.2\lib\net45\VowpalWabbit.Common.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="VowpalWabbit.Core, Version=8.2.0.2, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <HintPath>..\packages\VowpalWabbit.8.2.0.2\lib\net45\VowpalWabbit.Core.dll</HintPath>
+      <HintPath>$(SolutionDir)packages\VowpalWabbit.8.2.0.2\lib\net45\VowpalWabbit.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="VowpalWabbit.JSON, Version=8.2.0.2, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <HintPath>..\packages\VowpalWabbit.JSON.8.2.0.2\lib\net45\VowpalWabbit.JSON.dll</HintPath>
+      <HintPath>$(SolutionDir)packages\VowpalWabbit.JSON.8.2.0.2\lib\net45\VowpalWabbit.JSON.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
@@ -170,9 +170,9 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
-    <Error Condition="!Exists('..\packages\VowpalWabbit.8.2.0.2\build\VowpalWabbit.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\VowpalWabbit.8.2.0.2\build\VowpalWabbit.targets'))" />
+    <Error Condition="!Exists('$(SolutionDir)packages\VowpalWabbit.8.2.0.2\build\VowpalWabbit.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)packages\VowpalWabbit.8.2.0.2\build\VowpalWabbit.targets'))" />
   </Target>
-  <Import Project="..\packages\VowpalWabbit.8.2.0.2\build\VowpalWabbit.targets" Condition="Exists('..\packages\VowpalWabbit.8.2.0.2\build\VowpalWabbit.targets')" />
+  <Import Project="$(SolutionDir)packages\VowpalWabbit.8.2.0.2\build\VowpalWabbit.targets" Condition="Exists('$(SolutionDir)packages\VowpalWabbit.8.2.0.2\build\VowpalWabbit.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
