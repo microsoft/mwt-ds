@@ -136,7 +136,7 @@
     },
     {
       "apiVersion": "2015-01-01",
-      "name": "Service_Bus",
+      "name": "Service_Bus_Initial",
       "type": "Microsoft.Resources/deployments",
       "properties": {
         "mode": "incremental",
@@ -149,9 +149,9 @@
     },
     {
       "apiVersion": "2015-01-01",
-      "name": "Service_Bus_Update",
+      "name": "Service_Bus",
       "type": "Microsoft.Resources/deployments",
-      "dependsOn": [ "Microsoft.Resources/deployments/Service_Bus" ],
+      "dependsOn": [ "Microsoft.Resources/deployments/Service_Bus_Initial" ],
       "properties": {
         "mode": "incremental",
         "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/ServiceBusTemplate.json')]" },
