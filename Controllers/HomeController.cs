@@ -332,7 +332,8 @@ namespace DecisionServicePrivateWeb.Controllers
             {
                 WebServiceToken = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKWebServiceToken],
                 TrainerToken = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKAdminToken],
-                EvaluationView = new EvaluationViewModel { WindowFilters = new List<string>(GetEvalFilterWindowTypes()), SelectedFilter = "3h" }
+                EvaluationView = new EvaluationViewModel { WindowFilters = new List<string>(GetEvalFilterWindowTypes()), SelectedFilter = "3h" },
+                TrainerArguments = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKTrainArguments]
             };
         }
 

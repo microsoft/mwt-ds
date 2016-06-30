@@ -127,6 +127,7 @@ namespace DecisionServicePrivateWeb.Controllers
         [HttpPost]
         public ActionResult Reward(string eventId)
         {
+            var telemetry = new TelemetryClient();
             try
             {
                 APIUtil.Authenticate(this.Request);
@@ -138,6 +139,8 @@ namespace DecisionServicePrivateWeb.Controllers
 
                 client.ReportOutcome(rewardObj, eventId);
 
+                telemetry.TrackTrace($"HTTP Endpoint received reward report of: {rewardStr}");
+
                 return new HttpStatusCodeResult(HttpStatusCode.OK);
             }
             catch (UnauthorizedAccessException ex)
@@ -146,7 +149,7 @@ namespace DecisionServicePrivateWeb.Controllers
             }
             catch (Exception ex)
             {
-                new TelemetryClient().TrackException(ex);
+                telemetry.TrackException(ex);
                 return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, ex.ToString());
             }
         }

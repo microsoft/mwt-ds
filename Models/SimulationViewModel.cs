@@ -12,5 +12,7 @@ namespace DecisionServicePrivateWeb.Models
         public string TrainerToken { get; set; }
 
         public EvaluationViewModel EvaluationView { get; set; }
+
+        public string TrainerArguments { get; set; }
     }
 }
