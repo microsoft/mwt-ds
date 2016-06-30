@@ -1,4 +1,11 @@
-﻿$.ajaxSetup({ cache: false });
+﻿if ($('#trainArguments').val().indexOf('--cb_explore 2') < 0) {
+    var reset = confirm("Invalid training arguments detected, the arguments must be using '--cb_explore 2', click Ok to visit the Settings management page");
+    if (reset == true) {
+        window.location = '/Home/Settings';
+    }
+}
+
+$.ajaxSetup({ cache: false });
 
 var locs = ["Seattle", "New York"];
 var genders = ["Male", "Female"];
