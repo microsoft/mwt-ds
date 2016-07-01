@@ -1,0 +1,56 @@
+﻿{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "postfix": {
+      "type": "string",
+      // maximum name length is 63 - len('mc-') = 60
+      "maxLength": 60
+    }
+  },
+  "variables": {
+    "hostingPlanName": "ManagementPlan",
+    "siteName": "[concat('mc-', parameters('postfix'))]"
+  },
+  "resources": [
+    {
+      "apiVersion": "2015-08-01",
+      "name": "[variables('siteName')]",
+      "type": "Microsoft.Web/sites",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "serverFarmId": "[variables('hostingPlanName')]"
+      },
+      "resources": [
+        {
+          "apiVersion": "2016-03-01",
+          "name": "appsettings",
+          "type": "config",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', variables('siteName'))]"
+          ]
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "name": "web",
+          "type": "sourcecontrols",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', variables('siteName'))]",
+            "[resourceId('Microsoft.Web/Sites/config', variables('siteName'), 'appsettings')]"
+          ],
+          "properties": {
+            "RepoUrl": "https://github.com/Microsoft/mwt-ds.git",
+            "branch": "master",
+            "IsManualIntegration": true
+          }
+        }
+      ]
+    }
+  ],
+  "outputs": {
+    "url": {
+      "type": "string",
+      "value": "[concat('https://', variables('siteName'), '.azurewebsites.net')]"
+    }
+  }
+}
