@@ -188,25 +188,31 @@ namespace DecisionServicePrivateWeb.Controllers
             }
         }
 
+        private class TimeoutWebClient : WebClient
+        {
+            protected override WebRequest GetWebRequest(Uri uri)
+            {
+                WebRequest w = base.GetWebRequest(uri);
+                w.Timeout = (int)TimeSpan.FromSeconds(2).TotalMilliseconds;
+                return w;
+            }
+        }
+
         [HttpGet]
         public async Task<ActionResult> TrainerStatus()
         {
             try
             {
-                using (var wc = new WebClient())
+                using (var wc = new TimeoutWebClient())
                 {
                     var json = await wc.DownloadStringTaskAsync(ConfigurationManager.AppSettings[ApplicationMetadataStore.AKTrainerURL] + "/status");
                     return Content(json, "application/json");
                 }
             }
-            catch (UnauthorizedAccessException ex)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.Unauthorized, ex.Message);
-            }
             catch (Exception ex)
             {
                 new TelemetryClient().TrackException(ex);
-                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, ex.ToString());
+                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, ex.Message);
             }
         }
 
