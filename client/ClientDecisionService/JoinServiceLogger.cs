@@ -58,7 +58,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             if (task.IsFaulted)
                 this.telemetryClient.TrackException(task.Exception, new Dictionary<string, string> { { "Event Uploader", name } });
             else
-                this.telemetryClient.TrackTrace($"Event Uploader completed with status '{task.Status}'");
+                this.telemetryClient.TrackTrace($"Event Uploader '{name}' completed with status '{task.Status}'");
         }
 
         private void EventUploader_ErrorHandler(object source, Exception e)
