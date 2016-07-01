@@ -209,6 +209,14 @@ namespace DecisionServicePrivateWeb.Controllers
                     return Content(json, "application/json");
                 }
             }
+            catch (WebException ex)
+            {
+                if (ex.Message.Contains("Unable to connect to the remote server"))
+                    return Content("{\"TrainerStatus\":\"NotStarted\"}", "application/json");
+
+                new TelemetryClient().TrackException(ex);
+                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, ex.Message);
+            }
             catch (Exception ex)
             {
                 new TelemetryClient().TrackException(ex);

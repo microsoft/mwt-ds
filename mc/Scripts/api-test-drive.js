@@ -179,7 +179,8 @@ $(document).keydown(function (e) {
 function trainerStatus() {
     $.ajax({
         method: "GET",
-        url: "/API/trainerStatus"
+        url: "/API/trainerStatus",
+        timeout: 2000 // 2 second
     })
     .done(function (data) {
         /*
@@ -190,7 +191,13 @@ function trainerStatus() {
             }
         }
         */
-        $("#statusTrainer").text("Trainer OK. Total learned examples: " + data['Stage2_Learn_Total']);
+        var msg;
+        if (data['TrainerStatus'] == 'NotStarted')
+            msg = "Please wait as trainer has not started yet";
+        else
+            msg = "Trainer OK. Total learned examples: " + data['Stage2_Learn_Total'];
+
+        $("#statusTrainer").text(msg + " - " + new Date());
     })
     .fail(function (jqXHR, textStatus, errorThrown) {
         $("#statusTrainer").text("Please wait as trainer has not started yet. Error: " + textStatus + "  " + errorThrown);
