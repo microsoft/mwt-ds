@@ -1,12 +1,15 @@
 ﻿using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Microsoft.Research.MultiWorldTesting.JoinUploader
 {
     public delegate void EventUploaderSuccessEventHandler(object source, int eventCount, int sumSize, int inputQueueSize);
 
     public delegate void EventUploaderErrorEventHandler(object source, Exception e);
+
+    public delegate void EventUploaderCompletedEventHandler(object source, Task task);
 
     /// <summary>
     /// Represents a collection of batching criteria.  

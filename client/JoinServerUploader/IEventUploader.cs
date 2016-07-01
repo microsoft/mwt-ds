@@ -57,5 +57,7 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// Invoked after the batch was successfully uploaded.
         /// </summary>
         event EventUploaderSuccessEventHandler SuccessHandler;
+
+        event EventUploaderCompletedEventHandler CompletionHandler;
     }
 }

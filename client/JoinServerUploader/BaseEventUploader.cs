@@ -66,6 +66,9 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
                 }
             );
 
+            // log when the processor stops
+            this.eventProcessor.Completion.ContinueWith(t => CompletionHandler(this, t));
+
             this.eventUnsubscriber = this.eventSource.AsObservable()
                 .Window(this.batchConfig.MaxDuration)
                 .Select(w => w.Buffer(this.batchConfig.MaxEventCount, this.batchConfig.MaxBufferSizeInBytes, this.MeasureTransformedEventInternal))
@@ -84,6 +87,8 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// Invoked after the batch was successfully uploaded.
         /// </summary>
         public event EventUploaderSuccessEventHandler SuccessHandler;
+
+        public event EventUploaderCompletedEventHandler CompletionHandler;
 
         internal void FireErrorHandler(Exception e)
         {

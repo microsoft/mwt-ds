@@ -2,22 +2,28 @@
 using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
 using Newtonsoft.Json;
 using System;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
     internal class JoinServiceLogger<TContext, TAction> : IRecorder<TContext, TAction>, ILogger, IDisposable
     {
-        private readonly PerformanceCounters perfCounters;
         private readonly string applicationID;
         private readonly bool developmentMode;
         private IEventUploader interactionEventUploader;
         private IEventUploader observationEventUploader;
+        private TelemetryClient telemetryClient;
 
         internal JoinServiceLogger(string applicationID, bool developmentMode = false)
         {
             this.applicationID = applicationID;
             this.developmentMode = developmentMode;
-            this.perfCounters = new PerformanceCounters(applicationID);
+
+            this.telemetryClient = new TelemetryClient();
+            this.telemetryClient.Context.User.Id = applicationID;
         }
 
         public void InitializeWithCustomAzureJoinServer(
@@ -37,21 +43,34 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             BatchingConfiguration observationsBatchConfig)
         {
             this.interactionEventUploader = new EventUploaderASA(interactionEventHubConnectionString, interactionBatchConfig, developmentMode: this.developmentMode);
-            this.interactionEventUploader.SuccessHandler += interactionBatchConfig_SuccessHandler;
+            this.interactionEventUploader.SuccessHandler += (source, eventCount, sumSize, inputQueueSize) => this.EventUploader_SuccessHandler(source, eventCount, sumSize, inputQueueSize, "Interaction");
+            this.interactionEventUploader.ErrorHandler += EventUploader_ErrorHandler;
+            this.interactionEventUploader.CompletionHandler += (source, task) => this.EventUploader_CompletionHandler(source, task, "Interaction");
+
             this.observationEventUploader = new EventUploaderASA(observationEventHubConnectionString, observationsBatchConfig, developmentMode: this.developmentMode);
-            this.observationEventUploader.SuccessHandler += observationBatchConfig_SuccessHandler;
+            this.interactionEventUploader.SuccessHandler += (source, eventCount, sumSize, inputQueueSize) => this.EventUploader_SuccessHandler(source, eventCount, sumSize, inputQueueSize, "Observation");
+            this.observationEventUploader.CompletionHandler += (source, task) => this.EventUploader_CompletionHandler(source, task, "Observation");
+            this.observationEventUploader.ErrorHandler += EventUploader_ErrorHandler;
         }
 
-        void interactionBatchConfig_SuccessHandler(object source, int eventCount, int sumSize, int inputQueueSize)
+        private void EventUploader_CompletionHandler(object source, Task task, string name)
         {
-            this.perfCounters.ReportInteraction(eventCount, sumSize);
-            this.perfCounters.ReportInteractionExampleQueue(inputQueueSize);
+            if (task.IsFaulted)
+                this.telemetryClient.TrackException(task.Exception, new Dictionary<string, string> { { "Event Uploader", name } });
+            else
+                this.telemetryClient.TrackTrace($"Event Uploader completed with status '{task.Status}'");
         }
 
-        void observationBatchConfig_SuccessHandler(object source, int eventCount, int sumSize, int inputQueueSize)
+        private void EventUploader_ErrorHandler(object source, Exception e)
         {
-            this.perfCounters.ReportObservation(eventCount, sumSize);
-            this.perfCounters.ReportObservationExampleQueue(inputQueueSize);
+            this.telemetryClient.TrackException(e);
+        }
+
+        void EventUploader_SuccessHandler(object source, int eventCount, int sumSize, int inputQueueSize, string name)
+        {
+            this.telemetryClient.TrackMetric($"Client Library {name} Event Count", eventCount);
+            this.telemetryClient.TrackMetric($"Client Library {name} Event Batch Size", sumSize);
+            this.telemetryClient.TrackMetric($"Client Library {name} Queue", inputQueueSize);
         }
 
         public void Record(TContext context, TAction value, object explorerState, object mapperState, string uniqueKey)
