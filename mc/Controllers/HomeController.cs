@@ -266,6 +266,10 @@ namespace DecisionServicePrivateWeb.Controllers
                 var regex = new Regex(policyRegex);
 
                 var evalContainer = (CloudBlobContainer)Session[SKEvalContainer];
+                if (!evalContainer.Exists())
+                {
+                    return Json(new { DataError = "No evaluation data detected", TrainerStatus = trainerStatus }, JsonRequestBehavior.AllowGet);
+                }
                 var evalBlobs = evalContainer.ListBlobs(useFlatBlobListing: true);
                 var evalData = new Dictionary<string, EvalD3>();
                 foreach (var evalBlob in evalBlobs)
