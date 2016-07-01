@@ -51,8 +51,10 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
                 new ExecutionDataflowBlockOptions
                 {
                     MaxDegreeOfParallelism = this.batchConfig.MaxDegreeOfSerializationParallelism,
-                    BoundedCapacity = this.batchConfig.MaxUploadQueueCapacity
+                    BoundedCapacity = this.batchConfig.MaxUploadQueueCapacity,
                 });
+            // log when the processor stops
+            this.eventSource.Completion.ContinueWith(t => CompletionHandler(this, "EventSource", t));
 
             this.eventObserver = this.eventSource.AsObserver();
 
@@ -67,7 +69,7 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
             );
 
             // log when the processor stops
-            this.eventProcessor.Completion.ContinueWith(t => CompletionHandler(this, t));
+            this.eventProcessor.Completion.ContinueWith(t => CompletionHandler(this, "EventProcessor", t));
 
             this.eventUnsubscriber = this.eventSource.AsObservable()
                 .Window(this.batchConfig.MaxDuration)

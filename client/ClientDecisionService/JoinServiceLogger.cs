@@ -1,9 +1,7 @@
 ﻿using Microsoft.Research.MultiWorldTesting.JoinUploader;
 using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
-using Newtonsoft.Json;
 using System;
 using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.DataContracts;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
@@ -45,20 +43,26 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             this.interactionEventUploader = new EventUploaderASA(interactionEventHubConnectionString, interactionBatchConfig, developmentMode: this.developmentMode);
             this.interactionEventUploader.SuccessHandler += (source, eventCount, sumSize, inputQueueSize) => this.EventUploader_SuccessHandler(source, eventCount, sumSize, inputQueueSize, "Interaction");
             this.interactionEventUploader.ErrorHandler += EventUploader_ErrorHandler;
-            this.interactionEventUploader.CompletionHandler += (source, task) => this.EventUploader_CompletionHandler(source, task, "Interaction");
+            this.interactionEventUploader.CompletionHandler += (source, blockName, task) => this.EventUploader_CompletionHandler(source, blockName, task, "Interaction");
 
             this.observationEventUploader = new EventUploaderASA(observationEventHubConnectionString, observationsBatchConfig, developmentMode: this.developmentMode);
             this.interactionEventUploader.SuccessHandler += (source, eventCount, sumSize, inputQueueSize) => this.EventUploader_SuccessHandler(source, eventCount, sumSize, inputQueueSize, "Observation");
-            this.observationEventUploader.CompletionHandler += (source, task) => this.EventUploader_CompletionHandler(source, task, "Observation");
+            this.observationEventUploader.CompletionHandler += (source, blockName, task) => this.EventUploader_CompletionHandler(source, blockName, task, "Observation");
             this.observationEventUploader.ErrorHandler += EventUploader_ErrorHandler;
         }
 
-        private void EventUploader_CompletionHandler(object source, Task task, string name)
+        private void EventUploader_CompletionHandler(object source, string blockName, Task task, string name)
         {
             if (task.IsFaulted)
-                this.telemetryClient.TrackException(task.Exception, new Dictionary<string, string> { { "Event Uploader", name } });
+                this.telemetryClient.TrackException(
+                    task.Exception, 
+                    new Dictionary<string, string>
+                    {
+                        { "Event Uploader", name },
+                        { "Block", blockName }
+                    });
             else
-                this.telemetryClient.TrackTrace($"Event Uploader '{name}' completed with status '{task.Status}'");
+                this.telemetryClient.TrackTrace($"Event Uploader '{name}/{blockName}' completed with status '{task.Status}'");
         }
 
         private void EventUploader_ErrorHandler(object source, Exception e)

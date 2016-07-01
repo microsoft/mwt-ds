@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 
 namespace Microsoft.Research.MultiWorldTesting.JoinUploader
 {
@@ -9,7 +10,7 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
 
     public delegate void EventUploaderErrorEventHandler(object source, Exception e);
 
-    public delegate void EventUploaderCompletedEventHandler(object source, Task task);
+    public delegate void EventUploaderCompletedEventHandler(object source, string blockName, Task task);
 
     /// <summary>
     /// Represents a collection of batching criteria.  
