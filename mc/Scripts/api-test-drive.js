@@ -92,7 +92,7 @@ function chooseAction() {
         $("#article").attr("src", actions[data.Action - 1].image);
         $("#article").attr("style", actions[data.Action - 1].imgStyle);
         $("#articleText").text(actions[data.Action - 1].text);
-        $("#statusModel").text('Latest model: ' + new Date(parseInt(modelTime.substr(6))));
+        $("#statusModel").text('Latest model obtained at: ' + moment(new Date(parseInt(modelTime.substr(6)))).format('MMMM Do YYYY, h:mm:ss a'));
     })
     .fail(function (jqXHR, textStatus, errorThrown) {
         $("#status").text("Error: " + textStatus + "  " + errorThrown);
@@ -175,34 +175,3 @@ $(document).keydown(function (e) {
             break;
     }
 });
-
-function trainerStatus() {
-    $.ajax({
-        method: "GET",
-        url: "/API/trainerStatus",
-        timeout: 2000 // 2 second
-    })
-    .done(function (data) {
-        /*
-        var str = "";
-        for (var property in data) {
-            if (data.hasOwnProperty(property)) {
-                str += property.replace("_", " ") + ": " + data[property] + " | ";
-            }
-        }
-        */
-        var msg;
-        if (data['TrainerStatus'] == 'NotStarted')
-            msg = "Please wait as trainer has not started yet";
-        else
-            msg = "Trainer OK. Total learned examples: " + data['Stage2_Learn_Total'];
-
-        $("#statusTrainer").text(msg + " - " + new Date());
-    })
-    .fail(function (jqXHR, textStatus, errorThrown) {
-        $("#statusTrainer").text("Please wait as trainer has not started yet. Error: " + textStatus + "  " + errorThrown);
-    });
-}
-
-trainerStatus();
-setInterval(trainerStatus, 10 * 1000);

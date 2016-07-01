@@ -6,6 +6,7 @@ using Microsoft.Research.MultiWorldTesting.Contract;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -230,10 +231,34 @@ namespace DecisionServicePrivateWeb.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.Unauthorized, "A valid token must be specified.");
             }
 
-            return GetEvalData(windowType, maxNumPolicies);
+            string trainerStatus = string.Empty;
+            try
+            {
+                using (var wc = new TimeoutWebClient())
+                {
+                    var trainerStatusJson = wc.DownloadString(ConfigurationManager.AppSettings[ApplicationMetadataStore.AKTrainerURL] + "/status");
+                    JToken jtoken = JObject.Parse(trainerStatusJson);
+                    int numLearnedExamples = (int)jtoken.SelectToken("Stage2_Learn_Total");
+                    trainerStatus = $"Trainer OK. Total learned examples: {numLearnedExamples}";
+                }
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message.Contains("Unable to connect to the remote server"))
+                {
+                    trainerStatus = "Please wait as trainer has not started yet";
+                }
+                else
+                {
+                    new TelemetryClient().TrackException(ex);
+                    trainerStatus = "Error getting trainer status, check Application Insights for more details.";
+                }
+            }
+
+            return GetEvalData(windowType, maxNumPolicies, trainerStatus);
         }
 
-        private ActionResult GetEvalData(string windowType, int maxNumPolicies)
+        private ActionResult GetEvalData(string windowType, int maxNumPolicies, string trainerStatus = null)
         {
             try
             {
@@ -280,13 +305,16 @@ namespace DecisionServicePrivateWeb.Controllers
                         }
                     }
                 }
-                
 
-                return Json(evalData.Values.Select(a => new { key = GetDemoPolicyName(a.key), values = a.values.Select(v => new object[] { v.Key, v.Value }) }), JsonRequestBehavior.AllowGet);
+                var evalDataD3 = evalData.Values.Select(a => new { key = GetDemoPolicyName(a.key), values = a.values.Select(v => new object[] { v.Key, v.Value }) });
+
+                return Json(new { Data = evalDataD3, TrainerStatus = trainerStatus }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, $"Unable to load evaluation result: {ex.ToString()}");
+                new TelemetryClient().TrackException(ex);
+
+                return Json(new { DataError = "Unable to load evaluation result", TrainerStatus = trainerStatus }, JsonRequestBehavior.AllowGet);
             }
         }
 

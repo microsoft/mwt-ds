@@ -27,15 +27,21 @@
                 chart.yAxis.axisLabel("Average Reward");
 
                 if (response == null) {
-                    response = [];
+                    response = { Data: [] };
+                }
+                else {
+                    if (response.DataError) {
+                        $('#eval-chart-status').text(response.DataError);
+                    }
+                    $("#statusTrainer").text(response.TrainerStatus + " (Last updated at: " + moment().format('MMMM Do YYYY, h:mm:ss a') + ")");
                 }
                 d3.select('#' + chartId + ' svg')
-                    .datum(response)
+                    .datum(response.Data)
                     .call(chart);
 
                 nv.utils.windowResize(chart.update);
 
-                $('#eval-chart-status').text('Graph Updated At: ' + new Date($.now()));
+                $('#eval-chart-status').text('Graph updated at: ' + moment().format('MMMM Do YYYY, h:mm:ss a'));
 
                 return chart;
             });
