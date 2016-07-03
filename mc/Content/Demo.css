@@ -45,6 +45,10 @@ code {
     opacity: 0.1;
 }
 
+a.thumb {
+    cursor: pointer;
+}
+
 a.thumb:visited {
     color:#428bca;
 }
