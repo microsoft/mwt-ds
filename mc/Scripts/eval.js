@@ -26,7 +26,7 @@
                 chart.xAxis.axisLabel("Time");
                 chart.yAxis.axisLabel("Average Reward");
 
-                if (response == null) {
+                if (response == null || response.Data == null) {
                     response = { Data: [] };
                 }
                 else {
