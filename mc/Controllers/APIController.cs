@@ -6,6 +6,7 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Configuration;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -157,6 +158,8 @@ namespace DecisionServicePrivateWeb.Controllers
         [HttpPost]
         public async Task<ActionResult> Reset()
         {
+            var telemetry = new TelemetryClient();
+
             try
             {
                 var token = APIUtil.Authenticate(this.Request, ConfigurationManager.AppSettings[ApplicationMetadataStore.AKAdminToken]);
@@ -181,9 +184,20 @@ namespace DecisionServicePrivateWeb.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.Unauthorized, ex.Message);
             }
+            catch (WebException ex)
+            {
+                telemetry.TrackException(ex);
+                string response;
+                using (var stream = new StreamReader(ex.Response.GetResponseStream()))
+                {
+                    response = await stream.ReadToEndAsync();
+                }
+
+                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, ex.ToString() + " " + response);
+            }
             catch (Exception ex)
             {
-                new TelemetryClient().TrackException(ex);
+                telemetry.TrackException(ex);
                 return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, ex.ToString());
             }
         }

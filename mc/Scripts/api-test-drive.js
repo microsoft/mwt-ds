@@ -128,7 +128,7 @@
         });
     }
 
-    function resetModel() {
+    $('#resetModelBtn').click(function () {
         $.ajax({
             method: "POST",
             url: "/API/reset",
@@ -142,7 +142,7 @@
         .fail(function (jqXHR, textStatus, errorThrown) {
             $("#statusModel").text("Error: " + textStatus + "  " + errorThrown);
         });
-    }
+    });
 
     $('#thumbUp').click(function () {
         reportReward(1);
