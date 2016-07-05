@@ -59,7 +59,7 @@
         "Microsoft.Resources/deployments/SAS_Uri_Generator"
       ],
       "properties": {
-        "mode": "incremental",
+        "mode": "Complete",
         "templateLink": {
           "uri": "[concat(variables('assetLocation'), 'templates/OnlineTrainerTemplate.json')]",
           "contentVersion": "1.0.0.0"
