@@ -89,11 +89,15 @@
         })
         .done(function (data) {
             eventId = data.EventId;
-            modelTime = data.ModelTime;
+            modelTime = new Date(parseInt(data.ModelTime.substr(6)));
+            modelTimeMessage = 'Latest model obtained at: ' + moment(modelTime).format('MMMM Do YYYY, h:mm:ss a');
+            if (modelTime.getFullYear() == 1) {
+                modelTimeMessage = 'No model found.'
+            }
             $("#article").attr("src", actions[data.Action - 1].image);
             $("#article").attr("style", actions[data.Action - 1].imgStyle);
             $("#articleText").text(actions[data.Action - 1].text);
-            $("#statusModel").text('Latest model obtained at: ' + moment(new Date(parseInt(modelTime.substr(6)))).format('MMMM Do YYYY, h:mm:ss a'));
+            $("#statusModel").text(modelTimeMessage);
         })
         .fail(function (jqXHR, textStatus, errorThrown) {
             $("#status").text("Error: " + textStatus + "  " + errorThrown);
