@@ -1,12 +1,24 @@
 ﻿$(function () {
+    $.ajaxSetup({ cache: false });
+
     if ($('#trainArguments').val().indexOf('--cb_explore 2') < 0) {
-        var reset = confirm("Invalid training arguments detected, the arguments must be using '--cb_explore 2', click Ok to visit the Settings management page");
+        var reset = confirm("Invalid training arguments detected: the arguments must be using '--cb_explore 2'. Click Ok to change and reset model.");
         if (reset == true) {
-            window.location = '/Home/Settings';
+            $.ajax({
+                method: "GET",
+                url: "/Automation/UpdateSettings?trainArguments=--cb_explore 2 --epsilon 0.2 --cb_type dr",
+                headers: {
+                    "auth": $("#password").val()
+                },
+            })
+            .done(function (data) {
+                alert('Successfully reset training arguments.');
+            })
+            .always(function () {
+                window.location = '/Home/Settings';
+            });
         }
     }
-
-    $.ajaxSetup({ cache: false });
 
     var locs = ["Seattle", "New York"];
     var genders = ["Male", "Female"];

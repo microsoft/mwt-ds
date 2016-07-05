@@ -57,7 +57,7 @@ namespace Microsoft.Research.DecisionServiceTest
         {
             using (var wc = new WebClient())
             {
-                wc.Headers.Add($"Authorization: {managementPassword}");
+                wc.Headers.Add($"auth: {managementPassword}");
                 var query = new List<string>();
                 if (trainArguments != null)
                     query.Add("trainArguments=" + HttpUtility.UrlEncode(trainArguments));

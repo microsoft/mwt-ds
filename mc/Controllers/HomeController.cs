@@ -368,9 +368,10 @@ namespace DecisionServicePrivateWeb.Controllers
         {
             var clientSettingsBlob = (CloudBlockBlob)Session[SKClientSettingsBlob];
             var clientApp = JsonConvert.DeserializeObject<ApplicationClientMetadata>(clientSettingsBlob.DownloadText());
-            
+
             return new SimulationViewModel
             {
+                Password = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKPassword],
                 WebServiceToken = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKWebServiceToken],
                 TrainerToken = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKAdminToken],
                 EvaluationView = new EvaluationViewModel { WindowFilters = new List<string>(GetEvalFilterWindowTypes()), SelectedFilter = DefaultEvalWindow },

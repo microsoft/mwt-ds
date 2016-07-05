@@ -7,6 +7,8 @@ namespace DecisionServicePrivateWeb.Models
 {
     public class SimulationViewModel
     {
+        public string Password { get; set; }
+
         public string WebServiceToken { get; set; }
 
         public string TrainerToken { get; set; }
