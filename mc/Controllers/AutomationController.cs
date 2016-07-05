@@ -20,7 +20,7 @@ namespace DecisionServicePrivateWeb.Controllers
         [HttpGet]
         public async Task UpdateSettings(string trainArguments = null, float? initialExplorationEpsilon = null, bool? isExplorationEnabled = null)
         {
-            var token = Request.Headers["Authorization"];
+            var token = Request.Headers["auth"];
             if (token != ConfigurationManager.AppSettings[ApplicationMetadataStore.AKPassword])
                 throw new UnauthorizedAccessException();
 
@@ -61,7 +61,7 @@ namespace DecisionServicePrivateWeb.Controllers
         [HttpGet]
         public string AppSettings()
         {
-            var token = Request.Headers["Authorization"];
+            var token = Request.Headers["auth"];
             if (token != ConfigurationManager.AppSettings[ApplicationMetadataStore.AKPassword])
                 throw new UnauthorizedAccessException();
 
