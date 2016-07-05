@@ -272,6 +272,9 @@
     <None Include="..\templates\WebEmptyTemplate.json">
       <Link>templates\WebEmptyTemplate.json</Link>
     </None>
+    <None Include="..\templates\WebManageUpgradeTemplate.json">
+      <Link>templates\WebManageUpgradeTemplate.json</Link>
+    </None>
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
