@@ -28,6 +28,7 @@ namespace ClientDecisionServiceTest
 
     // TODO: move to ds-provisioning
     [TestClass]
+    [Ignore]
     public class WebApiTest
     {
         static string ADFUrl = "http://dmdp1-webapi-jvj7wdftvsdwe.azurewebsites.net";
@@ -75,6 +76,7 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
+        [Ignore]
         public void ADFPostTest()
         {
             wc.Headers.Clear();
@@ -101,6 +103,7 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
+        [Ignore]
         public void nonADFPostTest()
         {
             wc.Headers.Clear();
@@ -127,6 +130,7 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
+        [Ignore]
         public void ThroughputTest()
         {
             wc.Headers.Clear();
