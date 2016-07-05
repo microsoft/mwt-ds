@@ -31,6 +31,8 @@ namespace DecisionServicePrivateWeb.Controllers
         const string SKClientSettings = "ClientSettings";
         const string SKExtraSettings = "ExtraSettings";
 
+        const string DefaultEvalWindow = "6d";
+
         [HttpGet]
         public ActionResult Index()
         {
@@ -205,13 +207,13 @@ namespace DecisionServicePrivateWeb.Controllers
                 return RedirectToAction("Index");
             }
 
-            return View(new EvaluationViewModel { WindowFilters = new List<string>(GetEvalFilterWindowTypes()), SelectedFilter = "3h" });
+            return View(new EvaluationViewModel { WindowFilters = new List<string>(GetEvalFilterWindowTypes()), SelectedFilter = DefaultEvalWindow });
         }
 
         [HttpGet]
         [AllowAnonymous]
         [NoCache]
-        public ActionResult EvalJson(string windowType = "3h", int maxNumPolicies = 5)
+        public ActionResult EvalJson(string windowType = DefaultEvalWindow, int maxNumPolicies = 5)
         {
             if (!IsAuthenticated(Session))
             {
@@ -224,7 +226,7 @@ namespace DecisionServicePrivateWeb.Controllers
         [HttpGet]
         [AllowAnonymous]
         [NoCache]
-        public ActionResult EvalJsonAPI(string userToken, string windowType = "3h", int maxNumPolicies = 5)
+        public ActionResult EvalJsonAPI(string userToken, string windowType = DefaultEvalWindow, int maxNumPolicies = 5)
         {
             if (userToken != ConfigurationManager.AppSettings[ApplicationMetadataStore.AKWebServiceToken])
             {
@@ -359,7 +361,7 @@ namespace DecisionServicePrivateWeb.Controllers
 
         private static string[] GetEvalFilterWindowTypes()
         {
-            return new string[] { "1m", "5m", "20m", "1h", "3h" };
+            return new string[] { "1m", "1h", "1d", "6d" };
         }
 
         private SimulationViewModel SimulationView()
@@ -371,7 +373,7 @@ namespace DecisionServicePrivateWeb.Controllers
             {
                 WebServiceToken = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKWebServiceToken],
                 TrainerToken = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKAdminToken],
-                EvaluationView = new EvaluationViewModel { WindowFilters = new List<string>(GetEvalFilterWindowTypes()), SelectedFilter = "3h" },
+                EvaluationView = new EvaluationViewModel { WindowFilters = new List<string>(GetEvalFilterWindowTypes()), SelectedFilter = DefaultEvalWindow },
                 TrainerArguments = clientApp.TrainArguments
             };
         }
