@@ -41,29 +41,14 @@
     },
     {
       "apiVersion": "2015-01-01",
-      "name": "Management_Center",
+      "name": "SAS_Uri_Generator",
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [
         "Microsoft.Resources/deployments/Unique_Postfix_Generator"
       ],
       "properties": {
         "mode": "incremental",
-        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/WebManageUpgradeTemplate.json')]" },
-        "parameters": {
-          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
-        }
-      }
-    },
-    {
-      "apiVersion": "2015-01-01",
-      "name": "SAS_Uri_Generator",
-      "type": "Microsoft.Resources/deployments",
-      "dependsOn": [
-        "Microsoft.Resources/deployments/Management_Center"
-      ],
-      "properties": {
-        "mode": "incremental",
-        "templateLink": { "uri": "[concat(reference('Microsoft.Resources/deployments/Management_Center').outputs.url.value, '/Deployment/GenerateSASToken?parameters=key=', reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, ';trainer_size=', parameters('online Trainer VM Size'))]" }
+        "templateLink": { "uri": "[concat('htts://mc-', variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value, '.azurewebsites.net/Deployment/GenerateSASToken?parameters=key=', reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, ';trainer_size=', parameters('online Trainer VM Size'))]" }
       }
     },
     {
@@ -81,7 +66,7 @@
         },
         "parameters": {
           "onlineTrainerCspkgToken": { "value": "[reference('Microsoft.Resources/deployments/SAS_Uri_Generator').outputs.SASTokenOnlineTrainerCspkg.value]" },
-          "configLink": { "value": "[concat(reference('Microsoft.Resources/deployments/Management_Center').outputs.url.value, '/Deployment/GenerateTrainerConfig?key=', reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value)]" },
+          "configLink": { "value": "[concat('htts://mc-', variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value, '.azurewebsites.net/Deployment/GenerateTrainerConfig?key=', reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value)]" },
           "name": { "value": "[concat('trainer-', concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value))]" }
         }
       }
