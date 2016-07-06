@@ -106,7 +106,7 @@
     <div class="col-md-6">
         <div class="row">
             <div class="input-group" style="margin: 0 auto; width:300px">
-                <div class="input-group-addon" style="color:black">Show results for the past: </div>
+                <div class="input-group-addon" style="color:black">Window Size: </div>
 
                 <div class="col-sm-10" style="padding-left:0px">
                     @Html.DropDownList("eval-window-filter",
@@ -117,6 +117,12 @@
                             Selected = (m == Model.EvaluationView.SelectedFilter)
                         }),
                         new { @id = "eval-window-filter", @class = "form-control", @style = "display:inline" })
+                </div>
+            </div>
+            <div class="input-group" style="margin: 0 auto;">
+                <div>Each data point reflects evaluation result averaged over a 
+                    <a href="https://msdn.microsoft.com/en-us/library/azure/dn835041.aspx" target="_blank">hopping window</a> of size
+                    <label id="window-size">6d</label>.
                 </div>
             </div>
         </div>

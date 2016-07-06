@@ -79,6 +79,9 @@
 
     $('#eval-window-filter').on('change', function () {
         windowType = this.value;
+        if ($('#window-size').length) {
+            $('#window-size').text(windowType);
+        }
         updateChart();
     });
 })

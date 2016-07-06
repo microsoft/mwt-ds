@@ -29,9 +29,9 @@
       "type": "int",
       "defaultValue": 1,
       "minValue": 1,
-      "maxValue": 20,
+      "maxValue": 16,
       "metadata": {
-        "description": "Bandwidth required, minimum 1, maximum 20."
+        "description": "Bandwidth required: minimum 1, maximum 16."
       }
     },
     "online Trainer VM Size": {
@@ -39,7 +39,7 @@
       "defaultValue": "Standard_D1_v2",
       "allowedValues": [ "Standard_D1_v2", "Standard_D2_v2", "Standard_D3_v2", "Standard_D4_v2", "Standard_D5_v2" ],
       "metadata": {
-        "description": "Size of the VM that runs the Online Trainer. Acceptable values are (in ascending order of performance and cost): ExtraSmall, Standard_D1_v2, Standard_D2_v2, Standard_D3_v2, Standard_D4_v2, Standard_D5_v2. For more information, refer to: https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-windows-sizes/"
+        "description": "Size of the VM that runs the Online Trainer. Acceptable values are (in ascending order of performance and cost): Standard_D1_v2, Standard_D2_v2, Standard_D3_v2, Standard_D4_v2, Standard_D5_v2. For more information, refer to: https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-windows-sizes/"
       }
     },
     "model update interval": {
