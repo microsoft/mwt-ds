@@ -103,7 +103,7 @@
             eventId = data.EventId;
             modelTime = new Date(parseInt(data.ModelTime.substr(6)));
             modelTimeMessage = 'Latest model obtained at: ' + moment(modelTime).format('MMMM Do YYYY, h:mm:ss a');
-            if (modelTime.getFullYear() == 1) {
+            if (modelTime.getFullYear() <= 1) {
                 modelTimeMessage = ''
             }
             $("#article").attr("src", actions[data.Action - 1].image);

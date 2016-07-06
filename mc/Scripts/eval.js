@@ -34,6 +34,15 @@
                         $('#eval-chart-status').text(response.DataError);
                     }
                     $("#statusTrainer").text(response.TrainerStatus + " (Last updated at: " + moment().format('MMMM Do YYYY, h:mm:ss a') + ")");
+                    if ($('#statusModel').length) {
+                        // TODO: refactor
+                        modelTime = new Date(parseInt(response.ModelUpdateTime.substr(6)));
+                        modelTimeMessage = 'Latest model obtained at: ' + moment(modelTime).format('MMMM Do YYYY, h:mm:ss a');
+                        if (modelTime.getFullYear() <= 1) {
+                            modelTimeMessage = ''
+                        }
+                        $("#statusModel").text(modelTimeMessage);
+                    }
                 }
                 d3.select('#' + chartId + ' svg')
                     .datum(response.Data)

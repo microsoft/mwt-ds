@@ -314,13 +314,13 @@ namespace DecisionServicePrivateWeb.Controllers
 
                 var evalDataD3 = evalData.Values.Select(a => new { key = GetDemoPolicyName(a.key), values = a.values.Select(v => new object[] { v.Key, v.Value }) });
 
-                return Json(new { Data = evalDataD3, TrainerStatus = trainerStatus }, JsonRequestBehavior.AllowGet);
+                return Json(new { Data = evalDataD3, TrainerStatus = trainerStatus, ModelUpdateTime = APIController.ModelUpdateTime }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
                 new TelemetryClient().TrackException(ex);
 
-                return Json(new { DataError = "Unable to load evaluation result", TrainerStatus = trainerStatus }, JsonRequestBehavior.AllowGet);
+                return Json(new { DataError = "Unable to load evaluation result", TrainerStatus = trainerStatus, ModelUpdateTime = APIController.ModelUpdateTime }, JsonRequestBehavior.AllowGet);
             }
         }
 
