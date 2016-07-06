@@ -12,6 +12,8 @@
     },
     "partitionCount": {
       "type": "int",
+      "minValue": 2,
+      "maxValue": 32,
       "metadata": {
         "description": "degree of parallelism"
       }
