@@ -24,7 +24,7 @@ namespace DecisionServicePrivateWeb.Controllers
 
         private const string AuthHeaderName = "auth";
 
-        private static DateTime ModelUpdateTime = new DateTime(1, 1, 1);
+        public static DateTime ModelUpdateTime = new DateTime(1, 1, 1);
 
         [HttpPost]
         public ActionResult Validate()
