@@ -22,7 +22,7 @@
       "maxValue": 518400,
       "defaultValue": 10,
         "metadata": {
-            "description": "How long after a decision is the default reward reported? (Min 5; Max 518400)."
+            "description": "How long after a decision is all the pertinent info sent to the trainer? (Min 5; Max 518400)."
         }
     },
     "Bandwidth Required (MB/s)": {
@@ -46,7 +46,7 @@
       "type": "string",
       "defaultValue": "00:00:10",
       "metadata": {
-        "description": "Time interval or example count between front end model updates. For time interval, use the format HH:MM:SS."
+        "description": "Time interval or number of examples between model updates in the front end. For time interval, use the format HH:MM:SS."
       }
     }
   },
