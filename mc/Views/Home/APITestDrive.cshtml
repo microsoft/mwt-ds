@@ -94,9 +94,9 @@
         <br />
         <div style="text-align:center;">
             <div style="margin-bottom:15px; font-size:16px" id="statusReward"></div>
-            <div style="margin-bottom:15px" id="statusTrainer">Please wait as trainer has not started yet.</div>
-            <div style="margin-bottom:15px" id="statusModel">Model is not ready, the trainer takes 2 - 10 minutes to start on a fresh deployment.</div>
-            <div style="margin-bottom:15px" id="status"></div>
+            <div style="margin-bottom:15px; font-size:16px" id="statusTrainer">Please wait as trainer has not started yet.</div>
+            <div style="margin-bottom:15px; font-size:16px" id="statusModel">Model is not ready, the trainer takes 2 - 10 minutes to start on a fresh deployment.</div>
+            <div style="margin-bottom:15px; font-size:16px" id="status"></div>
             <button id="resetModelBtn" class="btn btn-primary btn-group-sm" style="margin-bottom:15px">Reset Model</button>
             <div style="margin-bottom:15px" id="statusReset"></div>
         </div>
@@ -122,11 +122,11 @@
             <div class="input-group" style="margin: 0 auto;">
                 <div>Each data point is computed over a  
                     <a href="https://msdn.microsoft.com/en-us/library/azure/dn835041.aspx" target="_blank">hopping window</a> of size
-                    <label id="window-size">6d</label>.
+                    <label id="window-size" style="font-weight: normal;">6d</label>.
                 </div>
             </div>
         </div>
-        <label for="eval-window-filter" id="eval-chart-status" style="width: 100%; text-align: center; margin-top: 10px;"></label>
+        <label for="eval-window-filter" id="eval-chart-status" style="width: 100%; text-align: center; margin-top: 10px; font-weight: normal;"></label>
         <br /><br />
         <div class="thumbnail" style="text-align:center; width:650px; margin: 0 auto">
             <div class="caption article">
