@@ -5,15 +5,15 @@
     "vowpal Wabbit Switches": {
       "type": "string",
       "defaultValue": "--cb_explore 2 --epsilon 0.2 --cb_type dr",
-      "metadata": {
-        "description": "Flags for learning and exploration.  See http://hunch.net/~vw."
-      }
+        "metadata": {
+            "description": "Switches to manage learning and exploration. For more information see https://github.com/JohnLangford/vowpal_wabbit/wiki/Command-line-arguments and https://github.com/JohnLangford/vowpal_wabbit/wiki/Contextual-Bandit-algorithms."
+        }
     },
-    "initial Exploration Epsilon": {
+    "initial Exploration Probability": {
       "type": "string",
       "defaultValue": "0.2",
       "metadata": {
-        "description": "Epsilon in [0,1] for exploration before first model is learned."
+        "description": "Probability of exploration while waiting for the first model to be deployed."
       }
     },
     "experimental Unit Duration (s)": {
@@ -22,16 +22,16 @@
       "maxValue": 518400,
       "defaultValue": 10,
       "metadata": {
-        "description": "Allowed seconds after interaction to observe reward."
+        "description": "How long after a decision is the default reward reported?."
       }
     },
-    "MB/s": {
+    "Bandwidth Required (MB/s)": {
       "type": "int",
       "defaultValue": 1,
       "minValue": 1,
       "maxValue": 16,
       "metadata": {
-        "description": "Bandwidth required: minimum 1, maximum 16."
+        "description": "Minimum 1; maximum 16."
       }
     },
     "online Trainer VM Size": {
@@ -46,16 +46,16 @@
       "type": "string",
       "defaultValue": "00:00:10",
       "metadata": {
-        "description": "Number of examples between front end model updates. For time interval, use the format HH:MM:SS."
+        "description": "Time interval or example count between front end model updates. For time interval, use the format HH:MM:SS."
       }
     }
   },
-  "variables": {
-    "assetLocation": "https://raw.githubusercontent.com/Microsoft/mwt-ds/master/provisioning/",
-    "messageRetentionInDays": 7,
-    "prefix": "[replace(replace(replace(replace(resourceGroup().name, '.', 'x'), '_', 'x'), ')', 'x'), '(', 'x')]",
-    "partitionCount":  "[mul(2, parameters('MB/s'))]"
-  },
+    "variables": {
+        "assetLocation": "https://raw.githubusercontent.com/Microsoft/mwt-ds/master/provisioning/",
+        "messageRetentionInDays": 7,
+        "prefix": "[replace(replace(replace(replace(resourceGroup().name, '.', 'x'), '_', 'x'), ')', 'x'), '(', 'x')]",
+        "partitionCount": "[mul(2, parameters('Bandwidth Required (MB/s)'))]"
+    },
   "resources": [
     {
       "apiVersion": "2015-01-01",
@@ -142,7 +142,7 @@
         "mode": "incremental",
         "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/ServiceBusTemplate.json')]" },
         "parameters": {
-          "MB/s": { "value": "[parameters('MB/s')]" },
+            "MB/s": { "value": "[parameters('Bandwidth Required (MB/s)')]" },
           "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
         }
       }
@@ -156,7 +156,7 @@
         "mode": "incremental",
         "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/ServiceBusTemplate.json')]" },
         "parameters": {
-          "MB/s": { "value": "[parameters('MB/s')]" },
+            "MB/s": { "value": "[parameters('Bandwidth Required (MB/s)')]" },
           "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
         }
       }
@@ -268,7 +268,7 @@
         "mode": "incremental",
         "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/WebManageTemplate.json')]" },
         "parameters": {
-          "initialExplorationEpsilon": { "value": "[parameters('initial Exploration Epsilon')]" },
+          "initialExplorationEpsilon": { "value": "[parameters('initial Exploration Probability')]" },
 
           "instrumentationKey": { "value": "[reference('Microsoft.Resources/deployments/Application_Insights').outputs.instrumentationKey.value]" },
           "userStorageConnectionString": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageConnectionString.value]" },
@@ -323,7 +323,7 @@
           "observationEventHub": { "value": "[reference('Microsoft.Resources/deployments/Event_Hub_Observation').outputs]" },
           "joinedEventHub": { "value": "[reference('Microsoft.Resources/deployments/Event_Hub_Joined').outputs]" },
           "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
-          "partitionCount": { "value": "[parameters('MB/s')]" },
+            "partitionCount": { "value": "[parameters('Bandwidth Required (MB/s)')]" },
           "experimentalUnitDurationInSeconds": { "value": "[parameters('experimental Unit Duration (s)')]" },
           "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
         }
@@ -348,7 +348,7 @@
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/Service_Bus').outputs.ServiceBusName.value]" },
           "evalEventHub": { "value": "[reference('Microsoft.Resources/deployments/Event_Hub_Evaluation').outputs]" },
           "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
-          "partitionCount": { "value": "[parameters('MB/s')]" },
+            "partitionCount": { "value": "[parameters('Bandwidth Required (MB/s)')]" },
           "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
         }
       }
