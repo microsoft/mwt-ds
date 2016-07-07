@@ -1,4 +1,4 @@
-[![Client Build Status](https://ci.appveyor.com/api/projects/status/github/MultiWorldTesting/decision?branch=master&svg=true)](https://ci.appveyor.com/project/lhoang29/decision)
+[![Client Build Status](https://vowpalwabbit.visualstudio.com/_apis/public/build/definitions/926d5bad-e0be-4f52-9550-12f94358bae9/4/badge)](https://vowpalwabbit.visualstudio.com/Vowpal%20Wabbit/_build?_a=completed&definitionId=4)
 
 Umbrella repository for projects related to the [MWT Decision Service](https://mwtds.azurewebsites.net/).
 
