@@ -21,9 +21,9 @@
       "minValue": 5,
       "maxValue": 518400,
       "defaultValue": 10,
-      "metadata": {
-        "description": "How long after a decision is the default reward reported?."
-      }
+        "metadata": {
+            "description": "How long after a decision is the default reward reported? (Min 5; Max 518400)."
+        }
     },
     "Bandwidth Required (MB/s)": {
       "type": "int",

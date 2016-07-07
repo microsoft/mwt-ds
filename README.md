@@ -1,8 +1,8 @@
 [![Client Build Status](https://vowpalwabbit.visualstudio.com/_apis/public/build/definitions/926d5bad-e0be-4f52-9550-12f94358bae9/6/badge)](https://vowpalwabbit.visualstudio.com/Vowpal%20Wabbit/_build?_a=completed&definitionId=4)
 
-Umbrella repository for projects related to the [MWT Decision Service](https://mwtds.azurewebsites.net/).
+Umbrella repository for projects related to the [MWT Decision Service](https://aka.ms/mwt).
 
-The [documentation is in the wiki, including Tutorials, Troubleshooting Guide, White Papers, HOWTOs, FAQ List, API References, etc.](https://github.com/Microsoft/mwt-ds/wiki/Decision-Service-Documentation).
+The [documentation is in the wiki, including Tutorials, Troubleshooting Guide, White Papers, HOWTOs, FAQ List, API References, etc.](https://github.com/Microsoft/mwt-ds/wiki/).
 
 View our <a href="http://mwtds.azurewebsites.net/Home/Manifest">deployment notice.</a>
 
