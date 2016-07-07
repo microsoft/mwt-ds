@@ -351,7 +351,7 @@ namespace DecisionServicePrivateWeb.Controllers
                 case "Constant Policy 2":
                     return "Federal Reserve Article";
                 case "Deployed Policy":
-                    return "Observered";
+                    return "Observed";
                 case "Latest Policy":
                     return "Counterfactual Policy";
                 default:
