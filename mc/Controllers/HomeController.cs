@@ -347,13 +347,13 @@ namespace DecisionServicePrivateWeb.Controllers
             switch (policyName)
             {
                 case "Constant Policy 1":
-                    return "AI Article";
+                    return "AI article (predicted)";
                 case "Constant Policy 2":
-                    return "Federal Reserve Article";
+                    return "Federal Reserve article (predicted)";
                 case "Deployed Policy":
-                    return "Observed";
+                    return "Current policy (actual)";
                 case "Latest Policy":
-                    return "Counterfactual Policy";
+                    return "Current policy (predicted)";
                 default:
                     return policyName;
             }
