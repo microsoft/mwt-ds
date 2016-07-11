@@ -10,7 +10,8 @@
     "postfix": {
       "type": "string",
       // maximum name length is 63 - len('sb-') = 60
-      "maxLength": 60
+      // name restrictions: https://msdn.microsoft.com/en-us/library/azure/jj856303.aspx
+      "maxLength": 47
     }
   },
   "variables": {
