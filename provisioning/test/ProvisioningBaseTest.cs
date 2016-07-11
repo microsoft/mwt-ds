@@ -85,13 +85,35 @@ namespace Microsoft.Research.DecisionServiceTest
                 Assert.AreEqual((bool)isExplorationEnabled, metaData.IsExplorationEnabled);
         }
 
+        protected void OnlineTrainerWaitForStartup()
+        {
+            var stopwatch = Stopwatch.StartNew();
+
+            while (stopwatch.Elapsed < TimeSpan.FromMinutes(20))
+            {
+                try
+                {
+                    using (var wc = new WebClient())
+                    {
+                        wc.DownloadString($"{onlineTrainerUrl}/status");
+                    }
+                    return;
+                }
+                catch (Exception)
+                {
+                }
+
+                Thread.Sleep(TimeSpan.FromSeconds(5));
+            }
+        }
+
         protected void OnlineTrainerReset()
         {
             using (var wc = new WebClient())
             {
                 wc.Headers.Add($"Authorization: {onlineTrainerToken}");
                 wc.DownloadString($"{onlineTrainerUrl}/reset");
-                Thread.Sleep(TimeSpan.FromSeconds(3));
+                Thread.Sleep(TimeSpan.FromSeconds(5));
             }
         }
 
@@ -202,7 +224,7 @@ namespace Microsoft.Research.DecisionServiceTest
                 deployment.Properties = new DeploymentProperties
                 {
                     Mode = DeploymentMode.Incremental,
-                    TemplateLink = new TemplateLink("https://raw.githubusercontent.com/Microsoft/mwt-ds-provisioning/master/azuredeploy.json")
+                    TemplateLink = new TemplateLink("https://raw.githubusercontent.com/Microsoft/mwt-ds/master/provisioning/azuredeploy.json")
                     // Parameters = JObject.Parse("{\"param\":{\"value\":0}}")
                 };
 
