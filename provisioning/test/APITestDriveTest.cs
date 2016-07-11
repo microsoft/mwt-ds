@@ -55,6 +55,9 @@ namespace Microsoft.Research.DecisionServiceTest
         }
 
         [TestMethod]
+        [TestCategory("End to End")]
+        [Priority(2)]
+        [Ignore]
         public void APITestDriveTest()
         {
             var locs = new[] { "Seattle", "New York" };

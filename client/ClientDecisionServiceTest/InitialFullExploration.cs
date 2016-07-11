@@ -29,6 +29,8 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
+        [TestCategory("Client Library")]
+        [Priority(0)]
         public void InitialFullExplorationTest()
         {
             var recorder = new MyRecorder();

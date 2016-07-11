@@ -11,6 +11,8 @@ namespace Microsoft.Research.DecisionServiceTest
     public class ProvisionOnly : ProvisioningBaseTest
     {
         [TestMethod]
+        [TestCategory("End to End")]
+        [Priority(2)]
         public void ProvisionOnlyTest()
         {
             Assert.IsNotNull(this.managementCenterUrl);

@@ -15,6 +15,8 @@ namespace ClientDecisionServiceTest
     public class DecisionServiceUploadTests : MockCommandTestBase
     {
         [TestMethod]
+        [TestCategory("Client Library")]
+        [Priority(1)]
         public void TestSingleActionDSUploadSingleEvent()
         {
             joinServer.Reset();
@@ -44,6 +46,8 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
+        [TestCategory("Client Library")]
+        [Priority(1)]
         public void TestSingleActionDSUploadMultipleEvents()
         {
             joinServer.Reset();
@@ -70,6 +74,8 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
+        [TestCategory("Client Library")]
+        [Priority(1)]
         public void TestSingleActionDSThreadSafeUpload()
         {
             joinServer.Reset();
@@ -169,6 +175,8 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
+        [TestCategory("Client Library")]
+        [Priority(1)]
         public void TestMultiActionDSUploadMultipleEvents()
         {
             joinServer.Reset();
@@ -192,6 +200,8 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
+        [TestCategory("Client Library")]
+        [Priority(1)]
         public void TestMultiActionDSUploadSelective()
         {
             joinServer.Reset();
@@ -242,6 +252,8 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
+        [TestCategory("Client Library")]
+        [Priority(1)]
         public void TestMultiActionDSThreadSafeUpload()
         {
             joinServer.Reset();

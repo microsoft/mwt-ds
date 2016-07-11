@@ -14,6 +14,8 @@ namespace ClientDecisionServiceTest
     public class DevelopmentModeTest : MockCommandTestBase
     {
         [TestMethod]
+        [TestCategory("Client Library")]
+        [Priority(1)]
         public void TestDevModeSettingsAndExampleLog()
         {
             joinServer.Reset();

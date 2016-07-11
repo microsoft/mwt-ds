@@ -47,6 +47,8 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
+        [TestCategory("Client Library")]
+        [Priority(0)]
         public void EpsilonGreedySlateTest()
         {
             RunTest(1f, (chi2, _) => Assert.IsTrue(chi2 < 12.592));

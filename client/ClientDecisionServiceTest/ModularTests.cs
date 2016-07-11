@@ -12,6 +12,8 @@ namespace ClientDecisionServiceTest
     public class ModularTests
     {
         [TestMethod]
+        [TestCategory("Client Library")]
+        [Priority(0)]
         public void TestSingleActionOfflineModeArgument()
         {
             var dsConfig = new DecisionServiceConfiguration("") { OfflineMode = true, OfflineApplicationID = "" };
@@ -32,6 +34,8 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
+        [TestCategory("Client Library")]
+        [Priority(0)]
         public void TestSingleActionOfflineModeCustomLogger()
         {
             var dsConfig = new DecisionServiceConfiguration("") { OfflineMode = true, OfflineApplicationID = "" };
@@ -78,6 +82,9 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
+        [TestCategory("Client Library")]
+        [Priority(1)]
+        [Ignore]
         public void TestSingleActionOnlineModeCustomLogger()
         {
             var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri)
@@ -125,6 +132,8 @@ namespace ClientDecisionServiceTest
 
         [TestMethod]
         [ExpectedException(typeof(Exception))]
+        [TestCategory("Client Library")]
+        [Priority(0)]
         public void TestMultiActionOfflineModeArgument()
         {
             var metaData = new ApplicationClientMetadata
@@ -141,6 +150,8 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
+        [TestCategory("Client Library")]
+        [Priority(0)]
         public void TestMultiActionOfflineModeCustomLogger()
         {
             var dsConfig = new DecisionServiceConfiguration("") { OfflineMode = true, OfflineApplicationID = "" };
@@ -184,6 +195,8 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
+        [TestCategory("Client Library")]
+        [Priority(1)]
         public void TestMultiActionOnlineModeCustomLogger()
         {
             joinServer.Reset();

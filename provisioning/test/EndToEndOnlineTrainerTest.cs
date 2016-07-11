@@ -50,6 +50,8 @@ namespace Microsoft.Research.DecisionServiceTest
         //}
 
         [TestMethod]
+        [TestCategory("End to End")]
+        [Priority(2)]
         public void E2ERankerStochasticRewards()
         {
             // Create configuration for the decision service

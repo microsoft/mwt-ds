@@ -11,6 +11,8 @@ namespace ClientDecisionServiceTest
     public class ConfigTests : MockCommandTestBase
     {
         [TestMethod]
+        [TestCategory("Client Library")]
+        [Priority(1)]
         public void TestSingleActionSettingsBlobOutput()
         {
             joinServer.Reset();
@@ -47,6 +49,8 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
+        [TestCategory("Client Library")]
+        [Priority(1)]
         public void TestSettingsBlobPolling()
         {
             joinServer.Reset();

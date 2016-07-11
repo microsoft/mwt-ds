@@ -17,6 +17,8 @@ namespace ClientDecisionServiceTest
     public class VWTest
     {
         [TestMethod]
+        [TestCategory("Client Library")]
+        [Priority(0)]
         public void TrainNewVWModelWithMultiActionJsonDirectData()
         {
             int numLocations = 2; // user location

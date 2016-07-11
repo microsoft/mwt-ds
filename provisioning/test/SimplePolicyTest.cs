@@ -50,6 +50,8 @@ namespace Microsoft.Research.DecisionServiceTest
         //public SimplePolicyTestClass() : base(deploymentOutput) { }
 
         [TestMethod]
+        [TestCategory("End to End")]
+        [Priority(2)]
         public async Task SimplePolicyTest()
         {
             this.ConfigureDecisionService("--cb_explore 4 --epsilon 0", initialExplorationEpsilon:1, isExplorationEnabled: true);
