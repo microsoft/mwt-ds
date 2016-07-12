@@ -136,6 +136,11 @@ namespace ClientDecisionServiceSample
     /// </summary>
     public class UserContext 
     {
+        public UserContext()
+        {
+            Features = new Dictionary<string, float>();
+        }
+
         /// <summary>
         /// Gender of the user.
         /// </summary>
