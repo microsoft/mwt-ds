@@ -225,7 +225,7 @@ namespace Microsoft.Research.DecisionServiceTest
                 {
                     Mode = DeploymentMode.Incremental,
                     TemplateLink = new TemplateLink("https://raw.githubusercontent.com/eisber/mwt-ds/master/provisioning/azuredeploy.json"),
-                    Parameters = JObject.Parse("{\"param\":{\"subtemplate location\":\"https://raw.githubusercontent.com/eisber/mwt-ds/master/provisioning/\"}}")
+                    // Parameters = JObject.Parse("{\"param\":{\"subtemplate location\":\"https://raw.githubusercontent.com/eisber/mwt-ds/master/provisioning/\"}}")
                 };
 
                 try
