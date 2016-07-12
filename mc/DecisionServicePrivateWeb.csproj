@@ -384,10 +384,8 @@
     </PropertyGroup>
     <Error Condition="!Exists('$(SolutionDir)packages\Microsoft.Net.Compilers.1.0.0\build\Microsoft.Net.Compilers.props')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)packages\Microsoft.Net.Compilers.1.0.0\build\Microsoft.Net.Compilers.props'))" />
     <Error Condition="!Exists('$(SolutionDir)packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.0\build\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.0\build\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props'))" />
-    <Error Condition="!Exists('$(SolutionDir)packages\VowpalWabbit.8.2.0.2\build\VowpalWabbit.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)packages\VowpalWabbit.8.2.0.2\build\VowpalWabbit.targets'))" />
     <Error Condition="!Exists('..\packages\VowpalWabbit.8.2.0.8\build\VowpalWabbit.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\VowpalWabbit.8.2.0.8\build\VowpalWabbit.targets'))" />
   </Target>
-  <Import Project="$(SolutionDir)packages\VowpalWabbit.8.2.0.2\build\VowpalWabbit.targets" Condition="Exists('$(SolutionDir)packages\VowpalWabbit.8.2.0.2\build\VowpalWabbit.targets')" />
   <Import Project="..\packages\VowpalWabbit.8.2.0.8\build\VowpalWabbit.targets" Condition="Exists('..\packages\VowpalWabbit.8.2.0.8\build\VowpalWabbit.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
