@@ -57,6 +57,8 @@ namespace Microsoft.Research.DecisionServiceTest
 
         [TestMethod]
         [Ignore]
+        [TestCategory("End to End")]
+        [Priority(2)]
         public void SimplePolicyHttpTest()
         {
             this.ConfigureDecisionService("--cb_explore 4 --epsilon 1", initialExplorationEpsilon: 1, isExplorationEnabled: true);

@@ -12,6 +12,8 @@ namespace ClientDecisionServiceTest
     public class ActionDependentFeaturesTest : MockCommandTestBase
     {
         [TestMethod]
+        [TestCategory("Client Library")]
+        [Priority(1)]
         public void TestADFExplorationResult()
         {
             joinServer.Reset();
@@ -51,6 +53,8 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
+        [TestCategory("Client Library")]
+        [Priority(1)]
         public void TestADFModelUpdateFromStream()
         {
             joinServer.Reset();

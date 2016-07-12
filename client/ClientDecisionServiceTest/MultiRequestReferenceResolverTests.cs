@@ -16,6 +16,8 @@ namespace ClientDecisionServiceTest
     public class CachingReferenceResolverTests
     {
         [TestMethod]
+        [TestCategory("Client Library")]
+        [Priority(0)]
         public void TestCachingReferenceResolver_Size()
         {
             var resolver = new CachingReferenceResolver(2);
@@ -74,6 +76,8 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
+        [TestCategory("Client Library")]
+        [Priority(0)]
         public void TestCachingReferenceResolver_Age()
         {
             var resolver = new CachingReferenceResolver(TimeSpan.FromSeconds(1));
@@ -129,6 +133,8 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
+        [TestCategory("Client Library")]
+        [Priority(0)]
         public void TestCachingReferenceResolver_CustomComparer()
         {
             var resolver = new CachingReferenceResolver(equalityComparer: new SubComparer());
@@ -186,6 +192,8 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
+        [TestCategory("Client Library")]
+        [Priority(0)]
         public void TestCachingReferenceResolver()
         {
             var resolver = new CachingReferenceResolver();
@@ -244,6 +252,8 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
+        [TestCategory("Client Library")]
+        [Priority(0)]
         public void TestCachingReferenceResolver_NotSupportedDeserialization_Id()
         {
             try
@@ -262,6 +272,8 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
+        [TestCategory("Client Library")]
+        [Priority(0)]
         public void TestCachingReferenceResolver_NotSupportedDeserialization_Ref()
         {
             try

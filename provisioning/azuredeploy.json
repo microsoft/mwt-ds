@@ -5,9 +5,9 @@
     "vowpal Wabbit Switches": {
       "type": "string",
       "defaultValue": "--cb_explore 2 --epsilon 0.2 --cb_type dr",
-        "metadata": {
-            "description": "Switches to manage learning and exploration. For more information see https://github.com/JohnLangford/vowpal_wabbit/wiki/Command-line-arguments and https://github.com/JohnLangford/vowpal_wabbit/wiki/Contextual-Bandit-algorithms."
-        }
+      "metadata": {
+        "description": "Switches to manage learning and exploration. For more information see https://github.com/JohnLangford/vowpal_wabbit/wiki/Command-line-arguments and https://github.com/JohnLangford/vowpal_wabbit/wiki/Contextual-Bandit-algorithms."
+      }
     },
     "initial Exploration Probability": {
       "type": "string",
@@ -21,9 +21,9 @@
       "minValue": 5,
       "maxValue": 518400,
       "defaultValue": 10,
-        "metadata": {
-            "description": "How long after a decision is the default reward reported? (Min 5; Max 518400)."
-        }
+      "metadata": {
+        "description": "How long after a decision is all the pertinent info sent to the trainer? (Min 5; Max 518400)."
+      }
     },
     "Bandwidth Required (MB/s)": {
       "type": "int",
@@ -46,16 +46,22 @@
       "type": "string",
       "defaultValue": "00:00:10",
       "metadata": {
-        "description": "Time interval or example count between front end model updates. For time interval, use the format HH:MM:SS."
+        "description": "Time interval or number of examples between model updates in the front end. For time interval, use the format HH:MM:SS."
+      }
+    },
+    "subtemplate location": {
+      "type": "string",
+      "defaultValue": "https://raw.githubusercontent.com/Microsoft/mwt-ds/master/provisioning/",
+      "metadata": {
+        "description": "TL;DR: don't change - required for painless testing. If contributors issue pull requests the location has to be changed to the corresponding branch."
       }
     }
   },
-    "variables": {
-        "assetLocation": "https://raw.githubusercontent.com/Microsoft/mwt-ds/master/provisioning/",
-        "messageRetentionInDays": 7,
-        "prefix": "[replace(replace(replace(replace(resourceGroup().name, '.', 'x'), '_', 'x'), ')', 'x'), '(', 'x')]",
-        "partitionCount": "[mul(2, parameters('Bandwidth Required (MB/s)'))]"
-    },
+  "variables": {
+    "messageRetentionInDays": 7,
+    "prefix": "[uniqueString(concat(subscription().subscriptionId, resourceGroup().name))]",
+    "partitionCount": "[mul(2, parameters('Bandwidth Required (MB/s)'))]"
+  },
   "resources": [
     {
       "apiVersion": "2015-01-01",
@@ -63,7 +69,7 @@
       "type": "Microsoft.Resources/deployments",
       "properties": {
         "mode": "incremental",
-        "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/StorageTemplate.json')]" }
+        "templateLink": { "uri": "[concat(parameters('subtemplate location'), 'templates/StorageTemplate.json')]" }
       }
     },
     {
@@ -73,7 +79,7 @@
       "dependsOn": [ "Microsoft.Resources/deployments/Storage" ],
       "properties": {
         "mode": "incremental",
-        "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" },
+        "templateLink": { "uri": "[concat(parameters('subtemplate location'), 'templates/PasswordGeneratorTemplate.json')]" },
         "parameters": {
           "Password": { "value": "" },
           "RandomSeed": { "value": "[concat(reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, 'mc')]" }
@@ -87,7 +93,7 @@
       "dependsOn": [ "Microsoft.Resources/deployments/Storage" ],
       "properties": {
         "mode": "incremental",
-        "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" },
+        "templateLink": { "uri": "[concat(parameters('subtemplate location'), 'templates/PasswordGeneratorTemplate.json')]" },
         "parameters": {
           "Password": { "value": "" },
           "RandomSeed": { "value": "[concat(reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, 'ut')]" }
@@ -101,7 +107,7 @@
       "dependsOn": [ "Microsoft.Resources/deployments/Storage" ],
       "properties": {
         "mode": "incremental",
-        "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" },
+        "templateLink": { "uri": "[concat(parameters('subtemplate location'), 'templates/PasswordGeneratorTemplate.json')]" },
         "parameters": {
           "Password": { "value": "" },
           "RandomSeed": { "value": "[concat(reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, 'at')]" }
@@ -115,7 +121,7 @@
       "dependsOn": [ "Microsoft.Resources/deployments/Storage" ],
       "properties": {
         "mode": "incremental",
-        "templateLink": { "uri": "[concat(variables('assetLocation'), 'templates/PasswordGeneratorTemplate.json')]" },
+        "templateLink": { "uri": "[concat(parameters('subtemplate location'), 'templates/PasswordGeneratorTemplate.json')]" },
         "parameters": {
           "Password": { "value": "" },
           "RandomSeed": { "value": "[concat(reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value, 'postfix')]" }
@@ -128,7 +134,7 @@
       "type": "Microsoft.Resources/deployments",
       "properties": {
         "mode": "incremental",
-        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/AppInsightsTemplate.json')]" },
+        "templateLink": { "uri": "[concat(parameters('subtemplate location'), '/templates/AppInsightsTemplate.json')]" },
         "parameters": {
           "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
         }
@@ -140,7 +146,7 @@
       "type": "Microsoft.Resources/deployments",
       "properties": {
         "mode": "incremental",
-        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/ServiceBusTemplate.json')]" },
+        "templateLink": { "uri": "[concat(parameters('subtemplate location'), '/templates/ServiceBusTemplate.json')]" },
         "parameters": {
             "MB/s": { "value": "[parameters('Bandwidth Required (MB/s)')]" },
           "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
@@ -154,7 +160,7 @@
       "dependsOn": [ "Microsoft.Resources/deployments/Service_Bus_Initial" ],
       "properties": {
         "mode": "incremental",
-        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/ServiceBusTemplate.json')]" },
+        "templateLink": { "uri": "[concat(parameters('subtemplate location'), '/templates/ServiceBusTemplate.json')]" },
         "parameters": {
             "MB/s": { "value": "[parameters('Bandwidth Required (MB/s)')]" },
           "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
@@ -169,7 +175,7 @@
       "properties": {
         "mode": "incremental",
         "templateLink": {
-          "uri": "[concat(variables('assetLocation'), '/templates/EventHubTemplate.json')]",
+          "uri": "[concat(parameters('subtemplate location'), '/templates/EventHubTemplate.json')]",
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
@@ -188,7 +194,7 @@
       "properties": {
         "mode": "incremental",
         "templateLink": {
-          "uri": "[concat(variables('assetLocation'), '/templates/EventHubTemplate.json')]",
+          "uri": "[concat(parameters('subtemplate location'), '/templates/EventHubTemplate.json')]",
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
@@ -207,7 +213,7 @@
       "properties": {
         "mode": "incremental",
         "templateLink": {
-          "uri": "[concat(variables('assetLocation'), '/templates/EventHubTemplate.json')]",
+          "uri": "[concat(parameters('subtemplate location'), '/templates/EventHubTemplate.json')]",
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
@@ -225,7 +231,7 @@
       "dependsOn": [ "Microsoft.Resources/deployments/Service_Bus" ],
       "properties": {
         "mode": "incremental",
-        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/EventHubTemplate.json')]" },
+        "templateLink": { "uri": "[concat(parameters('subtemplate location'), '/templates/EventHubTemplate.json')]" },
         "parameters": {
           "ehName": { "value": "eval" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/Service_Bus').outputs.ServiceBusName.value]" },
@@ -242,7 +248,7 @@
       ],
       "properties": {
         "mode": "incremental",
-        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/WebEmptyTemplate.json')]" },
+        "templateLink": { "uri": "[concat(parameters('subtemplate location'), '/templates/WebEmptyTemplate.json')]" },
         "parameters": {
           "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
         }
@@ -266,7 +272,7 @@
       ],
       "properties": {
         "mode": "incremental",
-        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/WebManageTemplate.json')]" },
+        "templateLink": { "uri": "[concat(parameters('subtemplate location'), '/templates/WebManageTemplate.json')]" },
         "parameters": {
           "initialExplorationEpsilon": { "value": "[parameters('initial Exploration Probability')]" },
 
@@ -314,9 +320,9 @@
       ],
       "properties": {
         "mode": "incremental",
-        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/StreamAnalyticsJoinTemplate.json')]" },
+        "templateLink": { "uri": "[concat(parameters('subtemplate location'), '/templates/StreamAnalyticsJoinTemplate.json')]" },
         "parameters": {
-          "assetLocation": { "value": "[variables('assetLocation')]" },
+          "assetLocation": { "value": "[parameters('subtemplate location')]" },
           "userStorage": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs]" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/Service_Bus').outputs.ServiceBusName.value]" },
           "interactionEventHub": { "value": "[reference('Microsoft.Resources/deployments/Event_Hub_Interaction').outputs]" },
@@ -340,9 +346,9 @@
       ],
       "properties": {
         "mode": "incremental",
-        "templateLink": { "uri": "[concat(variables('assetLocation'), '/templates/StreamAnalyticsEvalTemplate.json')]" },
+        "templateLink": { "uri": "[concat(parameters('subtemplate location'), '/templates/StreamAnalyticsEvalTemplate.json')]" },
         "parameters": {
-          "assetLocation": { "value": "[variables('assetLocation')]" },
+          "assetLocation": { "value": "[parameters('subtemplate location')]" },
           "userStorageAccountName": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountName.value]" },
           "userStorageAccountKey": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value]" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/Service_Bus').outputs.ServiceBusName.value]" },
@@ -361,7 +367,7 @@
       "properties": {
         "mode": "incremental",
         "templateLink": {
-          "uri": "[concat(variables('assetLocation'), 'templates/OnlineTrainerEmptyTemplate.json')]",
+          "uri": "[concat(parameters('subtemplate location'), 'templates/OnlineTrainerEmptyTemplate.json')]",
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
@@ -384,7 +390,7 @@
       "properties": {
         "mode": "incremental",
         "templateLink": {
-          "uri": "[concat(variables('assetLocation'), 'templates/OnlineTrainerTemplate.json')]",
+          "uri": "[concat(parameters('subtemplate location'), 'templates/OnlineTrainerTemplate.json')]",
           "contentVersion": "1.0.0.0"
         },
         "parameters": {

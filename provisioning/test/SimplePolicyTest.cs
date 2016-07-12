@@ -16,30 +16,29 @@ namespace Microsoft.Research.DecisionServiceTest
 {
   ""management Center URL"": {
     ""type"": ""String"",
-    ""value"": ""https://mcunitc2fe50084aeb9158320f9ff760a7-mc-ftupw3x6ndhxq.azurewebsites.net""
+    ""value"": ""https://mc-sccwor75dvlcuchl6tlbcaux42.azurewebsites.net""
   },
   ""management Center Password"": {
     ""type"": ""String"",
-    ""value"": ""mv6t3nnz5uq7w""
+    ""value"": ""vmfhd4lsmxkbk""
   },
   ""client Library URL"": {
     ""type"": ""String"",
-    ""value"": ""https://storageftupw3x6ndhxq.blob.core.windows.net/mwt-settings/client?sv=2015-07-08&sr=b&sig=BOgAw8%2Fxk7h7Rq5Qep2k1REmcLy0KNyU8ZbMaI%2F6FQI%3D&st=2016-06-20T17%3A16%3A39Z&se=2017-06-20T17%3A17%3A39Z&sp=r""
+    ""value"": ""https://storagesccwor75dvlcu.blob.core.windows.net/mwt-settings/client?sv=2015-07-08&sr=b&sig=lre%2BGTE9wfgXucIR62FAY8NiQQEADgbq2x26ur3bCsA%3D&st=2016-07-11T17%3A59%3A04Z&se=2017-07-11T18%3A00%3A04Z&sp=r""
   },
   ""web Service Token"": {
     ""type"": ""String"",
-    ""value"": ""bd6v3grappmxo""
+    ""value"": ""57dx6h2tw464k""
   },
   ""online Trainer Token"": {
     ""type"": ""String"",
-    ""value"": ""t6ymqbvdphtvs""
+    ""value"": ""votzwbdgrkcoe""
   },
   ""online Trainer URL"": {
     ""type"": ""String"",
-    ""value"": ""http://mcunitc2fe50084aeb9158320f9ff760a7-trainer-ftupw3x6ndhxq.cloudapp.net""
+    ""value"": ""http://trainer-sccwor75dvlcuchl6tlbcaux42.cloudapp.net""
   }
 }
-
 ";
 
         private Dictionary<string, int> freq;
@@ -47,11 +46,15 @@ namespace Microsoft.Research.DecisionServiceTest
         private Random rnd;
         private int eventCount;
 
-        //public SimplePolicyTestClass() : base(deploymentOutput) { }
+        // public SimplePolicyTestClass() : base(deploymentOutput) { }
 
         [TestMethod]
+        [TestCategory("End to End")]
+        [Priority(2)]
         public async Task SimplePolicyTest()
         {
+            this.OnlineTrainerWaitForStartup();
+
             this.ConfigureDecisionService("--cb_explore 4 --epsilon 0", initialExplorationEpsilon:1, isExplorationEnabled: true);
 
             // 4 Actions
@@ -65,7 +68,8 @@ namespace Microsoft.Research.DecisionServiceTest
                 ObservationUploadConfiguration = new BatchingConfiguration
                 {
                     MaxEventCount = 64
-                }
+                },
+                PollingForModelPeriod = TimeSpan.FromMinutes(5)
             };
 
             config.InteractionUploadConfiguration.ErrorHandler += JoinServiceBatchConfiguration_ErrorHandler;
@@ -74,17 +78,13 @@ namespace Microsoft.Research.DecisionServiceTest
             this.freq = new Dictionary<string, int>();
             this.rnd = new Random(123);
 
-            // reset the model
             this.OnlineTrainerReset();
-
-            Console.WriteLine("Waiting after reset...");
-            Thread.Sleep(TimeSpan.FromSeconds(2));
 
             {
                 var expectedEvents = 0;
                 using (var client = Microsoft.Research.MultiWorldTesting.ClientLibrary.DecisionService.Create<MyContext>(config))
                 {
-                    for (int i = 0; i < 100; i++)
+                    for (int i = 0; i < 50; i++)
                     {
                         expectedEvents += SendEvents(client, 128);
                         // Thread.Sleep(500);                        
@@ -108,6 +108,8 @@ namespace Microsoft.Research.DecisionServiceTest
             }
 
             freq.Clear();
+
+            await Task.Delay(TimeSpan.FromSeconds(30));
 
             // TODO: update eps: 0
             using (var client = Microsoft.Research.MultiWorldTesting.ClientLibrary.DecisionService.Create<MyContext>(config))

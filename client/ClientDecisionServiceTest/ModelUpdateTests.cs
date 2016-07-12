@@ -15,6 +15,8 @@ namespace ClientDecisionServiceTest
     public class ModelUpdate : MockCommandTestBase
     {
         [TestMethod]
+        [TestCategory("Client Library")]
+        [Priority(1)]
         public void TestRcv1ModelUpdateFromStream()
         {
             joinServer.Reset();
@@ -74,6 +76,8 @@ namespace ClientDecisionServiceTest
 
         [TestMethod]
         [ExpectedException(typeof(System.Net.WebException))]
+        [TestCategory("Client Library")]
+        [Priority(1)]
         public async Task TestNoModelFoundForImmediateDownload()
         {
             // create mock blobs for settings and models
@@ -92,6 +96,8 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
+        [TestCategory("Client Library")]
+        [Priority(1)]
         public void TestModelImmediateDownload()
         {
             // create mock blobs for settings and models

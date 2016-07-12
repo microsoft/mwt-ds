@@ -22,6 +22,8 @@ namespace ClientDecisionServiceTest
     public class UploaderTest
     {
         [TestMethod]
+        [TestCategory("Client Library")]
+        [Priority(1)]
         public void TestUploaderSingleEvent()
         {
             joinServer.Reset();
@@ -48,6 +50,8 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
+        [TestCategory("Client Library")]
+        [Priority(1)]
         public void TestUploaderInvalidToken()
         {
             joinServer.Reset();
@@ -73,6 +77,8 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
+        [TestCategory("Client Library")]
+        [Priority(1)]
         public void TestUploaderInvalidServerAddress()
         {
             joinServer.Reset();
@@ -98,6 +104,8 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
+        [TestCategory("Client Library")]
+        [Priority(1)]
         public void TestUploaderInvalidConnectionString()
         {
             joinServer.Reset();
@@ -124,6 +132,8 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
+        [TestCategory("Client Library")]
+        [Priority(1)]
         public void TestUploaderInvalidExperimentalUnitDuration()
         {
             joinServer.Reset();
@@ -145,6 +155,8 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
+        [TestCategory("Client Library")]
+        [Priority(1)]
         public void TestUploaderMultipleEvents()
         {
             joinServer.Reset();
@@ -175,6 +187,8 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
+        [TestCategory("Client Library")]
+        [Priority(1)]
         public void TestUploaderThreadSafeMock()
         {
             joinServer.Reset();
