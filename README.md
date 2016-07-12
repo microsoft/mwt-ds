@@ -12,3 +12,6 @@ View our <a href="http://mwtds.azurewebsites.net/Home/Manifest">deployment notic
 <a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2FMicrosoft%2Fmwt-ds%2Fmaster%2Fprovisioning%2Fazuredeploy.json" target="_blank">
     <img src="http://armviz.io/visualizebutton.png"/>
 </a>
+
+
+[![Join the chat at https://gitter.im/Microsoft/mwt-ds](https://badges.gitter.im/Microsoft/mwt-ds.svg)](https://gitter.im/Microsoft/mwt-ds?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
