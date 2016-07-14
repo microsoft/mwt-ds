@@ -72,7 +72,7 @@
         "mode": "incremental",
         "templateLink": { "uri": "[concat(parameters('subtemplate location'), 'templates/StorageTemplate.json')]" },
         "parameters": {
-          "location": "[variables('location')]"
+          "location": { "value": "[variables('location')]" }
         }
       }
     },
@@ -154,7 +154,7 @@
         "parameters": {
           "MB/s": { "value": "[parameters('Bandwidth Required (MB/s)')]" },
           "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" },
-          "location": "[variables('location')]"
+          "location": { "value": "[variables('location')]" }
         }
       }
     },
@@ -169,7 +169,7 @@
         "parameters": {
           "MB/s": { "value": "[parameters('Bandwidth Required (MB/s)')]" },
           "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" },
-          "location": "[variables('location')]"
+          "location": { "value": "[variables('location')]" }
         }
       }
     },
@@ -189,7 +189,7 @@
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/Service_Bus').outputs.ServiceBusName.value]" },
           "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
           "partitionCount": { "value": "[variables('partitionCount')]" },
-          "location": "[variables('location')]"
+          "location": { "value": "[variables('location')]" }
         }
       }
     },
@@ -209,7 +209,7 @@
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/Service_Bus').outputs.ServiceBusName.value]" },
           "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
           "partitionCount": { "value": "[variables('partitionCount')]" },
-          "location": "[variables('location')]"
+          "location": { "value": "[variables('location')]" }
         }
       }
     },
@@ -229,7 +229,7 @@
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/Service_Bus').outputs.ServiceBusName.value]" },
           "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
           "partitionCount": { "value": "[variables('partitionCount')]" },
-          "location": "[variables('location')]"
+          "location": { "value": "[variables('location')]" }
         }
       }
     },
@@ -246,7 +246,7 @@
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/Service_Bus').outputs.ServiceBusName.value]" },
           "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
           "partitionCount": { "value": "[variables('partitionCount')]" },
-          "location": "[variables('location')]"
+          "location": { "value": "[variables('location')]" }
         }
       }
     },
@@ -261,7 +261,7 @@
         "templateLink": { "uri": "[concat(parameters('subtemplate location'), '/templates/WebEmptyTemplate.json')]" },
         "parameters": {
           "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" },
-          "location": "[variables('location')]"
+          "location": { "value": "[variables('location')]" }
         }
       }
     },
@@ -304,7 +304,7 @@
           "checkpointPolicy": { "value": "[parameters('model update interval')]" },
           "webServiceToken": { "value": "[reference('Microsoft.Resources/deployments/Web_Service_Token_Generator').outputs.FinalPassword.value]" },
           "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" },
-          "location": "[variables('location')]"
+          "location": { "value": "[variables('location')]" }
         }
       }
     },
@@ -344,7 +344,7 @@
           "partitionCount": { "value": "[parameters('Bandwidth Required (MB/s)')]" },
           "experimentalUnitDurationInSeconds": { "value": "[parameters('experimental Unit Duration (s)')]" },
           "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" },
-          "location": "[variables('location')]"
+          "location": { "value": "[variables('location')]" }
         }
       }
     },
@@ -369,7 +369,7 @@
           "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
           "partitionCount": { "value": "[parameters('Bandwidth Required (MB/s)')]" },
           "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" },
-          "location": "[variables('location')]"
+          "location": { "value": "[variables('location')]" }
         }
       }
     },
@@ -386,7 +386,7 @@
         },
         "parameters": {
           "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" },
-          "location": "[variables('location')]"
+          "location": { "value": "[variables('location')]" }
         }
       }
     },
@@ -412,7 +412,7 @@
           "onlineTrainerCspkgToken": { "value": "[reference('Microsoft.Resources/deployments/SAS_Uri_Generator').outputs.SASTokenOnlineTrainerCspkg.value]" },
           "configLink": { "value": "[concat(reference('Microsoft.Resources/deployments/Management_Center').outputs.url.value, '/Deployment/GenerateTrainerConfig?key=', reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value)]" },
           "name": { "value": "[reference('Microsoft.Resources/deployments/Online_Trainer').outputs.name.value]" },
-          "location": "[variables('location')]"
+          "location": { "value": "[variables('location')]" }
         }
       }
     }
