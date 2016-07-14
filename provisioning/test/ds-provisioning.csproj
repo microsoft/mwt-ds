@@ -260,9 +260,6 @@
     <None Include="..\templates\StreamAnalyticsJoinTemplate.json">
       <Link>templates\StreamAnalyticsJoinTemplate.json</Link>
     </None>
-    <None Include="..\templates\WebAPITemplate.json">
-      <Link>templates\WebAPITemplate.json</Link>
-    </None>
     <None Include="..\templates\WebManageTemplate.json">
       <Link>templates\WebManageTemplate.json</Link>
     </None>

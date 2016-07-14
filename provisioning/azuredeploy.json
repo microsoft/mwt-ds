@@ -60,7 +60,8 @@
   "variables": {
     "messageRetentionInDays": 7,
     "prefix": "[uniqueString(concat(subscription().subscriptionId, resourceGroup().name))]",
-    "partitionCount": "[mul(2, parameters('Bandwidth Required (MB/s)'))]"
+    "partitionCount": "[mul(2, parameters('Bandwidth Required (MB/s)'))]",
+    "location": "[resourceGroup().location]"
   },
   "resources": [
     {
@@ -69,7 +70,8 @@
       "type": "Microsoft.Resources/deployments",
       "properties": {
         "mode": "incremental",
-        "templateLink": { "uri": "[concat(parameters('subtemplate location'), 'templates/StorageTemplate.json')]" }
+        "templateLink": { "uri": "[concat(parameters('subtemplate location'), 'templates/StorageTemplate.json')]" },
+        "location": "[variables('location')]"
       }
     },
     {
@@ -148,8 +150,9 @@
         "mode": "incremental",
         "templateLink": { "uri": "[concat(parameters('subtemplate location'), '/templates/ServiceBusTemplate.json')]" },
         "parameters": {
-            "MB/s": { "value": "[parameters('Bandwidth Required (MB/s)')]" },
-          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
+          "MB/s": { "value": "[parameters('Bandwidth Required (MB/s)')]" },
+          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" },
+          "location": "[variables('location')]"
         }
       }
     },
@@ -162,8 +165,9 @@
         "mode": "incremental",
         "templateLink": { "uri": "[concat(parameters('subtemplate location'), '/templates/ServiceBusTemplate.json')]" },
         "parameters": {
-            "MB/s": { "value": "[parameters('Bandwidth Required (MB/s)')]" },
-          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
+          "MB/s": { "value": "[parameters('Bandwidth Required (MB/s)')]" },
+          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" },
+          "location": "[variables('location')]"
         }
       }
     },
@@ -182,7 +186,8 @@
           "ehName": { "value": "interaction" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/Service_Bus').outputs.ServiceBusName.value]" },
           "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
-          "partitionCount": { "value": "[variables('partitionCount')]" }
+          "partitionCount": { "value": "[variables('partitionCount')]" },
+          "location": "[variables('location')]"
         }
       }
     },
@@ -201,7 +206,8 @@
           "ehName": { "value": "observation" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/Service_Bus').outputs.ServiceBusName.value]" },
           "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
-          "partitionCount": { "value": "[variables('partitionCount')]" }
+          "partitionCount": { "value": "[variables('partitionCount')]" },
+          "location": "[variables('location')]"
         }
       }
     },
@@ -220,7 +226,8 @@
           "ehName": { "value": "joined" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/Service_Bus').outputs.ServiceBusName.value]" },
           "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
-          "partitionCount": { "value": "[variables('partitionCount')]" }
+          "partitionCount": { "value": "[variables('partitionCount')]" },
+          "location": "[variables('location')]"
         }
       }
     },
@@ -236,7 +243,8 @@
           "ehName": { "value": "eval" },
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/Service_Bus').outputs.ServiceBusName.value]" },
           "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
-          "partitionCount": { "value": "[variables('partitionCount')]" }
+          "partitionCount": { "value": "[variables('partitionCount')]" },
+          "location": "[variables('location')]"
         }
       }
     },
@@ -250,7 +258,8 @@
         "mode": "incremental",
         "templateLink": { "uri": "[concat(parameters('subtemplate location'), '/templates/WebEmptyTemplate.json')]" },
         "parameters": {
-          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
+          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" },
+          "location": "[variables('location')]"
         }
       }
     },
@@ -292,7 +301,8 @@
           "adminToken": { "value": "[reference('Microsoft.Resources/deployments/Admin_Token_Generator').outputs.FinalPassword.value]" },
           "checkpointPolicy": { "value": "[parameters('model update interval')]" },
           "webServiceToken": { "value": "[reference('Microsoft.Resources/deployments/Web_Service_Token_Generator').outputs.FinalPassword.value]" },
-          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
+          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" },
+          "location": "[variables('location')]"
         }
       }
     },
@@ -329,9 +339,10 @@
           "observationEventHub": { "value": "[reference('Microsoft.Resources/deployments/Event_Hub_Observation').outputs]" },
           "joinedEventHub": { "value": "[reference('Microsoft.Resources/deployments/Event_Hub_Joined').outputs]" },
           "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
-            "partitionCount": { "value": "[parameters('Bandwidth Required (MB/s)')]" },
+          "partitionCount": { "value": "[parameters('Bandwidth Required (MB/s)')]" },
           "experimentalUnitDurationInSeconds": { "value": "[parameters('experimental Unit Duration (s)')]" },
-          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
+          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" },
+          "location": "[variables('location')]"
         }
       }
     },
@@ -354,8 +365,9 @@
           "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/Service_Bus').outputs.ServiceBusName.value]" },
           "evalEventHub": { "value": "[reference('Microsoft.Resources/deployments/Event_Hub_Evaluation').outputs]" },
           "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
-            "partitionCount": { "value": "[parameters('Bandwidth Required (MB/s)')]" },
-          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
+          "partitionCount": { "value": "[parameters('Bandwidth Required (MB/s)')]" },
+          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" },
+          "location": "[variables('location')]"
         }
       }
     },
@@ -371,7 +383,8 @@
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
-          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" }
+          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" },
+          "location": "[variables('location')]"
         }
       }
     },
@@ -396,7 +409,8 @@
         "parameters": {
           "onlineTrainerCspkgToken": { "value": "[reference('Microsoft.Resources/deployments/SAS_Uri_Generator').outputs.SASTokenOnlineTrainerCspkg.value]" },
           "configLink": { "value": "[concat(reference('Microsoft.Resources/deployments/Management_Center').outputs.url.value, '/Deployment/GenerateTrainerConfig?key=', reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value)]" },
-          "name": { "value": "[reference('Microsoft.Resources/deployments/Online_Trainer').outputs.name.value]" }
+          "name": { "value": "[reference('Microsoft.Resources/deployments/Online_Trainer').outputs.name.value]" },
+          "location": "[variables('location')]"
         }
       }
     }

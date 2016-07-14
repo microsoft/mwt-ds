@@ -4,14 +4,15 @@
   "parameters": {
     "onlineTrainerCspkgToken": { "type": "string" },
     "configLink": { "type": "string" },
-    "name": { "type": "string" }
+    "name": { "type": "string" },
+    "location": { "type": "string" }
   },
   "resources": [
     {
       "apiVersion": "2014-06-01",
       "type": "Microsoft.ClassicCompute/domainNames",
       "name": "[parameters('name')]",
-      "location": "[resourceGroup().location]",
+      "location": "[parameters('location')]",
       "resources": [
         {
           "apiVersion": "2014-06-01",
