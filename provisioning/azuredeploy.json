@@ -70,10 +70,10 @@
       "type": "Microsoft.Resources/deployments",
       "properties": {
         "mode": "incremental",
-        "templateLink": { "uri": "[concat(parameters('subtemplate location'), 'templates/StorageTemplate.json')]" }
-      },
-      "parameters": {
-        "location": "[variables('location')]"
+        "templateLink": { "uri": "[concat(parameters('subtemplate location'), 'templates/StorageTemplate.json')]" },
+        "parameters": {
+          "location": "[variables('location')]"
+        }
       }
     },
     {
