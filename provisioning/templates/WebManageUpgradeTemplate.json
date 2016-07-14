@@ -6,7 +6,8 @@
       "type": "string",
       // maximum name length is 63 - len('mc-') = 60
       "maxLength": 60
-    }
+    },
+    "location": { "type": "string" }
   },
   "variables": {
     "hostingPlanName": "ManagementPlan",
@@ -17,7 +18,7 @@
       "apiVersion": "2015-08-01",
       "name": "[variables('siteName')]",
       "type": "Microsoft.Web/sites",
-      "location": "[resourceGroup().location]",
+      "location": "[parameters('location')]",
       "properties": {
         "serverFarmId": "[variables('hostingPlanName')]"
       },

@@ -21,7 +21,8 @@
     "streamingUnits": {
       "type": "int",
       "defaultValue": 1
-    }
+    },
+    "location": { "type": "string" }
   },
   "variables": {
     "experimentalUnitDurationPlusTimeoutInMicrosecond": "[string(mul(1000000, add(600, parameters('experimentalUnitDurationInSeconds'))))]",
@@ -32,7 +33,7 @@
       "apiVersion": "2015-10-01",
       "type": "Microsoft.StreamAnalytics/streamingjobs",
       "name": "[concat('join-', parameters('postfix'))]",
-      "location": "[resourceGroup().location]",
+      "location": "[parameters('location')]",
       "properties": {
         "sku": {
           "name": "standard"
