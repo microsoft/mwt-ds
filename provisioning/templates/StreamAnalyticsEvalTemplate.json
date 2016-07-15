@@ -18,14 +18,15 @@
     "streamingUnits": {
       "type": "int",
       "defaultValue": 1
-    }
+    },
+    "location": { "type": "string" }
   },
   "resources": [
     {
       "apiVersion": "2015-10-01",
       "type": "Microsoft.StreamAnalytics/streamingjobs",
       "name": "[concat('eval-', parameters('postfix'))]",
-      "location": "[resourceGroup().location]",
+      "location": "[parameters('location')]",
       "properties": {
         "sku": {
           "name": "standard"
