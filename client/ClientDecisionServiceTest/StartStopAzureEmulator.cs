@@ -15,6 +15,9 @@ namespace ClientDecisionServiceTest
         [AssemblyInitialize]
         public static void StartAzureBeforeAllTestsIfNotUp(Microsoft.VisualStudio.TestTools.UnitTesting.TestContext context)
         {
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("StorageConnectionString")))
+                return;
+
             if (!AzureStorageEmulatorManager.IsProcessStarted())
             {
                 AzureStorageEmulatorManager.StartStorageEmulator();
@@ -30,6 +33,9 @@ namespace ClientDecisionServiceTest
         [AssemblyCleanup]
         public static void StopAzureAfterAllTestsIfWasDown()
         {
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("StorageConnectionString")))
+                return;
+
             if (!_wasUp)
             {
                 AzureStorageEmulatorManager.StopStorageEmulator();

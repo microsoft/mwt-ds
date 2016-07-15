@@ -59,7 +59,7 @@ namespace ClientDecisionServiceTest
                     this.localAzureModelBlobUri = modelBlob.Uri.ToString();
                 }
                 else
-                    this.localAzureModelBlobUri = "http://127.0.0.1:10000/devstoreaccount1/localtestcontainer/notfoundmodel";
+                    this.localAzureModelBlobUri = NotFoundModelBlobLocation;
 
                 if (createSettingsBlob)
                 {
@@ -150,10 +150,31 @@ namespace ClientDecisionServiceTest
         private readonly string localAzureSettingsBlobName = "localtestsettingsblob";
         private readonly string localAzureModelBlobName = "localtestmodelblob";
 
-        public static readonly string StorageConnectionString = "UseDevelopmentStorage=true";
         public static string SettingsBlobUri;
         public static readonly string TestAppID = "test app";
 
-        public static readonly string RedirectionBlobLocation = "http://127.0.0.1:10000/devstoreaccount1/app-locations/{0}";
+
+        public static readonly string StorageConnectionString;
+        public static readonly string NotFoundModelBlobLocation;
+        public static readonly string RedirectionBlobLocation;
+
+        static MockCommandCenter()
+        {
+            var connectionString = Environment.GetEnvironmentVariable("StorageConnectionString");
+            if (connectionString == null)
+            {
+                // use development storage
+                StorageConnectionString = "UseDevelopmentStorage=true";
+                NotFoundModelBlobLocation = "http://127.0.0.1:10000/devstoreaccount1/localtestcontainer/notfoundmodel";
+                RedirectionBlobLocation = "http://127.0.0.1:10000/devstoreaccount1/app-locations/{0}";
+            }
+            else
+            {
+                StorageConnectionString = connectionString;
+                var account = CloudStorageAccount.Parse(connectionString);
+                NotFoundModelBlobLocation = account.BlobStorageUri.PrimaryUri + "localtestcontainer/notfoundmodel";
+                RedirectionBlobLocation = account.BlobStorageUri.PrimaryUri + "app-locations/{0}";
+            }
+        }
     }
 }
