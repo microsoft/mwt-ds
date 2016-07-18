@@ -17,8 +17,8 @@
         {
             var readOnlyStyle = item.IsEditable == true ? string.Empty : "readonly=readonly";
             <div class="form-group">
-                <label for="@item.Name" class="col-sm-2 control-label ds-label">@item.DisplayName</label>
-                <div class="col-sm-10">
+                <label for="@item.Name" class="col-sm-3 control-label ds-label">@item.DisplayName</label>
+                <div class="col-sm-9">
                     @if (item.IsSplotlightUrl == true)
                     {
                         <a id="@item.Name" style="overflow: hidden" class="btn btn-primary outline form-control helptext-on-interaction" href="@item.Url" target="_blank">@item.Value</a>
@@ -32,7 +32,7 @@
                                 case "String":
                                 case "Int32":
                                 case "Single":
-                                case "DecisionType":
+                                case "DecisionDisplayType":
                                 case "TrainFrequency":
                                     <input type="text" @readOnlyStyle style="display:inline;" class="form-control helptext-on-interaction" id="@item.Name" name="@item.Name" value="@item.Value" />
                                     break;

@@ -6,7 +6,6 @@ namespace DecisionServicePrivateWeb.Models
 {
     public class CollectiveSettingsView
     {
-        public string ApplicationId { get; set; }
         public string AzureSubscriptionId { get; set; }
         public string AzureResourceGroupName { get; set; }
         public string ApplicationInsightsInstrumentationKey { get; set; }
@@ -15,8 +14,7 @@ namespace DecisionServicePrivateWeb.Models
         public string WebApiAddress { get; set; }
         public string ASAEvalName { get; set; }
         public string ASAJoinName { get; set; }
-        public DecisionType DecisionType { get; set; }
-        public TrainFrequency TrainFrequency { get; set; }
+        public DecisionDisplayType DecisionType { get; set; }
         public string TrainArguments { get; set; }
         public string AzureStorageConnectionString { get; set; }
         public string EventHubInteractionConnectionString { get; set; }
@@ -26,6 +24,12 @@ namespace DecisionServicePrivateWeb.Models
         public bool IsExplorationEnabled { get; set; }
         public float InitialExplorationEpsilon { get; set; }
         public Dictionary<string, List<string>> NameHelpLink { get; set; }
+    }
+
+    public enum DecisionDisplayType
+    {
+        No = 1,
+        Yes
     }
 
     public class BlobModelViewModel

@@ -271,7 +271,7 @@ hr.fancy-line, hr.fancy-line:before {
 
 .btn.outline {
 	background: none;
-    max-width: 280px;
+    max-width: 400px;
 }
 .btn-primary.outline {
 	border: 2px solid #0099cc;
@@ -312,7 +312,7 @@ div.glossary {
 	    position: absolute;
         top: 80px;
         right: 60px;
-        max-width: 500px;
+        max-width: 460px;
     }
 }
 
@@ -323,4 +323,8 @@ svg.azure-icon {
     margin-left: 8px;
     vertical-align: middle;
     fill: #0099cc;
+}
+
+.helptext-on-interaction {
+    max-width: 400px;
 }
