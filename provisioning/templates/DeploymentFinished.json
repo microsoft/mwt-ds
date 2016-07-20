@@ -4,7 +4,6 @@
   "parameters": {
     "data": { "type": "object" }
   },
-
   "resources": [
     {
       "apiVersion": "2015-01-01",
