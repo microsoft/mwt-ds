@@ -31,7 +31,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             if (total == 0)
                 throw new ArgumentException("At least one probability must be positive.");
 
-            if (Math.Abs(total - 1f) > 1e-6)
+            if (Math.Abs(total - 1f) > 1e-4)
                 throw new ArgumentException("Probabilities must sum to one.");
 
             float draw = prg.UniformUnitInterval();

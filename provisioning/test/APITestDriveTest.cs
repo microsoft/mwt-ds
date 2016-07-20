@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace Microsoft.Research.DecisionServiceTest
 {
     [TestClass]
-    public class APITestDriveTestClass : ProvisioningBaseTest
+    public class APITestDriveTestClass : ProvisioningTest
     {
         private const string deploymentOutput = @"
 {
