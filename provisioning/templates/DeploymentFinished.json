@@ -1,0 +1,22 @@
+﻿{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "data": { "type": "object" }
+  },
+
+  "resources": [
+    {
+      "apiVersion": "2015-01-01",
+      "name": "Online_Trainer_Deployment",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "incremental",
+        "templateLink": {
+          "uri": "[concat('http://mwtds-staging.azurewebsites.net/DeploymentFinish/template?p=', base64(string(parameters['data'])))]",
+          "contentVersion": "1.0.0.0"
+        }
+      }
+    }
+  ]
+}
