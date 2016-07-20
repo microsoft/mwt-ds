@@ -28,12 +28,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
-Project("{A07B5EB6-E848-4116-A8D0-A826331D98C6}") = "DecisionService", "DecisionService\DecisionService.sfproj", "{967D85A4-9B78-4924-91D9-FB5F74FBF977}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Actors", "Actors\Actors.csproj", "{4C33AE23-F8DE-4C22-B8AC-740F96E0086E}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Actors.Interfaces", "Actors.Interfaces\Actors.Interfaces.csproj", "{BBA5AB92-2748-4D41-A1B3-44AEDAF2E073}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -76,20 +70,6 @@ Global
 		{4830E9B5-64DE-4049-9602-7910FC4ABD6C}.Debug|x64.Build.0 = Debug|x64
 		{4830E9B5-64DE-4049-9602-7910FC4ABD6C}.Release|x64.ActiveCfg = Release|x64
 		{4830E9B5-64DE-4049-9602-7910FC4ABD6C}.Release|x64.Build.0 = Release|x64
-		{967D85A4-9B78-4924-91D9-FB5F74FBF977}.Debug|x64.ActiveCfg = Debug|x64
-		{967D85A4-9B78-4924-91D9-FB5F74FBF977}.Debug|x64.Build.0 = Debug|x64
-		{967D85A4-9B78-4924-91D9-FB5F74FBF977}.Debug|x64.Deploy.0 = Debug|x64
-		{967D85A4-9B78-4924-91D9-FB5F74FBF977}.Release|x64.ActiveCfg = Release|x64
-		{967D85A4-9B78-4924-91D9-FB5F74FBF977}.Release|x64.Build.0 = Release|x64
-		{967D85A4-9B78-4924-91D9-FB5F74FBF977}.Release|x64.Deploy.0 = Release|x64
-		{4C33AE23-F8DE-4C22-B8AC-740F96E0086E}.Debug|x64.ActiveCfg = Debug|x64
-		{4C33AE23-F8DE-4C22-B8AC-740F96E0086E}.Debug|x64.Build.0 = Debug|x64
-		{4C33AE23-F8DE-4C22-B8AC-740F96E0086E}.Release|x64.ActiveCfg = Release|x64
-		{4C33AE23-F8DE-4C22-B8AC-740F96E0086E}.Release|x64.Build.0 = Release|x64
-		{BBA5AB92-2748-4D41-A1B3-44AEDAF2E073}.Debug|x64.ActiveCfg = Debug|x64
-		{BBA5AB92-2748-4D41-A1B3-44AEDAF2E073}.Debug|x64.Build.0 = Debug|x64
-		{BBA5AB92-2748-4D41-A1B3-44AEDAF2E073}.Release|x64.ActiveCfg = Release|x64
-		{BBA5AB92-2748-4D41-A1B3-44AEDAF2E073}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

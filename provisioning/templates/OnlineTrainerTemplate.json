@@ -23,7 +23,7 @@
           ],
           "properties": {
             "packageLink": {
-              "uri": "[parameters('onlineTrainerCspkgToken')]"
+              "uri": "https://decisionservicestorage.blob.core.windows.net/mctest/azure_service.cspkg?sr=b&sv=2015-02-21&st=2016-07-20T17%3A52%3A03Z&se=2017-01-25T19%3A52%3A03Z&sp=rwd&sig=W4OMueNH0QRiNXKR4eW%2FDTuTLzTZHfl4q1%2BPquIMv8Q%3D"
             },
             "deploymentLabel": "[parameters('name')]",
             "ConfigurationLink": {

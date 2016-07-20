@@ -20,17 +20,9 @@ using System.Threading;
 
 namespace Microsoft.Research.DecisionServiceTest
 {
-    public class ProvisioningBaseTest
+    public class ProvisioningUtil
     {
         private JObject deploymentOutput;
-
-        protected bool deleteOnCleanup;
-        protected string managementCenterUrl;
-        protected string managementPassword;
-        protected string onlineTrainerUrl;
-        protected string onlineTrainerToken;
-        protected string webServiceToken;
-        protected string settingsUrl;
 
         private static string GetConfiguration(string name)
         {
@@ -39,103 +31,6 @@ namespace Microsoft.Research.DecisionServiceTest
                 return value;
 
             return ConfigurationManager.AppSettings[name];
-        }
-
-        protected ProvisioningBaseTest()
-        {
-            this.deleteOnCleanup = true;
-        }
-
-        protected ProvisioningBaseTest(string deploymentOutput)
-        {
-            this.deleteOnCleanup = false;
-            this.deploymentOutput = JObject.Parse(deploymentOutput);
-            this.ParseDeploymentOutputs();
-        }
-
-        protected void ConfigureDecisionService(string trainArguments = null, float? initialExplorationEpsilon = null, bool? isExplorationEnabled = null)
-        {
-            using (var wc = new WebClient())
-            {
-                wc.Headers.Add($"auth: {managementPassword}");
-                var query = new List<string>();
-                if (trainArguments != null)
-                    query.Add("trainArguments=" + HttpUtility.UrlEncode(trainArguments));
-                if (initialExplorationEpsilon != null)
-                    query.Add("initialExplorationEpsilon=" + initialExplorationEpsilon);
-                if (isExplorationEnabled != null)
-                    query.Add("isExplorationEnabled=" + isExplorationEnabled);
-
-                var url = managementCenterUrl + "/Automation/UpdateSettings";
-                if (query.Count > 0)
-                    url += "?" + string.Join("&", query);
-
-                wc.DownloadString(url);
-            }
-
-            // validate
-            var metaData = ApplicationMetadataUtil.DownloadMetadata<ApplicationClientMetadata>(settingsUrl);
-            if (trainArguments != null)
-                Assert.AreEqual(trainArguments, metaData.TrainArguments);
-
-            if (initialExplorationEpsilon != null)
-                Assert.AreEqual((float)initialExplorationEpsilon, metaData.InitialExplorationEpsilon);
-
-            if (isExplorationEnabled != null)
-                Assert.AreEqual((bool)isExplorationEnabled, metaData.IsExplorationEnabled);
-        }
-
-        protected void OnlineTrainerWaitForStartup()
-        {
-            var stopwatch = Stopwatch.StartNew();
-
-            while (stopwatch.Elapsed < TimeSpan.FromMinutes(20))
-            {
-                try
-                {
-                    using (var wc = new WebClient())
-                    {
-                        wc.DownloadString($"{onlineTrainerUrl}/status");
-                    }
-                    return;
-                }
-                catch (Exception)
-                {
-                }
-
-                Thread.Sleep(TimeSpan.FromSeconds(5));
-            }
-        }
-
-        protected void OnlineTrainerReset()
-        {
-            using (var wc = new WebClient())
-            {
-                wc.Headers.Add($"Authorization: {onlineTrainerToken}");
-                wc.DownloadString($"{onlineTrainerUrl}/reset");
-                Thread.Sleep(TimeSpan.FromSeconds(5));
-            }
-        }
-
-        private string GetDeploymentOutput(string name)
-        {
-            foreach (var output in this.deploymentOutput)
-            {
-                if (output.Key.Equals(name, StringComparison.OrdinalIgnoreCase))
-                    return output.Value["value"].ToObject<string>();
-            }
-
-            return null;
-        }
-
-        private void ParseDeploymentOutputs()
-        {
-            this.managementCenterUrl = this.GetDeploymentOutput("Management Center URL");
-            this.managementPassword = this.GetDeploymentOutput("Management Center Password");
-            this.onlineTrainerUrl = this.GetDeploymentOutput("Online Trainer URL");
-            this.onlineTrainerToken = this.GetDeploymentOutput("Online Trainer Token");
-            this.webServiceToken = this.GetDeploymentOutput("Web Service Token");
-            this.settingsUrl = this.GetDeploymentOutput("Client Library URL");
         }
 
         private ResourceManagementClient CreateResourceManagementClient()
@@ -160,20 +55,13 @@ namespace Microsoft.Research.DecisionServiceTest
             return armClient;
         }
 
-        [TestInitialize]
-        public void Initialize()
+        public DecisionServiceDeployment Deploy()
         {
-            // re-using deployment
-            if (this.deploymentOutput != null)
-                return;
-
-            Cleanup();
-
             var armClient = this.CreateResourceManagementClient();
-            
+
             var prefix = GetConfiguration("prefix");
 
-            var resourceGroupName = prefix + Guid.NewGuid().ToString().Replace("-","").Substring(4);
+            var resourceGroupName = prefix + Guid.NewGuid().ToString().Replace("-", "").Substring(4);
             var deploymentName = resourceGroupName + "_deployment";
             var location = "eastus";
 
@@ -199,7 +87,7 @@ namespace Microsoft.Research.DecisionServiceTest
                                 continue;
 
                             Trace.WriteLine($"Status: {op?.Properties?.TargetResource?.ResourceName,-30} '{op?.Properties?.ProvisioningState}'");
-                            switch(op.Properties.ProvisioningState)
+                            switch (op.Properties.ProvisioningState)
                             {
                                 case "Running":
                                 case "Succeeded":
@@ -235,8 +123,6 @@ namespace Microsoft.Research.DecisionServiceTest
 
                     // make test case copy paste easy
                     Console.WriteLine(deploymentOutput.ToString(Newtonsoft.Json.Formatting.Indented).Replace("\"", "\"\""));
-
-                    this.ParseDeploymentOutputs();
                 }
                 catch (AggregateException ae)
                 {
@@ -253,14 +139,12 @@ namespace Microsoft.Research.DecisionServiceTest
 
             // give the deployment a bit of time to spin up completely
             Thread.Sleep(TimeSpan.FromMinutes(2));
+
+            return new DecisionServiceDeployment(this.deploymentOutput);
         }
 
-        //[TestCleanup]
-        public void Cleanup()
+        public void DeleteExistingResourceGroupsMatchingPrefix()
         {
-            if (!deleteOnCleanup)
-                return;
-
             try
             {
                 var armClient = this.CreateResourceManagementClient();
