@@ -440,8 +440,8 @@
         "parameters": {
           "data": {
             "value": {
-              "email": "parameters('email')",
-              "Management Center URL": "reference('Microsoft.Resources/deployments/Management_Center').outputs.url.value",
+              "email": "[parameters('email for notification')]",
+              "Management Center URL": "[reference('Microsoft.Resources/deployments/Management_Center').outputs.url.value]",
               "Resource Group URL": "[concat('https://ms.portal.azure.com/?resourceMenuPerf=true#resource',resourceGroup().id)]"
             }
           }
