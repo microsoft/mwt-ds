@@ -17,10 +17,10 @@
       "metadata": {
         "description": "degree of parallelism"
       }
-    }
+    },
+    "location": { "type": "string" }
   },
   "variables": {
-    "location": "[resourceGroup().location]",
     "apiVersion": "2015-08-01",
     "EHResourceId": "[concat(resourceId('Microsoft.ServiceBus/namespaces', parameters('serviceBusName')), '/eventHubs/', parameters('ehName'))]",
     "SendRuleResourceId": "[resourceId('Microsoft.ServiceBus/namespaces/eventhubs/authorizationRules', parameters('serviceBusName'), parameters('ehName'), 'SendOnly')]",
@@ -31,7 +31,7 @@
       "apiVersion": "[variables('apiVersion')]",
       "name": "[concat(parameters('serviceBusName'), '/', parameters('ehName'))]",
       "type": "Microsoft.ServiceBus/namespaces/eventHubs",
-      "location": "[variables('location')]",
+      "location": "[parameters('location')]",
       "properties": {
         "path": "[parameters('ehName')]",
         "MessageRetentionInDays": "[parameters('messageRetentionInDays')]",

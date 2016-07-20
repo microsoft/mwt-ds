@@ -70,7 +70,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Application Insights Instrumentation Key ::: Application Insights is a diagnostics logging service to aid with debugging the system. By default, all components of the Decision Service send detailed logs to Application Insights. To log additional information, use the displayed instrumentation key to initialize the telemetry client..
+        ///   Looks up a localized string similar to Application Insights Instrumentation Key ::: Application Insights is a diagnostics logging service to aid with debugging the system. By default, all components of the Decision Service send detailed logs to Application Insights. To log additional information, use the displayed instrumentation key to initialize the telemetry client: https://azure.microsoft.com/en-us/documentation/articles/app-insights-overview/.
         /// </summary>
         public static string ApplicationInsightsInstrumentationKey {
             get {
@@ -115,7 +115,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Azure Subscription Id ::: The Id of the Azure Subscription containing all used for this deployment..
+        ///   Looks up a localized string similar to Azure Subscription Id ::: ID of the Azure subscription used for this deployment..
         /// </summary>
         public static string AzureSubscriptionId {
             get {
@@ -124,7 +124,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Context Type ::: Whether the context uses action-dependent features or only regular features..
+        ///   Looks up a localized string similar to Actions With Features ::: Do actions come with features? Such features are called Action-Dependent Features and are included in the context. .
         /// </summary>
         public static string DecisionType {
             get {
@@ -151,7 +151,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Join Timeout (in seconds) ::: The timeout duration of the interaction-observation join that occurs in ASA..
+        ///   Looks up a localized string similar to Experimental Unit Duration (in seconds) ::: How long after a decision is all the pertinent info sent to the trainer? (Min 5; Max 518400)..
         /// </summary>
         public static string ExperimentalUnitDuration {
             get {
@@ -160,7 +160,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Initial Epsilon Exploration ::: The initial epsilon value to use in epsilon-greedy exploration when the client has not obtained a machine-learned model. Epsilon = 0 indicates no randomization while Epsilon = 1 implies uniform random.
+        ///   Looks up a localized string similar to Initial Exploration Probability ::: Probability of exploration while waiting for the first model to be deployed. Epsilon = 0 indicates no randomization while Epsilon = 1 implies uniform random.
         /// </summary>
         public static string InitialExplorationEpsilon {
             get {
@@ -196,7 +196,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Settings Blob Address ::: The address of the settings for the application..
+        ///   Looks up a localized string similar to Address For Settings ::: The address of the settings for the application..
         /// </summary>
         public static string SettingsBlobUri {
             get {
@@ -205,7 +205,7 @@ namespace DecisionServicePrivateWeb {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to VW Arguments ::: VW arguments that control training and exploration..
+        ///   Looks up a localized string similar to VW Arguments ::: VW arguments that control training and exploration. Only change this if you&apos;re sure what the flags mean in VW. For more information, refer to the wiki at https://github.com/JohnLangford/vowpal_wabbit/wiki..
         /// </summary>
         public static string TrainArguments {
             get {

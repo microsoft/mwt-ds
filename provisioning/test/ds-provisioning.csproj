@@ -230,9 +230,6 @@
     <None Include="..\templates\AppInsightsTemplate.json">
       <Link>templates\AppInsightsTemplate.json</Link>
     </None>
-    <None Include="..\templates\DecisionServiceTemplate.json">
-      <Link>templates\DecisionServiceTemplate.json</Link>
-    </None>
     <None Include="..\templates\EmptyTemplate.json">
       <Link>templates\EmptyTemplate.json</Link>
     </None>
@@ -262,9 +259,6 @@
     </None>
     <None Include="..\templates\StreamAnalyticsJoinTemplate.json">
       <Link>templates\StreamAnalyticsJoinTemplate.json</Link>
-    </None>
-    <None Include="..\templates\WebAPITemplate.json">
-      <Link>templates\WebAPITemplate.json</Link>
     </None>
     <None Include="..\templates\WebManageTemplate.json">
       <Link>templates\WebManageTemplate.json</Link>

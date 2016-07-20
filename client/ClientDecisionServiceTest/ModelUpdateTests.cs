@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
+using VW.Serializer;
 
 namespace ClientDecisionServiceTest
 {
@@ -38,7 +39,7 @@ namespace ClientDecisionServiceTest
             };
 
             using (var ds = DecisionService
-                .Create<TestRcv1Context>(dsConfig)
+                .Create<TestRcv1Context>(dsConfig, TypeInspector.Default)
                 // TODOD: .WithEpsilonGreedy(.5f)
                 .ExploitUntilModelReady(new ConstantPolicy<TestRcv1Context>(ctx => ctx.Features.Count)))
             {
