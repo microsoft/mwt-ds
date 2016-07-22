@@ -9,46 +9,18 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Research.DecisionServiceTest
 {
-    [TestClass]
-    public class SimplePolicyTestClass : ProvisioningBaseTest
+    public partial class ProvisioningTest
     {
-        private const string deploymentOutput = @"
-{
-  ""management Center URL"": {
-    ""type"": ""String"",
-    ""value"": ""https://mc-sccwor75dvlcuchl6tlbcaux42.azurewebsites.net""
-  },
-  ""management Center Password"": {
-    ""type"": ""String"",
-    ""value"": ""vmfhd4lsmxkbk""
-  },
-  ""client Library URL"": {
-    ""type"": ""String"",
-    ""value"": ""https://storagesccwor75dvlcu.blob.core.windows.net/mwt-settings/client?sv=2015-07-08&sr=b&sig=lre%2BGTE9wfgXucIR62FAY8NiQQEADgbq2x26ur3bCsA%3D&st=2016-07-11T17%3A59%3A04Z&se=2017-07-11T18%3A00%3A04Z&sp=r""
-  },
-  ""web Service Token"": {
-    ""type"": ""String"",
-    ""value"": ""57dx6h2tw464k""
-  },
-  ""online Trainer Token"": {
-    ""type"": ""String"",
-    ""value"": ""votzwbdgrkcoe""
-  },
-  ""online Trainer URL"": {
-    ""type"": ""String"",
-    ""value"": ""http://trainer-sccwor75dvlcuchl6tlbcaux42.cloudapp.net""
-  }
-}
-";
-
         private Dictionary<string, int> freq;
         private string[] features;
         private Random rnd;
         private int eventCount;
 
-        // public SimplePolicyTestClass() : base(deploymentOutput) { }
-
+        /// <summary>
+        /// Remove [Ignore] to run individually
+        /// </summary>
         [TestMethod]
+        [Ignore]
         [TestCategory("End to End")]
         [Priority(2)]
         public async Task SimplePolicyTest()

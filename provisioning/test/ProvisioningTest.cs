@@ -20,8 +20,36 @@ using System.Threading;
 
 namespace Microsoft.Research.DecisionServiceTest
 {
-    public class ProvisioningBaseTest
+    [TestClass]
+    public partial class ProvisioningTest
     {
+        [TestMethod]
+        [Ignore]
+        public void ProvisionOnlyTest()
+        {
+            this.Initialize();
+
+            Assert.IsNotNull(this.managementCenterUrl);
+            Assert.IsNotNull(this.managementPassword);
+            Assert.IsNotNull(this.onlineTrainerUrl);
+            Assert.IsNotNull(this.onlineTrainerToken);
+            Assert.IsNotNull(this.webServiceToken);
+            Assert.IsNotNull(this.settingsUrl);
+        }
+
+        [TestMethod]
+        [TestCategory("End to End")]
+        [Priority(2)]
+        public async Task AllEndToEndTests()
+        {
+            this.Initialize();
+
+            await SimplePolicyTest();
+
+            E2ERankerStochasticRewards();
+        }
+
+
         private JObject deploymentOutput;
 
         protected bool deleteOnCleanup;
@@ -41,17 +69,43 @@ namespace Microsoft.Research.DecisionServiceTest
             return ConfigurationManager.AppSettings[name];
         }
 
-        protected ProvisioningBaseTest()
+        public ProvisioningTest()
         {
-            this.deleteOnCleanup = true;
+//            string deploymentOutput = @"
+//{
+//  ""management Center URL"": {
+//    ""type"": ""String"",
+//    ""value"": ""https://mc-sccwor75dvlcuchl6tlbcaux42.azurewebsites.net""
+//  },
+//  ""management Center Password"": {
+//    ""type"": ""String"",
+//    ""value"": ""vmfhd4lsmxkbk""
+//  },
+//  ""client Library URL"": {
+//    ""type"": ""String"",
+//    ""value"": ""https://storagesccwor75dvlcu.blob.core.windows.net/mwt-settings/client?sv=2015-07-08&sr=b&sig=lre%2BGTE9wfgXucIR62FAY8NiQQEADgbq2x26ur3bCsA%3D&st=2016-07-11T17%3A59%3A04Z&se=2017-07-11T18%3A00%3A04Z&sp=r""
+//  },
+//  ""web Service Token"": {
+//    ""type"": ""String"",
+//    ""value"": ""57dx6h2tw464k""
+//  },
+//  ""online Trainer Token"": {
+//    ""type"": ""String"",
+//    ""value"": ""votzwbdgrkcoe""
+//  },
+//  ""online Trainer URL"": {
+//    ""type"": ""String"",
+//    ""value"": ""http://trainer-sccwor75dvlcuchl6tlbcaux42.cloudapp.net""
+//  }
+//}
+//";
+//            this.deploymentOutput = JObject.Parse(deploymentOutput);
+//            this.ParseDeploymentOutputs();
+
+            this.deleteOnCleanup = false;
         }
 
-        protected ProvisioningBaseTest(string deploymentOutput)
-        {
-            this.deleteOnCleanup = false;
-            this.deploymentOutput = JObject.Parse(deploymentOutput);
-            this.ParseDeploymentOutputs();
-        }
+
 
         protected void ConfigureDecisionService(string trainArguments = null, float? initialExplorationEpsilon = null, bool? isExplorationEnabled = null)
         {
@@ -160,7 +214,6 @@ namespace Microsoft.Research.DecisionServiceTest
             return armClient;
         }
 
-        [TestInitialize]
         public void Initialize()
         {
             // re-using deployment

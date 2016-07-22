@@ -14,31 +14,8 @@ using System.Net;
 namespace Microsoft.Research.DecisionServiceTest
 {
     [TestClass]
-    public class SimplePolicyHttpTestClass : ProvisioningBaseTest
+    public class SimplePolicyHttpTestClass : ProvisioningTest
     {
-        private const string deploymentOutput = @"
-{
-  ""management Center URL"": {
-    ""type"": ""String"",
-    ""value"": ""https://dmunitef1924c44cc9b28ff02c1fe6650b-mc-a5u7oqwv2xzi4.azurewebsites.net""
-  },
-  ""management Center Password"": {
-    ""type"": ""String"",
-    ""value"": ""dkqwm7lmlgipi""
-  },
-  ""client Library Url"": {
-    ""type"": ""String"",
-    ""value"": ""https://storagea5u7oqwv2xzi4.blob.core.windows.net/mwt-settings/client?sv=2015-07-08&sr=b&sig=I9W6J8HabJnjYiKilrAGLTb8Fo3yULI7raXuBohsm3M%3D&st=2016-06-20T04%3A11%3A44Z&se=2017-06-20T04%3A12%3A44Z&sp=r""
-  },
-  ""online Trainer Token"": {
-    ""type"": ""String"",
-    ""value"": ""7cbzr4zikh6ko""
-  },
-  ""online Trainer URL"": {
-    ""type"": ""String"",
-    ""value"": ""http://dmunitef1924c44cc9b28ff02c1fe6650b-trainer-a5u7oqwv2xzi4.cloudapp.net""
-  }
-}";
         private const string contextType = "policy";
 
         private Dictionary<string, int> freq;
@@ -49,7 +26,6 @@ namespace Microsoft.Research.DecisionServiceTest
         WebClient wc;
 
         public SimplePolicyHttpTestClass()
-         : base(deploymentOutput) 
         {
             wc = new WebClient();
             wc.Headers.Add("auth", managementPassword);
