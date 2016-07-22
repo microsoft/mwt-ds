@@ -121,7 +121,7 @@
     <value>Application Id ::: The name of this application, which becomes the Azure Resource Group name.</value>
   </data>
   <data name="ApplicationInsightsInstrumentationKey" xml:space="preserve">
-    <value>Application Insights Instrumentation Key ::: Application Insights is a diagnostics logging service to aid with debugging the system. By default, all components of the Decision Service send detailed logs to Application Insights. To log additional information, use the displayed instrumentation key to initialize the telemetry client.</value>
+    <value>Application Insights Instrumentation Key ::: Application Insights is a diagnostics logging service to aid with debugging the system. By default, all components of the Decision Service send detailed logs to Application Insights. To log additional information, use the displayed instrumentation key to initialize the telemetry client: https://azure.microsoft.com/en-us/documentation/articles/app-insights-overview/</value>
   </data>
   <data name="ASAEvalName" xml:space="preserve">
     <value>Azure Stream Analytics Policy Evaluation ::: Decision Service has the ability to evaluate and compare many policies retrospectively. It achieves this partly by leveraging Azure Stream Analytics to collect real-time performance results of each policy. To see how this is done, view the policy evaluation query in ASA by clicking on the arrow to the right. </value>
@@ -136,10 +136,10 @@
     <value>Azure Storage Connection String ::: Azure Storage contains all data produced and consumed by Decision Service. For example, the joined data and machine-learned models are created and stored here. The Azure Storage Connection String is needed to programmatically connect to the storage account and retrieve data. Click on the arrow to view these data from the Azure portal.</value>
   </data>
   <data name="AzureSubscriptionId" xml:space="preserve">
-    <value>Azure Subscription Id ::: The Id of the Azure Subscription containing all used for this deployment.</value>
+    <value>Azure Subscription Id ::: ID of the Azure subscription used for this deployment.</value>
   </data>
   <data name="DecisionType" xml:space="preserve">
-    <value>Context Type ::: Whether the context uses action-dependent features or only regular features.</value>
+    <value>Actions With Features ::: Do actions come with features? Such features are called Action-Dependent Features and are included in the context. </value>
   </data>
   <data name="EventHubInteractionConnectionString" xml:space="preserve">
     <value>Event Hub Interaction Connection String ::: Connection string of the Event Hub associated with ASA Join Server which accepts interaction data from the Client Library or Web Service..</value>
@@ -148,7 +148,7 @@
     <value>Event Hub Observation Connection String ::: Connection string of the Event Hub associated with ASA Join Server which accepts observation data (i.e. rewards) from the Client Library or Web Service.</value>
   </data>
   <data name="ExperimentalUnitDuration" xml:space="preserve">
-    <value>Join Timeout (in seconds) ::: The timeout duration of the interaction-observation join that occurs in ASA.</value>
+    <value>Experimental Unit Duration (in seconds) ::: How long after a decision is all the pertinent info sent to the trainer? (Min 5; Max 518400).</value>
   </data>
   <data name="IsExplorationEnabled" xml:space="preserve">
     <value>Enable Exploration ::: Whether to enable exploration in Client Library or Web Service. This is useful as a safety mechanism in case exploration results in undesired application behavior.</value>
@@ -160,10 +160,10 @@
     <value>Model to Deploy ::: The list of trained models detected in Azure Storage. The selected model will be deployed to all clients.</value>
   </data>
   <data name="SettingsBlobUri" xml:space="preserve">
-    <value>Settings Blob Address ::: The address of the settings for the application.</value>
+    <value>Address For Settings ::: The address of the settings for the application.</value>
   </data>
   <data name="TrainArguments" xml:space="preserve">
-    <value>VW Arguments ::: VW arguments that control training and exploration.</value>
+    <value>VW Arguments ::: VW arguments that control training and exploration. Only change this if you're sure what the flags mean in VW. For more information, refer to the wiki at https://github.com/JohnLangford/vowpal_wabbit/wiki.</value>
   </data>
   <data name="TrainFrequency" xml:space="preserve">
     <value>Training Frequency ::: High frequency corresponds to online training where data points are continuously used for learning. Low frequency corresponds to batch training which occurs at longer time intervals (e.g. every 5 minutes or once a day).</value>
@@ -175,6 +175,6 @@
     <value>Management Center Address ::: The address of the Management Center.</value>
   </data>
   <data name="InitialExplorationEpsilon" xml:space="preserve">
-    <value>Initial Epsilon Exploration ::: The initial epsilon value to use in epsilon-greedy exploration when the client has not obtained a machine-learned model. Epsilon = 0 indicates no randomization while Epsilon = 1 implies uniform random</value>
+    <value>Initial Exploration Probability ::: Probability of exploration while waiting for the first model to be deployed. Epsilon = 0 indicates no randomization while Epsilon = 1 implies uniform random</value>
   </data>
 </root>

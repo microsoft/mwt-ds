@@ -459,10 +459,8 @@ namespace DecisionServicePrivateWeb.Controllers
         {
             var svm = new CollectiveSettingsView
             {
-                ApplicationId = clientMetadata.ApplicationID,
                 AzureSubscriptionId = extraMetadata.SubscriptionId,
-                DecisionType = extraMetadata.DecisionType,
-                TrainFrequency = extraMetadata.TrainFrequency,
+                DecisionType = extraMetadata.DecisionType == DecisionType.SingleAction ? DecisionDisplayType.No : DecisionDisplayType.Yes,
                 TrainArguments = clientMetadata.TrainArguments,
                 AzureStorageConnectionString = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString],
                 AzureResourceGroupName = extraMetadata.AzureResourceGroupName,
