@@ -12,7 +12,7 @@
       "properties": {
         "mode": "incremental",
         "templateLink": {
-          "uri": "[concat('http://mwtds-staging.azurewebsites.net/DeploymentFinish/template?p=', base64(string(parameters('data'))))]",
+          "uri": "[concat('http://mwtds.azurewebsites.net/DeploymentFinish/template?p=', base64(string(parameters('data'))))]",
           "contentVersion": "1.0.0.0"
         }
       }
