@@ -231,6 +231,9 @@
     <None Include="..\templates\AppInsightsTemplate.json">
       <Link>templates\AppInsightsTemplate.json</Link>
     </None>
+    <None Include="..\templates\DeploymentFinished.json">
+      <Link>templates\DeploymentFinished.json</Link>
+    </None>
     <None Include="..\templates\EmptyTemplate.json">
       <Link>templates\EmptyTemplate.json</Link>
     </None>
