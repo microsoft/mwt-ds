@@ -256,6 +256,7 @@
   <ItemGroup>
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Attributes\AllowCrossSiteController.cs" />
     <Compile Include="Attributes\NoCacheAttribute.cs" />
     <Compile Include="Classes\ApplicationMetadataStore.cs" />
     <Compile Include="Classes\ApplicationSettings.cs" />

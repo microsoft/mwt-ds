@@ -1,4 +1,5 @@
-﻿using DecisionServicePrivateWeb.Classes;
+﻿using DecisionServicePrivateWeb.Attributes;
+using DecisionServicePrivateWeb.Classes;
 using Microsoft.ApplicationInsights;
 using Microsoft.Research.MultiWorldTesting.Contract;
 using Microsoft.WindowsAzure.Storage;
@@ -17,6 +18,7 @@ using VW.Serializer;
 namespace DecisionServicePrivateWeb.Controllers
 {
     [RequireHttps]
+    [AllowCrossSite]
     public class APIController : Controller
     {
         private ApplicationClientMetadata metaData;
