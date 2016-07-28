@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace Microsoft.Research.DecisionServiceTest
 {
     [TestClass]
-    public class APITestDriveTestClass : ProvisioningTest
+    public class APITestDriveTestClass
     {
         private const string deploymentOutput = @"
 {
@@ -60,6 +60,8 @@ namespace Microsoft.Research.DecisionServiceTest
         [Ignore]
         public void APITestDriveTest()
         {
+            var deployment = new ProvisioningUtil().Deploy();
+
             var locs = new[] { "Seattle", "New York" };
             var genders = new[] { "Male", "Female" };
             var industries = new[] { "Tech", "Law" };
@@ -71,9 +73,9 @@ namespace Microsoft.Research.DecisionServiceTest
 
             using (var wc = new WebClient())
             {
-                wc.Headers.Add("auth: " + this.webServiceToken);
-                var urlPolicy = $"{this.managementCenterUrl}/API/Policy";
-                var urlReward = $"{this.managementCenterUrl}/API/Reward";
+                wc.Headers.Add("auth: " + deployment.WebServiceToken);
+                var urlPolicy = $"{deployment.ManagementCenterUrl}/API/Policy";
+                var urlReward = $"{deployment.ManagementCenterUrl}/API/Reward";
 
                 for (int i = 0; i < 32*1024; i++)
                 {

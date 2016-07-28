@@ -216,9 +216,11 @@
   </Choose>
   <ItemGroup>
     <Compile Include="APITestDriveTest.cs" />
+    <Compile Include="DecisionServiceDeployment.cs" />
     <Compile Include="EndToEndOnlineTrainerTest.cs" />
-    <Compile Include="SimplePolicyHttpTest.cs" />
     <Compile Include="ProvisioningTest.cs" />
+    <Compile Include="ProvisioningUtil.cs" />
+    <Compile Include="SimplePolicyHttpTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SimplePolicyTest.cs" />
   </ItemGroup>
@@ -228,6 +230,9 @@
     </None>
     <None Include="..\templates\AppInsightsTemplate.json">
       <Link>templates\AppInsightsTemplate.json</Link>
+    </None>
+    <None Include="..\templates\DeploymentFinished.json">
+      <Link>templates\DeploymentFinished.json</Link>
     </None>
     <None Include="..\templates\EmptyTemplate.json">
       <Link>templates\EmptyTemplate.json</Link>

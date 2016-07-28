@@ -14,7 +14,7 @@ using System.Net;
 namespace Microsoft.Research.DecisionServiceTest
 {
     [TestClass]
-    public class SimplePolicyHttpTestClass : ProvisioningTest
+    public class SimplePolicyHttpTestClass
     {
         private const string contextType = "policy";
 
@@ -27,8 +27,7 @@ namespace Microsoft.Research.DecisionServiceTest
 
         public SimplePolicyHttpTestClass()
         {
-            wc = new WebClient();
-            wc.Headers.Add("auth", managementPassword);
+
         }
 
         [TestMethod]
@@ -37,12 +36,17 @@ namespace Microsoft.Research.DecisionServiceTest
         [Priority(2)]
         public void SimplePolicyHttpTest()
         {
-            this.ConfigureDecisionService("--cb_explore 4 --epsilon 1", initialExplorationEpsilon: 1, isExplorationEnabled: true);
+            var deployment = new ProvisioningUtil().Deploy();
+
+            wc = new WebClient();
+            wc.Headers.Add("auth", deployment.ManagementPassword);
+
+            deployment.ConfigureDecisionService("--cb_explore 4 --epsilon 1", initialExplorationEpsilon: 1, isExplorationEnabled: true);
             Thread.Sleep(TimeSpan.FromSeconds(5));
 
             // 4 Actions
             // why does this need to be different from default?
-            var config = new DecisionServiceConfiguration(settingsUrl)
+            var config = new DecisionServiceConfiguration(deployment.SettingsUrl)
             {
                 InteractionUploadConfiguration = new BatchingConfiguration
                 {
@@ -61,7 +65,7 @@ namespace Microsoft.Research.DecisionServiceTest
             this.rnd = new Random(123);
 
             // reset the model
-            this.OnlineTrainerReset();
+            deployment.OnlineTrainerReset();
 
             Console.WriteLine("Waiting after reset...");
             Thread.Sleep(TimeSpan.FromSeconds(2));
@@ -71,7 +75,7 @@ namespace Microsoft.Research.DecisionServiceTest
             for (int i = 0; i < 1000; i++)
             {
                 int featureIndex = i % features.Length;
-                expectedEvents += SendEvents(wc, featureIndex);
+                expectedEvents += SendEvents(deployment, wc, featureIndex);
             }
             // Thread.Sleep(500);                        
             // TODO: flush doesn't work
@@ -90,7 +94,7 @@ namespace Microsoft.Research.DecisionServiceTest
 
             freq.Clear();
 
-            this.ConfigureDecisionService("--cb_explore 4 --epsilon 0", initialExplorationEpsilon: 1, isExplorationEnabled: false);
+            deployment.ConfigureDecisionService("--cb_explore 4 --epsilon 0", initialExplorationEpsilon: 1, isExplorationEnabled: false);
             Thread.Sleep(TimeSpan.FromSeconds(5));
 
             // check here to make sure model was updated
@@ -99,7 +103,7 @@ namespace Microsoft.Research.DecisionServiceTest
             for (int i = 0; i < 1000; i++)
             {
                 var featureIndex = i % features.Length;
-                expectedEvents += SendEvents(wc, featureIndex, false);
+                expectedEvents += SendEvents(deployment, wc, featureIndex, false);
             }
 
             total = freq.Values.Sum();
@@ -126,9 +130,9 @@ namespace Microsoft.Research.DecisionServiceTest
             public string Feature { get; set; }
         }
 
-        public JObject InteractionParts1and2(string contextType, string contextString)
+        public JObject InteractionParts1and2(DecisionServiceDeployment deployment, string contextType, string contextString)
         {
-            string contextUri = string.Format(CultureInfo.InvariantCulture, "{0}/API/{1}", managementCenterUrl, contextType);
+            string contextUri = string.Format(CultureInfo.InvariantCulture, "{0}/API/{1}", deployment.ManagementCenterUrl, contextType);
             byte[] context = System.Text.Encoding.ASCII.GetBytes(contextString);
             var response = wc.UploadData(contextUri, "POST", context);
             var utf8response = UnicodeEncoding.UTF8.GetString(response);
@@ -136,10 +140,10 @@ namespace Microsoft.Research.DecisionServiceTest
             return responseJObj;
         }
 
-        public string InteractionPart3(JObject responseJObj, float reward)
+        public string InteractionPart3(DecisionServiceDeployment deployment, JObject responseJObj, float reward)
         {
             string eventID = (string)responseJObj["EventId"];
-            string rewardUri = string.Format(CultureInfo.InvariantCulture, "{0}/API/reward/?eventId={1}", managementCenterUrl, eventID);
+            string rewardUri = string.Format(CultureInfo.InvariantCulture, "{0}/API/reward/?eventId={1}", deployment.ManagementCenterUrl, eventID);
             string rewardString = reward.ToString();
             byte[] rewardBytes = System.Text.Encoding.ASCII.GetBytes(rewardString);
             var response = wc.UploadData(rewardUri, "POST", rewardBytes);
@@ -147,13 +151,13 @@ namespace Microsoft.Research.DecisionServiceTest
             return utf8response;
         }
 
-        private int SendEvents(WebClient client, int featureIndex, bool sendReward = true)
+        private int SendEvents(DecisionServiceDeployment deployment, WebClient client, int featureIndex, bool sendReward = true)
         {
             const float reward = 2.0F;
 
             var expectedEvents = 0;
             string contextString = $"{{a: \"{features[featureIndex]}\"}}";
-            var responseJObj = InteractionParts1and2(contextType, contextString);
+            var responseJObj = InteractionParts1and2(deployment, contextType, contextString);
             int action = (int)responseJObj["Action"];
 
             // Feature | Action
@@ -164,7 +168,7 @@ namespace Microsoft.Research.DecisionServiceTest
             // only report in 50% of the cases
             if (sendReward && rnd.NextDouble() < .75 && action - 1 == featureIndex)
             {
-                InteractionPart3(responseJObj, reward);
+                InteractionPart3(deployment, responseJObj, reward);
                 expectedEvents = 1;
             }
 

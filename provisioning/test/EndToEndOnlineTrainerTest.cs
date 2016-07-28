@@ -10,41 +10,34 @@ using System.Threading;
 
 namespace Microsoft.Research.DecisionServiceTest
 {
-    public partial class ProvisioningTest
+    public class EndToEndOnlineTrainerTest
     {
-        /// <summary>
-        /// Remove [Ignore] to run individually
-        /// </summary>
-        [TestMethod]
-        [Ignore]
-        [TestCategory("End to End")]
-        [Priority(2)]
-        public void E2ERankerStochasticRewards()
+        public void E2ERankerStochasticRewards(DecisionServiceDeployment deployment)
         {
             // Create configuration for the decision service
             float initialEpsilon = .5f;
 
-            this.ConfigureDecisionService(trainArguments: "--cb_explore_adf --cb_type dr -q :: --epsilon 0.2", initialExplorationEpsilon: initialEpsilon);
+            deployment.ConfigureDecisionService(trainArguments: "--cb_explore_adf --cb_type dr -q :: --epsilon 0.2", initialExplorationEpsilon: initialEpsilon);
 
-            string settingsBlobUri = this.settingsUrl;
+            string settingsBlobUri = deployment.SettingsUrl;
 
-            this.OnlineTrainerWaitForStartup();
+            deployment.OnlineTrainerWaitForStartup();
 
-            float percentCorrect = UploadFoodContextData(settingsBlobUri, firstPass: true);
+            float percentCorrect = UploadFoodContextData(deployment, settingsBlobUri, firstPass: true);
             Assert.IsTrue(percentCorrect < initialEpsilon);
 
-            percentCorrect = UploadFoodContextData(settingsBlobUri, firstPass: false);
+            percentCorrect = UploadFoodContextData(deployment, settingsBlobUri, firstPass: false);
             Assert.IsTrue(percentCorrect > .8f);
         }
 
-        private float UploadFoodContextData(string settingsBlobUri, bool firstPass)
+        private float UploadFoodContextData(DecisionServiceDeployment deployment, string settingsBlobUri, bool firstPass)
         {
             var serviceConfig = new DecisionServiceConfiguration(settingsBlobUri);
 
             if (firstPass)
             {
                 serviceConfig.PollingForModelPeriod = TimeSpan.MinValue;
-                this.OnlineTrainerReset();
+                deployment.OnlineTrainerReset();
             }
 
             using (var service = DecisionService.Create<FoodContext>(serviceConfig))
