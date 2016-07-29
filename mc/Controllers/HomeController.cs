@@ -26,7 +26,6 @@ namespace DecisionServicePrivateWeb.Controllers
 
         const string SKClientSettingsBlob = "ClientSettingsBlob";
         internal const string SKExtraSettingsBlob = "ExtraSettingsBlob";
-        const string SKEvalContainer = "EvalContainer";
 
         const string SKClientSettings = "ClientSettings";
         const string SKExtraSettings = "ExtraSettings";
@@ -57,7 +56,6 @@ namespace DecisionServicePrivateWeb.Controllers
 
                     Session[SKClientSettingsBlob] = settingsBlobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestClientSettingsBlobName);
                     Session[SKExtraSettingsBlob] = settingsBlobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestExtraSettingsBlobName);
-                    Session[SKEvalContainer] = blobClient.GetContainerReference(ApplicationBlobConstants.OfflineEvalContainerName);
 
                     return Redirect(Url.Action("Settings"));
                 }
@@ -267,7 +265,11 @@ namespace DecisionServicePrivateWeb.Controllers
                 var policyRegex = "Constant Policy (.*)";
                 var regex = new Regex(policyRegex);
 
-                var evalContainer = (CloudBlobContainer)Session[SKEvalContainer];
+                string azureStorageConnectionString = ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString];
+                var storageAccount = CloudStorageAccount.Parse(azureStorageConnectionString);
+                var blobClient = storageAccount.CreateCloudBlobClient();
+                var evalContainer = blobClient.GetContainerReference(ApplicationBlobConstants.OfflineEvalContainerName);
+
                 if (!evalContainer.Exists())
                 {
                     return Json(new { DataError = "No evaluation data detected", TrainerStatus = trainerStatus }, JsonRequestBehavior.AllowGet);
