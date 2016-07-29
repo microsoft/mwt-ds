@@ -78,7 +78,7 @@
             "[resourceId('Microsoft.Web/Sites/config', variables('siteName'), 'appsettings')]"
           ],
           "properties": {
-            "RepoUrl": "https://github.com/Microsoft/mwt-ds.git",
+            "RepoUrl": "https://github.com/eisber/mwt-ds.git",
             "branch": "master",
             "IsManualIntegration": true
           }
