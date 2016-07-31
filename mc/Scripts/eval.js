@@ -26,12 +26,13 @@
                 chart.xAxis.axisLabel("Time");
                 chart.yAxis.axisLabel("Average Reward");
 
-                if (response == null || response.Data == null) {
+                if (response == null) {
                     response = { Data: [] };
                 }
                 else {
                     if (response.DataError) {
                         $('#eval-chart-status').text(response.DataError);
+                        response.Data = [];
                     }
                     $("#statusTrainer").text(response.TrainerStatus + " (Last updated at: " + moment().format('MMMM Do YYYY, h:mm:ss a') + ")");
                     if ($('#statusModel').length) {
