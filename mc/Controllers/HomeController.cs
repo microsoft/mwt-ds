@@ -32,6 +32,8 @@ namespace DecisionServicePrivateWeb.Controllers
 
         const string DefaultEvalWindow = "6d";
 
+        private static string LastEvalDataSignature;
+
         [HttpGet]
         public ActionResult Index()
         {
@@ -211,20 +213,20 @@ namespace DecisionServicePrivateWeb.Controllers
         [HttpGet]
         [AllowAnonymous]
         [NoCache]
-        public ActionResult EvalJson(string windowType = DefaultEvalWindow, int maxNumPolicies = 5)
+        public ActionResult EvalJson(string windowType = DefaultEvalWindow, int maxNumPolicies = 5, bool useCache = true)
         {
             if (!IsAuthenticated(Session))
             {
                 return new HttpStatusCodeResult(HttpStatusCode.Unauthorized);
             }
 
-            return GetEvalData(windowType, maxNumPolicies);
+            return GetEvalData(windowType, maxNumPolicies, useCache: useCache);
         }
 
         [HttpGet]
         [AllowAnonymous]
         [NoCache]
-        public ActionResult EvalJsonAPI(string userToken, string windowType = DefaultEvalWindow, int maxNumPolicies = 5)
+        public ActionResult EvalJsonAPI(string userToken, string windowType = DefaultEvalWindow, int maxNumPolicies = 5, bool useCache = true)
         {
             if (userToken != ConfigurationManager.AppSettings[ApplicationMetadataStore.AKWebServiceToken])
             {
@@ -255,10 +257,10 @@ namespace DecisionServicePrivateWeb.Controllers
                 }
             }
 
-            return GetEvalData(windowType, maxNumPolicies, trainerStatus);
+            return GetEvalData(windowType, maxNumPolicies, trainerStatus, useCache: useCache);
         }
 
-        private ActionResult GetEvalData(string windowType, int maxNumPolicies, string trainerStatus = null)
+        private ActionResult GetEvalData(string windowType, int maxNumPolicies, string trainerStatus = null, bool useCache = true)
         {
             try
             {
@@ -274,42 +276,49 @@ namespace DecisionServicePrivateWeb.Controllers
                 {
                     return Json(new { DataError = "No evaluation data detected", TrainerStatus = trainerStatus }, JsonRequestBehavior.AllowGet);
                 }
-                var evalBlobs = evalContainer.ListBlobs(useFlatBlobListing: true);
+                var evalBlobs = evalContainer.ListBlobs(useFlatBlobListing: true).OfType<CloudBlockBlob>();
                 var evalData = new Dictionary<string, EvalD3>();
-                foreach (var evalBlob in evalBlobs)
+
+                var currentEvalDataSignature = string.Join(string.Empty, evalBlobs.Select(b => b.Properties.ETag).OrderBy(etag => etag)) + evalBlobs.Sum(b => b.Properties.Length);
+
+                if (currentEvalDataSignature == LastEvalDataSignature && useCache)
                 {
-                    // TODO: cache or optimize perf
-                    var evalBlockBlob = (CloudBlockBlob)evalBlob;
-                    if (evalBlockBlob != null)
+                    return Json(new { DataError = HttpStatusCode.NotModified, TrainerStatus = trainerStatus, ModelUpdateTime = APIController.ModelUpdateTime }, JsonRequestBehavior.AllowGet);
+                }
+                else
+                {
+                    LastEvalDataSignature = currentEvalDataSignature;
+                }
+
+                foreach (var evalBlockBlob in evalBlobs)
+                {
+                    var evalTextData = evalBlockBlob.DownloadText();
+                    var evalLines = evalTextData.Split(new string[] { "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var l in evalLines)
                     {
-                        var evalTextData = evalBlockBlob.DownloadText();
-                        var evalLines = evalTextData.Split(new string[] { "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
-                        foreach (var l in evalLines)
+                        var evalResult = JsonConvert.DeserializeObject<EvalResult>(l);
+                        if (evalResult.WindowType != windowType)
                         {
-                            var evalResult = JsonConvert.DeserializeObject<EvalResult>(l);
-                            if (evalResult.WindowType != windowType)
-                            {
-                                continue;
-                            }
-                            string policyNumber = regex.Match(evalResult.PolicyName).Groups[1].Value;
-                            int policyNumberInt;
-                            if (int.TryParse(policyNumber, out policyNumberInt) && policyNumberInt > maxNumPolicies)
-                            {
-                                continue;
-                            }
-                            if (!evalData.ContainsKey(evalResult.PolicyName))
-                            {
-                                evalData.Add(evalResult.PolicyName, new EvalD3 { key = evalResult.PolicyName, values = new Dictionary<DateTime, float>() });
-                            }
-                            var timeToReward = evalData[evalResult.PolicyName].values;
-                            if (timeToReward.ContainsKey(evalResult.LastWindowTime))
-                            {
-                                timeToReward[evalResult.LastWindowTime] = -evalResult.AverageCost;
-                            }
-                            else
-                            {
-                                timeToReward.Add(evalResult.LastWindowTime, -evalResult.AverageCost);
-                            }
+                            continue;
+                        }
+                        string policyNumber = regex.Match(evalResult.PolicyName).Groups[1].Value;
+                        int policyNumberInt;
+                        if (int.TryParse(policyNumber, out policyNumberInt) && policyNumberInt > maxNumPolicies)
+                        {
+                            continue;
+                        }
+                        if (!evalData.ContainsKey(evalResult.PolicyName))
+                        {
+                            evalData.Add(evalResult.PolicyName, new EvalD3 { key = evalResult.PolicyName, values = new Dictionary<DateTime, float>() });
+                        }
+                        var timeToReward = evalData[evalResult.PolicyName].values;
+                        if (timeToReward.ContainsKey(evalResult.LastWindowTime))
+                        {
+                            timeToReward[evalResult.LastWindowTime] = -evalResult.AverageCost;
+                        }
+                        else
+                        {
+                            timeToReward.Add(evalResult.LastWindowTime, -evalResult.AverageCost);
                         }
                     }
                 }
