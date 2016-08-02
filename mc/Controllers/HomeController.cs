@@ -411,6 +411,8 @@ namespace DecisionServicePrivateWeb.Controllers
 
             CollectiveSettingsView svm = CreateCollectiveSettings(clientMetadata, extraMetadata, uniqueStringInUrl);
 
+            string trainerId = Regex.Match(svm.OnlineTrainerAddress, @".*(trainer-.*)\.cloudapp\.net").Groups[1].Value;
+
             string azureStorageName = Regex.Match(svm.AzureStorageConnectionString, ".*AccountName=(.*);AccountKey.*").Groups[1].Value;
 
             var nameToValue = svm.GetType().GetProperties()
@@ -427,7 +429,7 @@ namespace DecisionServicePrivateWeb.Controllers
                 new { Name = nameof(svm.ApplicationInsightsInstrumentationKey), Tooltip = "View Application Logs", Url = $"https://ms.portal.azure.com/#blade/AppInsightsExtension/SearchBlade/ComponentId/%7B%22SubscriptionId%22%3A%22d65ae8da-b9bf-4839-9659-4f3c6f8727f7%22%2C%22ResourceGroup%22%3A%22{svm.AzureResourceGroupName}%22%2C%22Name%22%3A%22appinsights-{uniqueStringInUrl}%22%7D/InitialFilter/%7B%22eventTypes%22%3A%5B4%2C1%2C3%2C5%2C2%2C6%5D%2C%22typeFacets%22%3A%7B%7D%2C%22isPermissive%22%3Afalse%7D/InitialTime/%7B%22durationMs%22%3A86400000%2C%22createdTime%22%3A%222016-08-01T21%3A10%3A29.532Z%22%2C%22isInitialTime%22%3Afalse%2C%22grain%22%3A1%2C%22useDashboardTimeRange%22%3Afalse%7D/InitialQueryText//ConfigurationId/blankSearch%3A"},
                 new { Name = nameof(svm.ASAJoinName), Tooltip = "View ASA Join Query", Url = $"https://ms.portal.azure.com/#resource/subscriptions/{svm.AzureSubscriptionId}/resourceGroups/{svm.AzureResourceGroupName}/providers/Microsoft.StreamAnalytics/streamingjobs/{svm.ASAJoinName}/overview"},
                 new { Name = nameof(svm.ASAEvalName), Tooltip = "View ASA Policy Evaluation Query", Url = $"https://ms.portal.azure.com/#resource/subscriptions/{svm.AzureSubscriptionId}/resourceGroups/{svm.AzureResourceGroupName}/providers/Microsoft.StreamAnalytics/streamingjobs/{svm.ASAEvalName}/overview"},
-                new { Name = nameof(svm.OnlineTrainerAddress), Tooltip = "Configure Online Trainer", Url = $"https://ms.portal.azure.com/#resource/subscriptions/{svm.AzureSubscriptionId}/resourceGroups/{svm.AzureResourceGroupName}/providers/Microsoft.ClassicCompute/domainNames/trainer-{uniqueStringInUrl}/overview"}
+                new { Name = nameof(svm.OnlineTrainerAddress), Tooltip = "Configure Online Trainer", Url = $"https://ms.portal.azure.com/#resource/subscriptions/{svm.AzureSubscriptionId}/resourceGroups/{svm.AzureResourceGroupName}/providers/Microsoft.ClassicCompute/domainNames/{trainerId}/overview"}
             };
             var nameToEditable = new[]
             {
