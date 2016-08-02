@@ -287,45 +287,45 @@ namespace DecisionServicePrivateWeb.Controllers
                 }
                 else
                 {
-                    LastEvalDataSignature = currentEvalDataSignature;
-                }
-
-                foreach (var evalBlockBlob in evalBlobs)
-                {
-                    var evalTextData = evalBlockBlob.DownloadText();
-                    var evalLines = evalTextData.Split(new string[] { "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
-                    foreach (var l in evalLines)
+                    foreach (var evalBlockBlob in evalBlobs)
                     {
-                        var evalResult = JsonConvert.DeserializeObject<EvalResult>(l);
-                        if (evalResult.WindowType != windowType)
+                        var evalTextData = evalBlockBlob.DownloadText();
+                        var evalLines = evalTextData.Split(new string[] { "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+                        foreach (var l in evalLines)
                         {
-                            continue;
-                        }
-                        string policyNumber = regex.Match(evalResult.PolicyName).Groups[1].Value;
-                        int policyNumberInt;
-                        if (int.TryParse(policyNumber, out policyNumberInt) && policyNumberInt > maxNumPolicies)
-                        {
-                            continue;
-                        }
-                        if (!evalData.ContainsKey(evalResult.PolicyName))
-                        {
-                            evalData.Add(evalResult.PolicyName, new EvalD3 { key = evalResult.PolicyName, values = new Dictionary<DateTime, float>() });
-                        }
-                        var timeToReward = evalData[evalResult.PolicyName].values;
-                        if (timeToReward.ContainsKey(evalResult.LastWindowTime))
-                        {
-                            timeToReward[evalResult.LastWindowTime] = -evalResult.AverageCost;
-                        }
-                        else
-                        {
-                            timeToReward.Add(evalResult.LastWindowTime, -evalResult.AverageCost);
+                            var evalResult = JsonConvert.DeserializeObject<EvalResult>(l);
+                            if (evalResult.WindowType != windowType)
+                            {
+                                continue;
+                            }
+                            string policyNumber = regex.Match(evalResult.PolicyName).Groups[1].Value;
+                            int policyNumberInt;
+                            if (int.TryParse(policyNumber, out policyNumberInt) && policyNumberInt > maxNumPolicies)
+                            {
+                                continue;
+                            }
+                            if (!evalData.ContainsKey(evalResult.PolicyName))
+                            {
+                                evalData.Add(evalResult.PolicyName, new EvalD3 { key = evalResult.PolicyName, values = new Dictionary<DateTime, float>() });
+                            }
+                            var timeToReward = evalData[evalResult.PolicyName].values;
+                            if (timeToReward.ContainsKey(evalResult.LastWindowTime))
+                            {
+                                timeToReward[evalResult.LastWindowTime] = -evalResult.AverageCost;
+                            }
+                            else
+                            {
+                                timeToReward.Add(evalResult.LastWindowTime, -evalResult.AverageCost);
+                            }
                         }
                     }
+
+                    var evalDataD3 = evalData.Values.Select(a => new { key = GetDemoPolicyName(a.key), values = a.values.Select(v => new object[] { v.Key, v.Value }) });
+
+                    LastEvalDataSignature = currentEvalDataSignature;
+
+                    return Json(new { Data = evalDataD3, TrainerStatus = trainerStatus, ModelUpdateTime = APIController.ModelUpdateTime }, JsonRequestBehavior.AllowGet);
                 }
-
-                var evalDataD3 = evalData.Values.Select(a => new { key = GetDemoPolicyName(a.key), values = a.values.Select(v => new object[] { v.Key, v.Value }) });
-
-                return Json(new { Data = evalDataD3, TrainerStatus = trainerStatus, ModelUpdateTime = APIController.ModelUpdateTime }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
