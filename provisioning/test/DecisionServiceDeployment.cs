@@ -109,9 +109,16 @@ namespace Microsoft.Research.DecisionServiceTest
         {
             using (var wc = new WebClient())
             {
-                wc.Headers.Add($"Authorization: {OnlineTrainerToken}");
-                wc.DownloadString($"{OnlineTrainerUrl}/reset");
-                Thread.Sleep(TimeSpan.FromSeconds(5));
+                try
+                {
+                    wc.Headers.Add($"Authorization: {OnlineTrainerToken}");
+                    wc.DownloadString($"{OnlineTrainerUrl}/reset");
+                    Thread.Sleep(TimeSpan.FromSeconds(5));
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
             }
         }
     }

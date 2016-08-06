@@ -24,6 +24,7 @@ namespace Microsoft.Research.DecisionServiceTest
     public partial class ProvisioningTest
     {
         [TestMethod]
+        [Priority(2)]
         public void ProvisionOnlyTest()
         {
             var deployment = new ProvisioningUtil().Deploy();
@@ -39,44 +40,51 @@ namespace Microsoft.Research.DecisionServiceTest
         [TestMethod]
         [TestCategory("End to End")]
         [Priority(2)]
-        public async Task AllEndToEndTests()
+        public async Task EndToEnd_Simple()
         {
             var util = new ProvisioningUtil();
             util.DeleteExistingResourceGroupsMatchingPrefix();
             var deployment = util.Deploy();
 
-//            var deployment = new DecisionServiceDeployment(@"
-//{
-//  ""management Center URL"": {
-//    ""type"": ""String"",
-//    ""value"": ""https://mc-4hpayb6zim2wq5halapiweb5hi.azurewebsites.net""
-//  },
-//  ""management Center Password"": {
-//    ""type"": ""String"",
-//    ""value"": ""2w7yf5bg6rr3i""
-//  },
-//  ""client Library URL"": {
-//    ""type"": ""String"",
-//    ""value"": ""https://storage4hpayb6zim2wq.blob.core.windows.net/mwt-settings/client?sv=2015-12-11&sr=b&sig=gYdEzTNtNae84zgSQ8ilj40JWZ5HD0NaDZorF1RCK1I%3D&st=2016-07-21T13%3A23%3A24Z&se=2017-07-21T13%3A24%3A24Z&sp=r""
-//  },
-//  ""web Service Token"": {
-//    ""type"": ""String"",
-//    ""value"": ""3fgum25ihcnz4""
-//  },
-//  ""online Trainer Token"": {
-//    ""type"": ""String"",
-//    ""value"": ""q47zpo4kz76xc""
-//  },
-//  ""online Trainer URL"": {
-//    ""type"": ""String"",
-//    ""value"": ""http://trainer-4hpayb6zim2wq5halapiweb5hi.cloudapp.net""
-//  }
-//}
-//");
+            //            var deployment = new DecisionServiceDeployment(@"
+            //            {
+            //  ""management Center URL"": {
+            //    ""type"": ""String"",
+            //    ""value"": ""https://mc-l6bzp222nonnslkr2h7lahyo2k.azurewebsites.net""
+            //  },
+            //  ""management Center Password"": {
+            //    ""type"": ""String"",
+            //    ""value"": ""t26uhzni7gf3g""
+            //  },
+            //  ""client Library URL"": {
+            //    ""type"": ""String"",
+            //    ""value"": ""https://storagel6bzp222nonns.blob.core.windows.net/mwt-settings/client?sv=2015-12-11&sr=b&sig=%2BaC%2FQAQdceavnQzGac7d8NwQDpIqCmPWKrT4sNrIASs%3D&st=2016-08-01T22%3A39%3A42Z&se=2017-08-01T22%3A40%3A42Z&sp=r""
+            //  },
+            //  ""web Service Token"": {
+            //    ""type"": ""String"",
+            //    ""value"": ""3pmfcjtevpcns""
+            //  },
+            //  ""online Trainer Token"": {
+            //    ""type"": ""String"",
+            //    ""value"": ""5a6cgj6753342""
+            //  },
+            //  ""online Trainer URL"": {
+            //    ""type"": ""String"",
+            //    ""value"": ""http://trainer-l6bzp222nonnslkr2h7lahyo2k.cloudapp.net""
+            //  }
+            //}");
 
             await new SimplePolicyTestClass().SimplePolicyTest(deployment);
+        }
 
-            deployment.OnlineTrainerReset();
+        [TestMethod]
+        [TestCategory("End to End")]
+        [Priority(2)]
+        public async Task EndToEnd_ADF()
+        {
+            var util = new ProvisioningUtil();
+            util.DeleteExistingResourceGroupsMatchingPrefix();
+            var deployment = util.Deploy();
 
             new EndToEndOnlineTrainerTest().E2ERankerStochasticRewards(deployment);
         }
