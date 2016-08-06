@@ -74,7 +74,7 @@ namespace Microsoft.Research.DecisionServiceTest
 
             freq.Clear();
 
-            await Task.Delay(TimeSpan.FromSeconds(30));
+            await Task.Delay(TimeSpan.FromMinutes(2));
 
             // TODO: update eps: 0
             using (var client = Microsoft.Research.MultiWorldTesting.ClientLibrary.DecisionService.Create<MyContext>(config))
