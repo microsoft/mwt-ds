@@ -6,14 +6,14 @@ using VW.Serializer;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    internal class VWPolicy<TContext> 
+    public class VWPolicy<TContext> 
         : VWBaseContextMapper<VowpalWabbitThreadedPrediction<TContext>, VowpalWabbit<TContext>, TContext, int>, IPolicy<TContext>
     {
         /// <summary>
         /// Constructor using a memory stream.
         /// </summary>
         /// <param name="vwModelStream">The VW model memory stream.</param>
-        internal VWPolicy(Stream vwModelStream = null, ITypeInspector typeInspector = null, bool developmentMode = false)
+        public VWPolicy(Stream vwModelStream = null, ITypeInspector typeInspector = null, bool developmentMode = false)
             : base(vwModelStream, typeInspector, developmentMode)
         {
         }

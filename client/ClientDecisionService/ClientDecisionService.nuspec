@@ -32,6 +32,10 @@
     <file src="$SolutionDir$bin\x64\$Configuration$\Microsoft.Research.MultiWorldTesting.ClientLibrary.pdb" target="lib\net45" />
     <file src="$SolutionDir$bin\x64\$Configuration$\Microsoft.Research.MultiWorldTesting.ClientLibrary.xml" target="lib\net45" />
 
+    <file src="$SolutionDir$bin\x64\$Configuration$\Microsoft.Research.MultiWorldTesting.ClientLibrary.VowpalWabbit.dll" target="lib\net45" />
+    <file src="$SolutionDir$bin\x64\$Configuration$\Microsoft.Research.MultiWorldTesting.ClientLibrary.VowpalWabbit.pdb" target="lib\net45" />
+    <file src="$SolutionDir$bin\x64\$Configuration$\Microsoft.Research.MultiWorldTesting.ClientLibrary.VowpalWabbit.xml" target="lib\net45" />
+
     <file src="$SolutionDir$bin\AnyCPU\$Configuration$\Microsoft.Research.MultiWorldTesting.ExploreLibrary.dll" target="lib\net45" />
     <file src="$SolutionDir$bin\AnyCPU\$Configuration$\Microsoft.Research.MultiWorldTesting.ExploreLibrary.pdb" target="lib\net45" />
     <file src="$SolutionDir$bin\AnyCPU\$Configuration$\Microsoft.Research.MultiWorldTesting.ExploreLibrary.xml" target="lib\net45" />

@@ -11,11 +11,11 @@ using VW.Serializer;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    internal sealed class VWJsonExplorer :
+    public sealed class VWJsonExplorer :
         VWBaseContextMapper<VowpalWabbitThreadedPrediction, VowpalWabbit, string, ActionProbability[]>, 
         IContextMapper<string, ActionProbability[]>, INumberOfActionsProvider<string>
     {
-        internal VWJsonExplorer(Stream vwModelStream = null, bool developmentMode = false)
+        public VWJsonExplorer(Stream vwModelStream = null, bool developmentMode = false)
             : base(vwModelStream, developmentMode: developmentMode)
         {
         }
