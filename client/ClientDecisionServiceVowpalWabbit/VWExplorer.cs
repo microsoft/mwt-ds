@@ -11,7 +11,7 @@ using VW.Serializer;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    internal sealed class VWExplorer<TContext> :
+    public sealed class VWExplorer<TContext> :
         VWBaseContextMapper<VowpalWabbitThreadedPrediction<TContext>, VowpalWabbit<TContext>, TContext, ActionProbability[]>,
         IContextMapper<TContext, ActionProbability[]>, INumberOfActionsProvider<TContext>
     {
@@ -22,7 +22,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         /// Constructor using a memory stream.
         /// </summary>
         /// <param name="vwModelStream">The VW model memory stream.</param>
-        internal VWExplorer(Stream vwModelStream = null, ITypeInspector typeInspector = null, bool developmentMode = false)
+        public VWExplorer(Stream vwModelStream = null, ITypeInspector typeInspector = null, bool developmentMode = false)
             : base(vwModelStream, typeInspector, developmentMode)
         {
             this.serializer = VowpalWabbitSerializerFactory.CreateSerializer<TContext>(new VowpalWabbitSettings 

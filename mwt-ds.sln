@@ -28,6 +28,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientDecisionServiceVowpalWabbit", "client\ClientDecisionServiceVowpalWabbit\ClientDecisionServiceVowpalWabbit.csproj", "{7C762EC9-83AD-45CD-BCC2-981EF7FEA068}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -70,6 +72,10 @@ Global
 		{4830E9B5-64DE-4049-9602-7910FC4ABD6C}.Debug|x64.Build.0 = Debug|x64
 		{4830E9B5-64DE-4049-9602-7910FC4ABD6C}.Release|x64.ActiveCfg = Release|x64
 		{4830E9B5-64DE-4049-9602-7910FC4ABD6C}.Release|x64.Build.0 = Release|x64
+		{7C762EC9-83AD-45CD-BCC2-981EF7FEA068}.Debug|x64.ActiveCfg = Release|x64
+		{7C762EC9-83AD-45CD-BCC2-981EF7FEA068}.Debug|x64.Build.0 = Release|x64
+		{7C762EC9-83AD-45CD-BCC2-981EF7FEA068}.Release|x64.ActiveCfg = Release|x64
+		{7C762EC9-83AD-45CD-BCC2-981EF7FEA068}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

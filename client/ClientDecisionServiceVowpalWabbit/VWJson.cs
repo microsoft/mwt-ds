@@ -6,7 +6,7 @@ using VW.Serializer;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    internal class VWJsonPolicy : 
+    public class VWJsonPolicy : 
         VWBaseContextMapper<VowpalWabbitThreadedPrediction, VowpalWabbit, string, int>, 
         IPolicy<string>
     {
@@ -28,7 +28,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         }
     }
 
-    internal class VWJsonRanker : 
+    public class VWJsonRanker : 
         VWBaseContextMapper<VowpalWabbitThreadedPrediction, VowpalWabbit, string, int[]>, 
         IRanker<string>, INumberOfActionsProvider<string>
     {
