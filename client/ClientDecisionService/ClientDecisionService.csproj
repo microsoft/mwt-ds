@@ -132,20 +132,20 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="VowpalWabbit, Version=8.2.0.8, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <HintPath>..\..\packages\VowpalWabbit.8.2.0.8\lib\net45\VowpalWabbit.dll</HintPath>
+    <Reference Include="VowpalWabbit, Version=8.2.0.11, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
+      <HintPath>..\..\packages\VowpalWabbit.8.2.0.11\lib\net45\VowpalWabbit.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="VowpalWabbit.Common, Version=8.2.0.8, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <HintPath>..\..\packages\VowpalWabbit.8.2.0.8\lib\net45\VowpalWabbit.Common.dll</HintPath>
+    <Reference Include="VowpalWabbit.Common, Version=8.2.0.11, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
+      <HintPath>..\..\packages\VowpalWabbit.8.2.0.11\lib\net45\VowpalWabbit.Common.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="VowpalWabbit.Core, Version=8.2.0.8, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <HintPath>..\..\packages\VowpalWabbit.8.2.0.8\lib\net45\VowpalWabbit.Core.dll</HintPath>
+    <Reference Include="VowpalWabbit.Core, Version=8.2.0.11, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
+      <HintPath>..\..\packages\VowpalWabbit.8.2.0.11\lib\net45\VowpalWabbit.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="VowpalWabbit.JSON, Version=8.2.0.8, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <HintPath>..\..\packages\VowpalWabbit.JSON.8.2.0.8\lib\net45\VowpalWabbit.JSON.dll</HintPath>
+    <Reference Include="VowpalWabbit.JSON, Version=8.2.0.11, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
+      <HintPath>..\..\packages\VowpalWabbit.JSON.8.2.0.11\lib\net45\VowpalWabbit.JSON.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
@@ -164,13 +164,6 @@
     <Compile Include="ModelNotFoundException.cs" />
     <Compile Include="PerformanceCounters.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="VW\VWExplorer.cs" />
-    <Compile Include="VW\VWJson.cs" />
-    <Compile Include="VW\VWJsonExplorer.cs" />
-    <Compile Include="VW\VWPolicy.cs" />
-    <Compile Include="VW\VWBaseContextMapper.cs" />
-    <Compile Include="VW\VWRanker.cs" />
-    <Compile Include="VW\VWState.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\version.props">
@@ -186,6 +179,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ClientDecisionServiceVowpalWabbit\ClientDecisionServiceVowpalWabbit.csproj">
+      <Project>{7c762ec9-83ad-45cd-bcc2-981ef7fea068}</Project>
+      <Name>ClientDecisionServiceVowpalWabbit</Name>
+    </ProjectReference>
     <ProjectReference Include="..\explore\Explore.csproj">
       <Project>{6d245816-6016-49b6-9e37-a0bf0d2a736a}</Project>
       <Name>Explore</Name>
@@ -208,7 +205,7 @@
     </PropertyGroup>
     <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
     <Error Condition="!Exists('$(SolutionDir)packages\MSBuildTasks.1.5.0.196\build\MSBuildTasks.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)packages\MSBuildTasks.1.5.0.196\build\MSBuildTasks.targets'))" />
-    <Error Condition="!Exists('..\..\packages\VowpalWabbit.8.2.0.8\build\VowpalWabbit.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\VowpalWabbit.8.2.0.8\build\VowpalWabbit.targets'))" />
+    <Error Condition="!Exists('..\..\packages\VowpalWabbit.8.2.0.11\build\VowpalWabbit.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\VowpalWabbit.8.2.0.11\build\VowpalWabbit.targets'))" />
   </Target>
   <PropertyGroup>
     <PostBuildEvent>$(ProjectDir)\..\docgen.bat "$(ProjectDir)\..\"</PostBuildEvent>
@@ -221,5 +218,5 @@
     <Exec Command="$(SolutionDir)packages\gitlink.2.3.0\lib\net45\GitLink.exe ..\.. -f $(SolutionDir)\mwt-ds.sln -p $(Platform) -c $(Configuration) -d $(OutDir) -errorsaswarnings -u https://github.com/multiworldtesting/decision" Condition="'$(BuildNuget)' == 'true'" />
     <Exec Command=".nuget\nuget pack $(ProjectDir)\$(ProjectName).nuspec -Version $(ClientLibraryAssemblyVersion) -Prop &quot;Configuration=Release;Platform=x64&quot; -Prop SolutionDir=$(SolutionDir) -OutputDirectory $(OutDir) " WorkingDirectory="$(SolutionDir)" Condition="'$(BuildNuget)' == 'true'" />
   </Target>
-  <Import Project="..\..\packages\VowpalWabbit.8.2.0.8\build\VowpalWabbit.targets" Condition="Exists('..\..\packages\VowpalWabbit.8.2.0.8\build\VowpalWabbit.targets')" />
+  <Import Project="..\..\packages\VowpalWabbit.8.2.0.11\build\VowpalWabbit.targets" Condition="Exists('..\..\packages\VowpalWabbit.8.2.0.11\build\VowpalWabbit.targets')" />
 </Project>

@@ -9,6 +9,7 @@
   },
   "resources": [
     {
+      // this API is not supported
       "apiVersion": "2014-06-01",
       "type": "Microsoft.ClassicCompute/domainNames",
       "name": "[parameters('name')]",

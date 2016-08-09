@@ -49,6 +49,13 @@
         "description": "Time interval or number of examples between model updates in the front end. For time interval, use the format HH:MM:SS."
       }
     },
+    "email for notification": {
+      "type": "string",
+      "defaultvalue":  "",
+      "metadata": {
+        "description": "Supply email address if you want to receive usage instructions."
+      }
+    },
     "subtemplate location": {
       "type": "string",
       "defaultValue": "https://raw.githubusercontent.com/Microsoft/mwt-ds/master/provisioning/",
@@ -413,6 +420,31 @@
           "configLink": { "value": "[concat(reference('Microsoft.Resources/deployments/Management_Center').outputs.url.value, '/Deployment/GenerateTrainerConfig?key=', reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value)]" },
           "name": { "value": "[reference('Microsoft.Resources/deployments/Online_Trainer').outputs.name.value]" },
           "location": { "value": "[variables('location')]" }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "Deployment_Finished",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/Online_Trainer_Deployment",
+        "Microsoft.Resources/deployments/Management_Center"
+      ],
+      "properties": {
+        "mode": "incremental",
+        "templateLink": {
+          "uri": "[concat(parameters('subtemplate location'), 'templates/DeploymentFinished.json')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "data": {
+            "value": {
+              "email": "[parameters('email for notification')]",
+              "Management Center URL": "[reference('Microsoft.Resources/deployments/Management_Center').outputs.url.value]",
+              "Resource Group URL": "[concat('https://ms.portal.azure.com/?resourceMenuPerf=true#resource',resourceGroup().id)]"
+            }
+          }
         }
       }
     }

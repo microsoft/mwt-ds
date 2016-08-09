@@ -6,11 +6,11 @@ using VW.Serializer;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    internal class VWJsonPolicy : 
+    public class VWJsonPolicy : 
         VWBaseContextMapper<VowpalWabbitThreadedPrediction, VowpalWabbit, string, int>, 
         IPolicy<string>
     {
-        internal VWJsonPolicy(Stream vwModelStream = null)
+        public VWJsonPolicy(Stream vwModelStream = null)
             : base(vwModelStream)
         {
         }
@@ -28,11 +28,11 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         }
     }
 
-    internal class VWJsonRanker : 
+    public class VWJsonRanker : 
         VWBaseContextMapper<VowpalWabbitThreadedPrediction, VowpalWabbit, string, int[]>, 
         IRanker<string>, INumberOfActionsProvider<string>
     {
-        internal VWJsonRanker(Stream vwModelStream = null)
+        public VWJsonRanker(Stream vwModelStream = null)
             : base(vwModelStream)
         {
         }

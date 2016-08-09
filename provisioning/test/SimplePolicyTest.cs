@@ -9,29 +9,22 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Research.DecisionServiceTest
 {
-    public partial class ProvisioningTest
+    public class SimplePolicyTestClass
     {
         private Dictionary<string, int> freq;
         private string[] features;
         private Random rnd;
         private int eventCount;
 
-        /// <summary>
-        /// Remove [Ignore] to run individually
-        /// </summary>
-        [TestMethod]
-        [Ignore]
-        [TestCategory("End to End")]
-        [Priority(2)]
-        public async Task SimplePolicyTest()
+        public async Task SimplePolicyTest(DecisionServiceDeployment deployment)
         {
-            this.OnlineTrainerWaitForStartup();
+            deployment.OnlineTrainerWaitForStartup();
 
-            this.ConfigureDecisionService("--cb_explore 4 --epsilon 0", initialExplorationEpsilon:1, isExplorationEnabled: true);
+            deployment.ConfigureDecisionService("--cb_explore 4 --epsilon 0", initialExplorationEpsilon:1, isExplorationEnabled: true);
 
             // 4 Actions
             // why does this need to be different from default?
-            var config = new DecisionServiceConfiguration(settingsUrl)
+            var config = new DecisionServiceConfiguration(deployment.SettingsUrl)
             {
                 InteractionUploadConfiguration = new BatchingConfiguration
                 {
@@ -50,7 +43,7 @@ namespace Microsoft.Research.DecisionServiceTest
             this.freq = new Dictionary<string, int>();
             this.rnd = new Random(123);
 
-            this.OnlineTrainerReset();
+            deployment.OnlineTrainerReset();
 
             {
                 var expectedEvents = 0;
@@ -81,7 +74,7 @@ namespace Microsoft.Research.DecisionServiceTest
 
             freq.Clear();
 
-            await Task.Delay(TimeSpan.FromSeconds(30));
+            await Task.Delay(TimeSpan.FromMinutes(2));
 
             // TODO: update eps: 0
             using (var client = Microsoft.Research.MultiWorldTesting.ClientLibrary.DecisionService.Create<MyContext>(config))
