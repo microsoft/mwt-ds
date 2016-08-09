@@ -10,7 +10,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         VWBaseContextMapper<VowpalWabbitThreadedPrediction, VowpalWabbit, string, int>, 
         IPolicy<string>
     {
-        internal VWJsonPolicy(Stream vwModelStream = null)
+        public VWJsonPolicy(Stream vwModelStream = null)
             : base(vwModelStream)
         {
         }
@@ -32,7 +32,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         VWBaseContextMapper<VowpalWabbitThreadedPrediction, VowpalWabbit, string, int[]>, 
         IRanker<string>, INumberOfActionsProvider<string>
     {
-        internal VWJsonRanker(Stream vwModelStream = null)
+        public VWJsonRanker(Stream vwModelStream = null)
             : base(vwModelStream)
         {
         }
