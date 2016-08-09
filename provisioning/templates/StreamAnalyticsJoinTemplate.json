@@ -40,7 +40,8 @@
         },
         "OutputStartMode": "JobStartTime",
         "EventsOutOfOrderMaxDelayInSeconds": 0,
-        "EventsLateArrivalMaxDelayInSeconds": 5,
+        // TIMESTAMP BY expression is evaluated against this policy. Also include 5 secs to avoid any EventHub/ASA wallclock issues
+        "EventsLateArrivalMaxDelayInSeconds": "[add(5, parameters('experimentalUnitDurationInSeconds'))]",
         "EventsOutOfOrderPolicy": "adjust",
         "Inputs": [
           {
