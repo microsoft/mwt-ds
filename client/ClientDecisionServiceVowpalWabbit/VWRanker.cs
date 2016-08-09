@@ -55,7 +55,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         }
     }
 
-    internal class VWRanker<TContext, TActionDependentFeature> :
+    public class VWRanker<TContext, TActionDependentFeature> :
         VWBaseContextMapper<VowpalWabbitThreadedPrediction<TContext, TActionDependentFeature>, VowpalWabbit<TContext, TActionDependentFeature>, TContext, int[]>,
         IRanker<TContext>, INumberOfActionsProvider<TContext>
     {
@@ -65,7 +65,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         /// Constructor using a memory stream.
         /// </summary>
         /// <param name="vwModelStream">The VW model memory stream.</param>
-        internal VWRanker(
+        public VWRanker(
             Func<TContext, IReadOnlyCollection<TActionDependentFeature>> getContextFeaturesFunc,
             Stream vwModelStream = null,
             ITypeInspector typeInspector = null,
