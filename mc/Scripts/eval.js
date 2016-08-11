@@ -98,6 +98,7 @@
 
     $('#eval-window-filter').on('change', function () {
         windowType = this.value;
+        getDataFromCache = false;
         if ($('#window-size').length) {
             $('#window-size').text(windowType);
         }
