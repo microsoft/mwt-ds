@@ -5,6 +5,7 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
 using System.Linq;
@@ -140,7 +141,12 @@ namespace DecisionServicePrivateWeb.Controllers
 
                 client.ReportOutcome(rewardObj, eventId);
 
-                telemetry.TrackTrace($"HTTP Endpoint received reward report of: {rewardStr}");
+                if (rewardObj.Type == JTokenType.Float)
+                    telemetry.TrackEvent("Reward", metrics: new Dictionary<string, double> { { "Reward", rewardObj.ToObject<float>() } );
+                else
+                    telemetry.TrackEvent("Reward");
+
+                // telemetry.TrackTrace($"HTTP Endpoint received reward report of: {rewardStr}");
 
                 return new HttpStatusCodeResult(HttpStatusCode.OK);
             }
