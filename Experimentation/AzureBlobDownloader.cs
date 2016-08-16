@@ -252,6 +252,7 @@ namespace Experimentation
                 {
                     var top = priorityQueue.First;
 
+                    // add VW string format
                     writer.WriteLine(top.Line);
 
                     if (await top.Next())
