@@ -11,7 +11,7 @@ namespace Experimentation
 {
     public static class JsonTransform
     {
-        public static void TransformIngoreProperties(string fileIn, string fileOut, params string[] propertiesToIgnore)
+        public static void TransformIgnoreProperties(string fileIn, string fileOut, params string[] propertiesToIgnore)
         {
             var ignorePropertiesSet = new HashSet<string>(propertiesToIgnore);
             Transform(fileIn, fileOut, (reader, writer) =>
@@ -29,8 +29,8 @@ namespace Experimentation
 
         public static void Transform(string fileIn, string fileOut, Func<JsonTextReader, JsonTextWriter, bool> transform)
         {
-            using (var reader = new StreamReader(fileIn))
-            using (var writer = new StreamWriter(fileOut))
+            using (var reader = new StreamReader(fileIn, Encoding.UTF8))
+            using (var writer = new StreamWriter(fileOut, false, Encoding.UTF8))
             {
                 var transformBlock = new TransformBlock<string, string>(
                     evt =>
@@ -54,7 +54,7 @@ namespace Experimentation
                         MaxDegreeOfParallelism = 8 // TODO:parameterize
                     });
 
-                var outputBock = new ActionBlock<string>(l => writer.WriteLine(l),
+                var outputBock = new ActionBlock<string>(l => { if (!string.IsNullOrEmpty(l)) writer.WriteLine(l); },
                     new ExecutionDataflowBlockOptions { BoundedCapacity = 1024, MaxDegreeOfParallelism = 1 });
                 transformBlock.LinkTo(outputBock, new DataflowLinkOptions { PropagateCompletion = true });
 

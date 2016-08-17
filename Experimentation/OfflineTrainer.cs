@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -25,11 +26,11 @@ namespace Experimentation
         //    internal ActionScore[] Prediction;
         //}
 
-        public static void Train(string arguments, string inputFile)
+        public static void Train(string arguments, string inputFile, string predictionFile = null, TimeSpan? reloadInterval = null)
         {
             using (var reader = new StreamReader(inputFile))
-            using (var prediction = new StreamWriter(inputFile + ".prediction"))
-            using (var vw = new VowpalWabbitJson(new VowpalWabbitSettings(arguments)
+            using (var prediction = new StreamWriter(predictionFile ?? inputFile + ".prediction"))
+            using (var vw = new VowpalWabbit(new VowpalWabbitSettings(arguments)
             {
                 Verbose = true
             }))
@@ -37,13 +38,54 @@ namespace Experimentation
                 string line;
                 int lineNr = 0;
                 int invalidExamples = 0;
+                DateTime? lastTimestamp = null;
 
                 while ((line = reader.ReadLine()) != null)
                 {
                     try
                     {
-                        var pred = vw.Learn(line, VowpalWabbitPredictionType.ActionScore);
-                        prediction.WriteLine(lineNr + " " + string.Join(",", pred.Select(a_s => $"{a_s.Action}:{a_s.Score}")));
+                        bool reload = false;
+                        using (var jsonSerializer = new VowpalWabbitJsonSerializer(vw))
+                        {
+                            if (reloadInterval != null)
+                            {
+                                jsonSerializer.RegisterExtension((state, property) =>
+                                {
+                                    if (property.Equals("_timestamp", StringComparison.Ordinal))
+                                    {
+                                        var eventTimestamp = state.Reader.ReadAsDateTime();
+                                        if (lastTimestamp == null)
+                                            lastTimestamp = eventTimestamp;
+                                        else if (lastTimestamp + reloadInterval < eventTimestamp)
+                                        {
+                                            reload = true;
+                                            lastTimestamp = eventTimestamp;
+                                        }
+
+                                        return true;
+                                    }
+
+                                    return false;
+                                });
+                            }
+
+                            // var pred = vw.Learn(line, VowpalWabbitPredictionType.ActionScore);
+                            using (var example = jsonSerializer.ParseAndCreate(line))
+                            {
+                                var pred = example.Learn(VowpalWabbitPredictionType.ActionScore);
+
+                                prediction.WriteLine(JsonConvert.SerializeObject(
+                                    new
+                                    {
+                                        nr = lineNr,
+                                        @as = pred.Select(x => x.Action),
+                                        p = pred.Select(x => x.Score)
+                                    }));
+                            }
+
+                            if (reload)
+                                vw.Reload();
+                        }
                     }
                     catch (Exception)
                     {
