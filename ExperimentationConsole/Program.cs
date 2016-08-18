@@ -100,6 +100,7 @@ namespace ExperimentationConsole
                 }
 
                 Console.WriteLine("\ndone " + stopwatch.Elapsed);
+                Console.WriteLine("Run information is added to: ", historyFile);
             }
             catch (Exception ex)
             {
