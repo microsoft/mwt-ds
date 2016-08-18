@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -253,7 +254,7 @@ namespace Experimentation
             }
         }
 
-        public static void Compute(string dataFile, params string[] predictions)
+        public static List<MetricResult> Compute(string dataFile, params string[] predictions)
         {
             // deserialize in parallel
             // run all computation in parallel
@@ -328,6 +329,7 @@ namespace Experimentation
             //}
 
             // TODO: labels are parsed multiple times
+            var scores = new ConcurrentBag<MetricResult>();
             var labelSource = ExtractAndCacheLabels(dataFile);
             Parallel.ForEach(predictions, pred =>
             {
@@ -338,8 +340,10 @@ namespace Experimentation
 
                 Console.WriteLine($"{pred:-30}: {loss.Item1/loss.Item2}");
 
+                scores.Add(new MetricResult { Name = pred, Value = loss.Item1 / loss.Item2 });
                 // its it's 
             });
+            return scores.ToList();
         }
     }
 }

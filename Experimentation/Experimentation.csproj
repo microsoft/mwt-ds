@@ -122,6 +122,7 @@
   <ItemGroup>
     <Compile Include="AzureBlobDownloader.cs" />
     <Compile Include="FileTransformBlock.cs" />
+    <Compile Include="MetricResult.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="VowpalWabbitJsonToString.cs" />
     <Compile Include="JsonTransform.cs" />

@@ -63,32 +63,41 @@ namespace ExperimentationConsole
                     VowpalWabbitJsonToString.Convert(reader, writer);
                 }
 
+
                 var bags = new[] { 1, 2, 4, 6, 8, 10 }.Select(a => "--bag " + a);
                 var softmaxes = new[] { 0, 1, 2, 4, 8, 16, 32 }.Select(a => "--softmax --lambda " + a);
-                var epsilons = new[] { .33333f, .2f, .1f }.Select(a => "--epsilon " + a);
+                var epsilons = new[] { .33333f, .2f, .1f, .05f }.Select(a => "--epsilon " + a);
 
                 var arguments = Util.Expand(
                     epsilons.Union(bags).Union(softmaxes),
                     new[] { "--cb_type ips", "--cb_type mtr", "--cb_type dr" },
+                    new[] { "-q AB -q UD" },
                     new[] { 0.005, 0.01, 0.02, 0.1 }.Select(l => string.Format(CultureInfo.InvariantCulture, "-l {0}", l))
                 )
                 .Select(a => $"--cb_explore_adf {a} --interact ud ")
                 .ToList();
 
-                foreach (var arg in arguments)
+                var sep = "\t";
+                var historyFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "mwt.experiments");
+                using (var historyWriter = new StreamWriter(File.Open(historyFile, FileMode.OpenOrCreate)))
                 {
-                    // Train here
+                    for (int i = 0; i < arguments.Count; i++)
+                    {
+                        var startTime = DateTime.UtcNow;
+                        var outputPredictionFile = $"{outputFile}.prediction";
+                        var outputPrediction2hFile = $"{outputFile}.{i + 1}.2h.prediction";
+
+                        // VW training
+                        OfflineTrainer.Train(arguments[i],
+                            outputFile,
+                            predictionFile: outputPrediction2hFile,
+                            reloadInterval: TimeSpan.FromHours(2));
+
+                        var metricResult = Metrics.Compute(outputFile, outputPredictionFile, outputPrediction2hFile);
+
+                        historyWriter.WriteLine($"{startTime}{sep}{arguments[i]}{sep}{string.Join(sep, metricResult.Select(m => m.Name + sep + m.Value))}");
+                    }
                 }
-
-                // VW training
-                OfflineTrainer.Train("--cb_explore_adf --epsilon 0.05 -q AB -q UD",
-                    outputFile,
-                    predictionFile: outputFile + ".2h.prediction",
-                    reloadInterval: TimeSpan.FromHours(2));
-
-                Metrics.Compute(outputFile,
-                    outputFile + ".prediction",
-                    outputFile + ".2h.prediction");
 
                 Console.WriteLine("\ndone " + stopwatch.Elapsed);
             }
