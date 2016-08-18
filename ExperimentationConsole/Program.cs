@@ -43,7 +43,7 @@ namespace ExperimentationConsole
                     "Somefeatures");
 
                 outputFile += ".small";
-                // filter broken events for complex
+                // filter broken events
                 JsonTransform.Transform(outputFile, outputFile + ".fixed", (reader, writer) =>
                 {
                     var serializer = JsonSerializer.CreateDefault();
