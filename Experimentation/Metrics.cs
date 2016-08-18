@@ -233,20 +233,22 @@ namespace Experimentation
             [JsonProperty("p")]
             public float[] Probabilities { get; set; }
 
-            public float GetLoss(Label label)
+            public Tuple<float, float> GetLoss(Label label)
             {
                 if (Actions == null)
-                    return VowpalWabbitContextualBanditUtil.GetUnbiasedCost((uint)label.Actions[0], (uint)Action, label.Cost, label.Probabilities[0]);
+                    throw new InvalidOperationException();
+                // return VowpalWabbitContextualBanditUtil.GetUnbiasedCost((uint)label.Actions[0], (uint)Action, label.Cost, label.Probabilities[0]);
                 else
                 {
-                    var c = Actions.Zip(Probabilities, (action, prob) => new { Action = action, Prob = prob })
-                        .Sum(ap => ap.Prob * VowpalWabbitContextualBanditUtil.GetUnbiasedCost((uint)label.Actions[0], (uint)ap.Action + 1, label.Cost, label.Probabilities[0]));
+                    // 
+                    // Actions = 5,2,1,3,4
+                    // Prob = are sorted by Actions
+                    var pi_a_x = Probabilities[Actions.IndexOf(x => x == label.Actions[0] - 1)];
+                    var num = (label.Cost * pi_a_x) / label.Probabilities[0];
 
-                    var p = Actions.Zip(Probabilities, (action, prob) => new { Action = action, Prob = prob })
-                                .Sum(ap => ap.Prob / (label.Probabilities[ap.Action] * (1 - label.ProbabilityOfDrop ?? 0)));
+                    var denom = pi_a_x / label.Probabilities[0];
 
-                    // SUM(cost) / SUM(1 / prob)
-                    return c / (1f / p);
+                    return Tuple.Create(num, denom);
                 }
             }
         }
@@ -332,9 +334,11 @@ namespace Experimentation
                 var loss = File.ReadLines(pred)
                     .Select(line => JsonConvert.DeserializeObject<Data>(line))
                     .Zip(labelSource, (data, label) => data.GetLoss(label))
-                    .Average();
+                    .Aggregate(Tuple.Create(0f, 0f), (acc, d) => Tuple.Create(acc.Item1 + d.Item1, acc.Item2 + d.Item2));
 
-                Console.WriteLine($"{pred:-30}: {loss}");
+                Console.WriteLine($"{pred:-30}: {loss.Item1/loss.Item2}");
+
+                // its it's 
             });
         }
     }
