@@ -6,6 +6,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -62,13 +63,30 @@ namespace ExperimentationConsole
                     VowpalWabbitJsonToString.Convert(reader, writer);
                 }
 
+                var bags = new[] { 1, 2, 4, 6, 8, 10 }.Select(a => "--bag " + a);
+                var softmaxes = new[] { 0, 1, 2, 4, 8, 16, 32 }.Select(a => "--softmax --lambda " + a);
+                var epsilons = new[] { .33333f, .2f, .1f }.Select(a => "--epsilon " + a);
+
+                var arguments = Util.Expand(
+                    epsilons.Union(bags).Union(softmaxes),
+                    new[] { "--cb_type ips", "--cb_type mtr", "--cb_type dr" },
+                    new[] { 0.005, 0.01, 0.02, 0.1 }.Select(l => string.Format(CultureInfo.InvariantCulture, "-l {0}", l))
+                )
+                .Select(a => $"--cb_explore_adf {a} --interact ud ")
+                .ToList();
+
+                foreach (var arg in arguments)
+                {
+                    // Train here
+                }
+
                 // VW training
                 OfflineTrainer.Train("--cb_explore_adf --epsilon 0.05 -q AB -q UD",
                     outputFile,
                     predictionFile: outputFile + ".2h.prediction",
                     reloadInterval: TimeSpan.FromHours(2));
 
-                Metrics.Compute(outputFile, 
+                Metrics.Compute(outputFile,
                     outputFile + ".prediction",
                     outputFile + ".2h.prediction");
 
