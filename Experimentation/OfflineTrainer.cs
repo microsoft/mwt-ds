@@ -26,11 +26,13 @@ namespace Experimentation
         //    internal ActionScore[] Prediction;
         //}
 
-        public static void Train(string arguments, string inputFile, string predictionFile = null, TimeSpan? reloadInterval = null)
+        public static void Train(string arguments, string inputFile, string predictionFile = null, TimeSpan? reloadInterval = null, float? learningRate=null)
         {
+            var learningArgs = learningRate == null ? string.Empty : $" -l {learningRate}";
+
             using (var reader = new StreamReader(inputFile))
             using (var prediction = new StreamWriter(predictionFile ?? inputFile + ".prediction"))
-            using (var vw = new VowpalWabbit(new VowpalWabbitSettings(arguments)
+            using (var vw = new VowpalWabbit(new VowpalWabbitSettings(arguments + learningArgs)
             {
                 Verbose = true
             }))
@@ -84,7 +86,7 @@ namespace Experimentation
                             }
 
                             if (reload)
-                                vw.Reload();
+                                vw.Reload(learningArgs);
                         }
                     }
                     catch (Exception)
