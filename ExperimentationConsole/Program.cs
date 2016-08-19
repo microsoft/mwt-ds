@@ -29,6 +29,7 @@ namespace ExperimentationConsole
                 var storageAccount = new CloudStorageAccount(new StorageCredentials("storage name", "storage key"), false);
 
                 var outputDirectory = @"c:\temp\";
+                Directory.CreateDirectory(outputDirectory);
                 var startTimeInclusive = new DateTime(2016, 8, 11, 0, 0, 0);
                 var endTimeExclusive = new DateTime(2016, 8, 14, 0, 0, 0);
                 var outputFile = Path.Combine(outputDirectory, $"{startTimeInclusive:yyyy-MM-dd_HH}-{endTimeExclusive:yyyy-MM-dd_HH}.json");
