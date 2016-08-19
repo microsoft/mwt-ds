@@ -61,7 +61,7 @@ namespace ExperimentationConsole
                 outputFile += ".fixed";
 
                 using (var reader = new StreamReader(outputFile))
-                using (var writer = new StreamWriter(outputFile + ".vw"))
+                using (var writer = new StreamWriter(new GZipStream(File.Create(outputFile + ".vw.gz"), CompressionLevel.Optimal)))
                 {
                     VowpalWabbitJsonToString.Convert(reader, writer);
                 }
