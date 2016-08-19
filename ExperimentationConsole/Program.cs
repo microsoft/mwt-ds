@@ -134,8 +134,10 @@ namespace ExperimentationConsole
             for (int i = 0; i < arguments.Count; i += numProcs)
             {
                 var processes = new List<Process>();
+                var startTimes = new List<DateTime>();
                 for (int j = i; j < Math.Min(i + numProcs, arguments.Count); j++)
                 {
+                    startTimes.Add(DateTime.UtcNow);
                     processes.Add(Process.Start(new ProcessStartInfo
                     {
                         FileName = vwExe,
@@ -148,9 +150,10 @@ namespace ExperimentationConsole
                 }
                 for (int j = 0; j < processes.Count; j++)
                 {
+                    int iArg = i + j;
                     string output = processes[j].StandardOutput.ReadToEnd();
                     string error = processes[j].StandardError.ReadToEnd();
-                    File.WriteAllText($"{outModelDir}\\{i + j}.output", output + "\r\n" + error);
+                    File.WriteAllText($"{outModelDir}\\{iArg}.output", $"{startTimes[j]}\r\n{arguments[iArg]}\r\n{output}\r\n{error}");
                     processes[j].WaitForExit();
                 }
             }
