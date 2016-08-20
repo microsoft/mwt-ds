@@ -32,8 +32,8 @@ namespace ExperimentationConsole
 
                 var outputDirectory = @"c:\temp\";
                 Directory.CreateDirectory(outputDirectory);
-                var startTimeInclusive = new DateTime(2016, 8, 11, 0, 0, 0);
-                var endTimeExclusive = new DateTime(2016, 8, 14, 0, 0, 0);
+                var startTimeInclusive = new DateTime(2016, 8, 11, 19, 0, 0);
+                var endTimeExclusive = new DateTime(2016, 8, 18, 0, 0, 0);
                 var outputFile = Path.Combine(outputDirectory, $"{startTimeInclusive:yyyy-MM-dd_HH}-{endTimeExclusive:yyyy-MM-dd_HH}.json");
 
                 // download and merge blob data
@@ -66,7 +66,6 @@ namespace ExperimentationConsole
                     VowpalWabbitJsonToString.Convert(reader, writer);
                 }
 
-
                 var bags = new[] { 1, 2, 4, 6, 8, 10 }.Select(a => "--bag " + a);
                 var softmaxes = new[] { 0, 1, 2, 4, 8, 16, 32 }.Select(a => "--softmax --lambda " + a);
                 var epsilons = new[] { .33333f, .2f, .1f, .05f }.Select(a => "--epsilon " + a);
@@ -94,7 +93,8 @@ namespace ExperimentationConsole
                         OfflineTrainer.Train(arguments[i],
                             outputFile,
                             predictionFile: outputPrediction2hFile,
-                            reloadInterval: TimeSpan.FromHours(2));
+                            reloadInterval: TimeSpan.FromHours(2),
+                            cacheFilePrefix: null); // null to use input file's name for cache, see the method documentation for more details
 
                         var metricResult = Metrics.Compute(outputFile, outputPredictionFile, outputPrediction2hFile);
 

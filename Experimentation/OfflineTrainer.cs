@@ -26,13 +26,34 @@ namespace Experimentation
         //    internal ActionScore[] Prediction;
         //}
 
-        public static void Train(string arguments, string inputFile, string predictionFile = null, TimeSpan? reloadInterval = null, float? learningRate=null)
+        /// <summary>
+        /// Train VW on offline data.
+        /// </summary>
+        /// <param name="arguments">Base arguments.</param>
+        /// <param name="inputFile">Path to input file.</param>
+        /// <param name="predictionFile">Name of the output prediction file.</param>
+        /// <param name="reloadInterval">The TimeSpan interval to reload model.</param>
+        /// <param name="learningRate">
+        /// Learning rate must be specified here otherwise on Reload it will be reset.
+        /// </param>
+        /// <param name="cacheFilePrefix">
+        /// The prefix of the cache file name to use. For example: prefix = "test" => "test.vw.cache"
+        /// If none or null, the input file name is used, e.g. "input.dataset" => "input.vw.cache"
+        /// !!! IMPORTANT !!!: Always use a new cache name if a different dataset or reload interval is used.
+        /// </param>
+        /// <remarks>
+        /// Both learning rates and cache file are added to initial training arguments as well as Reload arguments.
+        /// </remarks>
+        public static void Train(string arguments, string inputFile, string predictionFile = null, TimeSpan? reloadInterval = null, float? learningRate=null, string cacheFilePrefix = null)
         {
             var learningArgs = learningRate == null ? string.Empty : $" -l {learningRate}";
 
+            int cacheIndex = 0;
+            var cacheArgs = (Func<int, string>)(i => $" --cache_file {cacheFilePrefix ?? Path.GetFileNameWithoutExtension(inputFile)}-{i}.vw.cache");
+
             using (var reader = new StreamReader(inputFile))
             using (var prediction = new StreamWriter(predictionFile ?? inputFile + ".prediction"))
-            using (var vw = new VowpalWabbit(new VowpalWabbitSettings(arguments + learningArgs)
+            using (var vw = new VowpalWabbit(new VowpalWabbitSettings(arguments + learningArgs + cacheArgs(cacheIndex++))
             {
                 Verbose = true
             }))
@@ -86,7 +107,7 @@ namespace Experimentation
                             }
 
                             if (reload)
-                                vw.Reload(learningArgs);
+                                vw.Reload(learningArgs + cacheArgs(cacheIndex++));
                         }
                     }
                     catch (Exception)
