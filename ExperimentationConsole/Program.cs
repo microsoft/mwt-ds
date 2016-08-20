@@ -131,32 +131,44 @@ namespace ExperimentationConsole
 
             File.WriteAllLines(outputFile, arguments);
 
-            for (int i = 0; i < arguments.Count; i += numProcs)
+            int numFinishedProcessing = 0;
+
+            var inputBlock = new TransformBlock<int, int>(i => i);
+            var processBlock = new ActionBlock<int>(i => 
             {
-                var processes = new List<Process>();
-                var startTimes = new List<DateTime>();
-                for (int j = i; j < Math.Min(i + numProcs, arguments.Count); j++)
+                var startTime = DateTime.UtcNow;
+                var p = Process.Start(new ProcessStartInfo
                 {
-                    startTimes.Add(DateTime.UtcNow);
-                    processes.Add(Process.Start(new ProcessStartInfo
-                    {
-                        FileName = vwExe,
-                        Arguments = arguments[j],
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true
-                    }));
-                }
-                for (int j = 0; j < processes.Count; j++)
-                {
-                    int iArg = i + j;
-                    string output = processes[j].StandardOutput.ReadToEnd();
-                    string error = processes[j].StandardError.ReadToEnd();
-                    File.WriteAllText($"{outModelDir}\\{iArg}.output", $"{startTimes[j]}\r\n{arguments[iArg]}\r\n{output}\r\n{error}");
-                    processes[j].WaitForExit();
-                }
+                    FileName = vwExe,
+                    Arguments = arguments[i],
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                });
+
+                string output = p.StandardOutput.ReadToEnd();
+                string error = p.StandardError.ReadToEnd();
+                File.WriteAllText($"{outModelDir}\\{i}.output", $"{startTime}\r\n{arguments[i]}\r\n{output}\r\n{error}");
+                p.WaitForExit();
+
+                int numFinished = Interlocked.Increment(ref numFinishedProcessing);
+
+                Console.WriteLine($"Finished: {numFinishedProcessing} / {arguments.Count}");
+            },
+            new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = numProcs, BoundedCapacity = numProcs });
+
+            inputBlock.LinkTo(processBlock, new DataflowLinkOptions { PropagateCompletion = true });
+
+            var input = inputBlock.AsObserver();
+
+            for (int i = 0; i < arguments.Count; i++)
+            {
+                input.OnNext(i);
             }
+            input.OnCompleted();
+
+            processBlock.Completion.Wait();
         }
     }
 }
