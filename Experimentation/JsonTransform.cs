@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -24,6 +25,33 @@ namespace Experimentation
                 }
 
                 return false;
+            });
+        }
+
+        public static void TransformFixMarginal(string fileOut, int numExpectedActions, char startingNamespace, TupleList<string, string> marginalProperties)
+        {
+            var serializer = JsonSerializer.CreateDefault();
+            JsonTransform.Transform(fileOut, fileOut + ".fixed", (reader, writer) =>
+            {
+                var obj = (JObject)serializer.Deserialize(reader);
+                var multi = (JArray)obj.SelectToken("$._multi");
+                if (multi.Count == numExpectedActions)
+                {
+                    foreach (var item in multi)
+                    {
+                        for (int i = 0; i < marginalProperties.Count; i++)
+                        {
+                            var parentNodeName = marginalProperties[i].Item1;
+                            var childNodeName = marginalProperties[i].Item2;
+                            var parentNode = (JObject)item[parentNodeName];
+                            var propertyValue = parentNode.SelectToken(childNodeName).Value<string>();
+                            parentNode.Add($"{(char)(startingNamespace + i)}{childNodeName}", JToken.FromObject(new { c = "onstant", id = propertyValue }));
+                        }
+                    }
+                    serializer.Serialize(writer, obj);
+                }
+
+                return true;
             });
         }
 

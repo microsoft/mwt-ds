@@ -48,16 +48,16 @@ namespace ExperimentationConsole
 
                 outputFile += ".small";
                 // filter broken events
-                JsonTransform.Transform(outputFile, outputFile + ".fixed", (reader, writer) =>
-                {
-                    var serializer = JsonSerializer.CreateDefault();
-                    var obj = (JObject)serializer.Deserialize(reader);
-                    var multi = (JArray)obj.SelectToken("$._multi");
-                    if (multi.Count == 10)
-                        serializer.Serialize(writer, obj);
+                JsonTransform.TransformFixMarginal(outputFile,
+                    numExpectedActions: 10, // examples with different number of actions are ignored
+                    startingNamespace: 'G', // starting namespace of the marginal features, if more than one marginal features then the next letter is used, e.g. G for the first one, H for second, and so on.
+                    marginalProperties: new TupleList<string, string>
+                    {
+                        // The property parent and name to create marginal features for
+                        { "DVideoFeatures", "VideoId" },
+                        //{ "DVideoFeatures", "VideoTitle" }, // uncomment if more marginal features are needed
+                    });
 
-                    return true;
-                });
                 outputFile += ".fixed";
 
                 using (var reader = new StreamReader(outputFile))
