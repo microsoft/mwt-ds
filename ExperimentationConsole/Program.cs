@@ -158,5 +158,23 @@ namespace ExperimentationConsole
                 }
             }
         }
+
+        static void AnalyzeSweep(string sweepDir, string sweepArgumentFile)
+        {
+            var regex = new Regex("average loss =(.*)");
+            var args = File.ReadAllLines(sweepArgumentFile);
+
+            var files = Directory.GetFiles(sweepDir, "*.output");
+
+            using (var sw = new StreamWriter(File.Create(Path.Combine(sweepDir, "sweep.csv"))))
+            {
+                foreach (var f in files)
+                {
+                    var loss = Convert.ToSingle(regex.Match(File.ReadAllText(f)).Groups[1].Value.Trim());
+                    var iArg = Convert.ToInt32(Path.GetFileNameWithoutExtension(f));
+                    sw.WriteLine($"{args[iArg]},{loss}");
+                }
+            }
+        }
     }
 }
