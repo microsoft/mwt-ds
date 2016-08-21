@@ -24,6 +24,19 @@ namespace ExperimentationConsole
     {
         static void Main(string[] args)
         {
+            var sweepFile = @"D:\complex\gal\processed-cover\sweep.bat";
+            var sweepDir = @"D:\complex\gal\processed-cover";
+            SweepCommandLine(
+                outputFile: sweepFile,
+                vwExe: @"D:\Git\vw-markus\vowpal_wabbit\vowpalwabbit\x64\Release\vw.exe",
+                dataFile: @"D:\complex\gal\processed.vw.gz",
+                outModelDir: sweepDir,
+                numProcs: 20);
+
+            AnalyzeSweep(sweepDir: sweepDir, sweepArgumentFile: sweepFile);
+
+            return;
+
             try
             {
                 var stopwatch = Stopwatch.StartNew();
@@ -116,19 +129,21 @@ namespace ExperimentationConsole
         static void SweepCommandLine(string outputFile, string vwExe, string dataFile, string outModelDir, int numProcs = 30)
         {
             var bags = new[] { 1, 2, 4, 6, 8, 10 }.Select(a => "--bag " + a);
-            var softmaxes = new[] { 0, 1, 2, 4, 8, 16, 32 }.Select(a => "--softmax --lambda " + a);
-            var epsilons = new[] { .33333f, .2f, .1f, .05f }.Select(a => "--epsilon " + a);
-            var covers = new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }.Select(a => "--cover " + a);
+            var softmaxes = new[] { 0, 1, 2, 4, 8, 16 }.Select(a => "--softmax --lambda " + a);
+            var epsilons = new[] { .2f }.Select(a => "--epsilon " + a);
+            var covers = new[] { 1, 2, 4, 6, 8, 10 }.Select(a => "--cover " + a);
 
             var arguments = Util.Expand(
-                epsilons.Union(bags).Union(softmaxes),
+                //epsilons.Union(bags).Union(softmaxes),
+                covers,
                 new[] { "--cb_type ips", "--cb_type mtr", "--cb_type dr" },
-                new[] { "", "-q AB -q UD" },
-                new[] { 0.005, 0.01, 0.02, 0.1, 0.2 }.Select(l => string.Format(CultureInfo.InvariantCulture, "-l {0}", l))
+                new[] { "--marginal KG", "--marginal G", "--marginal K", "" },
+                new[] { 0.0002, 0.005, 0.01, 0.1 }.Select(l => string.Format(CultureInfo.InvariantCulture, "-l {0}", l))
             )
-            .Select((a, i) => $"--cb_explore_adf {a} -d {dataFile} -f {outModelDir}\\{i}.model -c")
+            .Select((a, i) => $"--cb_explore_adf --ignore B --ignore C --ignore D --ignore E --ignore F --ignore H --ignore R -b 18 --power_t 0 {a} -d {dataFile} -f {outModelDir}\\{i}.model -c")
             .ToList();
 
+            Directory.CreateDirectory(outModelDir);
             File.WriteAllLines(outputFile, arguments);
 
             int numFinishedProcessing = 0;
@@ -182,7 +197,7 @@ namespace ExperimentationConsole
             {
                 foreach (var f in files)
                 {
-                    var loss = Convert.ToSingle(regex.Match(File.ReadAllText(f)).Groups[1].Value.Trim());
+                    var loss = regex.Match(File.ReadAllText(f)).Groups[1].Value.Trim();
                     var iArg = Convert.ToInt32(Path.GetFileNameWithoutExtension(f));
                     sw.WriteLine($"{args[iArg]},{loss}");
                 }
