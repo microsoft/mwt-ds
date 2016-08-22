@@ -24,8 +24,8 @@ namespace ExperimentationConsole
     {
         static void Main(string[] args)
         {
-            var sweepFile = @"D:\complex\gal\processed-cover\sweep.bat";
-            var sweepDir = @"D:\complex\gal\processed-cover";
+            var sweepFile = @"D:\complex\gal\processed-fixed\sweep.bat";
+            var sweepDir = @"D:\complex\gal\processed-fixed";
             SweepCommandLine(
                 outputFile: sweepFile,
                 vwExe: @"D:\Git\vw-markus\vowpal_wabbit\vowpalwabbit\x64\Release\vw.exe",
@@ -134,8 +134,7 @@ namespace ExperimentationConsole
             var covers = new[] { 1, 2, 4, 6, 8, 10 }.Select(a => "--cover " + a);
 
             var arguments = Util.Expand(
-                //epsilons.Union(bags).Union(softmaxes),
-                covers,
+                epsilons.Union(bags).Union(softmaxes).Union(covers),
                 new[] { "--cb_type ips", "--cb_type mtr", "--cb_type dr" },
                 new[] { "--marginal KG", "--marginal G", "--marginal K", "" },
                 new[] { 0.0002, 0.005, 0.01, 0.1 }.Select(l => string.Format(CultureInfo.InvariantCulture, "-l {0}", l))
