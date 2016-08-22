@@ -185,20 +185,20 @@
     </Reference>
     <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
-    <Reference Include="VowpalWabbit, Version=8.2.0.27, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <HintPath>..\..\packages\VowpalWabbit.8.2.0.27\lib\net45\VowpalWabbit.dll</HintPath>
+    <Reference Include="VowpalWabbit, Version=8.2.0.28, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
+      <HintPath>..\..\packages\VowpalWabbit.8.2.0.28\lib\net45\VowpalWabbit.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="VowpalWabbit.Common, Version=8.2.0.27, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <HintPath>..\..\packages\VowpalWabbit.8.2.0.27\lib\net45\VowpalWabbit.Common.dll</HintPath>
+    <Reference Include="VowpalWabbit.Common, Version=8.2.0.28, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
+      <HintPath>..\..\packages\VowpalWabbit.8.2.0.28\lib\net45\VowpalWabbit.Common.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="VowpalWabbit.Core, Version=8.2.0.27, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <HintPath>..\..\packages\VowpalWabbit.8.2.0.27\lib\net45\VowpalWabbit.Core.dll</HintPath>
+    <Reference Include="VowpalWabbit.Core, Version=8.2.0.28, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
+      <HintPath>..\..\packages\VowpalWabbit.8.2.0.28\lib\net45\VowpalWabbit.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="VowpalWabbit.JSON, Version=8.2.0.27, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <HintPath>..\..\packages\VowpalWabbit.JSON.8.2.0.27\lib\net45\VowpalWabbit.JSON.dll</HintPath>
+    <Reference Include="VowpalWabbit.JSON, Version=8.2.0.28, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
+      <HintPath>..\..\packages\VowpalWabbit.JSON.8.2.0.28\lib\net45\VowpalWabbit.JSON.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
@@ -322,12 +322,12 @@
     <Error Condition="Exists('$(SolutionDir)packages\Microsoft.Bcl.Build.1.0.14\tools\Microsoft.Bcl.Build.targets')" Text="The build restored NuGet packages. Build the project again to include these packages in the build. For more information, see http://go.microsoft.com/fwlink/?LinkID=317568." HelpKeyword="BCLBUILD2002" />
   </Target>
   <Import Project="$(SolutionDir)packages\VowpalWabbit.8.0.0.65\build\VowpalWabbit.targets" Condition="Exists('$(SolutionDir)packages\VowpalWabbit.8.0.0.65\build\VowpalWabbit.targets')" />
-  <Import Project="..\..\packages\VowpalWabbit.8.2.0.27\build\VowpalWabbit.targets" Condition="Exists('..\..\packages\VowpalWabbit.8.2.0.27\build\VowpalWabbit.targets')" />
+  <Import Project="..\..\packages\VowpalWabbit.8.2.0.28\build\VowpalWabbit.targets" Condition="Exists('..\..\packages\VowpalWabbit.8.2.0.28\build\VowpalWabbit.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\..\packages\VowpalWabbit.8.2.0.27\build\VowpalWabbit.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\VowpalWabbit.8.2.0.27\build\VowpalWabbit.targets'))" />
+    <Error Condition="!Exists('..\..\packages\VowpalWabbit.8.2.0.28\build\VowpalWabbit.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\VowpalWabbit.8.2.0.28\build\VowpalWabbit.targets'))" />
   </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
