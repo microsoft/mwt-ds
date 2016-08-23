@@ -34,6 +34,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Experimentation", "Experime
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExperimentationConsole", "ExperimentationConsole\ExperimentationConsole.csproj", "{E5E1575D-CFC5-4C1B-A252-C25F484E1955}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExperimentationTest", "ExperimentationTest\ExperimentationTest.csproj", "{44979F3F-0CE2-4ADD-86D9-D8F9853683A5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -136,6 +138,12 @@ Global
 		{E5E1575D-CFC5-4C1B-A252-C25F484E1955}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E5E1575D-CFC5-4C1B-A252-C25F484E1955}.Release|x64.ActiveCfg = Release|Any CPU
 		{E5E1575D-CFC5-4C1B-A252-C25F484E1955}.Release|x64.Build.0 = Release|Any CPU
+		{44979F3F-0CE2-4ADD-86D9-D8F9853683A5}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{44979F3F-0CE2-4ADD-86D9-D8F9853683A5}.Debug|x64.ActiveCfg = Debug|x64
+		{44979F3F-0CE2-4ADD-86D9-D8F9853683A5}.Debug|x64.Build.0 = Debug|x64
+		{44979F3F-0CE2-4ADD-86D9-D8F9853683A5}.Release|Any CPU.ActiveCfg = Release|x64
+		{44979F3F-0CE2-4ADD-86D9-D8F9853683A5}.Release|x64.ActiveCfg = Release|x64
+		{44979F3F-0CE2-4ADD-86D9-D8F9853683A5}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
