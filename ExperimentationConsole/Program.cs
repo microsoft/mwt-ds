@@ -24,19 +24,6 @@ namespace ExperimentationConsole
     {
         static void Main(string[] args)
         {
-            var sweepFile = @"D:\complex\gal\processed-fixed\sweep.bat";
-            var sweepDir = @"D:\complex\gal\processed-fixed";
-            SweepCommandLine(
-                outputFile: sweepFile,
-                vwExe: @"D:\Git\vw-markus\vowpal_wabbit\vowpalwabbit\x64\Release\vw.exe",
-                dataFile: @"D:\complex\gal\processed.vw.gz",
-                outModelDir: sweepDir,
-                numProcs: 20);
-
-            AnalyzeSweep(sweepDir: sweepDir, sweepArgumentFile: sweepFile);
-
-            return;
-
             try
             {
                 var stopwatch = Stopwatch.StartNew();
