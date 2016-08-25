@@ -52,12 +52,14 @@
                     $("#statusTrainer").text(response.TrainerStatus + " (Last updated at: " + moment().format('MMMM Do YYYY, h:mm:ss a') + ")");
                     if ($('#statusModel').length) {
                         // TODO: refactor
-                        modelTime = new Date(parseInt(response.ModelUpdateTime.substr(6)));
-                        modelTimeMessage = 'Latest model obtained at: ' + moment(modelTime).format('MMMM Do YYYY, h:mm:ss a');
-                        if (modelTime.getFullYear() <= 1) {
-                            modelTimeMessage = ''
+                        if (response.ModelUpdateTime != null) {
+                            modelTime = new Date(parseInt(response.ModelUpdateTime.substr(6)));
+                            modelTimeMessage = 'Latest model obtained at: ' + moment(modelTime).format('MMMM Do YYYY, h:mm:ss a');
+                            if (modelTime.getFullYear() <= 1) {
+                                modelTimeMessage = ''
+                            }
+                            $("#statusModel").text(modelTimeMessage);
                         }
-                        $("#statusModel").text(modelTimeMessage);
                     }
                 }
                 if (updateGraph) {
