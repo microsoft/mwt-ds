@@ -11,6 +11,11 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Microsoft.ApplicationInsights;
 using System.Xml.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using Experimentation;
+using System.IO;
+using System.Text;
 
 namespace DecisionServicePrivateWeb.Controllers
 {
@@ -73,6 +78,22 @@ namespace DecisionServicePrivateWeb.Controllers
                             new XAttribute("key", key), 
                             new XAttribute("value", ConfigurationManager.AppSettings[key])))
                 ).ToString();
+        }
+
+        [HttpGet]
+        public HttpResponseMessage Offline(DateTime startTimeInclusive, DateTime endTimeExclusive)
+        {
+            var token = Request.Headers["auth"];
+            if (token != ConfigurationManager.AppSettings[ApplicationMetadataStore.AKPassword])
+                throw new UnauthorizedAccessException();
+
+            var storageAccount = CloudStorageAccount.Parse(ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString]);
+            return new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+            {
+                Content = new PushStreamContent(
+                    (stream, content, context) => AzureBlobDownloader.Download(storageAccount, startTimeInclusive, endTimeExclusive, new StreamWriter(stream, Encoding.UTF8)).Wait(), 
+                    new MediaTypeHeaderValue("application/json"))
+            };
         }
     }
 }
