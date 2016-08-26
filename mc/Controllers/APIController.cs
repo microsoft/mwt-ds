@@ -95,17 +95,19 @@ namespace DecisionServicePrivateWeb.Controllers
         }
 
         [HttpPost]
-        public ActionResult Ranker(int[] defaultActions)
+        public ActionResult Ranker(string defaultActions)
         {
             try
             {
                 APIUtil.Authenticate(this.Request);
 
+                int[] defaultActionArray = Array.ConvertAll(defaultActions.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries), Convert.ToInt32);
+
                 var client = DecisionServiceClientFactory.AddOrGetExisting(ModelSuccessNotifier);
                 var context = APIUtil.ReadBody(this.Request);
                 var eventId = APIUtil.CreateEventId();
-                var actions = defaultActions != null && defaultActions.Length > 0 ?
-                        client.ChooseRanking(eventId, context, defaultActions) :
+                var actions = defaultActionArray != null && defaultActionArray.Length > 0 ?
+                        client.ChooseRanking(eventId, context, defaultActionArray) :
                         client.ChooseRanking(eventId, context);
 
                 return Json(new

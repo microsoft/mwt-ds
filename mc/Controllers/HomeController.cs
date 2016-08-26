@@ -32,6 +32,8 @@ namespace DecisionServicePrivateWeb.Controllers
 
         const string DefaultEvalWindow = "6d";
 
+        private static string LastEvalDataSignature;
+
         [HttpGet]
         public ActionResult Index()
         {
@@ -211,20 +213,20 @@ namespace DecisionServicePrivateWeb.Controllers
         [HttpGet]
         [AllowAnonymous]
         [NoCache]
-        public ActionResult EvalJson(string windowType = DefaultEvalWindow, int maxNumPolicies = 5)
+        public ActionResult EvalJson(string windowType = DefaultEvalWindow, int maxNumPolicies = 5, bool useCache = true)
         {
             if (!IsAuthenticated(Session))
             {
                 return new HttpStatusCodeResult(HttpStatusCode.Unauthorized);
             }
 
-            return GetEvalData(windowType, maxNumPolicies);
+            return GetEvalData(windowType, maxNumPolicies, useCache: useCache);
         }
 
         [HttpGet]
         [AllowAnonymous]
         [NoCache]
-        public ActionResult EvalJsonAPI(string userToken, string windowType = DefaultEvalWindow, int maxNumPolicies = 5)
+        public ActionResult EvalJsonAPI(string userToken, string windowType = DefaultEvalWindow, int maxNumPolicies = 5, bool useCache = true)
         {
             if (userToken != ConfigurationManager.AppSettings[ApplicationMetadataStore.AKWebServiceToken])
             {
@@ -255,10 +257,10 @@ namespace DecisionServicePrivateWeb.Controllers
                 }
             }
 
-            return GetEvalData(windowType, maxNumPolicies, trainerStatus);
+            return GetEvalData(windowType, maxNumPolicies, trainerStatus, useCache: useCache);
         }
 
-        private ActionResult GetEvalData(string windowType, int maxNumPolicies, string trainerStatus = null)
+        private ActionResult GetEvalData(string windowType, int maxNumPolicies, string trainerStatus = null, bool useCache = true)
         {
             try
             {
@@ -274,13 +276,18 @@ namespace DecisionServicePrivateWeb.Controllers
                 {
                     return Json(new { DataError = "No evaluation data detected", TrainerStatus = trainerStatus }, JsonRequestBehavior.AllowGet);
                 }
-                var evalBlobs = evalContainer.ListBlobs(useFlatBlobListing: true);
+                var evalBlobs = evalContainer.ListBlobs(useFlatBlobListing: true).OfType<CloudBlockBlob>();
                 var evalData = new Dictionary<string, EvalD3>();
-                foreach (var evalBlob in evalBlobs)
+
+                var currentEvalDataSignature = string.Join(string.Empty, evalBlobs.Select(b => b.Properties.ETag).OrderBy(etag => etag)) + evalBlobs.Sum(b => b.Properties.Length);
+
+                if (currentEvalDataSignature == LastEvalDataSignature && useCache)
                 {
-                    // TODO: cache or optimize perf
-                    var evalBlockBlob = (CloudBlockBlob)evalBlob;
-                    if (evalBlockBlob != null)
+                    return Json(new { DataError = HttpStatusCode.NotModified, TrainerStatus = trainerStatus, ModelUpdateTime = APIController.ModelUpdateTime }, JsonRequestBehavior.AllowGet);
+                }
+                else
+                {
+                    foreach (var evalBlockBlob in evalBlobs)
                     {
                         var evalTextData = evalBlockBlob.DownloadText();
                         var evalLines = evalTextData.Split(new string[] { "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
@@ -312,11 +319,13 @@ namespace DecisionServicePrivateWeb.Controllers
                             }
                         }
                     }
+
+                    var evalDataD3 = evalData.Values.Select(a => new { key = GetDemoPolicyName(a.key), values = a.values.Select(v => new object[] { v.Key, v.Value }) });
+
+                    LastEvalDataSignature = currentEvalDataSignature;
+
+                    return Json(new { Data = evalDataD3, TrainerStatus = trainerStatus, ModelUpdateTime = APIController.ModelUpdateTime }, JsonRequestBehavior.AllowGet);
                 }
-
-                var evalDataD3 = evalData.Values.Select(a => new { key = GetDemoPolicyName(a.key), values = a.values.Select(v => new object[] { v.Key, v.Value }) });
-
-                return Json(new { Data = evalDataD3, TrainerStatus = trainerStatus, ModelUpdateTime = APIController.ModelUpdateTime }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
@@ -402,6 +411,8 @@ namespace DecisionServicePrivateWeb.Controllers
 
             CollectiveSettingsView svm = CreateCollectiveSettings(clientMetadata, extraMetadata, uniqueStringInUrl);
 
+            string trainerId = Regex.Match(svm.OnlineTrainerAddress, @".*(trainer-.*)\.cloudapp\.net").Groups[1].Value;
+
             string azureStorageName = Regex.Match(svm.AzureStorageConnectionString, ".*AccountName=(.*);AccountKey.*").Groups[1].Value;
 
             var nameToValue = svm.GetType().GetProperties()
@@ -415,10 +426,10 @@ namespace DecisionServicePrivateWeb.Controllers
             {
                 new { Name = nameof(svm.AzureResourceGroupName), Tooltip = "View Azure Resource Group", Url = $"https://ms.portal.azure.com/#asset/HubsExtension/ResourceGroups/subscriptions/{svm.AzureSubscriptionId}/resourceGroups/{svm.AzureResourceGroupName}"},
                 new { Name = nameof(svm.AzureStorageConnectionString), Tooltip = "View Data", Url = $"https://ms.portal.azure.com/#blade/Microsoft_Azure_Storage/ContainersBlade/storageAccountId/%2Fsubscriptions%2F{svm.AzureSubscriptionId}%2FresourceGroups%2F{svm.AzureResourceGroupName}%2Fproviders%2FMicrosoft.Storage%2FstorageAccounts%2F{azureStorageName}"},
-                new { Name = nameof(svm.ApplicationInsightsInstrumentationKey), Tooltip = "View Application Logs", Url = $"https://ms.portal.azure.com/#blade/AppInsightsExtension/SearchBlade/ComponentId/%7B%22SubscriptionId%22%3A%22{svm.AzureSubscriptionId}%22%2C%22ResourceGroup%22%3A%22{svm.AzureResourceGroupName}%22%2C%22Name%22%3A%22{svm.AzureResourceGroupName}-appinsights-{uniqueStringInUrl}%22%7D/InitialFilter/%7B%22eventTypes%22%3A%5B4%2C1%2C3%2C5%2C2%2C6%5D%2C%22typeFacets%22%3A%7B%7D%2C%22isPermissive%22%3Afalse%7D/InitialTime/%7B%22durationMs%22%3A43200000%2C%22endTime%22%3Anull%2C%22isInitialTime%22%3Atrue%2C%22grain%22%3A1%7D/InitialQueryText//ConfigurationId/blankSearch%3A"},
-                new { Name = nameof(svm.ASAJoinName), Tooltip = "View ASA Join Query", Url = $"https://ms.portal.azure.com/#resource/subscriptions/{svm.AzureSubscriptionId}/resourceGroups/{svm.AzureResourceGroupName}/providers/Microsoft.StreamAnalytics/streamingjobs/{svm.ASAJoinName}"},
-                new { Name = nameof(svm.ASAEvalName), Tooltip = "View ASA Policy Evaluation Query", Url = $"https://ms.portal.azure.com/#resource/subscriptions/{svm.AzureSubscriptionId}/resourceGroups/{svm.AzureResourceGroupName}/providers/Microsoft.StreamAnalytics/streamingjobs/{svm.ASAEvalName}"},
-                new { Name = nameof(svm.OnlineTrainerAddress), Tooltip = "Configure Online Trainer", Url = $"https://manage.windowsazure.com/microsoft.onmicrosoft.com#Workspaces/CloudServicesExtension/CloudService/{svm.OnlineTrainerAddress}/configure"}
+                new { Name = nameof(svm.ApplicationInsightsInstrumentationKey), Tooltip = "View Application Logs", Url = $"https://ms.portal.azure.com/#blade/AppInsightsExtension/SearchBlade/ComponentId/%7B%22SubscriptionId%22%3A%22d65ae8da-b9bf-4839-9659-4f3c6f8727f7%22%2C%22ResourceGroup%22%3A%22{svm.AzureResourceGroupName}%22%2C%22Name%22%3A%22appinsights-{uniqueStringInUrl}%22%7D/InitialFilter/%7B%22eventTypes%22%3A%5B4%2C1%2C3%2C5%2C2%2C6%5D%2C%22typeFacets%22%3A%7B%7D%2C%22isPermissive%22%3Afalse%7D/InitialTime/%7B%22durationMs%22%3A86400000%2C%22createdTime%22%3A%222016-08-01T21%3A10%3A29.532Z%22%2C%22isInitialTime%22%3Afalse%2C%22grain%22%3A1%2C%22useDashboardTimeRange%22%3Afalse%7D/InitialQueryText//ConfigurationId/blankSearch%3A"},
+                new { Name = nameof(svm.ASAJoinName), Tooltip = "View ASA Join Query", Url = $"https://ms.portal.azure.com/#resource/subscriptions/{svm.AzureSubscriptionId}/resourceGroups/{svm.AzureResourceGroupName}/providers/Microsoft.StreamAnalytics/streamingjobs/{svm.ASAJoinName}/overview"},
+                new { Name = nameof(svm.ASAEvalName), Tooltip = "View ASA Policy Evaluation Query", Url = $"https://ms.portal.azure.com/#resource/subscriptions/{svm.AzureSubscriptionId}/resourceGroups/{svm.AzureResourceGroupName}/providers/Microsoft.StreamAnalytics/streamingjobs/{svm.ASAEvalName}/overview"},
+                new { Name = nameof(svm.OnlineTrainerAddress), Tooltip = "Configure Online Trainer", Url = $"https://ms.portal.azure.com/#resource/subscriptions/{svm.AzureSubscriptionId}/resourceGroups/{svm.AzureResourceGroupName}/providers/Microsoft.ClassicCompute/domainNames/{trainerId}/overview"}
             };
             var nameToEditable = new[]
             {
