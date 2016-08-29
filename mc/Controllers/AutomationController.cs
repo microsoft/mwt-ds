@@ -82,14 +82,37 @@ namespace DecisionServicePrivateWeb.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult> Offline(string startTimeInclusive, string endTimeExclusive)
+        public async Task<ActionResult> Offline(string startTimeInclusive, string endTimeExclusive, string dataFormat = "json")
         {
             var token = Request.Headers["auth"];
             if (token != ConfigurationManager.AppSettings[ApplicationMetadataStore.AKPassword])
                 throw new UnauthorizedAccessException();
 
             var storageAccount = CloudStorageAccount.Parse(ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString]);
-            using (var responseWriter = new StreamWriter(Response.OutputStream, Encoding.UTF8))
+
+            var blobClient = storageAccount.CreateCloudBlobClient();
+
+            StreamWriter responseWriter = null;
+            switch (dataFormat)
+            {
+                case "json":
+                    responseWriter = new StreamWriter(Response.OutputStream, Encoding.UTF8);
+                    break;
+                case "vw":
+                    var settingsBlobContainer = blobClient.GetContainerReference(ApplicationBlobConstants.SettingsContainerName);
+                    var blob = settingsBlobContainer.GetBlockBlobReference(ApplicationBlobConstants.LatestClientSettingsBlobName);
+                    if (!await blob.ExistsAsync())
+                    {
+                        return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, "Application settings blob not found.");
+                    }
+                    ApplicationClientMetadata clientMeta = JsonConvert.DeserializeObject<ApplicationClientMetadata>(await blob.DownloadTextAsync());
+                    responseWriter = new VowpalWabbitStreamWriter(Response.OutputStream, Encoding.UTF8, clientMeta.TrainArguments);
+                    break;
+                default:
+                    return new HttpStatusCodeResult(HttpStatusCode.BadRequest, "Unrecognized data format.");
+            }
+
+            using (responseWriter)
             {
                 await AzureBlobDownloader.Download(
                     storageAccount,
