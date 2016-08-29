@@ -16,6 +16,7 @@ using System.Net.Http.Headers;
 using Experimentation;
 using System.IO;
 using System.Text;
+using System.Net;
 
 namespace DecisionServicePrivateWeb.Controllers
 {
@@ -81,19 +82,23 @@ namespace DecisionServicePrivateWeb.Controllers
         }
 
         [HttpGet]
-        public HttpResponseMessage Offline(DateTime startTimeInclusive, DateTime endTimeExclusive)
+        public async Task<ActionResult> Offline(string startTimeInclusive, string endTimeExclusive)
         {
             var token = Request.Headers["auth"];
             if (token != ConfigurationManager.AppSettings[ApplicationMetadataStore.AKPassword])
                 throw new UnauthorizedAccessException();
 
             var storageAccount = CloudStorageAccount.Parse(ConfigurationManager.AppSettings[ApplicationMetadataStore.AKConnectionString]);
-            return new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+            using (var responseWriter = new StreamWriter(Response.OutputStream, Encoding.UTF8))
             {
-                Content = new PushStreamContent(
-                    (stream, content, context) => AzureBlobDownloader.Download(storageAccount, startTimeInclusive, endTimeExclusive, new StreamWriter(stream, Encoding.UTF8)).Wait(), 
-                    new MediaTypeHeaderValue("application/json"))
-            };
+                await AzureBlobDownloader.Download(
+                    storageAccount,
+                    DateTime.ParseExact(startTimeInclusive, "yyyyMMddHHmm", System.Globalization.CultureInfo.InvariantCulture),
+                    DateTime.ParseExact(endTimeExclusive, "yyyyMMddHHmm", System.Globalization.CultureInfo.InvariantCulture),
+                    responseWriter).ConfigureAwait(false);
+            }
+
+            return new HttpStatusCodeResult(HttpStatusCode.OK);
         }
     }
 }
