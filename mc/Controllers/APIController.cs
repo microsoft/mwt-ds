@@ -101,14 +101,20 @@ namespace DecisionServicePrivateWeb.Controllers
             {
                 APIUtil.Authenticate(this.Request);
 
-                int[] defaultActionArray = Array.ConvertAll(defaultActions.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries), Convert.ToInt32);
-
                 var client = DecisionServiceClientFactory.AddOrGetExisting(ModelSuccessNotifier);
                 var context = APIUtil.ReadBody(this.Request);
                 var eventId = APIUtil.CreateEventId();
-                var actions = defaultActionArray != null && defaultActionArray.Length > 0 ?
-                        client.ChooseRanking(eventId, context, defaultActionArray) :
-                        client.ChooseRanking(eventId, context);
+
+                int[] actions;
+                if (string.IsNullOrWhiteSpace(defaultActions))
+                {
+                    actions = client.ChooseRanking(eventId, context);
+                }
+                else
+                {
+                    int[] defaultActionArray = Array.ConvertAll(defaultActions.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries), Convert.ToInt32);
+                    actions = client.ChooseRanking(eventId, context, defaultActionArray);
+                }
 
                 return Json(new
                 {
