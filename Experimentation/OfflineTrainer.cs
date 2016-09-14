@@ -92,10 +92,10 @@ namespace Experimentation
                                 });
                             }
 
-                            // var pred = vw.Learn(line, VowpalWabbitPredictionType.ActionScore);
+                            // var pred = vw.Learn(line, VowpalWabbitPredictionType.ActionProbabilities);
                             using (var example = jsonSerializer.ParseAndCreate(line))
                             {
-                                var pred = example.Learn(VowpalWabbitPredictionType.ActionScore);
+                                var pred = example.Learn(VowpalWabbitPredictionType.ActionProbabilities);
 
                                 prediction.WriteLine(JsonConvert.SerializeObject(
                                     new
@@ -160,7 +160,7 @@ namespace Experimentation
             //    var learnBlock = new TransformBlock<Event, Event>(
             //        evt =>
             //        {
-            //            evt.Prediction = evt.Example.Learn(VowpalWabbitPredictionType.ActionScore);
+            //            evt.Prediction = evt.Example.Learn(VowpalWabbitPredictionType.ActionProbabilities);
             //            evt.Example.Dispose();
             //            return evt;
             //        },

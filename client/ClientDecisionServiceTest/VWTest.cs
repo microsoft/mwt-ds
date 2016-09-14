@@ -87,7 +87,7 @@ namespace ClientDecisionServiceTest
                         DateTime timeStamp = DateTime.UtcNow;
 
                         var context = new FoodContext { Actions = new int[] { 1, 2, 3 }, UserLocation = location };
-                        ActionScore[] predicts = vw.Predict(context, VowpalWabbitPredictionType.ActionScore);
+                        ActionScore[] predicts = vw.Predict(context, VowpalWabbitPredictionType.ActionProbabilities);
                         Assert.AreEqual(expectedActions[location], predicts[0].Action + 1);
                     }
                 }

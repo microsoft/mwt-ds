@@ -3,11 +3,12 @@ using System.IO;
 using System.Linq;
 using VW;
 using VW.Serializer;
+using System;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
     public class VWJsonPolicy : 
-        VWBaseContextMapper<VowpalWabbitThreadedPrediction, VowpalWabbit, string, int>, 
+        VWBaseContextMapper<VowpalWabbit, string, int>, 
         IPolicy<string>
     {
         public VWJsonPolicy(Stream vwModelStream = null)
@@ -26,10 +27,15 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 return PolicyDecision.Create(action, state);
             }
         }
+
+        protected override VowpalWabbitThreadedPredictionBase<VowpalWabbit> CreatePool(VowpalWabbitSettings settings)
+        {
+            return new VowpalWabbitThreadedPrediction(settings);
+        }
     }
 
     public class VWJsonRanker : 
-        VWBaseContextMapper<VowpalWabbitThreadedPrediction, VowpalWabbit, string, int[]>, 
+        VWBaseContextMapper<VowpalWabbit, string, int[]>, 
         IRanker<string>, INumberOfActionsProvider<string>
     {
         public VWJsonRanker(Stream vwModelStream = null)
@@ -37,12 +43,17 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         {
         }
 
+        protected override VowpalWabbitThreadedPredictionBase<VowpalWabbit> CreatePool(VowpalWabbitSettings settings)
+        {
+            return new VowpalWabbitThreadedPrediction(settings);
+        }
+
         protected override PolicyDecision<int[]> MapContext(VowpalWabbit vw, string context)
         {
             using (var vwJson = new VowpalWabbitJsonSerializer(vw))
             using (VowpalWabbitExampleCollection vwExample = vwJson.ParseAndCreate(context))
             {
-                ActionScore[] vwMultilabelPredictions = vwExample.Predict(VowpalWabbitPredictionType.ActionScore);
+                ActionScore[] vwMultilabelPredictions = vwExample.Predict(VowpalWabbitPredictionType.ActionProbabilities);
 
                 // VW multi-label predictions are 0-based
                 var actions = vwMultilabelPredictions.Select(a => (int)a.Action + 1).ToArray();
