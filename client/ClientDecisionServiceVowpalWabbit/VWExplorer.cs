@@ -50,7 +50,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 }
             }
 
-            var vwPredictions = vw.Predict(context, VowpalWabbitPredictionType.ActionScore);
+            var vwPredictions = vw.Predict(context, VowpalWabbitPredictionType.ActionProbabilities);
 
             // VW multi-label predictions are 0-based
             var ap = vwPredictions
