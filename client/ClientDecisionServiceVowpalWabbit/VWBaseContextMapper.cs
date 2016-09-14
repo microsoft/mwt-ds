@@ -6,13 +6,12 @@ using VW.Serializer;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    public abstract class VWBaseContextMapper<TPool, TVowpalWabbit, TContext, TAction>
+    public abstract class VWBaseContextMapper<TVowpalWabbit, TContext, TAction>
         : IUpdatable<Stream>, IDisposable, IContextMapper<TContext, TAction>
-        where TPool : VowpalWabbitThreadedPredictionBase<TVowpalWabbit>, new()
         where TVowpalWabbit : class, IDisposable
     {
         protected ITypeInspector typeInspector;
-        protected TPool vwPool;
+        protected VowpalWabbitThreadedPredictionBase<TVowpalWabbit> vwPool;
         protected bool developmentMode;
 
         /// <summary>
@@ -42,17 +41,19 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
             var model = new VowpalWabbitModel(
                 new VowpalWabbitSettings
-                    {
-                        ModelStream = modelStream,
-                        MaxExampleCacheSize = 1024,
-                        TypeInspector = this.typeInspector,
-                        EnableStringExampleGeneration = this.developmentMode,
-                        EnableStringFloatCompact = this.developmentMode
-                    });
+                {
+                    ModelStream = modelStream
+                });
 
             if (this.vwPool == null)
             {
-                this.vwPool = new TPool();
+                this.vwPool = this.CreatePool(new VowpalWabbitSettings
+                {
+                    MaxExampleCacheSize = 1024,
+                    TypeInspector = this.typeInspector,
+                    EnableStringExampleGeneration = this.developmentMode,
+                    EnableStringFloatCompact = this.developmentMode
+                });
                 this.vwPool.UpdateModel(model);
             }
             else
@@ -76,7 +77,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         {
             if (disposing)
             {
-                if (this.vwPool != default(TPool))
+                if (this.vwPool != null)
                 {
                     this.vwPool.Dispose();
                     this.vwPool = null;
@@ -97,6 +98,8 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 return MapContext(vw.Value, context);    
             }
         }
+
+        protected abstract VowpalWabbitThreadedPredictionBase<TVowpalWabbit> CreatePool(VowpalWabbitSettings settings);
 
         protected abstract PolicyDecision<TAction> MapContext(TVowpalWabbit vw, TContext context);
     }

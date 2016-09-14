@@ -12,12 +12,17 @@ using VW.Serializer;
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
     public sealed class VWJsonExplorer :
-        VWBaseContextMapper<VowpalWabbitThreadedPrediction, VowpalWabbit, string, ActionProbability[]>, 
+        VWBaseContextMapper<VowpalWabbit, string, ActionProbability[]>, 
         IContextMapper<string, ActionProbability[]>, INumberOfActionsProvider<string>
     {
         public VWJsonExplorer(Stream vwModelStream = null, bool developmentMode = false)
             : base(vwModelStream, developmentMode: developmentMode)
         {
+        }
+
+        protected override VowpalWabbitThreadedPredictionBase<VowpalWabbit> CreatePool(VowpalWabbitSettings settings)
+        {
+            return new VowpalWabbitThreadedPrediction(settings);
         }
 
         protected override PolicyDecision<ActionProbability[]> MapContext(VowpalWabbit vw, string context)

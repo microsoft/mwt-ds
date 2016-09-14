@@ -10,7 +10,7 @@ using VW.Serializer;
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
     public class VWRanker<TContext> :
-        VWBaseContextMapper<VowpalWabbitThreadedPrediction<TContext>, VowpalWabbit<TContext>, TContext, int[]>,
+        VWBaseContextMapper<VowpalWabbit<TContext>, TContext, int[]>,
         IRanker<TContext>, INumberOfActionsProvider<TContext>
     {
         private readonly IVowpalWabbitMultiExampleSerializerCompiler<TContext> serializer;
@@ -28,6 +28,11 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 EnableStringExampleGeneration = this.developmentMode,
                 EnableStringFloatCompact = this.developmentMode
             }) as IVowpalWabbitMultiExampleSerializerCompiler<TContext>;
+        }
+
+        protected override VowpalWabbitThreadedPredictionBase<VowpalWabbit<TContext>> CreatePool(VowpalWabbitSettings settings)
+        {
+            return new VowpalWabbitThreadedPrediction<TContext>(settings);
         }
 
         protected override PolicyDecision<int[]> MapContext(VowpalWabbit<TContext> vw, TContext context)
@@ -56,7 +61,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
     }
 
     public class VWRanker<TContext, TActionDependentFeature> :
-        VWBaseContextMapper<VowpalWabbitThreadedPrediction<TContext, TActionDependentFeature>, VowpalWabbit<TContext, TActionDependentFeature>, TContext, int[]>,
+        VWBaseContextMapper<VowpalWabbit<TContext, TActionDependentFeature>, TContext, int[]>,
         IRanker<TContext>, INumberOfActionsProvider<TContext>
     {
         private readonly Func<TContext, IReadOnlyCollection<TActionDependentFeature>> getContextFeaturesFunc;
@@ -73,6 +78,11 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             : base(vwModelStream, typeInspector, developmentMode)
         {
             this.getContextFeaturesFunc = getContextFeaturesFunc;
+        }
+
+        protected override VowpalWabbitThreadedPredictionBase<VowpalWabbit<TContext, TActionDependentFeature>> CreatePool(VowpalWabbitSettings settings)
+        {
+            return new VowpalWabbitThreadedPrediction<TContext, TActionDependentFeature>(settings);
         }
 
         protected override PolicyDecision<int[]> MapContext(VowpalWabbit<TContext, TActionDependentFeature> vw, TContext context)

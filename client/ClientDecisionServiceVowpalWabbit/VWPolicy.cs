@@ -7,7 +7,7 @@ using VW.Serializer;
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
     public class VWPolicy<TContext> 
-        : VWBaseContextMapper<VowpalWabbitThreadedPrediction<TContext>, VowpalWabbit<TContext>, TContext, int>, IPolicy<TContext>
+        : VWBaseContextMapper<VowpalWabbit<TContext>, TContext, int>, IPolicy<TContext>
     {
         /// <summary>
         /// Constructor using a memory stream.
@@ -16,6 +16,11 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         public VWPolicy(Stream vwModelStream = null, ITypeInspector typeInspector = null, bool developmentMode = false)
             : base(vwModelStream, typeInspector, developmentMode)
         {
+        }
+
+        protected override VowpalWabbitThreadedPredictionBase<VowpalWabbit<TContext>> CreatePool(VowpalWabbitSettings settings)
+        {
+            return new VowpalWabbitThreadedPrediction<TContext>(settings);
         }
 
         protected override PolicyDecision<int> MapContext(VowpalWabbit<TContext> vw, TContext context)

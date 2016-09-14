@@ -12,7 +12,7 @@ using VW.Serializer;
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
     public sealed class VWExplorer<TContext> :
-        VWBaseContextMapper<VowpalWabbitThreadedPrediction<TContext>, VowpalWabbit<TContext>, TContext, ActionProbability[]>,
+        VWBaseContextMapper<VowpalWabbit<TContext>, TContext, ActionProbability[]>,
         IContextMapper<TContext, ActionProbability[]>, INumberOfActionsProvider<TContext>
     {
         private readonly IVowpalWabbitSerializerCompiler<TContext> serializer;
@@ -33,6 +33,11 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             });
 
             this.multiSerializer = this.serializer as IVowpalWabbitMultiExampleSerializerCompiler<TContext>;
+        }
+        
+        protected override VowpalWabbitThreadedPredictionBase<VowpalWabbit<TContext>> CreatePool(VowpalWabbitSettings settings)
+        {
+            return new VowpalWabbitThreadedPrediction<TContext>(settings);
         }
 
         protected override PolicyDecision<ActionProbability[]> MapContext(VowpalWabbit<TContext> vw, TContext context)
