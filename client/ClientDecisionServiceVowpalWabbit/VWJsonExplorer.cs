@@ -28,7 +28,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 if (this.developmentMode)
                     Trace.TraceInformation("Example Context: '{0}'", vwExample.VowpalWabbitString);
 
-                var vwPredictions = vwExample.Predict(VowpalWabbitPredictionType.ActionScore);
+                var vwPredictions = vwExample.Predict(VowpalWabbitPredictionType.ActionProbabilities);
 
                 // VW multi-label predictions are 0-based
                 var ap = vwPredictions

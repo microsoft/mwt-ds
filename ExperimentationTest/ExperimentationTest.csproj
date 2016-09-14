@@ -43,16 +43,16 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="VowpalWabbit, Version=8.2.0.32, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <HintPath>..\packages\VowpalWabbit.8.2.0.32\lib\net45\VowpalWabbit.dll</HintPath>
+    <Reference Include="VowpalWabbit, Version=8.2.0.37, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
+      <HintPath>..\packages\VowpalWabbit.8.2.0.37\lib\net45\VowpalWabbit.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="VowpalWabbit.Common, Version=8.2.0.32, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <HintPath>..\packages\VowpalWabbit.8.2.0.32\lib\net45\VowpalWabbit.Common.dll</HintPath>
+    <Reference Include="VowpalWabbit.Common, Version=8.2.0.37, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
+      <HintPath>..\packages\VowpalWabbit.8.2.0.37\lib\net45\VowpalWabbit.Common.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="VowpalWabbit.Core, Version=8.2.0.32, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <HintPath>..\packages\VowpalWabbit.8.2.0.32\lib\net45\VowpalWabbit.Core.dll</HintPath>
+    <Reference Include="VowpalWabbit.Core, Version=8.2.0.37, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
+      <HintPath>..\packages\VowpalWabbit.8.2.0.37\lib\net45\VowpalWabbit.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
@@ -108,12 +108,12 @@
   </Choose>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="..\packages\VowpalWabbit.8.2.0.32\build\VowpalWabbit.targets" Condition="Exists('..\packages\VowpalWabbit.8.2.0.32\build\VowpalWabbit.targets')" />
+  <Import Project="..\packages\VowpalWabbit.8.2.0.37\build\VowpalWabbit.targets" Condition="Exists('..\packages\VowpalWabbit.8.2.0.37\build\VowpalWabbit.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\VowpalWabbit.8.2.0.32\build\VowpalWabbit.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\VowpalWabbit.8.2.0.32\build\VowpalWabbit.targets'))" />
+    <Error Condition="!Exists('..\packages\VowpalWabbit.8.2.0.37\build\VowpalWabbit.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\VowpalWabbit.8.2.0.37\build\VowpalWabbit.targets'))" />
   </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

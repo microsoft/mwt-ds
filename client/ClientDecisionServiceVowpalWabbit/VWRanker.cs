@@ -40,7 +40,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 }
             }
 
-            ActionScore[] vwMultilabelPredictions = vw.Predict(context, VowpalWabbitPredictionType.ActionScore);
+            ActionScore[] vwMultilabelPredictions = vw.Predict(context, VowpalWabbitPredictionType.ActionProbabilities);
 
             // VW multi-label predictions are 0-based
             var actions = vwMultilabelPredictions.Select(a => (int)a.Action + 1).ToArray();

@@ -42,7 +42,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             using (var vwJson = new VowpalWabbitJsonSerializer(vw))
             using (VowpalWabbitExampleCollection vwExample = vwJson.ParseAndCreate(context))
             {
-                ActionScore[] vwMultilabelPredictions = vwExample.Predict(VowpalWabbitPredictionType.ActionScore);
+                ActionScore[] vwMultilabelPredictions = vwExample.Predict(VowpalWabbitPredictionType.ActionProbabilities);
 
                 // VW multi-label predictions are 0-based
                 var actions = vwMultilabelPredictions.Select(a => (int)a.Action + 1).ToArray();
