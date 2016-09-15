@@ -58,7 +58,7 @@
     },
     "subtemplate location": {
       "type": "string",
-      "defaultValue": "https://raw.githubusercontent.com/Microsoft/mwt-ds/master/provisioning/",
+      "defaultValue": "https://raw.githubusercontent.com/lhoang29/mwt-ds/master/provisioning/",
       "metadata": {
         "description": "TL;DR: don't change - required for painless testing. If contributors issue pull requests the location has to be changed to the corresponding branch."
       }
