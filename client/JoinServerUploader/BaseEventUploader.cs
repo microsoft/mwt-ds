@@ -54,7 +54,10 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
                     BoundedCapacity = this.batchConfig.MaxUploadQueueCapacity,
                 });
             // log when the processor stops
-            this.eventSource.Completion.ContinueWith(t => CompletionHandler(this, "EventSource", t));
+            if (CompletionHandler != null)
+            {
+                this.eventSource.Completion.ContinueWith(t => CompletionHandler(this, "EventSource", t));
+            }
 
             this.eventObserver = this.eventSource.AsObserver();
 
@@ -68,8 +71,11 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
                 }
             );
 
-            // log when the processor stops
-            this.eventProcessor.Completion.ContinueWith(t => CompletionHandler(this, "EventProcessor", t));
+            if (CompletionHandler != null)
+            {
+                // log when the processor stops
+                this.eventProcessor.Completion.ContinueWith(t => CompletionHandler(this, "EventProcessor", t));
+            }
 
             this.eventUnsubscriber = this.eventSource.AsObservable()
                 .Window(this.batchConfig.MaxDuration)

@@ -196,7 +196,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 
             var explorerDecision = this.Explorer.MapContext(random, policyDecision.Value, numActionsVariable);
 
-            this.Log(uniqueKey, context, explorerDecision, policyDecision);
+            this.Log(uniqueKey, context, explorerDecision, policyDecision != null ? policyDecision.MapperState : null);
 
             return explorerDecision.Value;
         }
