@@ -3,6 +3,7 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Priority_Queue;
 using System;
 using System.Collections.Generic;
@@ -78,10 +79,10 @@ namespace Experimentation
                             continue;
 
                         return new DecisionServiceEvent
-                            {
-                                Line = line,
-                                DateTime = (DateTime)jsonReader.ReadAsDateTime()
-                            };
+                        {
+                            Line = line,
+                            DateTime = (DateTime)jsonReader.ReadAsDateTime()
+                        };
                     }
                 }
 
@@ -179,6 +180,8 @@ namespace Experimentation
             new ExecutionDataflowBlockOptions { BoundedCapacity = 16, MaxDegreeOfParallelism = 8 });
             var downloadInput = downloadBlock.AsObserver();
 
+            var eventIdToModelId = await DownloadTrackback(storageAccount, startTimeInclusive, endTimeExclusive);
+
             // enumerate full days
             for (var currentDateTime = new DateTime(startTimeInclusive.Year, startTimeInclusive.Month, startTimeInclusive.Day);
                 currentDateTime < endTimeExclusive;
@@ -190,7 +193,7 @@ namespace Experimentation
                     var match = Regex.Match(blob.Uri.AbsolutePath, @"/(?<hour>\d{2})/(?<name>[^/]+\.json)$");
                     if (!match.Success)
                     {
-                        telemetry.TrackTrace($"Skipping nvalid blob '{blob.Uri}'.");
+                        telemetry.TrackTrace($"Skipping invalid blob '{blob.Uri}'.");
                         continue;
                     }
 
@@ -251,9 +254,23 @@ namespace Experimentation
                 while (true)
                 {
                     var top = priorityQueue.First;
+                    var line = top.Line;
+                    try
+                    {
+                        var jObject = JObject.Parse(top.Line);
+                        var eventId = jObject["_eventid"].Value<string>();
+                        var trainModelId = eventIdToModelId.ContainsKey(eventId) ? eventIdToModelId[eventId] : null;
+
+                        jObject.Add("_model_id_train", trainModelId);
+                        line = jObject.ToString(Formatting.None);
+                    }
+                    catch (Exception ex)
+                    {
+                        telemetry.TrackException(ex);
+                    }
 
                     // add VW string format
-                    writer.WriteLine(top.Line);
+                    writer.WriteLine(line);
 
                     if (await top.Next())
                         priorityQueue.UpdatePriority(top, top.DateTime.Ticks);
@@ -269,6 +286,56 @@ namespace Experimentation
 
             if (cacheDirectory != null)
                 Console.WriteLine($"Total time: {stopwatch.Elapsed}");
+        }
+
+        private static async Task<Dictionary<string, string>> DownloadTrackback(CloudStorageAccount storageAccount, DateTime startTimeInclusive, DateTime endTimeExclusive)
+        {
+            var telemetry = new TelemetryClient();
+            var blobClient = storageAccount.CreateCloudBlobClient();
+            telemetry.TrackEvent($"Downloading trackback {startTimeInclusive:yyyy-MM-dd} to {endTimeExclusive:yyyy-MM-dd}");
+
+            var eventIdToModelId = new Dictionary<string, string>();
+            for (var currentDateTime = new DateTime(startTimeInclusive.Year, startTimeInclusive.Month, startTimeInclusive.Day);
+                currentDateTime < endTimeExclusive;
+                currentDateTime += TimeSpan.FromDays(1))
+            {
+                var trackbackFormat = $"onlinetrainer/{currentDateTime:yyyyMMdd}";
+                foreach (var blob in blobClient.ListBlobs(trackbackFormat, useFlatBlobListing: true).OfType<CloudBlockBlob>())
+                {
+                    var match = Regex.Match(blob.Uri.AbsolutePath, @".*\/\d*\/(\d*)\/.*.trackback");
+                    if (!match.Success)
+                    {
+                        telemetry.TrackTrace($"Skipping invalid trackback blob '{blob.Uri}'.");
+                        continue;
+                    }
+
+                    var blobDate = DateTime.ParseExact(match.Groups[1].Value, "HHmmss", CultureInfo.InvariantCulture);
+                    var blobTime = blobDate - blobDate.Date;
+                    var blobDateTime = currentDateTime + blobTime;
+                    if (!(blobDateTime >= startTimeInclusive && blobDateTime < endTimeExclusive))
+                        continue;
+
+                    using (var stream = new MemoryStream())
+                    using (var sr = new StreamReader(stream))
+                    {
+                        await blob.DownloadToStreamAsync(stream);
+                        stream.Position = 0;
+                        while (!sr.EndOfStream)
+                        {
+                            var eventId = sr.ReadLine().Trim();
+                            if (eventIdToModelId.ContainsKey(eventId))
+                            {
+                                telemetry.TrackTrace($"Event Id {eventId} in trackback file {blob.Name} already exists.");
+                            }
+                            else
+                            {
+                                eventIdToModelId.Add(eventId, blob.Name.Replace(".trackback", string.Empty));
+                            }
+                        }
+                    }
+                }
+            }
+            return eventIdToModelId;
         }
     }
 }
