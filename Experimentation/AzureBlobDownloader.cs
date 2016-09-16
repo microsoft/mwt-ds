@@ -254,15 +254,23 @@ namespace Experimentation
                 while (true)
                 {
                     var top = priorityQueue.First;
+                    var line = top.Line;
+                    try
+                    {
+                        var jObject = JObject.Parse(top.Line);
+                        var eventId = jObject["_eventid"].Value<string>();
+                        var trainModelId = eventIdToModelId.ContainsKey(eventId) ? eventIdToModelId[eventId] : null;
 
-                    var jObject = JObject.Parse(top.Line);
-                    var eventId = jObject["_eventid"].Value<string>();
-                    var trainModelId = eventIdToModelId.ContainsKey(eventId) ? eventIdToModelId[eventId] : null;
-
-                    jObject.Add("_model_id_train", trainModelId);
+                        jObject.Add("_model_id_train", trainModelId);
+                        line = jObject.ToString(Formatting.None);
+                    }
+                    catch (Exception ex)
+                    {
+                        telemetry.TrackException(ex);
+                    }
 
                     // add VW string format
-                    writer.WriteLine(jObject.ToString(Formatting.None));
+                    writer.WriteLine(line);
 
                     if (await top.Next())
                         priorityQueue.UpdatePriority(top, top.DateTime.Ticks);
