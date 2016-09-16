@@ -1,49 +1,113 @@
 ﻿{
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.0.0",
-  "parameters": {
-    "storageAccountType": {
-      "type": "string",
-      "defaultValue": "Standard_LRS",
-      "allowedValues": [
-        "Standard_LRS",
-        "Standard_GRS",
-        "Standard_ZRS",
-        "Premium_LRS"
-      ],
-      "metadata": {
-        "description": "Storage Account type"
-      }
-    },
-    "location": { "type": "string" }
+  "ArticleFeatures": {
+    "ArticleTitle": "Rich Homie Quan Settles $2 Million Lawsuit With T.I.G. Records",
+    "ArticleChannel": "Music",
+    "ArticleCanonical": "http://www.complex.com/music/2016/08/rich-homie-quan-settles-2-million-lawsuit-tig-records"
   },
-  "variables": {
-    "apiVersion": "2015-06-15",
-    "name": "[toLower(concat('storage', uniqueString(concat(subscription().subscriptionId, resourceGroup().name))))]"
-  },
-  "resources": [
+  "ArticleKeywords": { "_text": "Rich Homie Quan,horizon,LeBron James,complex,rich homie quan" },
+  "ArticleCategories": { "_text": "Music,Hobbies & Interests,Arts & Entertainment,Roleplaying Games,Sports,Baseball" },
+  "UserFeatures": { "DeviceType": "Desktop" },
+  "_multi": [
     {
-      "type": "Microsoft.Storage/storageAccounts",
-      "name": "[variables('name')]",
-      "apiVersion": "[variables('apiVersion')]",
-      "location": "[parameters('location')]",
-      "properties": {
-        "accountType": "[parameters('storageAccountType')]"
-      }
+      "VideoFeature": {
+        "VideoId": "cwc29waDrhOmF25fHrTyNNDv-nKRZqrT",
+        "VideoTitle": "Rich Homie Quan | Complex Individuals"
+      },
+      "_source": "Relevancy",
+      "_rank": 1,
+      "VideoKeywords": { "_text": "rich homie quan meagan good drake kyla pratt music hip-hop" },
+      "VideoCategories": { "_text": "Complex Individuals Complex Originals Music Syndication Complex Individuals Syndication" }
+    },
+    {
+      "VideoFeature": {
+        "VideoId": "A1c2JyaDowtWQ-UCiDelMA7J3ZqDnXKd",
+        "VideoTitle": "Rich Homie Quan Feeds The Streets... Literally"
+      },
+      "_source": "Relevancy",
+      "_rank": 2,
+      "VideoKeywords": { "_text": "rich homie quan music hip-hop news complex music news complex-news-videos interview brandon jenkins" },
+      "VideoCategories": { "_text": "Music Complex News Complex Originals YouTube Complex News Syndication Editorial Producer - Brandon Jenkins News Music Syndication" }
+    },
+    {
+      "VideoFeature": {
+        "VideoId": "NrcTdvdTottlZ4b67RRw7bnmgnkqi7sc",
+        "VideoTitle": "Rich Homie Quan Says He's Sorry About His Rape Lyrics"
+      },
+      "_source": "Relevancy",
+      "_rank": 3,
+      "VideoKeywords": { "_text": "complex-news-videos complex tv rich homie quan complex music news" },
+      "VideoCategories": { "_text": "Music Complex News Complex Originals Complex News Syndication Editorial Producer - Sean Evans News Music Syndication" }
+    },
+    {
+      "VideoFeature": {
+        "VideoId": "o5aWUydzqslvcM02kGf8iPRzntIjI0kY",
+        "VideoTitle": "Rich Homie Quan Describes His Superhero Character | SUPER"
+      },
+      "_source": "Relevancy",
+      "_rank": 4,
+      "VideoKeywords": { "_text": "rich homie quan super hero animation hip-hop" },
+      "VideoCategories": { "_text": "Music Complex Originals Channel 1 off Music Syndication" }
+    },
+    {
+      "VideoFeature": {
+        "VideoId": "Byd25wcDoaFLTq65pILS2W0vNsIVBzM5",
+        "VideoTitle": "Rich Homie Quan - \"Blah Blah Blah\" | Behind The Scenes"
+      },
+      "_source": "Relevancy",
+      "_rank": 5,
+      "VideoKeywords": { "_text": "first look rich homie quan blah blah blah i promise i will never stop going in" },
+      "VideoCategories": { "_text": "Music Complex Originals First Look Music Syndication First Look Syndication" }
+    },
+    {
+      "VideoFeature": {
+        "VideoId": "NhbGY3NTE6hoatVUTs19ibgQ9sdKBxPJ",
+        "VideoTitle": "Rae Sremmurd Talk Ebro and New Album While Getting High & Doing Yoga"
+      },
+      "_source": "Latest",
+      "_rank": 1,
+      "VideoKeywords": { "_text": "rae sremmurd ebro yoga" },
+      "VideoCategories": { "_text": "Music Complex Originals Sports Syndication Get Sweaty Syndication Get Sweaty" }
+    },
+    {
+      "VideoFeature": {
+        "VideoId": "NsYnE3NTE63kmIEav57D7ZQ8nNdJgC9W",
+        "VideoTitle": "Delly Dominates as Boomers Beat Serbia"
+      },
+      "_source": "Latest",
+      "_rank": 2,
+      "VideoKeywords": { "_text": "matthew dellavedova australia andrew bogut patty mills boomers olympics basketball" },
+      "VideoCategories": { "_text": "Sports Complex News AU Complex AU" }
+    },
+    {
+      "VideoFeature": {
+        "VideoId": "t2OWc3NTE62MSPdpNLkbb4c7wdyI1fow",
+        "VideoTitle": "Jared Leto Thinks His Joker Deserves a Solo Movie"
+      },
+      "_source": "Latest",
+      "_rank": 3,
+      "VideoKeywords": { "_text": "jared leto suicide squad joker harely quinn film batman complex pop culture news complex pop culture news" },
+      "VideoCategories": { "_text": "Pop Culture Complex News Complex Originals Complex News Syndication News Pop Culture Syndication Editorial Producer - Tamara Dhia" }
+    },
+    {
+      "VideoFeature": {
+        "VideoId": "xqbWY3NTE6v7CjTrMdOu9G_NDMDHIyGD",
+        "VideoTitle": "R. Kelly is Reportedly Dating a Teenager"
+      },
+      "_source": "Latest",
+      "_rank": 4,
+      "VideoKeywords": { "_text": "r.kelly robert kelly dating halle calhoun complex music news" },
+      "VideoCategories": { "_text": "Music Complex News Complex Originals Complex News Syndication News Music Syndication Editorial Producer - Pierce Simpson" }
+    },
+    {
+      "VideoFeature": {
+        "VideoId": "Zuc2Q3NTE63i51WAf2CULGkJTjx94h4G",
+        "VideoTitle": "NBCUniversal and Snapchat Team Up to Introduce Slate of New Mini TV Shows"
+      },
+      "_source": "Latest",
+      "_rank": 5,
+      "VideoKeywords": { "_text": "nbcuniversal snapchat the voice nbc the rundown e! news miley cyrus alicia keys blake shelton adam levine pharrell usher gwen stefani mobile social media complex news complex pop culture" },
+      "VideoCategories": { "_text": "Complex Originals Life Complex Hustle Complex Hustle Syndication Editorial Producer - Julian Mitchell" }
     }
   ],
-  "outputs": {
-    "userStorageAccountName": {
-      "type": "string",
-      "value": "[variables('name')]"
-    },
-    "userStorageAccountKey": {
-      "type": "string",
-      "value": "[listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('name')), variables('apiVersion')).key1]"
-    },
-    "userStorageConnectionString": {
-      "type": "string",
-      "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('name'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('name')), variables('apiVersion')).key1)]"
-    }
-  }
+  "_clientId": "249489963.1470757165"
 }
