@@ -20,14 +20,7 @@
                    .tickFormat(function (d) {
                        return d3.time.format('%X')(new Date(d))
                    });
-                chart.x2Axis
-                   .tickFormat(function (d) {
-                       return d3.time.format('%X')(new Date(d))
-                   });
                 chart.yAxis
-                    .tickFormat(d3.format(',.2f'))
-                    .showMaxMin(false);
-                chart.y2Axis
                     .tickFormat(d3.format(',.2f'))
                     .showMaxMin(false);
 
