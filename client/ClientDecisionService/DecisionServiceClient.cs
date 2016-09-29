@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    public sealed class DecisionServiceClient<TContext> : IDisposable
+    public class DecisionServiceClient<TContext> : IDisposable
     {
         private readonly IContextMapper<TContext, ActionProbability[]> internalPolicy;
 
