@@ -23,6 +23,7 @@ namespace ExperimentationTest
             var vwFile = inputFile + ".vw.gz";
             var wrapperPredictionFile = inputFile + ".vw.wrapper.pred";
             var commandLinePredictionFile = inputFile + ".vw.commandline.pred";
+            var jsonCommandLinePredictionFile = inputFile + ".vw.jsoncommandline.pred";
 
             var rand = new Random();
             var contexts = new bool[numExamples].Select((_, i) => TestContext.CreateRandom(rand, i));
@@ -45,6 +46,14 @@ namespace ExperimentationTest
                 UseShellExecute = false
             }).WaitForExit();
 
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "vw.exe",
+                Arguments = $"{vwArgs} -p {jsonCommandLinePredictionFile} -d {inputFile} --json",
+                CreateNoWindow = true,
+                UseShellExecute = false
+            }).WaitForExit();
+
             var wrapperActionScore = File
                 .ReadAllLines(wrapperPredictionFile)
                 .Select(l => JsonConvert.DeserializeObject<WrapperPredictionLine>(l))
@@ -57,17 +66,31 @@ namespace ExperimentationTest
                 .Select(ll => ll.Select(l => l.Split(':')).Select(l => new { Action = Convert.ToInt32(l[0]), Prob = Convert.ToSingle(l[1]) }))
                 .ToList();
 
+            var jsonCommandLineActionScore = File
+                .ReadAllLines(jsonCommandLinePredictionFile)
+                .Where(l => !string.IsNullOrWhiteSpace(l))
+                .Select(l => l.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries))
+                .Select(ll => ll.Select(l => l.Split(':')).Select(l => new { Action = Convert.ToInt32(l[0]), Prob = Convert.ToSingle(l[1]) }))
+                .ToList();
+
+
             Assert.AreEqual(wrapperActionScore.Count, commandLineActionScore.Count);
+            Assert.AreEqual(wrapperActionScore.Count, jsonCommandLineActionScore.Count);
 
             for (int i = 0; i < wrapperActionScore.Count; i++)
             {
                 Assert.IsTrue(commandLineActionScore[i].Select(ap => ap.Action).SequenceEqual(wrapperActionScore[i].Actions));
                 Assert.IsTrue(commandLineActionScore[i].Select(ap => ap.Prob).SequenceEqual(wrapperActionScore[i].Probs, new FloatComparer()));
+
+                Assert.IsTrue(jsonCommandLineActionScore[i].Select(ap => ap.Action).SequenceEqual(wrapperActionScore[i].Actions));
+                Assert.IsTrue(jsonCommandLineActionScore[i].Select(ap => ap.Prob).SequenceEqual(wrapperActionScore[i].Probs, new FloatComparer()));
             }
 
             File.Delete(inputFile);
             File.Delete(vwFile);
             File.Delete(wrapperPredictionFile);
+            File.Delete(commandLinePredictionFile);
+            File.Delete(jsonCommandLinePredictionFile);
         }
 
         class FloatComparer : IEqualityComparer<float>
