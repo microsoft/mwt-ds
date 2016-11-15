@@ -65,7 +65,7 @@ namespace DecisionServicePrivateWeb.Controllers
         }
 
         [HttpPost]
-        public ActionResult Policy(int defaultAction = -1)
+        public ActionResult Policy(int defaultAction = -1, string eventId = null)
         {
             try
             {
@@ -73,7 +73,8 @@ namespace DecisionServicePrivateWeb.Controllers
 
                 var client = DecisionServiceClientFactory.AddOrGetExisting(ModelSuccessNotifier);
                 var context = APIUtil.ReadBody(this.Request);
-                var eventId = APIUtil.CreateEventId();
+                if (string.IsNullOrEmpty(eventId))
+                    eventId = APIUtil.CreateEventId();
                 var action = defaultAction != -1 ? client.ChooseAction(eventId, context, defaultAction) : client.ChooseAction(eventId, context);
 
                 return Json(new 
@@ -95,7 +96,7 @@ namespace DecisionServicePrivateWeb.Controllers
         }
 
         [HttpPost]
-        public ActionResult Ranker(string defaultActions)
+        public ActionResult Ranker(string defaultActions, string eventId)
         {
             try
             {
@@ -103,7 +104,8 @@ namespace DecisionServicePrivateWeb.Controllers
 
                 var client = DecisionServiceClientFactory.AddOrGetExisting(ModelSuccessNotifier);
                 var context = APIUtil.ReadBody(this.Request);
-                var eventId = APIUtil.CreateEventId();
+                if (string.IsNullOrEmpty(eventId))
+                    eventId = APIUtil.CreateEventId();
 
                 int[] actions;
                 if (string.IsNullOrWhiteSpace(defaultActions))
