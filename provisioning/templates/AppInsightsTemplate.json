@@ -12,7 +12,7 @@
       "apiVersion": "2014-04-01",
       "type": "microsoft.insights/components",
       "name": "[variables('name')]",
-      "location": "centralus"
+      "location": "eastus"
     }
   ],
   "outputs": {
