@@ -1,6 +1,7 @@
 import ntpath
 import os
 import os.path
+import sys
 import configparser
 from azure.storage.blob import BlockBlobService
 import re
@@ -26,7 +27,7 @@ def parse_name(blob):
 class CachedBlob:
     def __init__(self, container, name):
 
-        self.filename = 'c:\\temp\\testdrive\\{0}\\{1}'.format(container, name)
+        self.filename = os.path.join(os.path.realpath('.'), str(container), str(name))
         if not os.path.exists(self.filename):
             print(self.filename)
             dn = ntpath.dirname(self.filename)
@@ -121,6 +122,14 @@ class JoinedData(CachedBlob):
         return JoinedDataReader(self)
 
 
+# Parse start and end dates for getting data
+if len(sys.argv) < 3:
+    print("Start and end dates are expected. Example: python datascience.py 20161122 20161130")
+start_date_string = sys.argv[1]
+start_date = date(int(start_date_string[0:4]), int(start_date_string[4:6]), int(start_date_string[6:8]))
+end_date_string = sys.argv[2]
+end_date = date(int(end_date_string[0:4]), int(end_date_string[4:6]), int(end_date_string[6:8]))
+
 joined = map(parse_name, 
             filter(lambda b: b.properties.content_length != 0, 
                 block_blob_service.list_blobs('joined-examples')))
@@ -128,6 +137,9 @@ joined = map(parse_name,
 global_idx = {}
 data = []
 for j in joined:
+    # Filter which data blobs to download based on date
+    if j[0].date() < start_date or j[0].date() > end_date:
+        continue
     jd = JoinedData(j[0], j[1])
     jd.index(global_idx)
     data.append(jd)
@@ -173,26 +185,35 @@ def get_checkpoint_models():
         for time_container in block_blob_service.list_blobs('onlinetrainer', prefix = date_container.name, delimiter = '/'):
             m = re.search('^([0-9]{4})([0-9]{2})([0-9]{2})/([0-9]{2})([0-9]{2})([0-9]{2})', time_container.name)
             if m:
-                ts = datetime(int(m.group(1)), int(m.group(2)), int(m.group(3)), int(m.group(4)), int(m.group(5)), int(m.group(6)))    
+                ts = datetime(int(m.group(1)), int(m.group(2)), int(m.group(3)), int(m.group(4)), int(m.group(5)), int(m.group(6)))  
+                if ts.date() < start_date or ts.date() > end_date:  
+                    continue  
                 yield CheckpointedModel(ts, 'onlinetrainer', time_container.name)
 
 model_history = list(get_checkpoint_models())
 model_history.sort(key=lambda jd: jd.ts)
 
-ordered_joined_events = open('c:\\temp\\testdrive\\ordered\\1.json', 'w')
+ordered_joined_events = open(os.path.join(os.path.realpath('.'), 'data_' + start_date_string + '-' + end_date_string + '.json'), 'w')
+num_events_counter = 0
+
 for m in model_history:
     for event_id in m.trackback_ids:
         line = global_idx[event_id].read(event_id)
         if line:
             _ = ordered_joined_events.write(line[0])
+            num_events_counter += 1
 ordered_joined_events.close()
 
-
+# Commenting out debugging prints
+"""
 for m in model_history:
     print('ts: {0} events: {1}'.format(m.ts, len(m.trackback_ids)))
 
     for event_id in m.trackback_ids:
         print(event_id)
+"""
+
+print('Number of events downloaded: %d' % num_events_counter)
 
 # iterate through model history
 # find source JoinedData
