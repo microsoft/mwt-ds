@@ -32,9 +32,11 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         {
             get
             {
-                MemoryStream currModel = new MemoryStream();
-                vw.Native.SaveModel(currModel);
-                return currModel.ToArray();
+                using (MemoryStream currModel = new MemoryStream())
+                {
+                    vw.Native.SaveModel(currModel);
+                    return currModel.ToArray();
+                }
             }
         }
 
@@ -64,6 +66,12 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 }
                 );
             this.ModelUpdateInterval = modelUpdateInterval;
+        }
+        
+        new public void Dispose()
+        {
+            base.Dispose();
+            vw.Dispose();
         }
 
         /// <summary>
@@ -95,11 +103,13 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                     var label = new ContextualBanditLabel(action, -dp.Reward, ((GenericTopSlotExplorerState)dp.InteractData.ExplorerState).Probabilities[action - 1]);
                     vw.Learn((TContext)dp.InteractData.Context, label, index: (int)label.Action - 1);
                 }
-                MemoryStream currModel = new MemoryStream();
-                vw.Native.SaveModel(currModel);
-                currModel.Position = 0;
-                this.UpdateModel(currModel);
-                sinceLastUpdate = 0;
+                using (MemoryStream currModel = new MemoryStream())
+                {
+                    vw.Native.SaveModel(currModel);
+                    currModel.Position = 0;
+                    this.UpdateModel(currModel);
+                    sinceLastUpdate = 0;
+                }
             }
         }
     }
