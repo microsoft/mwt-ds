@@ -17,8 +17,9 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
     public class DecisionServiceClient<TContext> : IDisposable
     {
-        private readonly IContextMapper<TContext, ActionProbability[]> internalPolicy;
+        private bool disposed = false;
 
+        private readonly IContextMapper<TContext, ActionProbability[]> internalPolicy;
         private IRecorder<TContext, int[]> recorder;
         private ILogger logger;
         private IContextMapper<TContext, ActionProbability[]> initialPolicy;
@@ -28,7 +29,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         private AzureBlobBackgroundDownloader settingsDownloader;
         private AzureBlobBackgroundDownloader modelDownloader;
         private INumberOfActionsProvider<TContext> numActionsProvider;
-
+ 
         private class OfflineRecorder : IRecorder<TContext, int[]>
         {
             public void Record(TContext context, int[] value, object explorerState, object mapperState, string uniqueKey)
@@ -348,35 +349,49 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             }
         }
 
-        public virtual void Dispose()
+        public void Dispose()
         {
-            if (this.settingsDownloader != null)
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        public virtual void Dispose(bool disposing)
+        {
+            if (disposed) { return; }
+
+            // Always free unmanaged objects, but conditionally free managed objets if this is being
+            // called from Dispose() (as opposed a finalizer, currently not implemented)
+            if (disposing)
             {
-                this.settingsDownloader.Dispose();
-                this.settingsDownloader = null;
-            }
+                if (this.settingsDownloader != null)
+                {
+                    this.settingsDownloader.Dispose();
+                    this.settingsDownloader = null;
+                }
 
-            if (this.modelDownloader != null)
-            {        
-                this.modelDownloader.Dispose();
-                this.modelDownloader = null;
-            }
+                if (this.modelDownloader != null)
+                {
+                    this.modelDownloader.Dispose();
+                    this.modelDownloader = null;
+                }
 
-            if (this.recorder != null)
-            {
-                // Flush any pending data to be logged 
-                var disposable = this.recorder as IDisposable;
-                if (disposable != null)
-                    disposable.Dispose();
+                if (this.recorder != null)
+                {
+                    // Flush any pending data to be logged 
+                    var disposable = this.recorder as IDisposable;
+                    if (disposable != null)
+                        disposable.Dispose();
 
-                recorder = null;
-            }
+                    recorder = null;
+                }
 
-            if (this.mwtExplorer != null)
-            {
-                this.mwtExplorer.Dispose();
-                this.mwtExplorer = null;
+                if (this.mwtExplorer != null)
+                {
+                    this.mwtExplorer.Dispose();
+                    this.mwtExplorer = null;
+                }
             }
+            disposed = true;
         }
 
         private sealed class ConstantNumActionsProvider : INumberOfActionsProvider<TContext>

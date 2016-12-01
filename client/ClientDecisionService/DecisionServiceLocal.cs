@@ -19,6 +19,8 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
     public class DecisionServiceLocal<TContext> : DecisionServiceClient<TContext>
     {
+        private bool disposed = false;
+
         private VowpalWabbit<TContext> vw;
         // This serves as the base class's recorder/logger as well, but we keep a reference around
         // becauses it exposes additional APIs that aren't part of those interfaces (yet)
@@ -68,9 +70,26 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             this.ModelUpdateInterval = modelUpdateInterval;
         }
         
-        public override void Dispose()
+        public override void Dispose(bool disposing)
         {
-            vw.Dispose();
+            if (!disposed)
+            {
+                // Always free unmanaged objects, but conditionally free managed objets if this is being
+                // called from Dispose() (as opposed a finalizer, currently not implemented)
+                if (disposing)
+                {
+                    if (log != null)
+                    {
+                        log.Dispose();
+                    }
+                }
+                if (vw != null)
+                {
+                    vw.Dispose();
+                }
+
+                disposed = true;
+            }
             base.Dispose();
         }
 

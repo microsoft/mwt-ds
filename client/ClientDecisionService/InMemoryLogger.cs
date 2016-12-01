@@ -14,7 +14,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
     /// </summary>
     /// <typeparam name="TContext">The Context type</typeparam>
     /// <typeparam name="TAction">The Action type</typeparam>
-    internal class InMemoryLogger<TContext, TAction> : IRecorder<TContext, TAction>, ILogger
+    internal class InMemoryLogger<TContext, TAction> : IRecorder<TContext, TAction>, ILogger, IDisposable
     {
         /// <summary>
         /// An exploration datapoint, containing the context, action, probability, and reward
@@ -31,6 +31,8 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             // Used to control expiration for fixed-duration events
             public DateTime ExpiresAt = DateTime.MaxValue;
         }
+
+        private bool disposed = false;
 
         // The experimental unit duration, or how long to wait for reward information before 
         // completing an event (TimeSpan.MaxValue means wait forever)
@@ -68,6 +70,26 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 completionTimer.AutoReset = false;
                 completionTimer.Start();
             }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        public void Dispose(bool disposing)
+        {
+            if (disposed) { return; }
+
+            if (disposing)
+            {
+                if (completionTimer != null)
+                {
+                    completionTimer.Dispose();
+                }
+            }
+            disposed = true;
         }
 
         private void completeExpiredEvents(object sender, ElapsedEventArgs e)
