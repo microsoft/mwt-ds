@@ -87,7 +87,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 {
                     vw.Dispose();
                 }
-
                 disposed = true;
             }
             base.Dispose();

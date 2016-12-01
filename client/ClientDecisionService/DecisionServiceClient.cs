@@ -23,7 +23,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         private IRecorder<TContext, int[]> recorder;
         private ILogger logger;
         private IContextMapper<TContext, ActionProbability[]> initialPolicy;
-        protected internal readonly DecisionServiceConfiguration config;
+        protected readonly DecisionServiceConfiguration config;
         private readonly ApplicationClientMetadata metaData;
         private MwtExplorer<TContext, int[], ActionProbability[]> mwtExplorer;
         private AzureBlobBackgroundDownloader settingsDownloader;
