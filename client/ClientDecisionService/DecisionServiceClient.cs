@@ -17,8 +17,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
     public class DecisionServiceClient<TContext> : IDisposable
     {
-        private bool disposed = false;
-
         private readonly IContextMapper<TContext, ActionProbability[]> internalPolicy;
         private IRecorder<TContext, int[]> recorder;
         private ILogger logger;
@@ -357,8 +355,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
         public virtual void Dispose(bool disposing)
         {
-            if (disposed) { return; }
-
             // Always free unmanaged objects, but conditionally free managed objets if this is being
             // called from Dispose() (as opposed a finalizer, currently not implemented)
             if (disposing)
@@ -391,7 +387,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                     this.mwtExplorer = null;
                 }
             }
-            disposed = true;
         }
 
         private sealed class ConstantNumActionsProvider : INumberOfActionsProvider<TContext>
