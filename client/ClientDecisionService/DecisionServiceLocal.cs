@@ -61,17 +61,17 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 new VowpalWabbitSettings(vwArgs)
                 {
                     TypeInspector = JsonTypeInspector.Default,
-                    EnableStringExampleGeneration = true,
+                    EnableStringExampleGeneration = this.config.DevelopmentMode,
                     EnableStringFloatCompact = true
                 }
                 );
             this.ModelUpdateInterval = modelUpdateInterval;
         }
         
-        new public void Dispose()
+        public override void Dispose()
         {
-            base.Dispose();
             vw.Dispose();
+            base.Dispose();
         }
 
         /// <summary>
@@ -79,15 +79,24 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         /// </summary>
         /// <param name="reward">The simple float reward.</param>
         /// <param name="uniqueKey">The unique key of the experimental unit.</param>
-        new public void ReportReward(float reward, string uniqueKey)
+        public override void ReportReward(float reward, string uniqueKey)
         {
             base.ReportReward(reward, uniqueKey);
             sinceLastUpdate++;
             updateModelMaybe();
         }
 
+        /// <summary>
+        /// Identical to ReportReward() but immediately completes the event; call this when using 
+        /// manual event completion or if you want to force completion when using an experimental 
+        /// unit duration. 
+        /// This functionality is not available in the base class and hence is only implemented here.
+        /// </summary>
+        /// <param name="reward"></param>
+        /// <param name="uniqueKey"></param>
         public void ReportRewardAndComplete(float reward, string uniqueKey)
         {
+            // Call our logger directly as this method is not part of the ILogger interface (yet)
             log.ReportRewardAndComplete(uniqueKey, reward);
             sinceLastUpdate++;
             updateModelMaybe();

@@ -22,7 +22,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         private IRecorder<TContext, int[]> recorder;
         private ILogger logger;
         private IContextMapper<TContext, ActionProbability[]> initialPolicy;
-        private readonly DecisionServiceConfiguration config;
+        protected internal readonly DecisionServiceConfiguration config;
         private readonly ApplicationClientMetadata metaData;
         private MwtExplorer<TContext, int[], ActionProbability[]> mwtExplorer;
         private AzureBlobBackgroundDownloader settingsDownloader;
@@ -310,7 +310,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         /// </summary>
         /// <param name="reward">The simple float reward.</param>
         /// <param name="uniqueKey">The unique key of the experimental unit.</param>
-        public void ReportReward(float reward, string uniqueKey)
+        public virtual void ReportReward(float reward, string uniqueKey)
         {
             if (this.logger != null)
                 this.logger.ReportReward(uniqueKey, reward);
@@ -348,7 +348,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             }
         }
 
-        public void Dispose()
+        public virtual void Dispose()
         {
             if (this.settingsDownloader != null)
             {
