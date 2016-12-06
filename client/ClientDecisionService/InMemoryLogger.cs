@@ -87,6 +87,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 if (completionTimer != null)
                 {
                     completionTimer.Dispose();
+                    completionTimer = null;
                 }
             }
             disposed = true;
