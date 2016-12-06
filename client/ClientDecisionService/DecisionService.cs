@@ -1,8 +1,11 @@
-﻿
-using Microsoft.Research.MultiWorldTesting.Contract;
+﻿using Microsoft.Research.MultiWorldTesting.Contract;
 using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using VW;
+
+[assembly: InternalsVisibleTo("ClientDecisionServiceTest")]
+
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
     /// <summary>

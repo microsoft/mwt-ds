@@ -15,20 +15,19 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    public sealed class DecisionServiceClient<TContext> : IDisposable
+    public class DecisionServiceClient<TContext> : IDisposable
     {
         private readonly IContextMapper<TContext, ActionProbability[]> internalPolicy;
-
         private IRecorder<TContext, int[]> recorder;
         private ILogger logger;
         private IContextMapper<TContext, ActionProbability[]> initialPolicy;
-        private readonly DecisionServiceConfiguration config;
+        protected readonly DecisionServiceConfiguration config;
         private readonly ApplicationClientMetadata metaData;
         private MwtExplorer<TContext, int[], ActionProbability[]> mwtExplorer;
         private AzureBlobBackgroundDownloader settingsDownloader;
         private AzureBlobBackgroundDownloader modelDownloader;
         private INumberOfActionsProvider<TContext> numActionsProvider;
-
+ 
         private class OfflineRecorder : IRecorder<TContext, int[]>
         {
             public void Record(TContext context, int[] value, object explorerState, object mapperState, string uniqueKey)
@@ -310,7 +309,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         /// </summary>
         /// <param name="reward">The simple float reward.</param>
         /// <param name="uniqueKey">The unique key of the experimental unit.</param>
-        public void ReportReward(float reward, string uniqueKey)
+        public virtual void ReportReward(float reward, string uniqueKey)
         {
             if (this.logger != null)
                 this.logger.ReportReward(uniqueKey, reward);
@@ -350,32 +349,43 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
         public void Dispose()
         {
-            if (this.settingsDownloader != null)
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        public virtual void Dispose(bool disposing)
+        {
+            // Always free unmanaged objects, but conditionally free managed objets if this is being
+            // called from Dispose() (as opposed a finalizer, currently not implemented)
+            if (disposing)
             {
-                this.settingsDownloader.Dispose();
-                this.settingsDownloader = null;
-            }
+                if (this.settingsDownloader != null)
+                {
+                    this.settingsDownloader.Dispose();
+                    this.settingsDownloader = null;
+                }
 
-            if (this.modelDownloader != null)
-            {        
-                this.modelDownloader.Dispose();
-                this.modelDownloader = null;
-            }
+                if (this.modelDownloader != null)
+                {
+                    this.modelDownloader.Dispose();
+                    this.modelDownloader = null;
+                }
 
-            if (this.recorder != null)
-            {
-                // Flush any pending data to be logged 
-                var disposable = this.recorder as IDisposable;
-                if (disposable != null)
-                    disposable.Dispose();
+                if (this.recorder != null)
+                {
+                    // Flush any pending data to be logged 
+                    var disposable = this.recorder as IDisposable;
+                    if (disposable != null)
+                        disposable.Dispose();
 
-                recorder = null;
-            }
+                    recorder = null;
+                }
 
-            if (this.mwtExplorer != null)
-            {
-                this.mwtExplorer.Dispose();
-                this.mwtExplorer = null;
+                if (this.mwtExplorer != null)
+                {
+                    this.mwtExplorer.Dispose();
+                    this.mwtExplorer = null;
+                }
             }
         }
 
