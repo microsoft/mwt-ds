@@ -6,6 +6,7 @@ import json
 import queue
 import threading
 from datetime import datetime
+import configparser
 
 class Command:
     def __init__(self, base, learning_rate="", cb_type="", marginal_list="", ignore_list="", interaction_list="", regularization=""):
@@ -94,9 +95,15 @@ if __name__ == '__main__':
                     action_features.append(feature[0])
                     if action[feature].get('constant', 0) == 1 and 'id' in action[feature]:
                         marginal_features.append(feature[0])
+        # We are assuming the schema is consistent throughout the file, so we don't need to read all of it
         if counter >= 50:
             break
-            
+    
+    # Read config file to get certain parameter values for experimentation
+    config = configparser.ConfigParser()
+    config.read('ds.config')
+    experiments_config = config['Experimentation']
+    
     data.close()
     print("Shared feature namespaces: " + str(shared_features))
     print("Action feature namespaces: " + str(action_features))
@@ -115,7 +122,8 @@ if __name__ == '__main__':
     
     # Learning rates
     command_list = []
-    learning_rates = [0.5, 0.25, 0.1, 0.05, 0.025, 0.01, 0.005, 0.0025, 0.001, 0.0005, 0.00025, 0.0001, 0.00005, 0.000025, 0.00001]
+    learning_rates = experiments_config["LearningRates"].split(',')
+    learning_rates = list(map(float, learning_rates))
     for learning_rate in learning_rates:
         command = Command(base_command, learning_rate=learning_rate)
         command_list.append(command)
@@ -179,7 +187,8 @@ if __name__ == '__main__':
             break
         
     # Regularization
-    regularizations = [1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7, 1e-8, 1e-9, ""]
+    regularizations = experiments_config["RegularizationValues"].split(',')
+    regularizations = list(map(float, regularizations))
     command_list = []
     for regularization in regularizations:
         command = Command(base_command, learning_rate=best_learning_rate, cb_type=best_cb_type, marginal_list=best_marginal_list, interaction_list=best_interaction_list, regularization=regularization)
