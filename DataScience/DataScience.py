@@ -72,7 +72,7 @@ class JoinedData(CachedBlob):
         self.data = []
 
     def index(self, idx):
-        f = open(self.filename, 'r', encoding="utf8")
+        f = open(self.filename, 'r', encoding='utf8')
         reader = self.reader()
         for line in f:
             js = json.loads(line)
