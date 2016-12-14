@@ -26,6 +26,12 @@
     <Compile Include="Eval.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="InsertModelIdIntoTrackback.py">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="ds.config" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

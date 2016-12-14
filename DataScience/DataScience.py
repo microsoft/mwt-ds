@@ -11,6 +11,7 @@ import json
 from tabulate import tabulate
 import time
 from multiprocessing.dummy import Pool
+from shutil import rmtree
 
 def dates_in_range(start_date, end_date):
     num_days = (end_date - start_date).days
@@ -23,8 +24,8 @@ def parse_name(blob):
     return (dt, blob)
 
 class CachedBlob:
-    def __init__(self, container, name):
-        self.filename = os.path.join(os.path.realpath('.'), str(container), str(name))
+    def __init__(self, root, container, name):
+        self.filename = os.path.join(str(root), str(container), str(name))
         if not os.path.exists(self.filename):
             print(self.filename)
             dn = ntpath.dirname(self.filename)
@@ -63,8 +64,8 @@ class JoinedDataReader:
 
 # single joined data blob
 class JoinedData(CachedBlob):
-    def __init__(self, ts, blob):
-        super(JoinedData,self).__init__('joined-examples', blob.name)
+    def __init__(self, root, joined_examples_container, ts, blob):
+        super(JoinedData,self).__init__(root, joined_examples_container, blob.name)
         self.blob = blob
         self.ts = ts
         self.blob = blob
@@ -115,29 +116,27 @@ class JoinedData(CachedBlob):
     def reader(self):
         return JoinedDataReader(self)
 
-def download_data(blob_object):
-    joined_object = JoinedData(blob_object[0], blob_object[1])
-    joined_object.index(global_idx)
-    return joined_object
-
 class Trackback(CachedBlob):
-    def __init__(self, ts, blob):
-        super(Trackback,self).__init__('onlinetrainer', blob)
+    def __init__(self, ts, root, blob):
+        super(Trackback,self).__init__(root, 'onlinetrainer', blob)
         self.ts = ts
         self.blob = blob
         self.ids = []
         self.data = []
         
 class CheckpointedModel:
-    def __init__(self, ts, container, dir):
+    def __init__(self, ts, root, container, dir):
         self.ts = ts
         self.container = container
-        # self.model = CachedBlob(container, '{0}model'.format(dir))
-        self.trackback = CachedBlob(container, '{0}model.trackback'.format(dir))
-        self.trackback_ids = [line.rstrip('\n') for line in open(self.trackback.filename)]
+        # self.model = CachedBlob(root, container, '{0}model'.format(dir))
+        self.trackback = CachedBlob(root, container, '{0}model.trackback'.format(dir))
+        with open(self.trackback.filename, 'r') as f:
+            line = f.readline()
+            m = re.search('^modelid: (.+)$', line)
+            self.modelid = m.group(1)
+            self.trackback_ids = [line.rstrip('\n') for line in f]
 
-def get_single_checkpoint_model(item_tuple):
-    return CheckpointedModel(item_tuple[0], item_tuple[1], item_tuple[2])
+# m = CheckpointedModel(1, 'd:/Data/TrackRevenue', 'onlinetrainer', '20161204\\000052\\')
 
 def get_checkpoint_models():
     for current_date in dates_in_range(start_date, end_date):
@@ -154,6 +153,8 @@ if __name__ == '__main__':
     config = configparser.ConfigParser()
     config.read('ds.config')
     ds = config['DecisionService']
+    cache_folder = ds['CacheFolder']
+    joined_examples_container = ds['JoinedExamplesContainer']
 
     # https://azure-storage.readthedocs.io/en/latest/_modules/azure/storage/blob/models.html#BlobBlock
     block_blob_service = BlockBlobService(account_name=ds['AzureBlobStorageAccountName'], account_key=ds['AzureBlobStorageAccountKey'])
@@ -166,20 +167,29 @@ if __name__ == '__main__':
     end_date_string = sys.argv[2]
     end_date = date(int(end_date_string[0:4]), int(end_date_string[4:6]), int(end_date_string[6:8]))
 
+    # remove me
+    # start_date = date(2016, 12, 3)
+    # start_date_string = '20161203'
+    # end_date = date(2016, 12, 4)
+    # end_date_string = '20161204'
+
     joined = []
 
     for current_date in dates_in_range(start_date, end_date):
         blob_prefix = current_date.strftime('%Y/%m/%d/') #'{0}/{1}/{2}/'.format(current_date.year, current_date.month, current_date.day)
-        joined += filter(lambda b: b.properties.content_length != 0, block_blob_service.list_blobs('joined-examples', prefix = blob_prefix))
+        joined += filter(lambda b: b.properties.content_length != 0, block_blob_service.list_blobs(joined_examples_container, prefix = blob_prefix))
 
     joined = map(parse_name, joined)
     joined = list(joined)
     
     global_idx = {}
+    global_model_idx = {}
     data = []
     
     with Pool(processes = 5) as p:
-        data = p.map(download_data, joined)
+        data = p.map(lambda x:JoinedData(cache_folder, joined_examples_container, x[0], x[1]), joined)
+        for jd in data:
+            jd.index(global_idx)
 
     data.sort(key=lambda jd: jd.ts)
 
@@ -202,10 +212,25 @@ if __name__ == '__main__':
     # reproduce training, by using trackback files
     model_history = list(get_checkpoint_models())
     with Pool(5) as p:
-        model_history = p.map(get_single_checkpoint_model, model_history)
+        model_history = p.map(lambda x: CheckpointedModel(x[0], cache_folder, x[1], x[2]), model_history)
+        for m in model_history:
+            global_model_idx[m.modelid] = m
     model_history.sort(key=lambda jd: jd.ts)
 
-    ordered_joined_events = open(os.path.join(os.path.realpath('.'), 'data_' + start_date_string + '-' + end_date_string + '.json'), 'w')
+    # create scoring directories 2016/03/12
+    scoring_dir = os.path.join(cache_folder, 'scoring')
+    if not os.path.exists(scoring_dir):
+        os.makedirs(scoring_dir)
+
+    local_date = start_date
+    while local_date <= end_date:
+        scoring_dir_date = os.path.join(scoring_dir, local_date.strftime('%Y/%m/%d'))
+        if os.path.exists(scoring_dir_date):
+            rmtree(scoring_dir_date)
+        os.makedirs(scoring_dir_date)
+        local_date += timedelta(days=1)
+
+    ordered_joined_events = open(os.path.join(cache_folder, 'data_' + start_date_string + '-' + end_date_string + '.json'), 'w')
     num_events_counter = 0
     missing_events_counter = 0
 
@@ -216,7 +241,17 @@ if __name__ == '__main__':
             if event_id in global_idx:
                 line = global_idx[event_id].read(event_id)
                 if line:
-                    _ = ordered_joined_events.write(line.strip() + ('\n'))
+                    line = line.strip() + ('\n')
+                    scoring_model_id = json.loads(line)['_modelid']
+                    if scoring_model_id is None:
+                        continue # this can happen at the very beginning if no model was available
+                        
+                    scoring_model = global_model_idx[scoring_model_id]
+                    _ = ordered_joined_events.write(line)
+
+                    scoring_filename = os.path.join(scoring_dir, scoring_model.ts.strftime('%Y/%m/%d'), scoring_model_id)
+                    with open(scoring_filename, "a") as scoring_file:
+                        _ = scoring_file.write(line)
                     num_events_counter += 1
             else:
                 missing_events_counter += 1
