@@ -235,6 +235,8 @@ if __name__ == '__main__':
     missing_events_counter = 0
 
     for m in model_history:
+        print('Processing {0}...'.format(m.ts.strftime('%Y/%m/%d %H:%M:%S')))
+        num_valid_events = 0
         for event_id in m.trackback_ids:
             # TODO: skipping events that were not in the joined-examples downloaded. This misses {experiment_unit_duration_in_hours / 24} of the events.
             # Need to use events or model files from outside the date range.
@@ -249,12 +251,24 @@ if __name__ == '__main__':
                     scoring_model = global_model_idx[scoring_model_id]
                     _ = ordered_joined_events.write(line)
 
-                    scoring_filename = os.path.join(scoring_dir, scoring_model.ts.strftime('%Y/%m/%d'), scoring_model_id)
+                    scoring_filename = os.path.join(scoring_dir, 
+                                                    scoring_model.ts.strftime('%Y'), 
+                                                    scoring_model.ts.strftime('%m'), 
+                                                    scoring_model.ts.strftime('%d'),
+                                                    scoring_model_id + '.json')
                     with open(scoring_filename, "a") as scoring_file:
                         _ = scoring_file.write(line)
                     num_events_counter += 1
+                    num_valid_events += 1
             else:
                 missing_events_counter += 1
+        if num_valid_events > 0:
+            scoring_model_filename = os.path.join(scoring_dir, 
+                                m.ts.strftime('%Y'), 
+                                m.ts.strftime('%m'), 
+                                m.ts.strftime('%d'),
+                                m.modelid + '.model')
+            _ = ordered_joined_events.write(json.dumps({'_tag':'save_{0}'.format(scoring_model_filename)}) + ('\n'))
     ordered_joined_events.close()
 
     # Commenting out debugging prints
