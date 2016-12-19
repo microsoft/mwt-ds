@@ -151,10 +151,10 @@ namespace DecisionServicePrivateWeb.Controllers
 
                 client.ReportOutcome(rewardObj, eventId);
 
-                if (rewardObj.Type == JTokenType.Float)
-                    telemetry.TrackEvent("Reward", metrics: new Dictionary<string, double> { { "Reward", rewardObj.ToObject<float>() } });
-                else
-                    telemetry.TrackEvent("Reward");
+                //if (rewardObj.Type == JTokenType.Float)
+                //    telemetry.TrackEvent("Reward", metrics: new Dictionary<string, double> { { "Reward", rewardObj.ToObject<float>() } });
+                //else
+                //    telemetry.TrackEvent("Reward");
 
                 // telemetry.TrackTrace($"HTTP Endpoint received reward report of: {rewardStr}");
 
