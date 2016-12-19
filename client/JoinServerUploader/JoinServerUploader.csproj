@@ -13,7 +13,8 @@
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
-    <NuGetPackageImportStamp>47c2e3ec</NuGetPackageImportStamp>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject />
@@ -61,11 +62,11 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.ServiceBus, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\WindowsAzure.ServiceBus.3.3.1\lib\net45-full\Microsoft.ServiceBus.dll</HintPath>
+      <HintPath>..\..\packages\WindowsAzure.ServiceBus.3.4.3\lib\net45-full\Microsoft.ServiceBus.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)packages\Newtonsoft.Json.8.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -140,9 +141,8 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
-    <Error Condition="!Exists('$(SolutionDir)packages\MSBuildTasks.1.5.0.196\build\MSBuildTasks.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)packages\MSBuildTasks.1.5.0.196\build\MSBuildTasks.targets'))" />
+    <Error Condition="!Exists('..\..\packages\MSBuildTasks.1.5.0.214\build\MSBuildTasks.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\MSBuildTasks.1.5.0.214\build\MSBuildTasks.targets'))" />
   </Target>
-  <Import Project="$(SolutionDir)packages\MSBuildTasks.1.5.0.196\build\MSBuildTasks.targets" Condition="Exists('$(SolutionDir)packages\MSBuildTasks.1.5.0.196\build\MSBuildTasks.targets')" />
   <Target Name="BeforeBuild">
     <AssemblyInfo CodeLanguage="CS" OutputFile="$(MSBuildProjectDirectory)\Properties\AssemblyInfo.cs" AssemblyTitle="Microsoft.Research.MultiWorldTesting.JoinUploader" AssemblyDescription="" AssemblyConfiguration="" AssemblyCompany="Microsoft Corp" AssemblyProduct="Microsoft.Research.MultiWorldTesting.JoinUploader" AssemblyCopyright="Copyright (C) Microsoft Corp 2014-2016" AssemblyTrademark="" ComVisible="false" CLSCompliant="true" Guid="324bd225-38a8-476f-bc96-ad563697274d" AssemblyVersion="$(ClientLibraryAssemblyVersion)" AssemblyFileVersion="$(ClientLibraryAssemblyVersion)" />
   </Target>
@@ -150,4 +150,5 @@
     <Exec Command="$(SolutionDir)packages\gitlink.2.3.0\lib\net45\GitLink.exe ..\.. -f $(SolutionDir)\mwt-ds.sln -p $(Platform) -c $(Configuration) -d $(OutDir) -errorsaswarnings -u https://github.com/Microsoft/mwt-ds" Condition="'$(BuildNuget)' == 'true'" />
     <Exec Command=".nuget\nuget pack $(ProjectDir)\$(ProjectName).nuspec -Version $(ClientLibraryAssemblyVersion) -Prop &quot;Configuration=Release;Platform=x64&quot; -Prop SolutionDir=$(SolutionDir) -OutputDirectory $(OutDir) " WorkingDirectory="$(SolutionDir)" Condition="'$(BuildNuget)' == 'true'" />
   </Target>
+  <Import Project="..\..\packages\MSBuildTasks.1.5.0.214\build\MSBuildTasks.targets" Condition="Exists('..\..\packages\MSBuildTasks.1.5.0.214\build\MSBuildTasks.targets')" />
 </Project>
