@@ -37,7 +37,7 @@ for root, subdirs, files in os.walk(os.path.join(cache_folder, 'onlinetrainer'))
             continue
 
     vw = pyvw.vw("--quiet -i {0}".format(model))
-    id = vw.id()
+    id = vw.get_id()
     del vw
 
     line_prepender(trackback, 'modelid: {0}\n'.format(id))

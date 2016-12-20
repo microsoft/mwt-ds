@@ -1,12 +1,10 @@
 ﻿using DecisionServicePrivateWeb.Classes;
 using Microsoft.ApplicationInsights;
-using Microsoft.WindowsAzure.Storage;
 using System;
 using System.Configuration;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Web.Mvc;
-using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace DecisionServicePrivateWeb.Controllers
 {
@@ -47,7 +45,7 @@ namespace DecisionServicePrivateWeb.Controllers
                         // Copy the .cspkg to user blob and generate SAS tokens for deployment
                         // NOTE: this has to live in blob storage, cannot be any random URL
                         // TODO: take the link URL as parameter
-                        var version = "8.2.0.43";
+                        var version = "8.3.0.0";
                         string cspkgLink = $"https://github.com/eisber/vowpal_wabbit/releases/download/v{version}/VowpalWabbit.Azure.{version}.{trainerSize}.cspkg";
                         var cspkgUri = ApplicationMetadataStore.CreateOnlineTrainerCspkgBlobIfNotExists(cspkgLink);
 
