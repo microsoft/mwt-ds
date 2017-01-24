@@ -187,20 +187,20 @@
     <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="VowpalWabbit, Version=8.3.0.0, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <HintPath>..\..\packages\VowpalWabbit.8.3.0\lib\net45\VowpalWabbit.dll</HintPath>
+    <Reference Include="VowpalWabbit, Version=8.3.0.4, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
+      <HintPath>..\..\packages\VowpalWabbit.8.3.0.4\lib\net45\VowpalWabbit.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="VowpalWabbit.Common, Version=8.3.0.0, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <HintPath>..\..\packages\VowpalWabbit.8.3.0\lib\net45\VowpalWabbit.Common.dll</HintPath>
+    <Reference Include="VowpalWabbit.Common, Version=8.3.0.4, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
+      <HintPath>..\..\packages\VowpalWabbit.8.3.0.4\lib\net45\VowpalWabbit.Common.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="VowpalWabbit.Core, Version=8.3.0.0, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <HintPath>..\..\packages\VowpalWabbit.8.3.0\lib\net45\VowpalWabbit.Core.dll</HintPath>
+    <Reference Include="VowpalWabbit.Core, Version=8.3.0.4, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
+      <HintPath>..\..\packages\VowpalWabbit.8.3.0.4\lib\net45\VowpalWabbit.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="VowpalWabbit.JSON, Version=8.3.0.0, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <HintPath>..\..\packages\VowpalWabbit.JSON.8.3.0\lib\net45\VowpalWabbit.JSON.dll</HintPath>
+    <Reference Include="VowpalWabbit.JSON, Version=8.3.0.4, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
+      <HintPath>..\..\packages\VowpalWabbit.JSON.8.3.0.4\lib\net45\VowpalWabbit.JSON.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
@@ -325,9 +325,9 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets'))" />
-    <Error Condition="!Exists('..\..\packages\VowpalWabbit.8.3.0\build\VowpalWabbit.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\VowpalWabbit.8.3.0\build\VowpalWabbit.targets'))" />
+    <Error Condition="!Exists('..\..\packages\VowpalWabbit.8.3.0.4\build\VowpalWabbit.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\VowpalWabbit.8.3.0.4\build\VowpalWabbit.targets'))" />
   </Target>
-  <Import Project="..\..\packages\VowpalWabbit.8.3.0\build\VowpalWabbit.targets" Condition="Exists('..\..\packages\VowpalWabbit.8.3.0\build\VowpalWabbit.targets')" />
+  <Import Project="..\..\packages\VowpalWabbit.8.3.0.4\build\VowpalWabbit.targets" Condition="Exists('..\..\packages\VowpalWabbit.8.3.0.4\build\VowpalWabbit.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
