@@ -22,11 +22,20 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="common.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DataScience.py" />
     <Compile Include="Eval.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="index_data.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="InsertModelIdIntoTrackback.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="list_vw_args.py">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
