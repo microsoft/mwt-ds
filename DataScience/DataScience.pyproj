@@ -29,6 +29,7 @@
     <Compile Include="Eval.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Experimentation.py" />
     <Compile Include="index_data.py">
       <SubType>Code</SubType>
     </Compile>

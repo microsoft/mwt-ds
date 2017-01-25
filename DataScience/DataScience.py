@@ -60,7 +60,7 @@ if __name__ == '__main__':
     data = []
     
     def load_data(ts, blob):
-        jd = common.JoinedData(cache_folder, joined_examples_container, ts, blob)
+        jd = common.JoinedData(block_blob_service, cache_folder, joined_examples_container, ts, blob)
         jd.index()
         return jd
 
@@ -70,10 +70,22 @@ if __name__ == '__main__':
         for jd in data:
             reader = jd.reader()
             for evt in jd.ids:
+                # print("'{0}' <- {1}" .format(evt.evt_id, reader))
                 global_idx[evt.evt_id] = reader
 
-    print("Sorting data...")
+    print('Found {0} events. Sorting data files by time...'.format(len(global_idx)))
     data.sort(key=lambda jd: jd.ts)
+
+    #ordered_joined_events = open(os.path.join(cache_folder, 'data_' + start_date_string + '-' + end_date_string + '.json'), 'w', encoding='utf8')
+    #for jd in data:
+    #    print (jd.filename)
+    #    file = open(jd.filename, 'r', encoding='utf8')
+    #    for line in file:
+    #        line = line.strip() + ('\n')
+    #        _ = ordered_joined_events.write(line)
+    #ordered_joined_events.close()
+
+    #sys.exit(0)
 
     # concatenate file ordered by time
 
@@ -94,11 +106,12 @@ if __name__ == '__main__':
     # print(tabulate_metrics(m, 10))
 
     # reproduce training, by using trackback files
-    model_history = list(common.get_checkpoint_models())
+    model_history = list(common.get_checkpoint_models(block_blob_service, start_date, end_date))
     with Pool(5) as p:
-        model_history = p.map(lambda x: common.CheckpointedModel(x[0], cache_folder, x[1], x[2]), model_history)
+        model_history = p.map(lambda x: common.CheckpointedModel(block_blob_service, x[0], cache_folder, x[1], x[2]), model_history)
         for m in model_history:
-            global_model_idx[m.modelid] = m
+            if m.model_id is not None:
+                global_model_idx[m.model_id] = m
     model_history.sort(key=lambda jd: jd.ts)
 
     # create scoring directories 2016/03/12
@@ -114,38 +127,53 @@ if __name__ == '__main__':
         os.makedirs(scoring_dir_date)
         local_date += timedelta(days=1)
 
-    ordered_joined_events = open(os.path.join(cache_folder, 'data_' + start_date_string + '-' + end_date_string + '.json'), 'w')
+    ordered_joined_events = open(os.path.join(cache_folder, 'data_' + start_date_string + '-' + end_date_string + '.json'), 'w', encoding='utf8')
     num_events_counter = 0
     missing_events_counter = 0
 
     for m in model_history:
-        print('Processing {0}...'.format(m.ts.strftime('%Y/%m/%d %H:%M:%S')))
+        # print('Processing {0}...'.format(m.ts.strftime('%Y/%m/%d %H:%M:%S')))
         num_valid_events = 0
-        for event_id in m.trackback_ids:
-            # TODO: skipping events that were not in the joined-examples downloaded. This misses {experiment_unit_duration_in_hours / 24} of the events.
-            # Need to use events or model files from outside the date range.
-            if event_id in global_idx:
-                line = global_idx[event_id].read(event_id)
-                if line:
-                    line = line.strip() + ('\n')
-                    scoring_model_id = json.loads(line)['_modelid']
-                    if scoring_model_id is None:
-                        continue # this can happen at the very beginning if no model was available
+        # TODO: skipping events that were not in the joined-examples downloaded. This misses {experiment_unit_duration_in_hours / 24} of the events.
+        # Need to use events or model files from outside the date range.
+        if m.model_id is None:
+            # no modelid available, skipping scoring event creation
+            for event_id in m.trackback_ids:
+                # print("'{0}'" .format(event_id))
+                if event_id in global_idx:
+                    # print("found '{0}'" .format(event_id))    
+                    line = global_idx[event_id].read(event_id)
+                    if line:
+                        line = line.strip() + ('\n')
+                        _ = ordered_joined_events.write(line)
+                        num_events_counter += 1
+                        num_valid_events += 1
+                else:
+                    missing_events_counter += 1
+        else:
+            for event_id in m.trackback_ids:
+                if event_id in global_idx:
+                    line = global_idx[event_id].read(event_id)
+                    if line:
+                        line = line.strip() + ('\n')
+                        scoring_model_id = json.loads(line)['_modelid']
+                        if scoring_model_id is None:
+                            continue # this can happen at the very beginning if no model was available
                         
-                    scoring_model = global_model_idx[scoring_model_id]
-                    _ = ordered_joined_events.write(line)
+                        scoring_model = global_model_idx[scoring_model_id]
+                        _ = ordered_joined_events.write(line)
 
-                    scoring_filename = os.path.join(scoring_dir, 
-                                                    scoring_model.ts.strftime('%Y'), 
-                                                    scoring_model.ts.strftime('%m'), 
-                                                    scoring_model.ts.strftime('%d'),
-                                                    scoring_model_id + '.json')
-                    with open(scoring_filename, "a") as scoring_file:
-                        _ = scoring_file.write(line)
-                    num_events_counter += 1
-                    num_valid_events += 1
-            else:
-                missing_events_counter += 1
+                        scoring_filename = os.path.join(scoring_dir, 
+                                                        scoring_model.ts.strftime('%Y'), 
+                                                        scoring_model.ts.strftime('%m'), 
+                                                        scoring_model.ts.strftime('%d'),
+                                                        scoring_model_id + '.json')
+                        with open(scoring_filename, "a") as scoring_file:
+                            _ = scoring_file.write(line)
+                        num_events_counter += 1
+                        num_valid_events += 1
+                else:
+                    missing_events_counter += 1
         if num_valid_events > 0:
             scoring_model_filename = os.path.join(scoring_dir, 
                                 m.ts.strftime('%Y'), 
