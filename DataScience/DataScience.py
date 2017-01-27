@@ -14,7 +14,7 @@ import time
 from multiprocessing.dummy import Pool
 from shutil import rmtree
 from vowpalwabbit import pyvw
-
+import gzip
 
 # m = CheckpointedModel(1, 'd:/Data/TrackRevenue', 'onlinetrainer', '20161204\\000052\\')
 
@@ -76,16 +76,16 @@ if __name__ == '__main__':
     print('Found {0} events. Sorting data files by time...'.format(len(global_idx)))
     data.sort(key=lambda jd: jd.ts)
 
-    #ordered_joined_events = open(os.path.join(cache_folder, 'data_' + start_date_string + '-' + end_date_string + '.json'), 'w', encoding='utf8')
-    #for jd in data:
-    #    print (jd.filename)
-    #    file = open(jd.filename, 'r', encoding='utf8')
-    #    for line in file:
-    #        line = line.strip() + ('\n')
-    #        _ = ordered_joined_events.write(line)
-    #ordered_joined_events.close()
+    ordered_joined_events = gzip.open(os.path.join(cache_folder, 'data_' + start_date_string + '-' + end_date_string + '.json.gz'), 'wt', encoding='utf8')
+    for jd in data:
+        print (jd.filename)
+        file = open(jd.filename, 'r', encoding='utf8')
+        for line in file:
+            line = line.strip() + ('\n')
+            _ = ordered_joined_events.write(line)
+    ordered_joined_events.close()
 
-    #sys.exit(0)
+    sys.exit(0)
 
     # concatenate file ordered by time
 
@@ -174,13 +174,13 @@ if __name__ == '__main__':
                         num_valid_events += 1
                 else:
                     missing_events_counter += 1
-        if num_valid_events > 0:
-            scoring_model_filename = os.path.join(scoring_dir, 
-                                m.ts.strftime('%Y'), 
-                                m.ts.strftime('%m'), 
-                                m.ts.strftime('%d'),
-                                m.modelid + '.model')
-            _ = ordered_joined_events.write(json.dumps({'_tag':'save_{0}'.format(scoring_model_filename)}) + ('\n'))
+            if num_valid_events > 0:
+                scoring_model_filename = os.path.join(scoring_dir, 
+                                    m.ts.strftime('%Y'), 
+                                    m.ts.strftime('%m'), 
+                                    m.ts.strftime('%d'),
+                                    m.model_id + '.model')
+                _ = ordered_joined_events.write(json.dumps({'_tag':'save_{0}'.format(scoring_model_filename)}) + ('\n'))
     ordered_joined_events.close()
 
     # Commenting out debugging prints

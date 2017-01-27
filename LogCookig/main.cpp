@@ -15,10 +15,10 @@ using namespace std;
 struct EventReaderHandler : public rapidjson::BaseReaderHandler<rapidjson::UTF8<>, EventReaderHandler>
 {
 	bool _found_event_id_key = false;
-	 bool _found_model_id = false;
+	bool _found_model_id = false;
 
 	string event_id;
-	 string model_id;
+	string model_id;
 
 	bool Key(const char* str, SizeType len, bool copy) 
 	{ 
@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
 			cerr << "Missing event id on line " << line_number << endl;
 			return -1;
 		}
-		output << handler.event_id << endl; // << " " << handler.model_id << endl;
+		output << handler.event_id << " " << handler.model_id << endl;
 
 		line_number++;
 	}

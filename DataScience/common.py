@@ -27,14 +27,22 @@ def get_checkpoint_models(block_blob_service, start_date, end_date):
                 yield (ts, 'onlinetrainer', time_container.name)
 
 class CachedBlob:
-    def __init__(self, block_blob_service, root, container, name):
+    def __init__(self, block_blob_service, root, container, name, expected_size):
         self.filename = os.path.join(str(root), str(container), str(name))
+        
+        # TODO: validate the size
         if not os.path.exists(self.filename):
             print(self.filename)
             dn = ntpath.dirname(self.filename)
             if not os.path.exists(dn):
                 os.makedirs(dn)
-            block_blob_service.get_blob_to_path(container, name,self. filename)
+            block_blob_service.get_blob_to_path(container, name, self.filename)
+        else:
+            actual_size = os.stat(self.filename).st_size 
+            if actual_size != expected_size:
+                print('{0} mismatch in size. Expected: {1} vs {2}'.format(self.filename, expected_size, actual_size))
+                os.remove(self.filename)
+                block_blob_service.get_blob_to_path(container, name, self.filename)
 
 class JoinedDataReader:
     def __init__(self, joined_data):
@@ -76,7 +84,7 @@ class Event:
 # single joined data blob
 class JoinedData(CachedBlob):
     def __init__(self, block_blob_service, root, joined_examples_container, ts, blob):
-        super(JoinedData,self).__init__(block_blob_service, root, joined_examples_container, blob.name)
+        super(JoinedData,self).__init__(block_blob_service, root, joined_examples_container, blob.name, blob.properties.content_length)
         self.blob = blob
         self.ts = ts
         self.blob = blob
@@ -91,13 +99,23 @@ class JoinedData(CachedBlob):
                 self.ids.append(Event(event_and_model_id))
             f.close()
         else:
-            f = open(self.filename, 'r', encoding='utf8')
-            for line in f:
-                js = json.loads(line)
-                evt_id = js['_eventid']
-                model_id = js['_modelid']
-                self.ids.append(Event(evt_id, model_id))
-            f.close()
+            with open(self.filename + '.ids', 'w', encoding='utf8') as f_id:
+                with open(self.filename, 'r', encoding='utf8') as f:
+                    for line in f:
+                        js = json.loads(line)
+
+                        evt_id = js['_eventid']
+                        _ = f_id.write(evt_id)
+
+                        # model id might be missing in older data sets
+                        model_id = None
+                        if '_modelid' in js:
+                            model_id = js['_modelid']
+                            _ = f_id.write(' ')
+                            _ = f_id.write(model_id)
+                        _ = f_id.write('\n')
+
+                        self.ids.append(Event([evt_id, model_id]))
 
     def ips(self, policies):
         f = open(self.filename, 'r')
