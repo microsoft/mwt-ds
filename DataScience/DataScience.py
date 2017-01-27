@@ -1,4 +1,3 @@
-import common
 import ntpath
 import os
 import os.path
@@ -13,8 +12,9 @@ from tabulate import tabulate
 import time
 from multiprocessing.dummy import Pool
 from shutil import rmtree
-from vowpalwabbit import pyvw
 import gzip
+import sys
+
 
 # m = CheckpointedModel(1, 'd:/Data/TrackRevenue', 'onlinetrainer', '20161204\\000052\\')
 
@@ -127,12 +127,13 @@ if __name__ == '__main__':
         os.makedirs(scoring_dir_date)
         local_date += timedelta(days=1)
 
-    ordered_joined_events = open(os.path.join(cache_folder, 'data_' + start_date_string + '-' + end_date_string + '.json'), 'w', encoding='utf8')
+    ordered_joined_events_filename = os.path.join(cache_folder, 'data_' + start_date_string + '-' + end_date_string + '.json')
+    ordered_joined_events = open(ordered_joined_events_filename, 'w', encoding='utf8')
     num_events_counter = 0
     missing_events_counter = 0
 
     for m in model_history:
-        # print('Processing {0}...'.format(m.ts.strftime('%Y/%m/%d %H:%M:%S')))
+        print('Processing {0}...'.format(m.ts.strftime('%Y/%m/%d %H:%M:%S')))
         num_valid_events = 0
         # TODO: skipping events that were not in the joined-examples downloaded. This misses {experiment_unit_duration_in_hours / 24} of the events.
         # Need to use events or model files from outside the date range.
@@ -159,6 +160,9 @@ if __name__ == '__main__':
                         scoring_model_id = json.loads(line)['_modelid']
                         if scoring_model_id is None:
                             continue # this can happen at the very beginning if no model was available
+                        
+                        if scoring_model_id not in global_model_idx:
+                            continue # this can happen if the event was scored using a model that lies outside our model history
                         
                         scoring_model = global_model_idx[scoring_model_id]
                         _ = ordered_joined_events.write(line)
@@ -191,23 +195,101 @@ if __name__ == '__main__':
         for event_id in m.trackback_ids:
             print(event_id)
     """
-
-    print('Number of events downloaded: %d' % num_events_counter)
-    print('Number of missing events: %d' % missing_events_counter)
-
-    print("Time taken: %s seconds" % (time.time() - start_time))
-
+    
     # iterate through model history
     # find source JoinedData
     # get json entry (read until found, cache the rest)
-
-
-
     # calculate offline metric for each policy and see if we get the same result
-
     # download data in order
     # arrange according to model.trackback files
     ## 1 training
     ## 2 evaluation
-
     # build index for events
+
+
+    # vw data2.json --js -f trial1.model --readable_model trial1.model_readable -p trial1.predictions --save_resume --power_t 0 -l 0.000025 --quadratic no --quadratic co --quadratic yo --quadratic wo --quadratic do --ignore r --cb_explore_adf --epsilon 0.200000 --cb_adf --cb_type mtr
+    vw_cmdline = 'vw ' + ordered_joined_events_filename + ' --json --save_resume --power_t 0 -l 0.000025 --quadratic no --quadratic co --quadratic yo --quadratic wo --quadratic do --ignore r --cb_explore_adf --epsilon 0.200000 --cb_adf --cb_type mtr'
+    vw_cmdline += ' --quiet'
+    os.system(vw_cmdline)
+
+    replayinfo_filename = os.path.join(cache_folder, 'replayinfo_' + start_date_string + '-' + end_date_string + '.log')
+    
+    with open(replayinfo_filename, 'w') as replayinfo_file:
+        line = '\t'.join(['_eventid', '_label_action', '_label_cost', '_label_probability', 'onlineDistr', 'offlineDistr']) + '\n'
+        replayinfo_file.write(line)
+        
+        replayScoredEventsCounts = 0
+        replayMatchedEventsCounts = 0
+        costSum = 0
+        probSum = 0
+        for m in model_history:
+            _model_file = os.path.join(scoring_dir, 
+                        m.ts.strftime('%Y'), 
+                        m.ts.strftime('%m'), 
+                        m.ts.strftime('%d'),
+                        m.modelid + '.model')
+                        
+            _observations_file  = _model_file.replace(".model", ".json")
+            _predictions_file   = _model_file.replace(".model", ".predictions")
+    
+            if not os.path.exists(_model_file) or not os.path.exists(_observations_file):
+                continue
+            
+    #       Create predictions file        
+    #       vw 0018aeb8-46be-4252-88ca-de87877df6f5.json --json -t -i 0018aeb8-46be-4252-88ca-de87877df6f5.model -p 0018aeb8-46be-4252-88ca-de87877df6f5.predictions
+    
+            vw_cmdline = 'vw ' + _observations_file + ' --json -t -i ' + _model_file + ' -p ' + _predictions_file
+            vw_cmdline += ' --quiet'
+            os.system(vw_cmdline)
+      
+            with open(_observations_file, 'r') as f_obs, \
+                open(_predictions_file, 'r') as f_pred:
+    
+                observations  = list(filter(lambda x: x.strip(), f_obs.readlines()))
+                predictions   = list(filter(lambda x: x.strip(), f_pred.readlines()))
+    
+                # validate number of non empty lines is same between observation and scoring
+                if len(observations) != len(predictions):
+                    raise ValueError('Invalid number of lines between [Observation File] and [Predictions File].')
+                    
+                for obs, prediction in zip(observations, predictions):
+                    js = json.loads(obs)
+                    _eventid            = js['_eventid']
+                    _label_action       = js['_label_action'] 
+                    _label_cost         = js['_label_cost'] 
+                    _label_probability  = js['_label_probability']
+                    _a                  = js['_a']
+                    _p                  = js['_p']
+                    _probabilityofdrop  = 0 if js['_probabilityofdrop'] is None else js['_probabilityofdrop']
+                    
+#                   Doing (a-1) here because DS action lists are 1-based indexes
+                    onlineActionProbRankings         = ','.join([str(a - 1) + ":" + str(p) for a, p in zip(js['_a'], js['_p'])])
+                    offlineActionProbRankings        = prediction.strip()
+                    
+                    line = '\t'.join(str(e) for e in [_eventid, _label_action, _label_cost, _label_probability, onlineActionProbRankings, offlineActionProbRankings]) + '\n'
+                    replayinfo_file.write(line)
+                    
+                    onlineActionRankings    = [ap.split(':')[0] for ap in onlineActionProbRankings.split(',')]
+                    offlineActionRankings   = [ap.split(':')[0] for ap in offlineActionProbRankings.split(',')]
+
+                    replayScoredEventsCounts += 1
+                    if onlineActionRankings == offlineActionRankings:
+                        replayMatchedEventsCounts += 1
+                     
+#                   Compute cost and prob for IPS scoring  
+                    progressiveProbabilties = progressiveProbabilties = [p for a, p in sorted(list(zip(js['_a'], js['_p'])), key=lambda ap:ap[0])]
+                    pi_a_x = progressiveProbabilties[_label_action - 1]
+                    p_a_x = _label_probability * (1 - _probabilityofdrop)
+                    cost = (_label_cost * pi_a_x) / p_a_x
+                    prob = pi_a_x / p_a_x
+                    
+                    costSum += cost
+                    probSum += prob
+                    
+    print('Number of events downloaded: %d' % num_events_counter)
+    print('Number of missing events: %d' % missing_events_counter)                    
+    print('Number of events replayed : {0}'.format(replayScoredEventsCounts))
+    print('Number of replayed events matched : {0}'.format(replayMatchedEventsCounts))
+    print("% of matches between Online DS and Offline Replay : {0}".format((replayMatchedEventsCounts * 100.0) / replayScoredEventsCounts))
+    print("IPS of Offline Replay events : {0}".format((costSum * 1.0) / probSum))
+    print("Time taken: %s seconds" % (time.time() - start_time))

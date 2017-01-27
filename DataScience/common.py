@@ -30,14 +30,15 @@ class CachedBlob:
     def __init__(self, block_blob_service, root, container, name, expected_size):
         self.filename = os.path.join(str(root), str(container), str(name))
         
-        # TODO: validate the size
         if not os.path.exists(self.filename):
+            # download not existing file
             print(self.filename)
             dn = ntpath.dirname(self.filename)
             if not os.path.exists(dn):
                 os.makedirs(dn)
             block_blob_service.get_blob_to_path(container, name, self.filename)
         else:
+            # verify size matches
             actual_size = os.stat(self.filename).st_size 
             if actual_size != expected_size:
                 print('{0} mismatch in size. Expected: {1} vs {2}'.format(self.filename, expected_size, actual_size))
