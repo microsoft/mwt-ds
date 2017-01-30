@@ -14,10 +14,7 @@ from multiprocessing.dummy import Pool
 from shutil import rmtree
 import gzip
 import sys
-
-
-# m = CheckpointedModel(1, 'd:/Data/TrackRevenue', 'onlinetrainer', '20161204\\000052\\')
-
+import common
 
 if __name__ == '__main__':
 
@@ -76,16 +73,17 @@ if __name__ == '__main__':
     print('Found {0} events. Sorting data files by time...'.format(len(global_idx)))
     data.sort(key=lambda jd: jd.ts)
 
-    ordered_joined_events = gzip.open(os.path.join(cache_folder, 'data_' + start_date_string + '-' + end_date_string + '.json.gz'), 'wt', encoding='utf8')
-    for jd in data:
-        print (jd.filename)
-        file = open(jd.filename, 'r', encoding='utf8')
-        for line in file:
-            line = line.strip() + ('\n')
-            _ = ordered_joined_events.write(line)
-    ordered_joined_events.close()
+    # missing model id workaround
+    #ordered_joined_events = gzip.open(os.path.join(cache_folder, 'data_' + start_date_string + '-' + end_date_string + '.json.gz'), 'wt', encoding='utf8')
+    #for jd in data:
+    #    print (jd.filename)
+    #    file = open(jd.filename, 'r', encoding='utf8')
+    #    for line in file:
+    #        line = line.strip() + ('\n')
+    #        _ = ordered_joined_events.write(line)
+    #ordered_joined_events.close()
 
-    sys.exit(0)
+    #sys.exit(0)
 
     # concatenate file ordered by time
 
@@ -132,8 +130,9 @@ if __name__ == '__main__':
     num_events_counter = 0
     missing_events_counter = 0
 
+    print('Creating {0} scoring models...'.format(len(model_history)))
     for m in model_history:
-        print('Processing {0}...'.format(m.ts.strftime('%Y/%m/%d %H:%M:%S')))
+        # print('Creating scoring models {0}...'.format(m.ts.strftime('%Y/%m/%d %H:%M:%S')))
         num_valid_events = 0
         # TODO: skipping events that were not in the joined-examples downloaded. This misses {experiment_unit_duration_in_hours / 24} of the events.
         # Need to use events or model files from outside the date range.
@@ -207,8 +206,11 @@ if __name__ == '__main__':
     # build index for events
 
 
+    online_args = common.get_online_settings(block_blob_service, cache_folder)['TrainArguments']
+    print('Online VW arguments: ' + online_args)
+
     # vw data2.json --js -f trial1.model --readable_model trial1.model_readable -p trial1.predictions --save_resume --power_t 0 -l 0.000025 --quadratic no --quadratic co --quadratic yo --quadratic wo --quadratic do --ignore r --cb_explore_adf --epsilon 0.200000 --cb_adf --cb_type mtr
-    vw_cmdline = 'vw ' + ordered_joined_events_filename + ' --json --save_resume --power_t 0 -l 0.000025 --quadratic no --quadratic co --quadratic yo --quadratic wo --quadratic do --ignore r --cb_explore_adf --epsilon 0.200000 --cb_adf --cb_type mtr'
+    vw_cmdline = 'vw ' + ordered_joined_events_filename + ' --json --save_resume ' + online_args
     vw_cmdline += ' --quiet'
     os.system(vw_cmdline)
 
@@ -223,11 +225,15 @@ if __name__ == '__main__':
         costSum = 0
         probSum = 0
         for m in model_history:
+            # skip model we found for the first day as we won't have all the events
+            if m.ts.date() < start_date + timedelta(days = 1):
+                continue
+
             _model_file = os.path.join(scoring_dir, 
                         m.ts.strftime('%Y'), 
                         m.ts.strftime('%m'), 
                         m.ts.strftime('%d'),
-                        m.modelid + '.model')
+                        m.model_id + '.model')
                         
             _observations_file  = _model_file.replace(".model", ".json")
             _predictions_file   = _model_file.replace(".model", ".predictions")
@@ -290,6 +296,8 @@ if __name__ == '__main__':
     print('Number of missing events: %d' % missing_events_counter)                    
     print('Number of events replayed : {0}'.format(replayScoredEventsCounts))
     print('Number of replayed events matched : {0}'.format(replayMatchedEventsCounts))
-    print("% of matches between Online DS and Offline Replay : {0}".format((replayMatchedEventsCounts * 100.0) / replayScoredEventsCounts))
-    print("IPS of Offline Replay events : {0}".format((costSum * 1.0) / probSum))
+    if replayScoredEventsCounts > 0:
+        print("% of matches between Online DS and Offline Replay : {0}".format((replayMatchedEventsCounts * 100.0) / replayScoredEventsCounts))
+    if probSum > 0:
+        print("IPS of Offline Replay events : {0}".format((costSum * 1.0) / probSum))
     print("Time taken: %s seconds" % (time.time() - start_time))

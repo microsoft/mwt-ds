@@ -24,10 +24,10 @@ def get_checkpoint_models(block_blob_service, start_date, end_date):
             m = re.search('^([0-9]{4})([0-9]{2})([0-9]{2})/([0-9]{2})([0-9]{2})([0-9]{2})', time_container.name)
             if m:
                 ts = datetime(int(m.group(1)), int(m.group(2)), int(m.group(3)), int(m.group(4)), int(m.group(5)), int(m.group(6)))    
-                yield (ts, 'onlinetrainer', time_container.name)
+                yield (ts, 'onlinetrainer', time_container.name) 
 
 class CachedBlob:
-    def __init__(self, block_blob_service, root, container, name, expected_size):
+    def __init__(self, block_blob_service, root, container, name, expected_size = None):
         self.filename = os.path.join(str(root), str(container), str(name))
         
         if not os.path.exists(self.filename):
@@ -39,11 +39,12 @@ class CachedBlob:
             block_blob_service.get_blob_to_path(container, name, self.filename)
         else:
             # verify size matches
-            actual_size = os.stat(self.filename).st_size 
-            if actual_size != expected_size:
-                print('{0} mismatch in size. Expected: {1} vs {2}'.format(self.filename, expected_size, actual_size))
-                os.remove(self.filename)
-                block_blob_service.get_blob_to_path(container, name, self.filename)
+            if expected_size is not None:
+                actual_size = os.stat(self.filename).st_size 
+                if actual_size != expected_size:
+                    print('{0} mismatch in size. Expected: {1} vs {2}'.format(self.filename, expected_size, actual_size))
+                    os.remove(self.filename)
+                    block_blob_service.get_blob_to_path(container, name, self.filename)
 
 class JoinedDataReader:
     def __init__(self, joined_data):
@@ -112,8 +113,9 @@ class JoinedData(CachedBlob):
                         model_id = None
                         if '_modelid' in js:
                             model_id = js['_modelid']
-                            _ = f_id.write(' ')
-                            _ = f_id.write(model_id)
+                            if model_id is not None:
+                                _ = f_id.write(' ')
+                                _ = f_id.write(str(model_id))
                         _ = f_id.write('\n')
 
                         self.ids.append(Event([evt_id, model_id]))
@@ -171,10 +173,12 @@ class CheckpointedModel:
         self.ts = ts
         self.container = container
         
+        # uncomment to download models
+        # self.model = CachedBlob(block_blob_service, root, container, '{0}model'.format(dir))
         self.trackback = CachedBlob(block_blob_service, root, container, '{0}model.trackback'.format(dir))
         self.trackback_ids = []
 
-        with open(self.trackback.filename, 'r') as f:
+        with open(self.trackback.filename, 'r', encoding='utf8') as f:
             line = f.readline()
             m = re.search('^modelid: (.+)$', line)
             if m is not None:
@@ -184,3 +188,8 @@ class CheckpointedModel:
                 self.trackback_ids.append(line.rstrip('\n'))
 
             self.trackback_ids.extend([line.rstrip('\n') for line in f])
+
+
+def get_online_settings(block_blob_service, cache_folder):
+    online_settings_blob = CachedBlob(block_blob_service, cache_folder, 'mwt-settings', 'client')
+    return json.load(open(online_settings_blob.filename, 'r', encoding='utf8'))
