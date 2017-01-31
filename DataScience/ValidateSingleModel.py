@@ -82,8 +82,23 @@ if __name__ == '__main__':
         os.system('vw --quiet --json --save_resume --preserve_performance_counters --id {0} {1} -d {2} -i {3} -f {4}'.format(model_id, online_args, joined_data_per_model, m1_model, m2_model_repro))
 
         # produce comparable models
-        os.system('vw --quiet --save_resume -i {0} -f {0}.stripped --readable_model {0}.txt -d empty.txt'.format(m2_model))
-        os.system('vw --quiet --save_resume -i {0} -f {0}.stripped --readable_model {0}.txt -d empty.txt'.format(m2_model_repro))
+        m2_model_stripped = m2_model + '.stripped'
+        m2_model_repro_stripped = m2_model_repro + '.stripped'
+        os.system('vw --quiet --save_resume -i {0} -f {1} --readable_model {1}.txt -d empty.txt'.format(m2_model, m2_model_stripped))
+        os.system('vw --quiet --save_resume -i {0} -f {1} --readable_model {1}.txt -d empty.txt'.format(m2_model_repro, m2_model_repro_stripped))
 
         # run diff on model.txt and model.repro.txt 
-    
+        chunksize = 16*1024
+        pos = 0
+        with open(m2_model_stripped, "rb") as f1:
+            with open(m2_model_repro_stripped, "rb") as f2:
+                while True:
+                    chunk1 = f1.read(chunksize)
+                    chunk2 = f2.read(chunksize)
+                    if chunk1 != chunk2:
+                        print('Model mismatch {0} vs {1}. Compare {0}.txt and {1}.txt'.format(m2_model_stripped, m2_model_repro_stripped))
+                        break
+                    
+                    pos += chunksize
+                    if not (chunk1 or chunk2):
+                        break   
