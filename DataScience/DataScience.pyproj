@@ -25,6 +25,9 @@
     <Compile Include="common.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Complex-FeatureEng.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DataScience.py" />
     <Compile Include="Eval.py">
       <SubType>Code</SubType>

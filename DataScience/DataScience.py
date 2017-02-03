@@ -12,140 +12,9 @@ from tabulate import tabulate
 import time
 from multiprocessing.dummy import Pool
 from shutil import rmtree
+import gzip
 import sys
-
-def dates_in_range(start_date, end_date):
-    num_days = (end_date - start_date).days
-    for i in range(num_days):
-        yield start_date + timedelta(days = i)
-
-def parse_name(blob):
-    m = re.search('^([0-9]{4})/([0-9]{2})/([0-9]{2})/([0-9]{2})/(.*)\.json$', blob.name)
-    dt = datetime(int(m.group(1)), int(m.group(2)), int(m.group(3)), int(m.group(4)))    
-    return (dt, blob)
-
-class CachedBlob:
-    def __init__(self, root, container, name):
-        self.filename = os.path.join(str(root), str(container), str(name))
-        if not os.path.exists(self.filename):
-            print(self.filename)
-            dn = ntpath.dirname(self.filename)
-            if not os.path.exists(dn):
-                os.makedirs(dn)
-            block_blob_service.get_blob_to_path(container, name,self. filename)
-
-class JoinedDataReader:
-    def __init__(self, joined_data):
-        self.file = None
-        self.joined_data = joined_data
-        self.read_ahead = {}
-
-    def read(self, eventid):
-        data = self.read_ahead.pop(eventid, None)
-        if data:
-            return data
-
-        if not self.file:
-            self.file = open(self.joined_data.filename, 'r')
-            
-        # read all events in file
-        ret = None
-        for line in self.file:
-            js = json.loads(line)
-            js_event_id = js['_eventid']
-            if (js_event_id == eventid):
-                ret = line
-            else:
-                self.read_ahead[js_event_id] = line
-
-        self.file.close()
-        self.file = None
-
-        return ret
-
-# single joined data blob
-class JoinedData(CachedBlob):
-    def __init__(self, root, joined_examples_container, ts, blob):
-        super(JoinedData,self).__init__(root, joined_examples_container, blob.name)
-        self.blob = blob
-        self.ts = ts
-        self.blob = blob
-        self.ids = []
-        self.data = []
-
-    def index(self, idx):
-        f = open(self.filename, 'r', encoding='utf8')
-        reader = self.reader()
-        for line in f:
-            js = json.loads(line)
-            evt_id = js['_eventid']
-            self.ids.append(evt_id)
-            idx[evt_id] = reader
-        f.close()
-
-    def ips(self, policies):
-        f = open(self.filename, 'r')
-        for line in f:
-            js = json.loads(line)
-
-            # TODO: probability of drop
-            cost = float(js['_label_cost'])
-            prob = float(js['_label_probability'])
-            action_observed = int(js['_label_action'])
-
-            # new [] { cost} .Union(map())
-            estimates = [[cost, action_observed]] # include "observed" reward
-            for p in policies:
-                action_of_policy = policies[p](js)
-                ips = cost / prob if action_of_policy == action_observed else 0
-                estimates.append([ips, action_of_policy])
-                        
-            yield {'timestamp': js['_timestamp'], 'estimates':estimates, 'prob': prob}
-        f.close()
-
-    def metric(self, policies):
-        names = ['observed']
-        names.extend([key for key in policies])
-        return Metric(self, names, self.ips(policies))
-
-    def json(self):
-        f = open(self.filename, 'r')
-        for line in f:
-            yield json.loads(line)
-        f.close()
-
-    def reader(self):
-        return JoinedDataReader(self)
-
-class Trackback(CachedBlob):
-    def __init__(self, ts, root, blob):
-        super(Trackback,self).__init__(root, 'onlinetrainer', blob)
-        self.ts = ts
-        self.blob = blob
-        self.ids = []
-        self.data = []
-        
-class CheckpointedModel:
-    def __init__(self, ts, root, container, dir):
-        self.ts = ts
-        self.container = container
-        # self.model = CachedBlob(root, container, '{0}model'.format(dir))
-        self.trackback = CachedBlob(root, container, '{0}model.trackback'.format(dir))
-        with open(self.trackback.filename, 'r') as f:
-            line = f.readline()
-            m = re.search('^modelid: (.+)$', line)
-            self.modelid = m.group(1)
-            self.trackback_ids = [line.rstrip('\n') for line in f]
-
-# m = CheckpointedModel(1, 'd:/Data/TrackRevenue', 'onlinetrainer', '20161204\\000052\\')
-
-def get_checkpoint_models():
-    for current_date in dates_in_range(start_date, end_date):
-        for time_container in block_blob_service.list_blobs('onlinetrainer', prefix = current_date.strftime('%Y%m%d/'), delimiter = '/'):
-            m = re.search('^([0-9]{4})([0-9]{2})([0-9]{2})/([0-9]{2})([0-9]{2})([0-9]{2})', time_container.name)
-            if m:
-                ts = datetime(int(m.group(1)), int(m.group(2)), int(m.group(3)), int(m.group(4)), int(m.group(5)), int(m.group(6)))    
-                yield (ts, 'onlinetrainer', time_container.name)
+import common
 
 if __name__ == '__main__':
 
@@ -176,23 +45,47 @@ if __name__ == '__main__':
 
     joined = []
 
-    for current_date in dates_in_range(start_date, end_date):
+    for current_date in common.dates_in_range(start_date, end_date):
         blob_prefix = current_date.strftime('%Y/%m/%d/') #'{0}/{1}/{2}/'.format(current_date.year, current_date.month, current_date.day)
         joined += filter(lambda b: b.properties.content_length != 0, block_blob_service.list_blobs(joined_examples_container, prefix = blob_prefix))
 
-    joined = map(parse_name, joined)
+    joined = map(common.parse_name, joined)
     joined = list(joined)
     
     global_idx = {}
     global_model_idx = {}
     data = []
     
-    with Pool(processes = 5) as p:
-        data = p.map(lambda x:JoinedData(cache_folder, joined_examples_container, x[0], x[1]), joined)
-        for jd in data:
-            jd.index(global_idx)
+    def load_data(ts, blob):
+        jd = common.JoinedData(block_blob_service, cache_folder, joined_examples_container, ts, blob)
+        jd.index()
+        return jd
 
+    print("Downloading & indexing events...")
+    with Pool(processes = 8) as p:
+        data = p.map(lambda x:load_data(x[0], x[1]), joined)
+        for jd in data:
+            reader = jd.reader()
+            for evt in jd.ids:
+                # print("'{0}' <- {1}" .format(evt.evt_id, reader))
+                global_idx[evt.evt_id] = reader
+
+    print('Found {0} events. Sorting data files by time...'.format(len(global_idx)))
     data.sort(key=lambda jd: jd.ts)
+
+    # missing model id workaround
+    #ordered_joined_events = gzip.open(os.path.join(cache_folder, 'data_' + start_date_string + '-' + end_date_string + '.json.gz'), 'wt', encoding='utf8')
+    #for jd in data:
+    #    print (jd.filename)
+    #    file = open(jd.filename, 'r', encoding='utf8')
+    #    for line in file:
+    #        line = line.strip() + ('\n')
+    #        _ = ordered_joined_events.write(line)
+    #ordered_joined_events.close()
+
+    #sys.exit(0)
+
+    # concatenate file ordered by time
 
     def tabulate_metrics(metrics, top = None):
         headers = ['timestamp']
@@ -211,11 +104,12 @@ if __name__ == '__main__':
     # print(tabulate_metrics(m, 10))
 
     # reproduce training, by using trackback files
-    model_history = list(get_checkpoint_models())
+    model_history = list(common.get_checkpoint_models(block_blob_service, start_date, end_date))
     with Pool(5) as p:
-        model_history = p.map(lambda x: CheckpointedModel(x[0], cache_folder, x[1], x[2]), model_history)
+        model_history = p.map(lambda x: common.CheckpointedModel(block_blob_service, x[0], cache_folder, x[1], x[2]), model_history)
         for m in model_history:
-            global_model_idx[m.modelid] = m
+            if m.model_id is not None:
+                global_model_idx[m.model_id] = m
     model_history.sort(key=lambda jd: jd.ts)
 
     # create scoring directories 2016/03/12
@@ -232,48 +126,64 @@ if __name__ == '__main__':
         local_date += timedelta(days=1)
 
     ordered_joined_events_filename = os.path.join(cache_folder, 'data_' + start_date_string + '-' + end_date_string + '.json')
-    ordered_joined_events = open(ordered_joined_events_filename, 'w')
+    ordered_joined_events = open(ordered_joined_events_filename, 'w', encoding='utf8')
     num_events_counter = 0
     missing_events_counter = 0
 
+    print('Creating {0} scoring models...'.format(len(model_history)))
     for m in model_history:
-        print('Processing {0}...'.format(m.ts.strftime('%Y/%m/%d %H:%M:%S')))
+        # print('Creating scoring models {0}...'.format(m.ts.strftime('%Y/%m/%d %H:%M:%S')))
         num_valid_events = 0
-        for event_id in m.trackback_ids:
-            # TODO: skipping events that were not in the joined-examples downloaded. This misses {experiment_unit_duration_in_hours / 24} of the events.
-            # Need to use events or model files from outside the date range.
-            if event_id in global_idx:
-                line = global_idx[event_id].read(event_id)
-                if line:
-                    line = line.strip() + ('\n')
-                    scoring_model_id = json.loads(line)['_modelid']
-                    if scoring_model_id is None:
-                        continue # this can happen at the very beginning if no model was available
-                    
-                    if scoring_model_id not in global_model_idx:
-                        continue # this can happen if the event was scored using a model that lies outside our model history
+        # TODO: skipping events that were not in the joined-examples downloaded. This misses {experiment_unit_duration_in_hours / 24} of the events.
+        # Need to use events or model files from outside the date range.
+        if m.model_id is None:
+            # no modelid available, skipping scoring event creation
+            for event_id in m.trackback_ids:
+                # print("'{0}'" .format(event_id))
+                if event_id in global_idx:
+                    # print("found '{0}'" .format(event_id))    
+                    line = global_idx[event_id].read(event_id)
+                    if line:
+                        line = line.strip() + ('\n')
+                        _ = ordered_joined_events.write(line)
+                        num_events_counter += 1
+                        num_valid_events += 1
+                else:
+                    missing_events_counter += 1
+        else:
+            for event_id in m.trackback_ids:
+                if event_id in global_idx:
+                    line = global_idx[event_id].read(event_id)
+                    if line:
+                        line = line.strip() + ('\n')
+                        scoring_model_id = json.loads(line)['_modelid']
+                        if scoring_model_id is None:
+                            continue # this can happen at the very beginning if no model was available
                         
-                    scoring_model = global_model_idx[scoring_model_id]
-                    _ = ordered_joined_events.write(line)
+                        if scoring_model_id not in global_model_idx:
+                            continue # this can happen if the event was scored using a model that lies outside our model history
+                        
+                        scoring_model = global_model_idx[scoring_model_id]
+                        _ = ordered_joined_events.write(line)
 
-                    scoring_filename = os.path.join(scoring_dir, 
-                                                    scoring_model.ts.strftime('%Y'), 
-                                                    scoring_model.ts.strftime('%m'), 
-                                                    scoring_model.ts.strftime('%d'),
-                                                    scoring_model_id + '.json')
-                    with open(scoring_filename, "a") as scoring_file:
-                        _ = scoring_file.write(line)
-                    num_events_counter += 1
-                    num_valid_events += 1
-            else:
-                missing_events_counter += 1
-        if num_valid_events > 0:
-            scoring_model_filename = os.path.join(scoring_dir, 
-                                m.ts.strftime('%Y'), 
-                                m.ts.strftime('%m'), 
-                                m.ts.strftime('%d'),
-                                m.modelid + '.model')
-            _ = ordered_joined_events.write(json.dumps({'_tag':'save_{0}'.format(scoring_model_filename)}) + ('\n'))
+                        scoring_filename = os.path.join(scoring_dir, 
+                                                        scoring_model.ts.strftime('%Y'), 
+                                                        scoring_model.ts.strftime('%m'), 
+                                                        scoring_model.ts.strftime('%d'),
+                                                        scoring_model_id + '.json')
+                        with open(scoring_filename, "a") as scoring_file:
+                            _ = scoring_file.write(line)
+                        num_events_counter += 1
+                        num_valid_events += 1
+                else:
+                    missing_events_counter += 1
+            if num_valid_events > 0:
+                scoring_model_filename = os.path.join(scoring_dir, 
+                                    m.ts.strftime('%Y'), 
+                                    m.ts.strftime('%m'), 
+                                    m.ts.strftime('%d'),
+                                    m.model_id + '.model')
+                _ = ordered_joined_events.write(json.dumps({'_tag':'save_{0}'.format(scoring_model_filename)}) + ('\n'))
     ordered_joined_events.close()
 
     # Commenting out debugging prints
@@ -296,8 +206,11 @@ if __name__ == '__main__':
     # build index for events
 
 
+    online_args = common.get_online_settings(block_blob_service, cache_folder)['TrainArguments']
+    print('Online VW arguments: ' + online_args)
+
     # vw data2.json --js -f trial1.model --readable_model trial1.model_readable -p trial1.predictions --save_resume --power_t 0 -l 0.000025 --quadratic no --quadratic co --quadratic yo --quadratic wo --quadratic do --ignore r --cb_explore_adf --epsilon 0.200000 --cb_adf --cb_type mtr
-    vw_cmdline = 'vw ' + ordered_joined_events_filename + ' --json --save_resume --power_t 0 -l 0.000025 --quadratic no --quadratic co --quadratic yo --quadratic wo --quadratic do --ignore r --cb_explore_adf --epsilon 0.200000 --cb_adf --cb_type mtr'
+    vw_cmdline = 'vw ' + ordered_joined_events_filename + ' --json --save_resume ' + online_args
     vw_cmdline += ' --quiet'
     os.system(vw_cmdline)
 
@@ -312,11 +225,15 @@ if __name__ == '__main__':
         costSum = 0
         probSum = 0
         for m in model_history:
+            # skip model we found for the first day as we won't have all the events
+            if m.ts.date() < start_date + timedelta(days = 1):
+                continue
+
             _model_file = os.path.join(scoring_dir, 
                         m.ts.strftime('%Y'), 
                         m.ts.strftime('%m'), 
                         m.ts.strftime('%d'),
-                        m.modelid + '.model')
+                        m.model_id + '.model')
                         
             _observations_file  = _model_file.replace(".model", ".json")
             _predictions_file   = _model_file.replace(".model", ".predictions")
@@ -379,6 +296,8 @@ if __name__ == '__main__':
     print('Number of missing events: %d' % missing_events_counter)                    
     print('Number of events replayed : {0}'.format(replayScoredEventsCounts))
     print('Number of replayed events matched : {0}'.format(replayMatchedEventsCounts))
-    print("% of matches between Online DS and Offline Replay : {0}".format((replayMatchedEventsCounts * 100.0) / replayScoredEventsCounts))
-    print("IPS of Offline Replay events : {0}".format((costSum * 1.0) / probSum))
+    if replayScoredEventsCounts > 0:
+        print("% of matches between Online DS and Offline Replay : {0}".format((replayMatchedEventsCounts * 100.0) / replayScoredEventsCounts))
+    if probSum > 0:
+        print("IPS of Offline Replay events : {0}".format((costSum * 1.0) / probSum))
     print("Time taken: %s seconds" % (time.time() - start_time))
