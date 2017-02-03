@@ -25,6 +25,7 @@ if __name__ == '__main__':
     ds = config['DecisionService']
     cache_folder = ds['CacheFolder']
     joined_examples_container = ds['JoinedExamplesContainer']
+    experimental_unit_duration_days = ds['ExperimentalUnitDurationDays']
 
     # https://azure-storage.readthedocs.io/en/latest/_modules/azure/storage/blob/models.html#BlobBlock
     block_blob_service = BlockBlobService(account_name=ds['AzureBlobStorageAccountName'], account_key=ds['AzureBlobStorageAccountKey'])
@@ -35,21 +36,15 @@ if __name__ == '__main__':
     start_date_string = sys.argv[1]
     start_date = date(int(start_date_string[0:4]), int(start_date_string[4:6]), int(start_date_string[6:8]))
     
-    # We will populate some data structures with info from previous day
-    start_date_prev = start_date + timedelta(days = -1)
+    # Lookback 'experimental_unit_duration_days' for events
+    start_date_withlookback = start_date + timedelta(days = -int(experimental_unit_duration_days))
     
     end_date_string = sys.argv[2]
     end_date = date(int(end_date_string[0:4]), int(end_date_string[4:6]), int(end_date_string[6:8]))
 
-    # remove me
-    # start_date = date(2016, 12, 3)
-    # start_date_string = '20161203'
-    # end_date = date(2016, 12, 4)
-    # end_date_string = '20161204'
-
     joined = []
 
-    for current_date in common.dates_in_range(start_date_prev, end_date):
+    for current_date in common.dates_in_range(start_date_withlookback, end_date):
         blob_prefix = current_date.strftime('%Y/%m/%d/') #'{0}/{1}/{2}/'.format(current_date.year, current_date.month, current_date.day)
         joined += filter(lambda b: b.properties.content_length != 0, block_blob_service.list_blobs(joined_examples_container, prefix = blob_prefix))
 
@@ -77,20 +72,6 @@ if __name__ == '__main__':
     print('Found {0} events. Sorting data files by time...'.format(len(global_idx)))
     data.sort(key=lambda jd: jd.ts)
 
-    # missing model id workaround
-    #ordered_joined_events = gzip.open(os.path.join(cache_folder, 'data_' + start_date_string + '-' + end_date_string + '.json.gz'), 'wt', encoding='utf8')
-    #for jd in data:
-    #    print (jd.filename)
-    #    file = open(jd.filename, 'r', encoding='utf8')
-    #    for line in file:
-    #        line = line.strip() + ('\n')
-    #        _ = ordered_joined_events.write(line)
-    #ordered_joined_events.close()
-
-    #sys.exit(0)
-
-    # concatenate file ordered by time
-
     def tabulate_metrics(metrics, top = None):
         headers = ['timestamp']
         for n in list(itertools.islice(metrics, 1))[0].names:
@@ -104,19 +85,17 @@ if __name__ == '__main__':
         
         return tabulate(data, headers)
 
-    # m = map(lambda d: d.metric({'constant 1': lambda x: 1, 'constant 2':lambda x: 2}), data)
-    # print(tabulate_metrics(m, 10))
-
     # reproduce training, by using trackback files
-    model_history = list(common.get_checkpoint_models(block_blob_service, start_date_prev, end_date))
+    model_history = list(common.get_checkpoint_models(block_blob_service, start_date_withlookback, end_date))
     with Pool(5) as p:
         model_history = p.map(lambda x: common.CheckpointedModel(block_blob_service, x[0], cache_folder, x[1], x[2]), model_history)
         for m in model_history:
             if m.model_id is not None:
                 global_model_idx[m.model_id] = m
+                
     model_history.sort(key=lambda jd: jd.ts)
 
-    # create scoring directories 2016/03/12
+    # create scoring directories for [start_date, end_date] range
     scoring_dir = os.path.join(cache_folder, 'scoring')
     if not os.path.exists(scoring_dir):
         os.makedirs(scoring_dir)
@@ -144,8 +123,7 @@ if __name__ == '__main__':
             
         # print('Creating scoring models {0}...'.format(m.ts.strftime('%Y/%m/%d %H:%M:%S')))
         num_valid_events = 0
-        # TODO: skipping events that were not in the joined-examples downloaded. This misses {experiment_unit_duration_in_hours / 24} of the events.
-        # Need to use events or model files from outside the date range.
+
         if m.model_id is None:
             # no modelid available, skipping scoring event creation
             for event_id in m.trackback_ids:
@@ -204,26 +182,6 @@ if __name__ == '__main__':
 
     ordered_joined_events.close()
 
-    # Commenting out debugging prints
-    """
-    for m in model_history:
-        print('ts: {0} events: {1}'.format(m.ts, len(m.trackback_ids)))
-
-        for event_id in m.trackback_ids:
-            print(event_id)
-    """
-    
-    # iterate through model history
-    # find source JoinedData
-    # get json entry (read until found, cache the rest)
-    # calculate offline metric for each policy and see if we get the same result
-    # download data in order
-    # arrange according to model.trackback files
-    ## 1 training
-    ## 2 evaluation
-    # build index for events
-
-
     online_args = common.get_online_settings(block_blob_service, cache_folder)['TrainArguments']
     print('Online VW arguments: ' + online_args)
 
@@ -243,7 +201,7 @@ if __name__ == '__main__':
         costSum = 0
         probSum = 0
         for m in model_history:
-            # skip model we found for the first day as we won't have all the events
+            # for scoring and ips calculations, we only consider models within [start_date, end_date]
             if m.ts.date() < start_date:
                 continue
 
