@@ -154,13 +154,13 @@ class JoinedData(CachedBlob):
     def reader(self):
         return JoinedDataReader(self)
 
-class Trackback(CachedBlob):
-    def __init__(self, block_blob_service, ts, root, blob):
-        super(Trackback,self).__init__(block_blob_service, root, 'onlinetrainer', blob)
-        self.ts = ts
-        self.blob = blob
-        self.ids = []
-        self.data = []
+#class Trackback(CachedBlob):
+#    def __init__(self, block_blob_service, ts, root, blob):
+#        super(Trackback,self).__init__(block_blob_service, root, 'onlinetrainer', blob)
+#        self.ts = ts
+#        self.blob = blob
+#        self.ids = []
+#        self.data = []
         
 def line_prepender(filename, line):
     with open(filename, 'r+') as f:

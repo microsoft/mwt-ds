@@ -34,6 +34,10 @@ if __name__ == '__main__':
         print("Start and end dates are expected. Example: python datascience.py 20161122 20161130")
     start_date_string = sys.argv[1]
     start_date = date(int(start_date_string[0:4]), int(start_date_string[4:6]), int(start_date_string[6:8]))
+    
+    # We will populate some data structures with info from previous day
+    start_date_prev = start_date + timedelta(days = -1)
+    
     end_date_string = sys.argv[2]
     end_date = date(int(end_date_string[0:4]), int(end_date_string[4:6]), int(end_date_string[6:8]))
 
@@ -45,7 +49,7 @@ if __name__ == '__main__':
 
     joined = []
 
-    for current_date in common.dates_in_range(start_date, end_date):
+    for current_date in common.dates_in_range(start_date_prev, end_date):
         blob_prefix = current_date.strftime('%Y/%m/%d/') #'{0}/{1}/{2}/'.format(current_date.year, current_date.month, current_date.day)
         joined += filter(lambda b: b.properties.content_length != 0, block_blob_service.list_blobs(joined_examples_container, prefix = blob_prefix))
 
@@ -104,7 +108,7 @@ if __name__ == '__main__':
     # print(tabulate_metrics(m, 10))
 
     # reproduce training, by using trackback files
-    model_history = list(common.get_checkpoint_models(block_blob_service, start_date, end_date))
+    model_history = list(common.get_checkpoint_models(block_blob_service, start_date_prev, end_date))
     with Pool(5) as p:
         model_history = p.map(lambda x: common.CheckpointedModel(block_blob_service, x[0], cache_folder, x[1], x[2]), model_history)
         for m in model_history:
@@ -130,8 +134,14 @@ if __name__ == '__main__':
     num_events_counter = 0
     missing_events_counter = 0
 
-    print('Creating {0} scoring models...'.format(len(model_history)))
+    model_history_withindaterange = filter(lambda x : x.ts.date() >= start_date, model_history)
+    print('Creating {0} scoring models...'.format(len(list(model_history_withindaterange))))
+    
     for m in model_history:
+        # for scoring and ips calculations, we only consider models within [start_date, end_date]
+        if m.ts.date() < start_date:
+            continue
+            
         # print('Creating scoring models {0}...'.format(m.ts.strftime('%Y/%m/%d %H:%M:%S')))
         num_valid_events = 0
         # TODO: skipping events that were not in the joined-examples downloaded. This misses {experiment_unit_duration_in_hours / 24} of the events.
@@ -162,28 +172,36 @@ if __name__ == '__main__':
                         
                         if scoring_model_id not in global_model_idx:
                             continue # this can happen if the event was scored using a model that lies outside our model history
+                                                
+                        _ = ordered_joined_events.write(line)
+                        num_events_counter += 1
+                        num_valid_events += 1
                         
                         scoring_model = global_model_idx[scoring_model_id]
-                        _ = ordered_joined_events.write(line)
-
-                        scoring_filename = os.path.join(scoring_dir, 
+                        if scoring_model.ts.date() >= start_date:
+#                           the event was scored using a model which was generated prior to start_date
+#                           so we can exclude it from scoring
+                            scoring_filename = os.path.join(scoring_dir, 
                                                         scoring_model.ts.strftime('%Y'), 
                                                         scoring_model.ts.strftime('%m'), 
                                                         scoring_model.ts.strftime('%d'),
                                                         scoring_model_id + '.json')
-                        with open(scoring_filename, "a") as scoring_file:
-                            _ = scoring_file.write(line)
-                        num_events_counter += 1
-                        num_valid_events += 1
+                                                        
+                            with open(scoring_filename, "a") as scoring_file:
+                                _ = scoring_file.write(line)
+
                 else:
                     missing_events_counter += 1
+
             if num_valid_events > 0:
                 scoring_model_filename = os.path.join(scoring_dir, 
                                     m.ts.strftime('%Y'), 
                                     m.ts.strftime('%m'), 
                                     m.ts.strftime('%d'),
                                     m.model_id + '.model')
+                                    
                 _ = ordered_joined_events.write(json.dumps({'_tag':'save_{0}'.format(scoring_model_filename)}) + ('\n'))
+
     ordered_joined_events.close()
 
     # Commenting out debugging prints
@@ -226,7 +244,7 @@ if __name__ == '__main__':
         probSum = 0
         for m in model_history:
             # skip model we found for the first day as we won't have all the events
-            if m.ts.date() < start_date + timedelta(days = 1):
+            if m.ts.date() < start_date:
                 continue
 
             _model_file = os.path.join(scoring_dir, 
@@ -272,11 +290,11 @@ if __name__ == '__main__':
                     onlineActionProbRankings         = ','.join([str(a - 1) + ":" + str(p) for a, p in zip(js['_a'], js['_p'])])
                     offlineActionProbRankings        = prediction.strip()
                     
-                    line = '\t'.join(str(e) for e in [_eventid, _label_action, _label_cost, _label_probability, onlineActionProbRankings, offlineActionProbRankings]) + '\n'
-                    replayinfo_file.write(line)
-                    
                     onlineActionRankings    = [ap.split(':')[0] for ap in onlineActionProbRankings.split(',')]
                     offlineActionRankings   = [ap.split(':')[0] for ap in offlineActionProbRankings.split(',')]
+
+                    line = '\t'.join(str(e) for e in [_eventid, _label_action, _label_cost, _label_probability, onlineActionProbRankings, offlineActionProbRankings]) + '\n'
+                    replayinfo_file.write(line)
 
                     replayScoredEventsCounts += 1
                     if onlineActionRankings == offlineActionRankings:
@@ -292,7 +310,7 @@ if __name__ == '__main__':
                     costSum += cost
                     probSum += prob
                     
-    print('Number of events downloaded: %d' % num_events_counter)
+    print('Number of events downloaded within date range: %d' % num_events_counter)
     print('Number of missing events: %d' % missing_events_counter)                    
     print('Number of events replayed : {0}'.format(replayScoredEventsCounts))
     print('Number of replayed events matched : {0}'.format(replayMatchedEventsCounts))
