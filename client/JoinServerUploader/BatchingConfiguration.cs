@@ -73,7 +73,9 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// </summary>
         public int MaxUploadQueueCapacity { get; set; }
 
-
+        /// <summary>
+        /// This defaults to 16.
+        /// </summary>
         public int? PartitionCount { get; set; }
 
         /// <summary>
