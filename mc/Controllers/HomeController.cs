@@ -191,7 +191,7 @@ namespace DecisionServicePrivateWeb.Controllers
                 using (var wc = new WebClient())
                 {
                     wc.Headers.Add("Authorization: " + ConfigurationManager.AppSettings[ApplicationMetadataStore.AKAdminToken]);
-                    wc.DownloadString(inputValue);
+                    wc.DownloadString(ConfigurationManager.AppSettings[ApplicationMetadataStore.AKTrainerURL] + "/reset");
                     Thread.Sleep(TimeSpan.FromSeconds(3));
                 }
             }
