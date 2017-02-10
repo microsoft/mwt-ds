@@ -100,13 +100,11 @@ if __name__ == '__main__':
     if not os.path.exists(scoring_dir):
         os.makedirs(scoring_dir)
 
-    local_date = start_date
-    while local_date <= end_date:
+    for local_date in common.dates_in_range(start_date, end_date):
         scoring_dir_date = os.path.join(scoring_dir, local_date.strftime('%Y/%m/%d'))
         if os.path.exists(scoring_dir_date):
             rmtree(scoring_dir_date)
         os.makedirs(scoring_dir_date)
-        local_date += timedelta(days=1)
 
     ordered_joined_events_filename = os.path.join(cache_folder, 'data_' + start_date_string + '-' + end_date_string + '.json')
     ordered_joined_events = open(ordered_joined_events_filename, 'w', encoding='utf8')
@@ -144,17 +142,18 @@ if __name__ == '__main__':
                     line = global_idx[event_id].read(event_id)
                     if line:
                         line = line.strip() + ('\n')
+
+                        _ = ordered_joined_events.write(line)
+                        num_events_counter += 1
+                        num_valid_events += 1
+                        
                         scoring_model_id = json.loads(line)['_modelid']
                         if scoring_model_id is None:
                             continue # this can happen at the very beginning if no model was available
                         
                         if scoring_model_id not in global_model_idx:
                             continue # this can happen if the event was scored using a model that lies outside our model history
-                                                
-                        _ = ordered_joined_events.write(line)
-                        num_events_counter += 1
-                        num_valid_events += 1
-                        
+                                                                        
                         scoring_model = global_model_idx[scoring_model_id]
                         if scoring_model.ts.date() >= start_date:
 #                           the event was scored using a model which was generated prior to start_date
@@ -185,21 +184,41 @@ if __name__ == '__main__':
     online_args = common.get_online_settings(block_blob_service, cache_folder)['TrainArguments']
     print('Online VW arguments: ' + online_args)
 
-    # vw data2.json --js -f trial1.model --readable_model trial1.model_readable -p trial1.predictions --save_resume --power_t 0 -l 0.000025 --quadratic no --quadratic co --quadratic yo --quadratic wo --quadratic do --ignore r --cb_explore_adf --epsilon 0.200000 --cb_adf --cb_type mtr
-    vw_cmdline = 'vw ' + ordered_joined_events_filename + ' --json --save_resume ' + online_args
-    vw_cmdline += ' --quiet'
-    os.system(vw_cmdline)
+    model_history_prestart = list(filter(lambda x: x.ts.date() < start_date, model_history))
+    model_init = max(model_history_prestart, key=lambda x: x.ts)
+    model_init_name = model_init.trackback.filename.rsplit('.trackback', 1)[0]    
 
+    print('Warm start model : {0}'.format(model_init_name))
+    
+#    Download model_init
+    model_init_info = model_init_name.split('/')
+    root = model_init_info[0]
+    container = model_init_info[1]
+    name = model_init_info[2] + '/' + model_init_info[3] + '/' + model_init_info[4]
+    common.CachedBlob(block_blob_service, root, container, name)
+        
+    vw_cmdline = 'vw ' + ordered_joined_events_filename + ' --json --save_resume -i ' + model_init_name + ' ' + online_args
+    vw_cmdline += ' --quiet'
+    print(vw_cmdline)
+    
+    vw_args = vw_cmdline.split(' ')
+    epsilon = float(vw_args[vw_args.index("--epsilon") + 1])
+    os.system(vw_cmdline)
+   
     replayinfo_filename = os.path.join(cache_folder, 'replayinfo_' + start_date_string + '-' + end_date_string + '.log')
     
+    print("Scoring...")
     with open(replayinfo_filename, 'w') as replayinfo_file:
         line = '\t'.join(['_eventid', '_label_action', '_label_cost', '_label_probability', 'onlineDistr', 'offlineDistr']) + '\n'
         replayinfo_file.write(line)
         
-        replayScoredEventsCounts = 0
-        replayMatchedEventsCounts = 0
+        replayScoredEventsCounts = 0        
+        replayExplorationEventsCounts = 0
+        replayExploitationEventsCounts = 0
+        replayExploitationEventsMatchedCounts = 0
         costSum = 0
         probSum = 0
+        
         for m in model_history:
             # for scoring and ips calculations, we only consider models within [start_date, end_date]
             if m.ts.date() < start_date:
@@ -251,12 +270,18 @@ if __name__ == '__main__':
                     onlineActionRankings    = [ap.split(':')[0] for ap in onlineActionProbRankings.split(',')]
                     offlineActionRankings   = [ap.split(':')[0] for ap in offlineActionProbRankings.split(',')]
 
-                    line = '\t'.join(str(e) for e in [_eventid, _label_action, _label_cost, _label_probability, onlineActionProbRankings, offlineActionProbRankings]) + '\n'
+                    line = '\t'.join(str(e) for e in [_eventid, _label_action, _label_cost, _label_probability, onlineActionRankings, offlineActionRankings]) + '\n'
                     replayinfo_file.write(line)
-
+                                        
                     replayScoredEventsCounts += 1
-                    if onlineActionRankings == offlineActionRankings:
-                        replayMatchedEventsCounts += 1
+                    if _label_probability <= epsilon:
+#                        exploration data, exclude from matching
+                        replayExplorationEventsCounts += 1
+                    else:
+#                        exploitation data. verify offline predictions match
+                        replayExploitationEventsCounts += 1                        
+                        if onlineActionRankings == offlineActionRankings:
+                            replayExploitationEventsMatchedCounts += 1
                      
 #                   Compute cost and prob for IPS scoring  
                     progressiveProbabilties = progressiveProbabilties = [p for a, p in sorted(list(zip(js['_a'], js['_p'])), key=lambda ap:ap[0])]
@@ -271,9 +296,15 @@ if __name__ == '__main__':
     print('Number of events downloaded within date range: %d' % num_events_counter)
     print('Number of missing events: %d' % missing_events_counter)                    
     print('Number of events replayed : {0}'.format(replayScoredEventsCounts))
-    print('Number of replayed events matched : {0}'.format(replayMatchedEventsCounts))
+    
     if replayScoredEventsCounts > 0:
-        print("% of matches between Online DS and Offline Replay : {0}".format((replayMatchedEventsCounts * 100.0) / replayScoredEventsCounts))
+        print('Number of events in exploration : {0}.  {1} % of data'.format(replayExplorationEventsCounts, round((replayExplorationEventsCounts * 100.0) / replayScoredEventsCounts, 2)))
+        print('Number of events in exploitation : {0}. {1} % of data'.format(replayExploitationEventsCounts, round((replayExploitationEventsCounts * 100.0) / replayScoredEventsCounts, 2)))
+    
+    if replayExploitationEventsCounts > 0:
+        print("% of matches in exploitation data between Online DS and Offline Replay : {0} %".format(round((replayExploitationEventsMatchedCounts * 100.0) / replayExploitationEventsCounts, 2)))
+        
     if probSum > 0:
         print("IPS of Offline Replay events : {0}".format((costSum * 1.0) / probSum))
+
     print("Time taken: %s seconds" % (time.time() - start_time))
