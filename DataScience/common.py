@@ -1,4 +1,5 @@
 from azure.storage.blob import BlockBlobService
+import configparser
 from datetime import date, datetime, timedelta
 import json
 import re
@@ -6,6 +7,8 @@ import ntpath
 import os
 import os.path
 import sys
+from multiprocessing.dummy import Pool
+from shutil import rmtree
 
 def dates_in_range(start_date, end_date):
     num_days = (end_date - start_date).days
@@ -166,7 +169,7 @@ class CheckpointedModel:
         self.container = container
         
         # uncomment to download models
-        # self.model = CachedBlob(block_blob_service, root, container, '{0}model'.format(dir))
+        self.model = CachedBlob(block_blob_service, root, container, '{0}model'.format(dir))
         self.trackback = CachedBlob(block_blob_service, root, container, '{0}model.trackback'.format(dir))
         self.trackback_ids = []
 
@@ -181,7 +184,182 @@ class CheckpointedModel:
 
             self.trackback_ids.extend([line.rstrip('\n') for line in f])
 
+class DataSet:
+    @classmethod
+    def fromstrings(cls, start_date_string, end_date_string):
+        start_date = date(int(start_date_string[0:4]), int(start_date_string[4:6]), int(start_date_string[6:8]))
+        end_date = date(int(end_date_string[0:4]), int(end_date_string[4:6]), int(end_date_string[6:8]))
 
-def get_online_settings(block_blob_service, cache_folder):
-    online_settings_blob = CachedBlob(block_blob_service, cache_folder, 'mwt-settings', 'client')
-    return json.load(open(online_settings_blob.filename, 'r', encoding='utf8'))
+        return cls(start_date, end_date)
+
+    def __init__(self, start_date, end_date):
+        self.start_date = start_date
+        self.end_date = end_date
+        
+        self.config = configparser.ConfigParser()
+        self.config.read('ds.config')
+        self.ds = self.config['DecisionService']
+        self.cache_folder = self.ds['CacheFolder']
+        self.joined_examples_container = self.ds['JoinedExamplesContainer']
+        self.experimental_unit_duration_days = self.ds['ExperimentalUnitDurationDays']
+
+        # https://azure-storage.readthedocs.io/en/latest/_modules/azure/storage/blob/models.html#BlobBlock
+        self.block_blob_service = BlockBlobService(account_name=self.ds['AzureBlobStorageAccountName'], account_key=self.ds['AzureBlobStorageAccountKey'])
+
+        # Lookback 'experimental_unit_duration_days' for events
+        self.start_date_withlookback = start_date + timedelta(days = -int(self.experimental_unit_duration_days))
+
+        self.ordered_joined_events_filename = os.path.join(self.cache_folder, 
+                                                           'data_{0}-{1}.json'.format(start_date.strftime('%Y%m%d'), end_date.strftime('%Y%m%d')))
+                
+        # create scoring directories for [start_date, end_date] range
+        self.scoring_dir = os.path.join(self.cache_folder, 'scoring')
+        if not os.path.exists(self.scoring_dir):
+            os.makedirs(self.scoring_dir)
+
+    def download_events(self):
+        temp = []
+
+        for current_date in dates_in_range(self.start_date_withlookback, self.end_date):
+            blob_prefix = current_date.strftime('%Y/%m/%d/') #'{0}/{1}/{2}/'.format(current_date.year, current_date.month, current_date.day)
+            temp  += filter(lambda b: b.properties.content_length != 0, self.block_blob_service.list_blobs(self.joined_examples_container, prefix = blob_prefix))
+
+        self.joined = list(map(parse_name, temp))
+
+        self.global_idx = {}
+        self.global_model_idx = {}
+        self.data = []
+    
+        def load_data(ts, blob):
+            jd = JoinedData(self.block_blob_service, self.cache_folder, self.joined_examples_container, ts, blob)
+            jd.index()
+            return jd
+
+        print("Downloading & indexing events...")
+        with Pool(processes = 8) as p:
+            self.data = p.map(lambda x:load_data(x[0], x[1]), self.joined)
+            for jd in self.data:
+                reader = jd.reader()
+                for evt in jd.ids:
+                    # print("'{0}' <- {1}" .format(evt.evt_id, reader))
+                    self.global_idx[evt.evt_id] = reader
+        
+    def build_model_history(self):
+        print('Found {0} events. Sorting data files by time...'.format(len(self.global_idx)))
+        self.data.sort(key=lambda jd: jd.ts)
+
+        # reproduce training, by using trackback files
+        self.model_history = list(get_checkpoint_models(self.block_blob_service, self.start_date_withlookback, self.end_date))
+        with Pool(5) as p:
+            self.model_history = p.map(lambda x: CheckpointedModel(self.block_blob_service, x[0], self.cache_folder, x[1], x[2]), self.model_history)
+            for m in self.model_history:
+                if m.model_id is not None:
+                    self.global_model_idx[m.model_id] = m
+                
+        self.model_history.sort(key=lambda jd: jd.ts)
+
+    def get_online_settings(self):
+        online_settings_blob = CachedBlob(self.block_blob_service, self.cache_folder, 'mwt-settings', 'client')
+        return json.load(open(online_settings_blob.filename, 'r', encoding='utf8'))
+
+    def create_files(self):
+        for local_date in dates_in_range(self.start_date, self.end_date):
+            scoring_dir_date = os.path.join(self.scoring_dir, local_date.strftime('%Y/%m/%d'))
+            if os.path.exists(scoring_dir_date):
+                rmtree(scoring_dir_date)
+            os.makedirs(scoring_dir_date)
+
+        ordered_joined_events = open(self.ordered_joined_events_filename, 'w', encoding='utf8')
+        num_events_counter = 0
+        missing_events_counter = 0
+
+        model_history_withindaterange = filter(lambda x : x.ts.date() >= self.start_date, self.model_history)
+        print('Creating {0} scoring models...'.format(len(list(model_history_withindaterange))))
+    
+        for m in self.model_history:
+            # for scoring and ips calculations, we only consider models within [start_date, end_date]
+            if m.ts.date() < self.start_date:
+                continue
+            
+            print('Creating scoring models {0}...'.format(m.ts.strftime('%Y/%m/%d %H:%M:%S')))
+            num_valid_events = 0
+
+            if m.model_id is None:
+                # no modelid available, skipping scoring event creation
+                for event_id in m.trackback_ids:
+                    # print("'{0}'" .format(event_id))
+                    if event_id in self.global_idx:
+                        # print("found '{0}'" .format(event_id))    
+                        line = self.global_idx[event_id].read(event_id)
+                        if line:
+                            line = line.strip() + ('\n')
+                            _ = ordered_joined_events.write(line)
+                            num_events_counter += 1
+                            num_valid_events += 1
+                    else:
+                        missing_events_counter += 1
+            else:
+                for event_id in m.trackback_ids:
+                    if event_id in self.global_idx:
+                        line = self.global_idx[event_id].read(event_id)
+                        if line:
+                            line = line.strip() + ('\n')
+
+                            _ = ordered_joined_events.write(line)
+                            num_events_counter += 1
+                            num_valid_events += 1
+                        
+                            scoring_model_id = json.loads(line)['_modelid']
+                            if scoring_model_id is None:
+                                continue # this can happen at the very beginning if no model was available
+                        
+                            if scoring_model_id not in self.global_model_idx:
+                                continue # this can happen if the event was scored using a model that lies outside our model history
+                                                                        
+                            scoring_model = self.global_model_idx[scoring_model_id]
+                            if scoring_model.ts.date() >= self.start_date:
+    #                           the event was scored using a model which was generated prior to start_date
+    #                           so we can exclude it from scoring
+                                scoring_filename = os.path.join(self.scoring_dir, 
+                                                            scoring_model.ts.strftime('%Y'), 
+                                                            scoring_model.ts.strftime('%m'), 
+                                                            scoring_model.ts.strftime('%d'),
+                                                            scoring_model_id + '.json')
+                                                        
+                                with open(scoring_filename, "a") as scoring_file:
+                                    _ = scoring_file.write(line)
+
+                    else:
+                        missing_events_counter += 1
+
+                if num_valid_events > 0:
+                    scoring_model_filename = os.path.join(self.scoring_dir, 
+                                        m.ts.strftime('%Y'), 
+                                        m.ts.strftime('%m'), 
+                                        m.ts.strftime('%d'),
+                                        m.model_id + '.model')
+                                    
+                    _ = ordered_joined_events.write(json.dumps({'_tag':'save_{0}'.format(scoring_model_filename)}) + ('\n'))
+
+        ordered_joined_events.close()
+
+    def train_models(self):
+        model_history_prestart = list(filter(lambda x: x.ts.date() < self.start_date, self.model_history))
+        model_init = max(model_history_prestart, key=lambda x: x.ts)
+        model_init_name = model_init.trackback.filename.rsplit('.trackback', 1)[0]    
+
+        print("Warm start model: '{0}'".format(model_init_name))
+    
+        # Download model_init (and make sure it works on windows)
+        model_init_info = re.split('[/\\\\]+', model_init_name)[-4:]
+        container = model_init_info[0]
+        name = model_init_info[1] + '/' + model_init_info[2] + '/' + model_init_info[3]
+        CachedBlob(self.block_blob_service, self.cache_folder, container, name)
+
+        online_args = self.get_online_settings()['TrainArguments']
+
+        vw_cmdline = 'vw ' + self.ordered_joined_events_filename + ' --json --save_resume --preserve_performance_counters -i ' + model_init_name + ' ' + online_args
+        # vw_cmdline += ' --quiet'
+        print(vw_cmdline)
+    
+        os.system(vw_cmdline)
