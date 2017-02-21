@@ -42,6 +42,12 @@
     <Compile Include="list_vw_args.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Step1.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Step2.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="ValidateSingleModel.py">
       <SubType>Code</SubType>
     </Compile>

@@ -119,7 +119,7 @@ if __name__ == '__main__':
         if m.ts.date() < start_date:
             continue
             
-        # print('Creating scoring models {0}...'.format(m.ts.strftime('%Y/%m/%d %H:%M:%S')))
+        print('Creating scoring models {0}...'.format(m.ts.strftime('%Y/%m/%d %H:%M:%S')))
         num_valid_events = 0
 
         if m.model_id is None:
