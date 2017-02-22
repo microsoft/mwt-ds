@@ -29,6 +29,10 @@ def get_checkpoint_models(block_blob_service, start_date, end_date):
                 ts = datetime(int(m.group(1)), int(m.group(2)), int(m.group(3)), int(m.group(4)), int(m.group(5)), int(m.group(6)))    
                 yield (ts, 'onlinetrainer', time_container.name) 
 
+def get_online_settings(block_blob_service, cache_folder):
+    online_settings_blob = CachedBlob(block_blob_service, cache_folder, 'mwt-settings', 'client')
+    return json.load(open(online_settings_blob.filename, 'r', encoding='utf8'))
+
 class CachedBlob:
     def __init__(self, block_blob_service, root, container, name, expected_size = None):
         self.filename = os.path.join(str(root), str(container), str(name))
