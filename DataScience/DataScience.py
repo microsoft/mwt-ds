@@ -189,7 +189,11 @@ if __name__ == '__main__':
     model_init_name = model_init.trackback.filename.rsplit('.trackback', 1)[0]    
 
     print('Warm start model : {0}'.format(model_init_name))
-    
+
+#    Fix for Windows Paths.    
+    model_init_name = model_init_name.replace('\\','/')
+    print('...' + model_init_name)
+
 #    Download model_init
     model_init_info = model_init_name.split('/')
     root = model_init_info[0]
