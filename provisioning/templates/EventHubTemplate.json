@@ -29,7 +29,7 @@
   "resources": [
     {
       "apiVersion": "[variables('apiVersion')]",
-      "name": "[concat(parameters('eventHubNamespaceName'), '/', parameters('ehName'))]",
+      "name": "[parameters('ehName')]",
       "type": "EventHubs",
       "dependsOn": [
         "[concat('Microsoft.EventHub/namespaces/', parameters('eventHubNamespaceName'))]"
