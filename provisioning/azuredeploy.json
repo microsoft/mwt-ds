@@ -153,26 +153,11 @@
     },
     {
       "apiVersion": "2015-01-01",
-      "name": "Service_Bus_Initial",
+      "name": "EventHubNamespace",
       "type": "Microsoft.Resources/deployments",
       "properties": {
         "mode": "incremental",
-        "templateLink": { "uri": "[concat(parameters('subtemplate location'), '/templates/ServiceBusTemplate.json')]" },
-        "parameters": {
-          "MB/s": { "value": "[parameters('Bandwidth Required (MB/s)')]" },
-          "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" },
-          "location": { "value": "[variables('location')]" }
-        }
-      }
-    },
-    {
-      "apiVersion": "2015-01-01",
-      "name": "Service_Bus",
-      "type": "Microsoft.Resources/deployments",
-      "dependsOn": [ "Microsoft.Resources/deployments/Service_Bus_Initial" ],
-      "properties": {
-        "mode": "incremental",
-        "templateLink": { "uri": "[concat(parameters('subtemplate location'), '/templates/ServiceBusTemplate.json')]" },
+        "templateLink": { "uri": "[concat(parameters('subtemplate location'), '/templates/EventHubNamespaceTemplate.json')]" },
         "parameters": {
           "MB/s": { "value": "[parameters('Bandwidth Required (MB/s)')]" },
           "postfix": { "value": "[concat(variables('prefix'), reference('Microsoft.Resources/deployments/Unique_Postfix_Generator').outputs.FinalPassword.value)]" },
@@ -184,7 +169,7 @@
       "apiVersion": "2015-01-01",
       "name": "Event_Hub_Interaction",
       "type": "Microsoft.Resources/deployments",
-      "dependsOn": [ "Microsoft.Resources/deployments/Service_Bus" ],
+      "dependsOn": [ "Microsoft.Resources/deployments/EventHubNamespace" ],
       "properties": {
         "mode": "incremental",
         "templateLink": {
@@ -193,7 +178,7 @@
         },
         "parameters": {
           "ehName": { "value": "interaction" },
-          "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/Service_Bus').outputs.ServiceBusName.value]" },
+          "eventHubNamespaceName": { "value": "[reference('Microsoft.Resources/deployments/EventHubNamespace').outputs.EventHubNamespaceName.value]" },
           "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
           "partitionCount": { "value": "[variables('partitionCount')]" },
           "location": { "value": "[variables('location')]" }
@@ -204,7 +189,7 @@
       "apiVersion": "2015-01-01",
       "name": "Event_Hub_Observation",
       "type": "Microsoft.Resources/deployments",
-      "dependsOn": [ "Microsoft.Resources/deployments/Service_Bus" ],
+      "dependsOn": [ "Microsoft.Resources/deployments/EventHubNamespace" ],
       "properties": {
         "mode": "incremental",
         "templateLink": {
@@ -213,7 +198,7 @@
         },
         "parameters": {
           "ehName": { "value": "observation" },
-          "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/Service_Bus').outputs.ServiceBusName.value]" },
+          "eventHubNamespaceName": { "value": "[reference('Microsoft.Resources/deployments/EventHubNamespace').outputs.EventHubNamespaceName.value]" },
           "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
           "partitionCount": { "value": "[variables('partitionCount')]" },
           "location": { "value": "[variables('location')]" }
@@ -224,7 +209,7 @@
       "apiVersion": "2015-01-01",
       "name": "Event_Hub_Joined",
       "type": "Microsoft.Resources/deployments",
-      "dependsOn": [ "Microsoft.Resources/deployments/Service_Bus" ],
+      "dependsOn": [ "Microsoft.Resources/deployments/EventHubNamespace" ],
       "properties": {
         "mode": "incremental",
         "templateLink": {
@@ -233,7 +218,7 @@
         },
         "parameters": {
           "ehName": { "value": "joined" },
-          "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/Service_Bus').outputs.ServiceBusName.value]" },
+          "eventHubNamespaceBusName": { "value": "[reference('Microsoft.Resources/deployments/EventHubNamespace').outputs.EventHubNamespaceName.value]" },
           "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
           "partitionCount": { "value": "[variables('partitionCount')]" },
           "location": { "value": "[variables('location')]" }
@@ -244,13 +229,13 @@
       "apiVersion": "2015-01-01",
       "name": "Event_Hub_Evaluation",
       "type": "Microsoft.Resources/deployments",
-      "dependsOn": [ "Microsoft.Resources/deployments/Service_Bus" ],
+      "dependsOn": [ "Microsoft.Resources/deployments/EventHubNamespace" ],
       "properties": {
         "mode": "incremental",
         "templateLink": { "uri": "[concat(parameters('subtemplate location'), '/templates/EventHubTemplate.json')]" },
         "parameters": {
           "ehName": { "value": "eval" },
-          "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/Service_Bus').outputs.ServiceBusName.value]" },
+          "eventHubNamespace": { "value": "[reference('Microsoft.Resources/deployments/EventHubNamespace').outputs.EventHubNamespaceName.value]" },
           "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
           "partitionCount": { "value": "[variables('partitionCount')]" },
           "location": { "value": "[variables('location')]" }
@@ -343,7 +328,7 @@
         "parameters": {
           "assetLocation": { "value": "[parameters('subtemplate location')]" },
           "userStorage": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs]" },
-          "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/Service_Bus').outputs.ServiceBusName.value]" },
+          "eventHubNamespaceName": { "value": "[reference('Microsoft.Resources/deployments/EventHubNamespace').outputs.EventHubNamespaceName.value]" },
           "interactionEventHub": { "value": "[reference('Microsoft.Resources/deployments/Event_Hub_Interaction').outputs]" },
           "observationEventHub": { "value": "[reference('Microsoft.Resources/deployments/Event_Hub_Observation').outputs]" },
           "joinedEventHub": { "value": "[reference('Microsoft.Resources/deployments/Event_Hub_Joined').outputs]" },
@@ -360,7 +345,7 @@
       "name": "Evaluation_Query",
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [
-        "Microsoft.Resources/deployments/Service_Bus",
+        "Microsoft.Resources/deployments/EventHubNamespace",
         "Microsoft.Resources/deployments/Storage",
         "Microsoft.Resources/deployments/Event_Hub_Evaluation"
       ],
@@ -371,7 +356,7 @@
           "assetLocation": { "value": "[parameters('subtemplate location')]" },
           "userStorageAccountName": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountName.value]" },
           "userStorageAccountKey": { "value": "[reference('Microsoft.Resources/deployments/Storage').outputs.userStorageAccountKey.value]" },
-          "serviceBusName": { "value": "[reference('Microsoft.Resources/deployments/Service_Bus').outputs.ServiceBusName.value]" },
+          "eventHubNamespace": { "value": "[reference('Microsoft.Resources/deployments/EventHubNamespace').outputs.EventHubNamespaceName.value]" },
           "evalEventHub": { "value": "[reference('Microsoft.Resources/deployments/Event_Hub_Evaluation').outputs]" },
           "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
           "partitionCount": { "value": "[parameters('Bandwidth Required (MB/s)')]" },

@@ -1,0 +1,43 @@
+﻿{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "MB/s": {
+      "type": "int",
+      "minValue": 1,
+      "maxValue": 20
+    },
+    "postfix": {
+      "type": "string",
+      // maximum name length is 63 - len('sb-') = 60
+      // name restrictions: https://msdn.microsoft.com/en-us/library/azure/jj856303.aspx
+      "maxLength": 47
+    },
+    "location": { "type": "string" }
+  },
+  "variables": {
+    "sbName": "[concat('sb-', parameters('postfix'))]",
+    "sbKeyName": "OwnerKey"
+  },
+  "resources": [
+    {
+      "apiVersion": "2015-08-01",
+      "name": "[variables('sbName')]",
+      "type": "Microsoft.EventHub/namespaces",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "Standard",
+        "tier": "Standard",
+        "capacity": "[parameters('MB/s')]"
+      }
+    },
+    {
+      "outputs": {
+        "EventHubNamespaceName": {
+          "value": "[variables('sbName')]",
+          "type": "string"
+        }
+      }
+    }
+  ]
+}
