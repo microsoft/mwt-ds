@@ -30,14 +30,14 @@
         "tier": "Standard",
         "capacity": "[parameters('MB/s')]"
       }
-    },
-    {
-      "outputs": {
-        "EventHubNamespaceName": {
-          "value": "[variables('sbName')]",
-          "type": "string"
-        }
+    }
+  ],
+  {
+    "outputs": {
+      "EventHubNamespaceName": {
+        "value": "[variables('sbName')]",
+        "type": "string"
       }
     }
-  ]
+  }
 }
