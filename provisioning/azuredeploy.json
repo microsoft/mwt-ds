@@ -218,7 +218,7 @@
         },
         "parameters": {
           "ehName": { "value": "joined" },
-          "eventHubNamespaceBusName": { "value": "[reference('Microsoft.Resources/deployments/EventHubNamespace').outputs.EventHubNamespaceName.value]" },
+          "eventHubNamespaceName": { "value": "[reference('Microsoft.Resources/deployments/EventHubNamespace').outputs.EventHubNamespaceName.value]" },
           "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
           "partitionCount": { "value": "[variables('partitionCount')]" },
           "location": { "value": "[variables('location')]" }
@@ -235,7 +235,7 @@
         "templateLink": { "uri": "[concat(parameters('subtemplate location'), '/templates/EventHubTemplate.json')]" },
         "parameters": {
           "ehName": { "value": "eval" },
-          "eventHubNamespace": { "value": "[reference('Microsoft.Resources/deployments/EventHubNamespace').outputs.EventHubNamespaceName.value]" },
+          "eventHubNamespaceName": { "value": "[reference('Microsoft.Resources/deployments/EventHubNamespace').outputs.EventHubNamespaceName.value]" },
           "messageRetentionInDays": { "value": "[variables('messageRetentionInDays')]" },
           "partitionCount": { "value": "[variables('partitionCount')]" },
           "location": { "value": "[variables('location')]" }
