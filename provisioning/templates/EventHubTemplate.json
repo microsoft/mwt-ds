@@ -22,18 +22,15 @@
   },
   "variables": {
     "apiVersion": "2015-08-01",
-    "EHResourceId": "[resourceId('Microsoft.EventHub/Namespaces/EventHubs', parameters('ehName'))]",
+    "EHResourceId": "[resourceId('Microsoft.EventHub/Namespaces/EventHubs', parameters('eventHubNamespaceName'), parameters('ehName'))]",
     "SendRuleResourceId": "[concat(variables('EHResourceId'), '/authorizationRules/SendOnly')]",
     "ListenRuleResourceId": "[concat(variables('EHResourceId'), '/authorizationRules/ListenOnly')]"
   },
   "resources": [
     {
       "apiVersion": "[variables('apiVersion')]",
-      "name": "[parameters('ehName')]",
+      "name": "[concat(parameters('eventHubNamespaceName'), '/',  parameters('ehName'))]",
       "type": "Microsoft.EventHub/Namespaces/EventHubs",
-      "dependsOn": [
-        "[concat('Microsoft.EventHub/namespaces/', parameters('eventHubNamespaceName'))]"
-      ],
       "properties": {
         "path": "[parameters('ehName')]",
         "MessageRetentionInDays": "[parameters('messageRetentionInDays')]",
