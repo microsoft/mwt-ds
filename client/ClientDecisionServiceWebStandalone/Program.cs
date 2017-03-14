@@ -18,7 +18,7 @@ namespace ClientDecisionServiceWebStandalone
             // Input parameters
             if (args.Length != 1)
             {
-                Console.Error.WriteLine($"{Process.GetCurrentProcess().ProcessName} config.json");
+                Console.Error.WriteLine($"Usage: {Process.GetCurrentProcess().ProcessName} config.json");
                 return -1;
             }
 
