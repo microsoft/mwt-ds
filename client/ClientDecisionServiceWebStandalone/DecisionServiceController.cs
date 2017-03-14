@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Research.MultiWorldTesting.ClientLibrary;
 using Microsoft.Research.MultiWorldTesting.JoinUploader;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -12,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace ClientDecisionServiceWebStandalone
 {
-    public class DecisionServiceController  : Controller
+    public class DecisionServiceController : Controller
     {
         private static DecisionServiceClient<string> client;
 
@@ -35,14 +36,19 @@ namespace ClientDecisionServiceWebStandalone
             client = DecisionService.CreateJson(config);
         }
 
+        private async Task<string> ReadBody()
+        {
+            using (var reader = new StreamReader(this.Request.Body))
+            {
+                return await reader.ReadToEndAsync();
+            }
+        }
+
+
         [HttpPost("rank")]
         public async Task<object> Rank(string defaultActions, string eventId)
         {
-            string context;
-            using (var reader = new StreamReader(this.Request.Body))
-            {
-                context = await reader.ReadToEndAsync();
-            }
+            var context = await ReadBody();
 
             if (string.IsNullOrEmpty(eventId))
                 eventId = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
@@ -63,6 +69,16 @@ namespace ClientDecisionServiceWebStandalone
                 EventId = eventId,
                 Actions = actions
             });
+        }
+
+        [HttpPost("reward")]
+        public async void Reward(string eventId)
+        {
+            var rewardStr = await ReadBody();
+
+            var rewardObj = JToken.Parse(rewardStr);
+
+            client.ReportOutcome(rewardObj, eventId);
         }
     }
 }
