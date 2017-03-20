@@ -62,7 +62,7 @@
         $("#decision").show();
         switch (decision) {
             case 1:
-                $("#articleImage").attr("src", "https://upload.wikimedia.org/wikipedia/commons/2/28/Artificial-intelligence-elon-musk-hawking.jpg");
+                $("#articleImage").attr("src", "https://upload.wikimedia.org/wikipedia/commons/1/1c/Artificial.intelligence.jpg");
                 $("#articleImage").width(260.7);
                 $("#articleImage").height(200);
                 $("#articleImage").css("margin-left", "-10px");

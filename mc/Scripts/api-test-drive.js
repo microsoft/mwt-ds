@@ -39,7 +39,7 @@
     var actions = [
         {
             text: "What counts as artificially intelligent? AI explained",
-            image: "https://upload.wikimedia.org/wikipedia/commons/2/28/Artificial-intelligence-elon-musk-hawking.jpg",
+            image: "https://upload.wikimedia.org/wikipedia/commons/1/1c/Artificial.intelligence.jpg",
             imgStyle: "width: 260.7px; height: 200px; margin-left:-10px"
         },
         {
