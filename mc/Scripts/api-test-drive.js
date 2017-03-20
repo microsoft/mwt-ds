@@ -40,7 +40,7 @@
         {
             text: "What counts as artificially intelligent? AI explained",
             image: "https://upload.wikimedia.org/wikipedia/commons/1/1c/Artificial.intelligence.jpg",
-            imgStyle: "width: 260.7px; height: 200px; margin-left:-10px"
+            imgStyle: "height: 200px"
         },
         {
             text: "Why the Federal Reserve isn't out of options yet",

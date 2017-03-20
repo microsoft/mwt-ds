@@ -63,9 +63,7 @@
         switch (decision) {
             case 1:
                 $("#articleImage").attr("src", "https://upload.wikimedia.org/wikipedia/commons/1/1c/Artificial.intelligence.jpg");
-                $("#articleImage").width(260.7);
                 $("#articleImage").height(200);
-                $("#articleImage").css("margin-left", "-10px");
                 $("#articleImage").css("margin-bottom", "0px");
                 $("#articleImage").css("margin-top", "0px");
                 $("#story").text("What counts as artificially intelligent? AI explained");
