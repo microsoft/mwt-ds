@@ -2,7 +2,7 @@
   "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "serviceBusName": { "type": "string" },
+    "eventHubNamespaceName": { "type": "string" },
     "ehName": { "type": "string" },
     "messageRetentionInDays": {
       "type": "int",
@@ -22,16 +22,15 @@
   },
   "variables": {
     "apiVersion": "2015-08-01",
-    "EHResourceId": "[concat(resourceId('Microsoft.ServiceBus/namespaces', parameters('serviceBusName')), '/eventHubs/', parameters('ehName'))]",
-    "SendRuleResourceId": "[resourceId('Microsoft.ServiceBus/namespaces/eventhubs/authorizationRules', parameters('serviceBusName'), parameters('ehName'), 'SendOnly')]",
-    "ListenRuleResourceId": "[resourceId('Microsoft.ServiceBus/namespaces/eventhubs/authorizationRules', parameters('serviceBusName'), parameters('ehName'), 'ListenOnly')]"
+    "EHResourceId": "[resourceId('Microsoft.EventHub/Namespaces/EventHubs', parameters('eventHubNamespaceName'), parameters('ehName'))]",
+    "SendRuleResourceId": "[concat(variables('EHResourceId'), '/authorizationRules/SendOnly')]",
+    "ListenRuleResourceId": "[concat(variables('EHResourceId'), '/authorizationRules/ListenOnly')]"
   },
   "resources": [
     {
       "apiVersion": "[variables('apiVersion')]",
-      "name": "[concat(parameters('serviceBusName'), '/', parameters('ehName'))]",
-      "type": "Microsoft.ServiceBus/namespaces/eventHubs",
-      "location": "[parameters('location')]",
+      "name": "[concat(parameters('eventHubNamespaceName'), '/',  parameters('ehName'))]",
+      "type": "Microsoft.EventHub/Namespaces/EventHubs",
       "properties": {
         "path": "[parameters('ehName')]",
         "MessageRetentionInDays": "[parameters('messageRetentionInDays')]",

@@ -7,7 +7,7 @@
     "interactionEventHub": { "type": "object" },
     "observationEventHub": { "type": "object" },
     "joinedEventHub": { "type": "object" },
-    "serviceBusName": { "type": "string" },
+    "eventHubNamespaceName": { "type": "string" },
 
     "messageRetentionInDays": { "type": "int" },
     "partitionCount": { "type": "int" },
@@ -49,7 +49,7 @@
             "Properties": {
               "DataSource": {
                 "Properties": {
-                  "ServiceBusNamespace": "[parameters('serviceBusName')]",
+                  "ServiceBusNamespace": "[parameters('eventHubNamespaceName')]",
                   "eventHubName": "interaction",
                   "sharedAccessPolicyName": "ListenOnly",
                   "sharedAccessPolicyKey": "[parameters('interactionEventHub').ListenKey.value]"
@@ -70,7 +70,7 @@
             "Properties": {
               "DataSource": {
                 "Properties": {
-                  "ServiceBusNamespace": "[parameters('serviceBusName')]",
+                  "ServiceBusNamespace": "[parameters('eventHubNamespaceName')]",
                   "eventHubName": "observation",
                   "sharedAccessPolicyName": "ListenOnly",
                   "sharedAccessPolicyKey": "[parameters('observationEventHub').ListenKey.value]"
@@ -93,7 +93,7 @@
             "Properties": {
               "DataSource": {
                 "Properties": {
-                  "ServiceBusNamespace": "[parameters('serviceBusName')]",
+                  "ServiceBusNamespace": "[parameters('eventHubNamespaceName')]",
                   "eventHubName": "joined",
                   "sharedAccessPolicyName": "SendOnly",
                   "sharedAccessPolicyKey": "[parameters('joinedEventHub').SendKey.value]",

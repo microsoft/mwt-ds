@@ -40,6 +40,8 @@ Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "DataScience", "DataScience\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LogCookig", "LogCookig\LogCookig.vcxproj", "{22ECE3C5-8E99-4635-AB47-1CD475C66DDC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientDecisionServiceWebStandalone", "client\ClientDecisionServiceWebStandalone\ClientDecisionServiceWebStandalone.csproj", "{76411507-1C8F-46BF-A563-C73A9017C066}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -216,8 +218,19 @@ Global
 		{22ECE3C5-8E99-4635-AB47-1CD475C66DDC}.Release|x64.Build.0 = Release|x64
 		{22ECE3C5-8E99-4635-AB47-1CD475C66DDC}.Release|x86.ActiveCfg = Release|Win32
 		{22ECE3C5-8E99-4635-AB47-1CD475C66DDC}.Release|x86.Build.0 = Release|Win32
+		{76411507-1C8F-46BF-A563-C73A9017C066}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{76411507-1C8F-46BF-A563-C73A9017C066}.Debug|x64.ActiveCfg = Debug|x64
+		{76411507-1C8F-46BF-A563-C73A9017C066}.Debug|x64.Build.0 = Debug|x64
+		{76411507-1C8F-46BF-A563-C73A9017C066}.Debug|x86.ActiveCfg = Debug|x64
+		{76411507-1C8F-46BF-A563-C73A9017C066}.Release|Any CPU.ActiveCfg = Release|x64
+		{76411507-1C8F-46BF-A563-C73A9017C066}.Release|x64.ActiveCfg = Release|x64
+		{76411507-1C8F-46BF-A563-C73A9017C066}.Release|x64.Build.0 = Release|x64
+		{76411507-1C8F-46BF-A563-C73A9017C066}.Release|x86.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		EnterpriseLibraryConfigurationToolBinariesPathV6 = packages\EnterpriseLibrary.TransientFaultHandling.6.0.1304.0\lib\portable-net45+win+wp8
 	EndGlobalSection
 EndGlobal

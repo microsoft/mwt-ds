@@ -5,7 +5,7 @@
     "assetLocation": { "type": "string" },
     "userStorageAccountName": { "type": "string" },
     "userStorageAccountKey": { "type": "string" },
-    "serviceBusName": { "type": "string" },
+    "eventHubNamespace": { "type": "string" },
     "evalEventHub": { "type": "object" },
 
     "messageRetentionInDays": { "type": "int" },
@@ -41,7 +41,7 @@
             "Properties": {
               "DataSource": {
                 "Properties": {
-                  "ServiceBusNamespace": "[parameters('serviceBusName')]",
+                  "ServiceBusNamespace": "[parameters('eventHubNamespace')]",
                   "eventHubName": "eval",
                   "sharedAccessPolicyName": "ListenOnly",
                   "sharedAccessPolicyKey": "[parameters('evalEventHub').ListenKey.value]"
