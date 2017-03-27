@@ -38,7 +38,7 @@ class Command:
         self.loss = None
         
 def result_writer(command_list):
-    experiment_file = open("experiments.tsv", "a")
+    experiment_file = open("experiments.csv", "a")
     for command in command_list:
         line = "{0:7f}\t{1}\t{2:7f}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}".format(float(command.loss), \
             command.base, command.learning_rate, command.cb_type, str(command.marginal_list), \
@@ -76,27 +76,35 @@ if __name__ == '__main__':
 
     file_name = sys.argv[1]
     # a if condition else b 
-    with gzip.open(file_name, 'rt', encoding='utf8') if file_name.endswith('.gz') else open(file_name, 'r', encoding="utf8") as data:
-        counter = 0
-        shared_features = []
-        action_features = []
-        marginal_features = []
-        for line in data:
-            counter += 1
-            event = json.loads(line)
-            for feature in event.keys():
-                if feature[0] != '_' and feature[0] not in shared_features:
-                    shared_features.append(feature[0])
-            action_set = event['_multi']
-            for action in action_set:
-                for feature in action.keys():
-                    if feature[0] != '_' and feature[0] not in action_features:
-                        action_features.append(feature[0])
-                        if action[feature].get('constant', 0) == 1 and 'id' in action[feature]:
-                            marginal_features.append(feature[0])
-            # We are assuming the schema is consistent throughout the file, so we don't need to read all of it
-            if counter >= 50:
-                break
+    #with gzip.open(file_name, 'rt', encoding='utf8') if file_name.endswith('.gz') else open(file_name, 'r', encoding="utf8") as data:
+    #    counter = 0
+    #    shared_features = []
+    #    action_features = []
+    #    marginal_features = []
+    #    for line in data:
+    #        counter += 1
+    #        event = json.loads(line)
+    #        for feature in event.keys():
+    #            if feature[0] != '_' and feature[0] not in shared_features:
+    #                shared_features.append(feature[0])
+    #        action_set = event['_multi']
+    #        for action in action_set:
+    #            for feature in action.keys():
+    #                # print(type(action[feature]))
+    #                if action[feature] is dict:
+    #                    if feature[0] != '_' and feature[0] not in action_features:
+    #                        action_features.append(feature[0])
+    #                        print (str(action[feature]).encode(sys.stdout.encoding, errors='replace'))
+    #                        print (feature)
+    #                        if action[feature].get('constant', 0) == 1 and 'id' in action[feature]:
+    #                            marginal_features.append(feature[0])
+    #        # We are assuming the schema is consistent throughout the file, so we don't need to read all of it
+    #        if counter >= 50:
+                #break
+
+    shared_features = ['G', 'M', 'O']
+    action_features = ['X', 'T', 'E', 'R', 'S', 'A']
+    marginal_features = ['i']
 
     # disable auto discovery    
     # shared_features = []
@@ -114,6 +122,7 @@ if __name__ == '__main__':
 
     # Base parameters and setting up the cache file
     base_command = "vw --cb_adf -d %s --json -c --power_t 0" % sys.argv[1] # TODO: VW location should be a command line parameter. 
+    # base_command = "vw --cb_explore_adf --epsilon 0.2 -d %s --json -c --power_t 0" % sys.argv[1] # TODO: VW location should be a command line parameter. 
     #  -q LG -q TG
     # base_command += " --quadratic UG --quadratic RG --quadratic AG --ignore B --ignore C --ignore D --ignore E --ignore F --marginal JK"
     initial_command = Command(base_command, learning_rate=0.5)

@@ -313,7 +313,7 @@ class DataSet:
                             num_events_counter += 1
                             num_valid_events += 1
                         
-                            scoring_model_id = json.loads(line)['_modelid']
+                            scoring_model_id = json.loads(line)['_model_id']
                             if scoring_model_id is None:
                                 continue # this can happen at the very beginning if no model was available
                         
@@ -330,8 +330,8 @@ class DataSet:
                                                             scoring_model.ts.strftime('%d'),
                                                             scoring_model_id + '.json')
                                                         
-                                with open(scoring_filename, "a") as scoring_file:
-                                    _ = scoring_file.write(line)
+                                # with open(scoring_filename, 'a', encoding='utf8') as scoring_file:
+                                #     _ = scoring_file.write(line)
 
                     else:
                         missing_events_counter += 1
