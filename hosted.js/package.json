@@ -1,0 +1,35 @@
+{
+  "name": "decisionservice",
+  "version": "0.0.1",
+  "description": "Microsoft Decision Service",
+  "main": "src/DecisionService.ts",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "webpack": "^2.3.2",
+    "ts-loader": "^2.0.3",
+    "typescript": "^2.2.2",
+    "jquery": "^3.2.1",
+    "@types/chai": "^3.4.35",
+    "@types/mocha": "^2.2.40",
+    "mocha": "^3.2.0",
+    "chai": "^3.5.0"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/Microsoft/mwt-ds.git"
+  },
+  "devDependencies": {
+    "jasmine-core": "^2.5.2",
+    "karma": "^1.5.0",
+    "karma-chrome-launcher": "^2.0.0",
+    "karma-fixture": "^0.2.6",
+    "karma-html-detailed-reporter": "^1.1.20",
+    "karma-jasmine": "^1.1.0",
+    "karma-typescript": "git+https://github.com/monounity/karma-typescript.git#2.1.8"
+  }
+}

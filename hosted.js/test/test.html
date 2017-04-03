@@ -1,0 +1,49 @@
+<html>
+<header>
+    <script src="./build/DecisionService.js">
+    </script>
+
+    <script language="JavaScript">
+    window.DecisionService.trackPageView('http://www.complex.com/music/the-best-drake-songs');
+    window.DecisionService.trackPageView(); // fetch from canonical, wait for page load
+    </script>
+    
+    <link rel="canonical" href="http://www.complex.com/music/the-best-drake-songs/list/item1" >
+
+    <meta property="microsoft:ds_id" content="a015af.228583" >
+    
+    <meta property="microsoft:ds_id" content="228583" >
+
+    <link rel="canonical" href="http://www.complex.com/music/the-best-drake-songs/list/item2" >
+    <meta property="microsoft:ds_id" content="228583" >
+
+    <script language="JavaScript">
+    dscb = function(json) {
+        // update HTML
+    };
+    </script>
+
+    <script src="//ds.microsoft.com/api/v2/rank/www.complex.com/$pool.js?callback=dscb" >
+    </script>
+
+
+    <script language="JavaScript">
+        window.decisionService.client.rank({
+           requests:[
+           {
+               site: "epix1",
+               actionSets: [ { id: { id:'carousel' } } ]
+           }],
+           success: function(json) { 
+               console.log(json);
+           },
+           error: function (xhr, err) {
+                console.log("Microsoft Decision Service: Outcome reporting failed. State " + xhr.readyState +" status: " + xhr.status + " response: "+ xhr.responseText);
+           }
+        });
+    </script>
+</header>
+<body>
+    Hello World!
+</body>
+</html>

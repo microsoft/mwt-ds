@@ -1,0 +1,50 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "0.1.0",
+    "tasks": [
+        {
+            "taskName": "tsc",
+            "command": "${workspaceRoot}/node_modules/.bin/tsc",
+            "isShellCommand": true,
+            "args": [
+                "-p",
+                "."
+            ],
+            "showOutput": "silent",
+            "problemMatcher": "$tsc",
+            "isBuildCommand": false
+        },
+        {
+            "command": "${workspaceRoot}/node_modules/.bin/webpack",
+            "isShellCommand": true,
+            "args": [
+                "--display-modules",
+                "--progress",
+                "-d"
+            ],
+            "suppressTaskName": true,
+            "taskName": "webpack dev",
+            "isBuildCommand": true
+        },
+        {
+            "command": "${workspaceRoot}/node_modules/.bin/_mocha",
+            "isShellCommand": true,
+            "isTestCommand": true,
+            "args": [
+                "build/test/**/*.js",
+                "--no-timeouts"
+            ],
+            "taskName": "mocha"
+        },
+                {
+            "command": "${workspaceRoot}/node_modules/.bin/karma",
+            "isShellCommand": true,
+            "isTestCommand": false,
+            "args": [
+                "run"
+            ],
+            "taskName": "karma"
+        }
+    ]
+}
