@@ -18,7 +18,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
     {
         /// <summary>
         /// An exploration datapoint, containing the context, action, probability, and reward
-        /// of a given event. In other words, the <x,a,r,p> tuple.
+        /// of a given event. In other words, the &lt;x,a,r,p&gt; tuple.
         /// </summary>
         internal class DataPoint : IEvent
         {
