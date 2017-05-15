@@ -128,7 +128,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             if (initialFullExplorer == null)
                 initialFullExplorer = new PermutationExplorer(1);
 
-            var match = Regex.Match(metaData.TrainArguments, @"--cb_explore\s+(?<numActions>\d+)");
+            var match = Regex.Match(metaData.TrainArguments ?? string.Empty, @"--cb_explore\s+(?<numActions>\d+)");
             if (match.Success)
             {
                 var numActions = int.Parse(match.Groups["numActions"].Value);
