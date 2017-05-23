@@ -116,20 +116,34 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             }
         }
 
-        public TAction ChooseAction(string uniqueKey, TContext context, TAction defaultAction, bool doNotLog = false)
+        public TAction ChooseAction(string uniqueKey, TContext context, TAction defaultAction)
+        {
+            return ChooseAction(uniqueKey, context, defaultAction, doNotLog: false);
+        }
+
+        public TAction ChooseAction(string uniqueKey, TContext context, TAction defaultAction, bool doNotLog)
         {
             var policy = this.Policy;
             var policyDecision = policy != null ? policy.MapContext(context) : PolicyDecision.Create(this.InitialExplorer.Explore(defaultAction));
             return ChooseActionInternal(uniqueKey, context, policyDecision, doNotLog);
         }
 
-        public TAction ChooseAction(string uniqueKey, TContext context, IContextMapper<TContext, TPolicyValue> defaultPolicy, bool doNotLog = false)
+        public TAction ChooseAction(string uniqueKey, TContext context, IContextMapper<TContext, TPolicyValue> defaultPolicy)
+        {
+            return ChooseAction(uniqueKey, context, defaultPolicy, doNotLog: false);
+        }
+
+        public TAction ChooseAction(string uniqueKey, TContext context, IContextMapper<TContext, TPolicyValue> defaultPolicy, bool doNotLog)
         {
             var policy = this.Policy;
             var policyDecision = (policy ?? defaultPolicy).MapContext(context);
             return ChooseActionInternal(uniqueKey, context, policyDecision, doNotLog);
         }
 
+        public TAction ChooseAction(string uniqueKey, TContext context, TPolicyValue defaultPolicyDecision)
+        {
+            return ChooseAction(uniqueKey, context, defaultPolicyDecision, doNotLog: false);
+        }
 		/// <summary>
         /// Choose an action (or decision to take) given the exploration algorithm and context.
 		/// </summary>
@@ -138,7 +152,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 		/// <param name="context">The context upon which a decision is made. See SimpleContext above for an example.</param>
         /// <param name="numActionsVariable">Optional; Number of actions available which may be variable across decisions.</param>
         /// <returns>An unsigned 32-bit integer representing the 1-based chosen action.</returns>
-        public TAction ChooseAction(string uniqueKey, TContext context, TPolicyValue defaultPolicyDecision, bool doNotLog = false)
+        public TAction ChooseAction(string uniqueKey, TContext context, TPolicyValue defaultPolicyDecision, bool doNotLog)
         {
             // Note: thread-safe atomic reference access
             var policy = this.Policy;
@@ -146,7 +160,12 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             return ChooseActionInternal(uniqueKey, context, policyDecision, doNotLog);
         }
 
-        public TAction ChooseAction(string uniqueKey, TContext context, bool doNotLog = false)
+        public TAction ChooseAction(string uniqueKey, TContext context)
+        {
+            return ChooseAction(uniqueKey, context, doNotLog: false);
+        }
+
+        public TAction ChooseAction(string uniqueKey, TContext context, bool doNotLog)
         {
             ulong saltedSeed = MurMurHash3.ComputeIdHash(uniqueKey) + this.appId;
             PRG random = new PRG(saltedSeed);
@@ -186,7 +205,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             GC.SuppressFinalize(this);
         }
 
-        private TAction ChooseActionInternal(string uniqueKey, TContext context, PolicyDecision<TPolicyValue> policyDecision, bool doNotLog = false)
+        private TAction ChooseActionInternal(string uniqueKey, TContext context, PolicyDecision<TPolicyValue> policyDecision, bool doNotLog)
         {
             ulong saltedSeed = MurMurHash3.ComputeIdHash(uniqueKey) + this.appId;
             PRG random = new PRG(saltedSeed);
