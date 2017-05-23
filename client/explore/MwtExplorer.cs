@@ -116,18 +116,18 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             }
         }
 
-        public TAction ChooseAction(string uniqueKey, TContext context, TAction defaultAction)
+        public TAction ChooseAction(string uniqueKey, TContext context, TAction defaultAction, bool doNotLog = false)
         {
             var policy = this.Policy;
             var policyDecision = policy != null ? policy.MapContext(context) : PolicyDecision.Create(this.InitialExplorer.Explore(defaultAction));
-            return ChooseActionInternal(uniqueKey, context, policyDecision);
+            return ChooseActionInternal(uniqueKey, context, policyDecision, doNotLog);
         }
 
-        public TAction ChooseAction(string uniqueKey, TContext context, IContextMapper<TContext, TPolicyValue> defaultPolicy)
+        public TAction ChooseAction(string uniqueKey, TContext context, IContextMapper<TContext, TPolicyValue> defaultPolicy, bool doNotLog = false)
         {
             var policy = this.Policy;
             var policyDecision = (policy ?? defaultPolicy).MapContext(context);
-            return ChooseActionInternal(uniqueKey, context, policyDecision);
+            return ChooseActionInternal(uniqueKey, context, policyDecision, doNotLog);
         }
 
 		/// <summary>
@@ -138,15 +138,15 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 		/// <param name="context">The context upon which a decision is made. See SimpleContext above for an example.</param>
         /// <param name="numActionsVariable">Optional; Number of actions available which may be variable across decisions.</param>
         /// <returns>An unsigned 32-bit integer representing the 1-based chosen action.</returns>
-        public TAction ChooseAction(string uniqueKey, TContext context, TPolicyValue defaultPolicyDecision)
+        public TAction ChooseAction(string uniqueKey, TContext context, TPolicyValue defaultPolicyDecision, bool doNotLog = false)
         {
             // Note: thread-safe atomic reference access
             var policy = this.Policy;
             var policyDecision = (policy != null) ? policy.MapContext(context) : defaultPolicyDecision;
-            return ChooseActionInternal(uniqueKey, context, policyDecision);
+            return ChooseActionInternal(uniqueKey, context, policyDecision, doNotLog);
         }
 
-        public TAction ChooseAction(string uniqueKey, TContext context)
+        public TAction ChooseAction(string uniqueKey, TContext context, bool doNotLog = false)
         {
             ulong saltedSeed = MurMurHash3.ComputeIdHash(uniqueKey) + this.appId;
             PRG random = new PRG(saltedSeed);
@@ -169,7 +169,10 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                 explorerDecision = this.Explorer.MapContext(random, policyDecision.Value, numActionsVariable);
             }
 
-            this.Log(uniqueKey, context, explorerDecision, policyDecision != null ? policyDecision.MapperState : null);
+            if (! doNotLog)
+            {
+                this.Log(uniqueKey, context, explorerDecision, policyDecision != null ? policyDecision.MapperState : null);
+            }
 
             return explorerDecision.Value;
         }
@@ -183,7 +186,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             GC.SuppressFinalize(this);
         }
 
-        private TAction ChooseActionInternal(string uniqueKey, TContext context, PolicyDecision<TPolicyValue> policyDecision)
+        private TAction ChooseActionInternal(string uniqueKey, TContext context, PolicyDecision<TPolicyValue> policyDecision, bool doNotLog = false)
         {
             ulong saltedSeed = MurMurHash3.ComputeIdHash(uniqueKey) + this.appId;
             PRG random = new PRG(saltedSeed);
@@ -196,7 +199,10 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 
             var explorerDecision = this.Explorer.MapContext(random, policyDecision.Value, numActionsVariable);
 
-            this.Log(uniqueKey, context, explorerDecision, policyDecision != null ? policyDecision.MapperState : null);
+            if (! doNotLog)
+            {
+                this.Log(uniqueKey, context, explorerDecision, policyDecision != null ? policyDecision.MapperState : null);
+            }
 
             return explorerDecision.Value;
         }
