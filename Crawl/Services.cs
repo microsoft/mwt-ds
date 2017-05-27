@@ -4,10 +4,10 @@
 // </copyright>
 //------------------------------------------------------------------------------
 
-using Crawl.Data;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Azure.WebJobs.Host;
+using Microsoft.DecisionService.Crawl.Data;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
