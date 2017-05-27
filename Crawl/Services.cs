@@ -25,7 +25,7 @@ namespace Microsoft.DecisionService.Crawl
 
         static Services()
         {
-            TelemetryConfiguration.Active.InstrumentationKey = System.Configuration.ConfigurationManager.AppSettings["AppInsightsKey"];
+            // TelemetryConfiguration.Active.InstrumentationKey = System.Configuration.ConfigurationManager.AppSettings["AppInsightsKey"];
             TelemetryClient = new TelemetryClient();
             TelemetryClient.Context.Cloud.RoleName = "Crawl";
             TelemetryClient.Context.Component.Version = typeof(Services).Assembly.GetName().Version.ToString();
