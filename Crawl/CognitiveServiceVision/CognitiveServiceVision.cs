@@ -8,12 +8,11 @@ using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs.Host;
 using System.Net.Http;
 using Newtonsoft.Json;
-using Crawl.Data;
-using Crawl;
 using Newtonsoft.Json.Linq;
 using System.Linq;
 using System.Threading;
-    
+using Microsoft.DecisionService.Crawl.Data;
+
 namespace Microsoft.DecisionService.Crawl
 {
     public class CognitiveServiceVision

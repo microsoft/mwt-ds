@@ -4,11 +4,11 @@
 // </copyright>
 //------------------------------------------------------------------------------
 
-using Crawl.Data;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.WebJobs.Host;
+using Microsoft.DecisionService.Crawl.Data;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -50,16 +50,26 @@ namespace Microsoft.DecisionService.Crawl
 
             var keyVaultUrl = ConfigurationManager.AppSettings["KeyVaultUrl"];
 
-            var keyVaultHelper = new KeyVaultHelper(
-                StoreLocation.CurrentUser,
-                ConfigurationManager.AppSettings["AzureActiveDirectoryClientId"],
-                ConfigurationManager.AppSettings["AzureActiveDirectoryCertificateThumbprint"]);
+            if (!string.IsNullOrEmpty(keyVaultUrl))
+            {
+                var keyVaultHelper = new KeyVaultHelper(
+                    StoreLocation.CurrentUser,
+                    ConfigurationManager.AppSettings["AzureActiveDirectoryClientId"],
+                    ConfigurationManager.AppSettings["AzureActiveDirectoryCertificateThumbprint"]);
 
-            var keyVault = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(keyVaultHelper.GetAccessToken));
+                var keyVault = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(keyVaultHelper.GetAccessToken));
 
-            this.endpoint = (await keyVault.GetSecretAsync(keyVaultUrl, containerName + "Endpoint").ConfigureAwait(false)).Value;
-            this.apiKey = (await keyVault.GetSecretAsync(keyVaultUrl, containerName + "Key").ConfigureAwait(false)).Value;
-            this.storageConnectionString = (await keyVault.GetSecretAsync(keyVaultUrl, "StorageConnectionString").ConfigureAwait(false)).Value;
+                this.endpoint = (await keyVault.GetSecretAsync(keyVaultUrl, containerName + "Endpoint").ConfigureAwait(false)).Value;
+                this.apiKey = (await keyVault.GetSecretAsync(keyVaultUrl, containerName + "Key").ConfigureAwait(false)).Value;
+                this.storageConnectionString = (await keyVault.GetSecretAsync(keyVaultUrl, "StorageConnectionString").ConfigureAwait(false)).Value;
+            }
+            else
+            {
+                // fallback to local settings
+                this.endpoint = ConfigurationManager.AppSettings[containerName + "Endpoint"];
+                this.apiKey = ConfigurationManager.AppSettings[containerName + "Key"];
+                this.storageConnectionString = ConfigurationManager.AppSettings["StorageConnectionString"];
+            }
 
             this.client = new HttpClient()
             {

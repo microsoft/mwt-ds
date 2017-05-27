@@ -9,8 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs.Host;
 using System.Net.Http;
 using System;
-using Crawl.Data;
-using Crawl;
 using System.Collections.Generic;
 using System.Xml.Linq;
 using System.Linq;
@@ -62,7 +60,8 @@ namespace Microsoft.DecisionService.Crawl
                         if (pubDateStr != null)
                             pubDateStr = pubDateStr.Trim();
 
-                        if (!DateTime.TryParseExact(pubDateStr, parseFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime pubDate))
+                        DateTime pubDate;
+                        if (!DateTime.TryParseExact(pubDateStr, parseFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out pubDate))
                             if (!DateTime.TryParseExact(pubDateStr, parseFormat2, CultureInfo.InvariantCulture, DateTimeStyles.None, out pubDate))
                                 pubDate = DateTime.UtcNow;
 

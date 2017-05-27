@@ -10,7 +10,6 @@ using Microsoft.Azure.WebJobs.Host;
 using System.IO;
 using System.Net;
 using System.Net.Http;
-using Crawl.Crawl;
 using Newtonsoft.Json;
 using System;
 using Microsoft.DecisionService.Crawl.Data;
