@@ -254,12 +254,29 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             return this;
         }
 
-        public int ChooseAction(string uniqueKey, TContext context, IPolicy<TContext> defaultPolicy)
+        public async Task<int> ChooseActionAsync(string uniqueKey, TContext context, IPolicy<TContext> defaultPolicy)
         {
-            return ChooseAction(uniqueKey, context, defaultPolicy.MapContext(context).Value);
+            return await ChooseActionAsync(uniqueKey, context, (await defaultPolicy.MapContextAsync(context)).Value);
         }
 
+        [Obsolete("Use Async version")]
+        public int ChooseAction(string uniqueKey, TContext context, IPolicy<TContext> defaultPolicy)
+        {
+            return this.ChooseActionAsync(uniqueKey, context, defaultPolicy)
+                .ConfigureAwait(true)
+                .GetAwaiter()
+                .GetResult();
+        }
+        [Obsolete("Use Async version")]
         public int ChooseAction(string uniqueKey, TContext context, int defaultAction)
+        {
+            return this.ChooseActionAsync(uniqueKey, context, defaultAction)
+                .ConfigureAwait(true)
+                .GetAwaiter()
+                .GetResult();
+        }
+
+        public async Task<int> ChooseActionAsync(string uniqueKey, TContext context, int defaultAction)
         {
             var numActions = this.numActionsProvider.GetNumberOfActions(context);
             var actions = new int[numActions];
@@ -274,35 +291,67 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 action++;
             }
 
-            return this.mwtExplorer.ChooseAction(uniqueKey, context, actions)[0];
+            return (await this.mwtExplorer.ChooseActionAsync(uniqueKey, context, actions))[0];
         }
 
+        public async Task<int> ChooseActionAsync(string uniqueKey, TContext context)
+        {
+            return (await this.ChooseRankingAsync(uniqueKey, context))[0];
+        }
+
+        [Obsolete("Use Async version")]
         public int ChooseAction(string uniqueKey, TContext context)
         {
             return this.ChooseRanking(uniqueKey, context)[0];
         }
 
+        [Obsolete("Use Async version")]
         public int[] ChooseRanking(string uniqueKey, TContext context, IRanker<TContext> defaultRanker)
         {
-            return ChooseRanking(uniqueKey, context, defaultRanker.MapContext(context).Value);
+            return this.ChooseRankingAsync(uniqueKey, context, defaultRanker)
+                .ConfigureAwait(true)
+                .GetAwaiter()
+                .GetResult();
         }
 
+        [Obsolete("Use Async version")]
         public int[] ChooseRanking(string uniqueKey, TContext context, int[] defaultActions)
         {
-            return this.mwtExplorer.ChooseAction(uniqueKey, context, defaultActions);
+            return this.ChooseRankingAsync(uniqueKey, context, defaultActions)
+                .ConfigureAwait(true)
+                .GetAwaiter()
+                .GetResult();
         }
 
+        [Obsolete("Use Async version")]
         public int[] ChooseRanking(string uniqueKey, TContext context)
+        {
+            return this.ChooseRankingAsync(uniqueKey, context)
+                .ConfigureAwait(true)
+                .GetAwaiter()
+                .GetResult();
+        }
+
+        public async Task<int[]> ChooseRankingAsync(string uniqueKey, TContext context, IRanker<TContext> defaultRanker)
+        {
+            return await ChooseRankingAsync(uniqueKey, context, (await defaultRanker.MapContextAsync(context)).Value);
+        }
+
+        public async Task<int[]> ChooseRankingAsync(string uniqueKey, TContext context, int[] defaultActions)
+        {
+            return await this.mwtExplorer.ChooseActionAsync(uniqueKey, context, defaultActions);
+        }
+
+        public async Task<int[]> ChooseRankingAsync(string uniqueKey, TContext context)
         {
             var initialPolicy = this.initialPolicy;
             if (initialPolicy != null)
             {
-                return this.mwtExplorer.ChooseAction(uniqueKey, context, initialPolicy);
+                return await this.mwtExplorer.ChooseActionAsync(uniqueKey, context, initialPolicy);
             }
 
-            return this.mwtExplorer.ChooseAction(uniqueKey, context);
+            return await this.mwtExplorer.ChooseActionAsync(uniqueKey, context);
         }
-
 
         /// <summary>
         /// Report a simple float reward for the experimental unit identified by the given unique key.

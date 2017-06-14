@@ -56,12 +56,12 @@ namespace ClientDecisionServiceWebStandalone
             int[] actions;
             if (string.IsNullOrWhiteSpace(defaultActions))
             {
-                actions = client.ChooseRanking(eventId, context);
+                actions = await client.ChooseRankingAsync(eventId, context);
             }
             else
             {
                 int[] defaultActionArray = Array.ConvertAll(defaultActions.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries), Convert.ToInt32);
-                actions = client.ChooseRanking(eventId, context, defaultActionArray);
+                actions = await client.ChooseRankingAsync(eventId, context, defaultActionArray);
             }
 
             return Json(new

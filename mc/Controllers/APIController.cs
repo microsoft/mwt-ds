@@ -65,7 +65,7 @@ namespace DecisionServicePrivateWeb.Controllers
         }
 
         [HttpPost]
-        public ActionResult Policy(int defaultAction = -1, string eventId = null)
+        public async Task<ActionResult> Policy(int defaultAction = -1, string eventId = null)
         {
             try
             {
@@ -75,7 +75,7 @@ namespace DecisionServicePrivateWeb.Controllers
                 var context = APIUtil.ReadBody(this.Request);
                 if (string.IsNullOrEmpty(eventId))
                     eventId = APIUtil.CreateEventId();
-                var action = defaultAction != -1 ? client.ChooseAction(eventId, context, defaultAction) : client.ChooseAction(eventId, context);
+                var action = defaultAction != -1 ? await client.ChooseActionAsync(eventId, context, defaultAction) : await client.ChooseActionAsync(eventId, context);
 
                 return Json(new 
                 {
@@ -96,7 +96,7 @@ namespace DecisionServicePrivateWeb.Controllers
         }
 
         [HttpPost]
-        public ActionResult Ranker(string defaultActions, string eventId)
+        public async Task<ActionResult> Ranker(string defaultActions, string eventId)
         {
             try
             {
@@ -110,12 +110,12 @@ namespace DecisionServicePrivateWeb.Controllers
                 int[] actions;
                 if (string.IsNullOrWhiteSpace(defaultActions))
                 {
-                    actions = client.ChooseRanking(eventId, context);
+                    actions = await client.ChooseRankingAsync(eventId, context);
                 }
                 else
                 {
                     int[] defaultActionArray = Array.ConvertAll(defaultActions.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries), Convert.ToInt32);
-                    actions = client.ChooseRanking(eventId, context, defaultActionArray);
+                    actions = await client.ChooseRankingAsync(eventId, context, defaultActionArray);
                 }
 
                 return Json(new

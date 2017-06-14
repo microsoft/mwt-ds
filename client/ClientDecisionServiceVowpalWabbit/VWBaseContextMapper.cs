@@ -1,6 +1,7 @@
 ﻿using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using VW;
 using VW.Serializer;
 
@@ -85,7 +86,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             }
         }
 
-        public PolicyDecision<TAction> MapContext(TContext context)
+        public Task<PolicyDecision<TAction>> MapContextAsync(TContext context)
         {
             if (this.vwPool == null)
                 throw new InvalidOperationException("A VW model must be supplied before the call to ChooseAction.");
@@ -95,7 +96,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 if (vw.Value == null)
                     throw new InvalidOperationException("A VW model must be supplied before the call to ChooseAction.");
 
-                return MapContext(vw.Value, context);    
+                return Task.FromResult(MapContext(vw.Value, context)); 
             }
         }
 
