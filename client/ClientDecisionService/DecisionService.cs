@@ -40,6 +40,8 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             return new DecisionServiceClient<TContext>(
                 config,
                 DownloadMetadata(config, metaData),
+                contextMapper,
+                // TODO: cleanup. this means that the context mapper passed in needs to be able to score from the beginning
                 contextMapper);
         }
 
