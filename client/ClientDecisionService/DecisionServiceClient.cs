@@ -256,10 +256,20 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
         public int ChooseAction(string uniqueKey, TContext context, IPolicy<TContext> defaultPolicy)
         {
-            return ChooseAction(uniqueKey, context, defaultPolicy.MapContext(context).Value);
+            return ChooseAction(uniqueKey, context, defaultPolicy.MapContext(context).Value, doNotLog: false);
+        }
+
+        public int ChooseAction(string uniqueKey, TContext context, IPolicy<TContext> defaultPolicy, bool doNotLog)
+        {
+            return ChooseAction(uniqueKey, context, defaultPolicy.MapContext(context).Value, doNotLog);
         }
 
         public int ChooseAction(string uniqueKey, TContext context, int defaultAction)
+        {
+            return ChooseAction(uniqueKey, context, defaultAction, doNotLog: false);
+        }
+
+        public int ChooseAction(string uniqueKey, TContext context, int defaultAction, bool doNotLog)
         {
             var numActions = this.numActionsProvider.GetNumberOfActions(context);
             var actions = new int[numActions];
@@ -274,33 +284,53 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 action++;
             }
 
-            return this.mwtExplorer.ChooseAction(uniqueKey, context, actions)[0];
+            return this.mwtExplorer.ChooseAction(uniqueKey, context, actions, doNotLog)[0];
         }
 
         public int ChooseAction(string uniqueKey, TContext context)
         {
-            return this.ChooseRanking(uniqueKey, context)[0];
+            return this.ChooseRanking(uniqueKey, context, doNotLog: false)[0];
+        }
+
+        public int ChooseAction(string uniqueKey, TContext context, bool doNotLog)
+        {
+            return this.ChooseRanking(uniqueKey, context, doNotLog)[0];
         }
 
         public int[] ChooseRanking(string uniqueKey, TContext context, IRanker<TContext> defaultRanker)
         {
-            return ChooseRanking(uniqueKey, context, defaultRanker.MapContext(context).Value);
+            return ChooseRanking(uniqueKey, context, defaultRanker.MapContext(context).Value, doNotLog: false);
+        }
+
+        public int[] ChooseRanking(string uniqueKey, TContext context, IRanker<TContext> defaultRanker, bool doNotLog)
+        {
+            return ChooseRanking(uniqueKey, context, defaultRanker.MapContext(context).Value, doNotLog);
         }
 
         public int[] ChooseRanking(string uniqueKey, TContext context, int[] defaultActions)
         {
-            return this.mwtExplorer.ChooseAction(uniqueKey, context, defaultActions);
+            return ChooseRanking(uniqueKey, context, defaultActions, doNotLog: false);
+        }
+
+        public int[] ChooseRanking(string uniqueKey, TContext context, int[] defaultActions, bool doNotLog)
+        {
+            return this.mwtExplorer.ChooseAction(uniqueKey, context, defaultActions, doNotLog);
         }
 
         public int[] ChooseRanking(string uniqueKey, TContext context)
         {
+            return ChooseRanking(uniqueKey, context, doNotLog: false);
+        }
+
+        public int[] ChooseRanking(string uniqueKey, TContext context, bool doNotLog)
+        {
             var initialPolicy = this.initialPolicy;
             if (initialPolicy != null)
             {
-                return this.mwtExplorer.ChooseAction(uniqueKey, context, initialPolicy);
+                return this.mwtExplorer.ChooseAction(uniqueKey, context, initialPolicy, doNotLog);
             }
 
-            return this.mwtExplorer.ChooseAction(uniqueKey, context);
+            return this.mwtExplorer.ChooseAction(uniqueKey, context, doNotLog);
         }
 
 
