@@ -27,6 +27,9 @@ namespace Microsoft.DecisionService.Crawl
         {
             [JsonProperty("url")]
             public string Url { get; set; }
+
+            [JsonProperty("param")]
+            public string Parameter { get; set; }
         }
 
         public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceWriter log)
@@ -41,6 +44,9 @@ namespace Microsoft.DecisionService.Crawl
                 var reqBody = JsonConvert.DeserializeObject<URLHolder>(reqBodyStr);
 
                 url = reqBody.Url;
+                if (!string.IsNullOrEmpty(reqBody.Parameter))
+                    url += reqBody.Parameter;
+
                 log.Info("RSS " + url);
 
                 // TODO: use HttpCachedService (also as means of failover if the RSS stream is down)

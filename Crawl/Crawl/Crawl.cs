@@ -28,6 +28,15 @@ namespace Microsoft.DecisionService.Crawl
         //private static Regex MetaMicrosoftDsIdRegex = new Regex(@"<meta[^>]+property\s*=\s*[""']microsoft:ds_id[""'][^>]*>", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         //private static Regex MetaContentRegex = new Regex(@"content\s*=\s*[""']([^""']+)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
+        /// <summary>
+        /// In order of trys
+        /// </summary>
+        private static string[] UserAgents = new[]
+        {
+            "DSbot/1.0 (+https://ds.microsoft.com/bot.htm)",
+            "curl/7.35.0"
+        };
+
         public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceWriter log)
         {
             CrawlRequest crawlRequest = null;
@@ -45,45 +54,66 @@ namespace Microsoft.DecisionService.Crawl
 
                     log.Info($"Crawl AppId={reqBody.Site} Id={reqBody.Id} Url={reqBody.Url}");
 
-                    var request = (HttpWebRequest)WebRequest.Create(reqBody.Url);
+                    Uri uri;
+                    if (!Uri.TryCreate(reqBody.Url, UriKind.Absolute, out uri))
+                    {
+                        return new HttpResponseMessage(HttpStatusCode.OK)
+                        {
+                            Content = new StringContent(
+                                "{}",
+                                new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
+                                "application/json")
+                        };
+                    }
+
+                    var request = (HttpWebRequest)WebRequest.Create(uri);
 
                     if (!string.IsNullOrEmpty(reqBody.ETag))
                         request.Headers.Add(HttpRequestHeader.IfNoneMatch, reqBody.ETag);
 
                     request.Method = "GET";
                     request.KeepAlive = true;
-                    request.UserAgent = "DSbot/1.0 (+https://ds.microsoft.com/bot.htm)";
 
-                    using (var response = (HttpWebResponse)await request.GetResponseAsync())
+                    foreach (var userAgent in UserAgents)
                     {
-                        operation.Telemetry.ResultCode = response.StatusCode.ToString();
+                        request.UserAgent = userAgent;
 
-                        using (var stream = response.GetResponseStream())
-                        using (var reader = new StreamReader(stream))
+                        using (var response = (HttpWebResponse)await request.GetResponseAsync())
                         {
-                            // TODO: allow direct JSON
-                            // TODO: look for schema.org
-                            var html = await reader.ReadToEndAsync();
+                            if (response.StatusCode == HttpStatusCode.Forbidden)
+                                continue;
 
-                            // TODO: support microsoft:ds_id 
-                            var result = HtmlExtractor.Parse(html, new Uri(reqBody.Url));
-                            result.Url = reqBody.Url;
-                            result.Site = reqBody.Site;
-                            result.Id = reqBody.Id;
+                            operation.Telemetry.ResultCode = response.StatusCode.ToString();
 
-                            return new HttpResponseMessage(HttpStatusCode.OK)
+                            using (var stream = response.GetResponseStream())
+                            using (var reader = new StreamReader(stream))
                             {
-                                Content = new StringContent(
-                                    JsonConvert.SerializeObject(result, new JsonSerializerSettings
-                                    {
-                                        Formatting = Formatting.None,
-                                        StringEscapeHandling = StringEscapeHandling.EscapeNonAscii
-                                    }),
-                                    new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
-                                    "application/json")
-                            };
+                                // TODO: allow direct JSON
+                                // TODO: look for schema.org
+                                var html = await reader.ReadToEndAsync();
+
+                                // TODO: support microsoft:ds_id 
+                                var result = HtmlExtractor.Parse(html, new Uri(reqBody.Url));
+                                result.Url = reqBody.Url;
+                                result.Site = reqBody.Site;
+                                result.Id = reqBody.Id;
+
+                                return new HttpResponseMessage(HttpStatusCode.OK)
+                                {
+                                    Content = new StringContent(
+                                        JsonConvert.SerializeObject(result, new JsonSerializerSettings
+                                        {
+                                            Formatting = Formatting.None,
+                                            StringEscapeHandling = StringEscapeHandling.EscapeNonAscii
+                                        }),
+                                        new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
+                                        "application/json")
+                                };
+                            }
                         }
                     }
+
+                    throw new UnauthorizedAccessException("Unable to access HTTP endpoint");
                 }
             }
             catch (Exception ex)
