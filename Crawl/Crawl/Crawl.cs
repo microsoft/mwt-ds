@@ -24,10 +24,6 @@ namespace Microsoft.DecisionService.Crawl
 {
     public class Crawl
     {
-        // <meta property="microsoft:ds_id" content="some-id">
-        //private static Regex MetaMicrosoftDsIdRegex = new Regex(@"<meta[^>]+property\s*=\s*[""']microsoft:ds_id[""'][^>]*>", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        //private static Regex MetaContentRegex = new Regex(@"content\s*=\s*[""']([^""']+)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-
         /// <summary>
         /// In order of trys
         /// </summary>
@@ -66,50 +62,55 @@ namespace Microsoft.DecisionService.Crawl
                         };
                     }
 
-                    var request = (HttpWebRequest)WebRequest.Create(uri);
-
-                    if (!string.IsNullOrEmpty(reqBody.ETag))
-                        request.Headers.Add(HttpRequestHeader.IfNoneMatch, reqBody.ETag);
-
-                    request.Method = "GET";
-                    request.KeepAlive = true;
-
                     foreach (var userAgent in UserAgents)
                     {
+                        var request = (HttpWebRequest)WebRequest.Create(uri);
+
+                        if (!string.IsNullOrEmpty(reqBody.ETag))
+                            request.Headers.Add(HttpRequestHeader.IfNoneMatch, reqBody.ETag);
+
+                        request.Method = "GET";
                         request.UserAgent = userAgent;
 
-                        using (var response = (HttpWebResponse)await request.GetResponseAsync())
+                        try
                         {
-                            if (response.StatusCode == HttpStatusCode.Forbidden)
-                                continue;
-
-                            operation.Telemetry.ResultCode = response.StatusCode.ToString();
-
-                            using (var stream = response.GetResponseStream())
-                            using (var reader = new StreamReader(stream))
+                            using (var response = (HttpWebResponse)await request.GetResponseAsync())
                             {
-                                // TODO: allow direct JSON
-                                // TODO: look for schema.org
-                                var html = await reader.ReadToEndAsync();
+                                operation.Telemetry.ResultCode = response.StatusCode.ToString();
 
-                                // TODO: support microsoft:ds_id 
-                                var result = HtmlExtractor.Parse(html, new Uri(reqBody.Url));
-                                result.Url = reqBody.Url;
-                                result.Site = reqBody.Site;
-                                result.Id = reqBody.Id;
-
-                                return new HttpResponseMessage(HttpStatusCode.OK)
+                                using (var stream = response.GetResponseStream())
+                                using (var reader = new StreamReader(stream))
                                 {
-                                    Content = new StringContent(
-                                        JsonConvert.SerializeObject(result, new JsonSerializerSettings
-                                        {
-                                            Formatting = Formatting.None,
-                                            StringEscapeHandling = StringEscapeHandling.EscapeNonAscii
-                                        }),
-                                        new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
-                                        "application/json")
-                                };
+                                    // TODO: allow direct JSON
+                                    // TODO: look for schema.org
+                                    var html = await reader.ReadToEndAsync();
+
+                                    // TODO: support microsoft:ds_id 
+                                    var result = HtmlExtractor.Parse(html, new Uri(reqBody.Url));
+                                    result.Url = reqBody.Url;
+                                    result.Site = reqBody.Site;
+                                    result.Id = reqBody.Id;
+
+                                    return new HttpResponseMessage(HttpStatusCode.OK)
+                                    {
+                                        Content = new StringContent(
+                                            JsonConvert.SerializeObject(result, new JsonSerializerSettings
+                                            {
+                                                Formatting = Formatting.None,
+                                                StringEscapeHandling = StringEscapeHandling.EscapeNonAscii
+                                            }),
+                                            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
+                                            "application/json")
+                                    };
+                                }
                             }
+                        }
+                        catch (WebException we)
+                        {
+                            if ((we.Response as HttpWebResponse)?.StatusCode == HttpStatusCode.Forbidden)
+                                continue;
+                            
+                            throw;
                         }
                     }
 
