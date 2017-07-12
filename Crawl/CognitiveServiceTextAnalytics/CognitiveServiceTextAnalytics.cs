@@ -21,7 +21,7 @@ namespace Microsoft.DecisionService.Crawl
 
         static CognitiveServiceTextAnalytics()
         {
-            cogService = new CognitiveService("CogTextAnalytics");
+            cogService = new CognitiveService("CogTextAnalytics", queryParams: "/recognize");
         }
 
         public static Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceWriter log, CancellationToken cancellationToken)
