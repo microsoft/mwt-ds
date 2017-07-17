@@ -21,7 +21,7 @@ namespace Microsoft.DecisionService.Crawl
 
         static CognitiveServiceEntityLinking()
         {
-            cogService = new CognitiveService("CogEntityLinking");
+            cogService = new CognitiveService("CogEntityLinking", queryParams: "/link");
         }
 
         public static Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceWriter log, CancellationToken cancellationToken)

@@ -35,6 +35,16 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 new VWExplorer<TContext>(config.ModelStream, typeInspector, config.DevelopmentMode));
         }
 
+        public static DecisionServiceClient<TContext> Create<TContext>(DecisionServiceConfiguration config, IContextMapper<TContext,ActionProbability[]> contextMapper, ApplicationClientMetadata metaData = null)
+        {
+            return new DecisionServiceClient<TContext>(
+                config,
+                DownloadMetadata(config, metaData),
+                contextMapper,
+                // TODO: cleanup. this means that the context mapper passed in needs to be able to score from the beginning
+                contextMapper);
+        }
+
         public static DecisionServiceClient<string> CreateJson(DecisionServiceConfiguration config, ApplicationClientMetadata metaData = null)
         {
             return new DecisionServiceClient<string>(

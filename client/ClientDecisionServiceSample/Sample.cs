@@ -124,10 +124,10 @@ namespace ClientDecisionServiceSample
             this.numTopics = numTopics;
         }
 
-        PolicyDecision<int> IContextMapper<UserContext, int>.MapContext(UserContext context)
+        Task<PolicyDecision<int>> IContextMapper<UserContext, int>.MapContextAsync(UserContext context)
         {
             int chosenAction = (int)Math.Round(context.Features.Sum(f => f.Value) / context.Features.Count + 1);
-            return PolicyDecision.Create(chosenAction);
+            return Task.FromResult(PolicyDecision.Create(chosenAction));
         }
     }
 

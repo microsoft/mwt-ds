@@ -21,7 +21,7 @@ namespace Microsoft.DecisionService.Crawl
 
         static CognitiveServiceVision()
         {
-            cogService = new CognitiveService("CogVision", queryParams: "?visualFeatures=Categories,Tags,Adult,Faces&details=Celebrities&language=en");
+            cogService = new CognitiveService("CogVision", queryParams: "/analyze?visualFeatures=Categories,Tags,Adult,Faces&details=Celebrities&language=en");
         }
 
         public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceWriter log, CancellationToken cancellationToken)

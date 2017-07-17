@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using VW.Labels;
 using VW.Serializer.Attributes;
 
@@ -153,11 +154,11 @@ namespace ClientDecisionServiceTest
                 this.numActionsFunc = _ => Constants.NumberOfActions - 1;
         }
 
-        public PolicyDecision<ActionProbability[]> MapContext(T context)
+        public Task<PolicyDecision<ActionProbability[]>> MapContextAsync(T context)
         {
-            return PolicyDecision.Create(Enumerable.Range(1, this.numActionsFunc(context))
+            return Task.FromResult(PolicyDecision.Create(Enumerable.Range(1, this.numActionsFunc(context))
                 .Select(a => new ActionProbability { Action = a, Probability = a == 1 ? 1f : 0 })
-                .ToArray());
+                .ToArray()));
         }
     }
 

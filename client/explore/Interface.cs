@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
 {
@@ -86,7 +87,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         /// <param name="numActionsVariable">Optional; Number of actions available which may be variable across decisions.</param>
         /// <returns>A decision tuple containing the index of the action to take (1-based), and the Id of the model or policy used to make the decision.
         /// Can be null if the Policy is not ready yet (e.g. model not loaded).</returns>
-        PolicyDecision<TPolicyValue> MapContext(TContext context);
+        Task<PolicyDecision<TPolicyValue>> MapContextAsync(TContext context);
     }
 
     public interface IUpdatable<TModel>
