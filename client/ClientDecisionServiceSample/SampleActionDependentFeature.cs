@@ -25,7 +25,7 @@ namespace ClientDecisionServiceSample
         /// NOTE: For this sample to work, the proper settings must be set at deployment time:
         /// Vowpal Wabbit Switches = --cb_explore_adf --epsilon 0.2 --cb_type dr
         /// </remarks>
-        public static void NewsRecommendation()
+        public static async Task NewsRecommendation()
         {
             if (String.IsNullOrWhiteSpace(SettingsBlobUri))
             {
@@ -68,7 +68,7 @@ namespace ClientDecisionServiceSample
                         Gender = random.NextDouble() > 0.5 ? "male" : "female",
                         TopicFeatures = topicFeatures.Take(random.Next(5, topicFeatures.Length)).ToArray()
                     };
-                    int[] topicRanking = service.ChooseRanking(uniqueKey, userContext);
+                    int[] topicRanking = await service.ChooseRankingAsync(uniqueKey, userContext);
 
                     int topicId = topicRanking[0];
 
