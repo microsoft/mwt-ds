@@ -13,6 +13,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.DecisionService.Crawl.Data;
+using System;
 
 namespace Microsoft.DecisionService.Crawl
 {
@@ -28,7 +29,17 @@ namespace Microsoft.DecisionService.Crawl
         public static Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceWriter log, CancellationToken cancellationToken)
         {
             return cogService.InvokeAsync(req, log, 
-                reqBody => new UrlHolder { Url = reqBody.Image },
+                reqBody => 
+                {
+                    if (string.IsNullOrWhiteSpace(reqBody.Image))
+                        return null;
+
+                    Uri uri;
+                    if (!Uri.TryCreate(reqBody.Image, UriKind.Absolute, out uri))
+                        return null;
+
+                    return new UrlHolder { Url = reqBody.Image };
+                },
                 (reqBody, blobContent) =>
                 {
                     var visionResponse = JsonConvert.DeserializeObject<Face[]>(blobContent.Value);
@@ -45,7 +56,8 @@ namespace Microsoft.DecisionService.Crawl
                         }
                     }
                 },
-                cancellationToken);
+                isPost: true,
+                cancellationToken: cancellationToken);
         }
 
         public class Face

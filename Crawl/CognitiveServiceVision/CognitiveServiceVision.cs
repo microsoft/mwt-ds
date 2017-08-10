@@ -12,6 +12,7 @@ using Newtonsoft.Json.Linq;
 using System.Linq;
 using System.Threading;
 using Microsoft.DecisionService.Crawl.Data;
+using System;
 
 namespace Microsoft.DecisionService.Crawl
 {
@@ -27,7 +28,17 @@ namespace Microsoft.DecisionService.Crawl
         public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceWriter log, CancellationToken cancellationToken)
         {
             return await cogService.InvokeAsync(req, log,
-                reqBody => new UrlHolder { Url = reqBody.Image },
+                reqBody =>
+                {
+                    if (string.IsNullOrWhiteSpace(reqBody.Image))
+                        return null;
+
+                    Uri uri;
+                    if (!Uri.TryCreate(reqBody.Image, UriKind.Absolute, out uri))
+                        return null;
+
+                    return new UrlHolder { Url = reqBody.Image };
+                },
                 (reqBody, blobContent) =>
                 {
                     var visionResponse = JsonConvert.DeserializeObject<VisionResponse>(blobContent.Value);
@@ -69,7 +80,8 @@ namespace Microsoft.DecisionService.Crawl
                                     celebs.Select(t => new JProperty(t.Key, t.Max(x => x.Confidence))))));
                     }
                 },
-                cancellationToken);
+                isPost: true,
+                cancellationToken: cancellationToken);
         }
 
         public class VisionResponse

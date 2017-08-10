@@ -13,7 +13,7 @@ namespace Microsoft.DecisionService.Crawl
     {
         private readonly string queryParams;
 
-        public CognitiveService(string containerName, string queryParams = null) : base(containerName)
+        public CognitiveService(string containerName, string queryParams = null, string apiKey = null) : base(containerName, apiKey)
         {
             this.queryParams = queryParams;
         }

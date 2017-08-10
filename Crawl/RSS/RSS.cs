@@ -80,7 +80,7 @@ namespace Microsoft.DecisionService.Crawl
                     // The order of the items allows customers to specify their base-line policy
                     .OrderBy(elem => elem.index)
                     .Select(x => x.elem);
-
+                
                 var actions = items.Select(x => new
                 {
                     ids = new[] { new { id = x.Descendants("link").FirstOrDefault()?.Value } },
@@ -92,6 +92,10 @@ namespace Microsoft.DecisionService.Crawl
                     {
                         // TODO: properly support 4.2.6.  The "atom:id" Element
                         new { guid = x.Descendants("guid").FirstOrDefault()?.Value }
+                    },
+                    privateDetails = new[]
+                    {
+                        new { video = x.Descendants("content").FirstOrDefault()?.Attribute("url")?.Value }
                     }
                 }).ToList();
 

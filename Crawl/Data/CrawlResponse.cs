@@ -46,5 +46,8 @@ namespace Microsoft.DecisionService.Crawl.Data
 
         [JsonProperty("forceRefresh")]
         public bool ForceRefresh { get; set; } = false;
+
+        [JsonProperty("video", NullValueHandling = NullValueHandling.Ignore)]
+        public string Video { get; set; }
     }
 }
