@@ -110,12 +110,12 @@ namespace Microsoft.DecisionService.Crawl
                         if (contentType.StartsWith("image/"))
                             result = new CrawlResponse { Image = reqBody.Url };
 
-                        if (result != null)
-                        {
-                            result.Url = reqBody.Url;
-                            result.Site = reqBody.Site;
-                            result.Id = reqBody.Id;
-                        }
+                        if (result == null)
+                            result = new CrawlResponse();
+
+                        result.Url = reqBody.Url;
+                        result.Site = reqBody.Site;
+                        result.Id = reqBody.Id;
 
                         return result;
                     }
