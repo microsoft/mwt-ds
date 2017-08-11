@@ -1,4 +1,10 @@
-﻿using Newtonsoft.Json;
+﻿//------------------------------------------------------------------------------
+// <copyright company="Microsoft Corporation">
+//     Copyright (c) Microsoft Corporation. All rights reserved.
+// </copyright>
+//------------------------------------------------------------------------------
+
+using Newtonsoft.Json;
 
 namespace Microsoft.DecisionService.Crawl
 {

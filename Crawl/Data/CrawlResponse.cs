@@ -49,5 +49,8 @@ namespace Microsoft.DecisionService.Crawl.Data
 
         [JsonProperty("video", NullValueHandling = NullValueHandling.Ignore)]
         public string Video { get; set; }
+
+        [JsonProperty("features", NullValueHandling = NullValueHandling.Ignore)]
+        public string Features { get; set; }
     }
 }

@@ -4,7 +4,6 @@
 // </copyright>
 //------------------------------------------------------------------------------
 
-using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs.Host;
 using System.IO;
@@ -14,9 +13,7 @@ using Newtonsoft.Json;
 using System;
 using Microsoft.DecisionService.Crawl.Data;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text;
-using System.Text.RegularExpressions;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights;
 
@@ -32,6 +29,108 @@ namespace Microsoft.DecisionService.Crawl
             "DSbot/1.0 (+https://ds.microsoft.com/bot.htm)",
             "curl/7.35.0"
         };
+
+        public static async Task<CrawlResponse> DownloadHtml(Uri uri, string userAgent, CrawlRequest reqBody)
+        {
+            var request = (HttpWebRequest)WebRequest.Create(uri);
+            request.Method = "GET";
+            request.UserAgent = userAgent;
+
+            if (!string.IsNullOrEmpty(reqBody.ETag))
+                request.Headers.Add(HttpRequestHeader.IfNoneMatch, reqBody.ETag);
+
+
+            using (var response = (HttpWebResponse)await request.GetResponseAsync())
+            {
+                using (var stream = response.GetResponseStream())
+                using (var reader = new StreamReader(stream))
+                {
+                    // TODO: look for schema.org
+                    var html = await reader.ReadToEndAsync();
+
+                    // TODO: support microsoft:ds_id 
+                    return HtmlExtractor.Parse(html, new Uri(reqBody.Url));
+                }
+            }
+        }
+
+        public static async Task<CrawlResponse> DownloadJson(Uri uri, string userAgent, CrawlRequest reqBody)
+        {
+            var request = (HttpWebRequest)WebRequest.Create(uri);
+            request.Method = "GET";
+            request.UserAgent = userAgent;
+
+            if (!string.IsNullOrEmpty(reqBody.ETag))
+                request.Headers.Add(HttpRequestHeader.IfNoneMatch, reqBody.ETag);
+
+
+            using (var response = (HttpWebResponse)await request.GetResponseAsync())
+            {
+                using (var stream = response.GetResponseStream())
+                using (var reader = new StreamReader(stream))
+                {
+                    return new CrawlResponse
+                    {
+                        Features =  await reader.ReadToEndAsync()
+                    };
+                }
+            }
+        }
+
+        public static async Task<CrawlResponse> Download(CrawlRequest reqBody)
+        {
+            Uri uri;
+            if (!Uri.TryCreate(reqBody.Url, UriKind.Absolute, out uri))
+                return null;
+
+            foreach (var userAgent in UserAgents)
+            {
+                var headRequest = (HttpWebRequest)WebRequest.Create(uri);
+                headRequest.Method = "HEAD";
+                headRequest.UserAgent = userAgent;
+
+                try
+                {
+                    // make sure we only crawl HTML
+                    using (var response = (HttpWebResponse)await headRequest.GetResponseAsync())
+                    {
+                        var contentType = response.GetResponseHeader("Content-Type");
+
+                        CrawlResponse result = null;
+
+                        if (contentType.StartsWith("text/html"))
+                            result = await DownloadHtml(uri, userAgent, reqBody);
+
+                        if (contentType.StartsWith("application/json"))
+                            result = await DownloadJson(uri, userAgent, reqBody);
+
+                        if (contentType.StartsWith("video/") || contentType.StartsWith("audio/"))
+                            result = new CrawlResponse { Video = reqBody.Url };
+
+                        if (contentType.StartsWith("image/"))
+                            result = new CrawlResponse { Image = reqBody.Url };
+
+                        if (result != null)
+                        {
+                            result.Url = reqBody.Url;
+                            result.Site = reqBody.Site;
+                            result.Id = reqBody.Id;
+                        }
+
+                        return result;
+                    }
+                }
+                catch (WebException we)
+                {
+                    if ((we.Response as HttpWebResponse)?.StatusCode == HttpStatusCode.Forbidden)
+                        continue;
+
+                    throw;
+                }
+            }
+
+            throw new UnauthorizedAccessException("Unable to access HTTP endpoint");
+        }
 
         public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceWriter log)
         {
@@ -50,71 +149,21 @@ namespace Microsoft.DecisionService.Crawl
 
                     log.Info($"Crawl AppId={reqBody.Site} Id={reqBody.Id} Url={reqBody.Url}");
 
-                    Uri uri;
-                    if (!Uri.TryCreate(reqBody.Url, UriKind.Absolute, out uri))
+                    var crawlResponse = await Download(reqBody);
+
+                    var json = crawlResponse == null ? "{}" : JsonConvert.SerializeObject(crawlResponse, new JsonSerializerSettings
                     {
-                        return new HttpResponseMessage(HttpStatusCode.OK)
-                        {
-                            Content = new StringContent(
-                                "{}",
-                                new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
-                                "application/json")
-                        };
-                    }
+                        Formatting = Formatting.None,
+                        StringEscapeHandling = StringEscapeHandling.EscapeNonAscii
+                    });
 
-                    foreach (var userAgent in UserAgents)
+                    return new HttpResponseMessage(HttpStatusCode.OK)
                     {
-                        var request = (HttpWebRequest)WebRequest.Create(uri);
-
-                        if (!string.IsNullOrEmpty(reqBody.ETag))
-                            request.Headers.Add(HttpRequestHeader.IfNoneMatch, reqBody.ETag);
-
-                        request.Method = "GET";
-                        request.UserAgent = userAgent;
-
-                        try
-                        {
-                            using (var response = (HttpWebResponse)await request.GetResponseAsync())
-                            {
-                                operation.Telemetry.ResultCode = response.StatusCode.ToString();
-
-                                using (var stream = response.GetResponseStream())
-                                using (var reader = new StreamReader(stream))
-                                {
-                                    // TODO: allow direct JSON
-                                    // TODO: look for schema.org
-                                    var html = await reader.ReadToEndAsync();
-
-                                    // TODO: support microsoft:ds_id 
-                                    var result = HtmlExtractor.Parse(html, new Uri(reqBody.Url));
-                                    result.Url = reqBody.Url;
-                                    result.Site = reqBody.Site;
-                                    result.Id = reqBody.Id;
-
-                                    return new HttpResponseMessage(HttpStatusCode.OK)
-                                    {
-                                        Content = new StringContent(
-                                            JsonConvert.SerializeObject(result, new JsonSerializerSettings
-                                            {
-                                                Formatting = Formatting.None,
-                                                StringEscapeHandling = StringEscapeHandling.EscapeNonAscii
-                                            }),
-                                            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
-                                            "application/json")
-                                    };
-                                }
-                            }
-                        }
-                        catch (WebException we)
-                        {
-                            if ((we.Response as HttpWebResponse)?.StatusCode == HttpStatusCode.Forbidden)
-                                continue;
-                            
-                            throw;
-                        }
-                    }
-
-                    throw new UnauthorizedAccessException("Unable to access HTTP endpoint");
+                        Content = new StringContent(
+                            json,
+                            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
+                            "application/json")
+                    };
                 }
             }
             catch (Exception ex)

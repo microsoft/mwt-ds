@@ -1,9 +1,12 @@
-﻿using Microsoft.DecisionService.Crawl;
+﻿//------------------------------------------------------------------------------
+// <copyright company="Microsoft Corporation">
+//     Copyright (c) Microsoft Corporation. All rights reserved.
+// </copyright>
+//------------------------------------------------------------------------------
+
+using Microsoft.DecisionService.Crawl;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Web;
 
 namespace Crawl.VideoIndexer
 {
