@@ -155,19 +155,24 @@ namespace Microsoft.DecisionService.Crawl
 
                     if (breakdownContent == null)
                     {
-                        // enqueue break down indexing
                         if (string.IsNullOrEmpty(reqBody.Video))
                         {
+                            // try to resolve video through Ooyala
                             var ooyalaVideo = Ooyala.GetOoyalaVideo(reqBody.Id, settings);
-                            reqBody.Video = ooyalaVideo.Url;
 
-                            if (string.IsNullOrEmpty(reqBody.Description))
-                                reqBody.Description = ooyalaVideo.Description;
+                            if (ooyalaVideo != null)
+                            {
+                                reqBody.Video = ooyalaVideo.Url;
 
-                            if (reqBody.Categories == null || reqBody.Categories.Count == 0)
-                                reqBody.Categories = ooyalaVideo.Keywords;
+                                if (string.IsNullOrEmpty(reqBody.Description))
+                                    reqBody.Description = ooyalaVideo.Description;
+
+                                if (reqBody.Categories == null || reqBody.Categories.Count == 0)
+                                    reqBody.Categories = ooyalaVideo.Keywords;
+                            }
                         }
 
+                        // enqueue break down indexing
                         await IndexVideo(reqBody, settings);
 
                         // make sure caller comes back in 5min
