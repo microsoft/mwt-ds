@@ -74,16 +74,15 @@ namespace Microsoft.DecisionService.Crawl
             {
                 var localCogService = GetCognitiveService(settings);
 
-                var searchContent = await localCogService.RequestAsync(
-                    log,
-                    reqBody.Site,
-                    reqBody.Id + "ext", // make sure the blob names are unique
-                    $"/Breakdowns/Api/Partner/Breakdowns/Search?externalId={reqBody.Id}",
-                    reqBody.ForceRefresh,
-                    isPost: false,
-                    cancellationToken: cancellationToken);
+                var client = await localCogService.GetHttpClientAsync();
 
-                var videoIndexerResponse = JsonConvert.DeserializeObject<VideoIndexerSearchResult>(searchContent.Value);
+                var id = HttpUtility.UrlEncode(reqBody.Id);
+                var responseMessage = await client.GetAsync($"/Breakdowns/Api/Partner/Breakdowns/Search?externalId={id}", cancellationToken);
+                if (!responseMessage.IsSuccessStatusCode)
+                    return null;
+
+                var videoIndexerResponseStr = await responseMessage.Content.ReadAsStringAsync();
+                var videoIndexerResponse = JsonConvert.DeserializeObject<VideoIndexerSearchResult>(videoIndexerResponseStr);
                 var breakdownId = videoIndexerResponse.Results?.FirstOrDefault()?.Id;
                 if (breakdownId == null)
                     return null;
@@ -91,7 +90,7 @@ namespace Microsoft.DecisionService.Crawl
                 return await localCogService.RequestAsync(
                     log,
                     reqBody.Site,
-                    reqBody.Id + "br", // make sure the blob names are unique
+                    reqBody.Id,
                     $"/Breakdowns/Api/Partner/Breakdowns/{breakdownId}",
                     reqBody.ForceRefresh,
                     isPost: false,
