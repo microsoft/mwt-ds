@@ -103,7 +103,7 @@ namespace Microsoft.DecisionService.Crawl
         {
             if (reqBody == null || string.IsNullOrEmpty(reqBody.Video))
                 return;
-
+            
             using (var operation = Services.TelemetryClient.StartOperation<DependencyTelemetry>("Crawl.VideoIndexer.Enqueue"))
             {
                 // https://videobreakdown.azure-api.net/Breakdowns/Api/Partner/Breakdowns[?name][&privacy][&videoUrl][&language][&externalId][&metadata][&description][&partition][&callbackUrl][&indexingPreset][&streamingPreset]
@@ -111,9 +111,15 @@ namespace Microsoft.DecisionService.Crawl
                 var id = HttpUtility.UrlEncode(reqBody.Id);
                 var query =
                     "Breakdowns/Api/Partner/Breakdowns" +
-                    $"?name={id}&externalId={id}" +
+                    $"?externalId={id}" +
                     $"&videoUrl={url}" +
                     "&privacy=private&searchable=true";
+
+                string name = reqBody.Title;
+                if (string.IsNullOrEmpty(name))
+                    name = id;
+
+                query += "&name=" + name;
 
                 if (!string.IsNullOrEmpty(reqBody.Description))
                     query += "&description=" + reqBody.Description;
@@ -166,6 +172,9 @@ namespace Microsoft.DecisionService.Crawl
                             if (ooyalaVideo != null)
                             {
                                 reqBody.Video = ooyalaVideo.Url;
+
+                                if (string.IsNullOrEmpty(reqBody.Title))
+                                    reqBody.Title = ooyalaVideo.Title;
 
                                 if (string.IsNullOrEmpty(reqBody.Description))
                                     reqBody.Description = ooyalaVideo.Description;

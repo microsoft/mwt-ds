@@ -22,6 +22,7 @@ namespace Microsoft.DecisionService.Crawl
 
             var asset = api.get("assets/" + assetId, EmptyDict) as Hashtable;
             output.Description = asset?["description"] as string;
+            output.Title = asset?["name"] as string;
 
             var metadata = api.get($"assets/{assetId}/metadata", EmptyDict) as Hashtable;
             output.Keywords = (metadata?["keywords"] as string)?.Split(',')?.ToList();
