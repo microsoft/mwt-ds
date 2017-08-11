@@ -71,7 +71,7 @@ namespace Microsoft.DecisionService.Crawl
                 {
                     return new CrawlResponse
                     {
-                        Features =  await reader.ReadToEndAsync()
+                        Features = await reader.ReadToEndAsync()
                     };
                 }
             }
@@ -110,13 +110,6 @@ namespace Microsoft.DecisionService.Crawl
                         if (contentType.StartsWith("image/"))
                             result = new CrawlResponse { Image = reqBody.Url };
 
-                        if (result == null)
-                            result = new CrawlResponse();
-
-                        result.Url = reqBody.Url;
-                        result.Site = reqBody.Site;
-                        result.Id = reqBody.Id;
-
                         return result;
                     }
                 }
@@ -151,7 +144,15 @@ namespace Microsoft.DecisionService.Crawl
 
                     var crawlResponse = await Download(reqBody);
 
-                    var json = crawlResponse == null ? "{}" : JsonConvert.SerializeObject(crawlResponse, new JsonSerializerSettings
+                    // always return a valid object so that downstream workflows can continue
+                    if (crawlResponse == null)
+                        crawlResponse = new CrawlResponse();
+
+                    crawlResponse.Url = reqBody.Url;
+                    crawlResponse.Site = reqBody.Site;
+                    crawlResponse.Id = reqBody.Id;
+
+                    var json = JsonConvert.SerializeObject(crawlResponse, new JsonSerializerSettings
                     {
                         Formatting = Formatting.None,
                         StringEscapeHandling = StringEscapeHandling.EscapeNonAscii

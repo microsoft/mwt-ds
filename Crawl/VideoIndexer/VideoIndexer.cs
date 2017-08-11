@@ -148,6 +148,9 @@ namespace Microsoft.DecisionService.Crawl
                     operation.Telemetry.Properties.Add("AppId", reqBody.Site);
                     operation.Telemetry.Properties.Add("ActionId", reqBody.Id);
 
+                    if (string.IsNullOrEmpty(reqBody.Id))
+                        return Services.CreateResponse(new BlobContent { Expires = DateTime.UtcNow + TimeSpan.FromMinutes(5) });
+
                     var settings = await GetVideoIndexerSettings(reqBody.Site);
 
                     // find existing breakdown
