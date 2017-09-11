@@ -102,9 +102,21 @@ namespace Microsoft.DecisionService.Crawl
         {
             if (reqBody == null || string.IsNullOrEmpty(reqBody.Video))
                 return;
-            
+
+            //var account = CloudStorageAccount.Parse(await cogService.GetAzureStorageConnectionStringAsync());
+            //var blobClient = account.CreateCloudBlobClient();
+
+            //var container = blobClient.GetContainerReference(BlobCache.ToContainerName(DateTime.UtcNow, cogService.containerName));
+            //await container.CreateIfNotExistsAsync();
+
+            //var leaseBlob = container.GetBlockBlobReference(BlobCache.ToBlobName(reqBody.Site, reqBody.Id) + ".lease");
+            //leaseBlob.
+
             using (var operation = Services.TelemetryClient.StartOperation<DependencyTelemetry>("Crawl.VideoIndexer.Enqueue"))
             {
+                operation.Telemetry.Properties.Add("url", reqBody.Video);
+                operation.Telemetry.Properties.Add("id", reqBody.Id);
+
                 // https://videobreakdown.azure-api.net/Breakdowns/Api/Partner/Breakdowns[?name][&privacy][&videoUrl][&language][&externalId][&metadata][&description][&partition][&callbackUrl][&indexingPreset][&streamingPreset]
                 var url = HttpUtility.UrlEncode(reqBody.Video);
                 var id = HttpUtility.UrlEncode(reqBody.Id);
@@ -127,8 +139,10 @@ namespace Microsoft.DecisionService.Crawl
                     query += "&metadata=" + HttpUtility.UrlEncode(string.Join(" ", reqBody.Categories));
 
                 var localCogService = GetCognitiveService(settings);
-
+                
                 var client = await localCogService.GetHttpClientAsync();
+               
+
                 var httpResponse = await client.PostAsync(client.BaseAddress + query, new MultipartFormDataContent());
 
                 operation.Telemetry.Success = httpResponse.IsSuccessStatusCode;
