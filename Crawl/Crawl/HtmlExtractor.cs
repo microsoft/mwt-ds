@@ -149,7 +149,7 @@ namespace Microsoft.DecisionService.Crawl
             response.Description = FindMeta(head, "meta[@property='og:description' or name='og:description' or @property='twitter:description' or @name='twitter:description' or @name='description']");
 
             if (string.IsNullOrEmpty(response.Description))
-                response.Title = FindValue(head, "title");
+                response.Description = FindValue(head, "title");
 
             if (response.Description != null)
                 response.Description = WebUtility.HtmlDecode(response.Description.Trim());
@@ -170,6 +170,11 @@ namespace Microsoft.DecisionService.Crawl
                 response.Image = img;
             }
 
+            // extract keywords
+            var keywords = FindMeta(head, "meta[@name='keywords']");
+            if (!string.IsNullOrEmpty(keywords))
+                response.Keywords = keywords.Split(',').Select(k => k.Trim()).ToList();
+
             // build article
             var articleText = new StringBuilder();
 
@@ -188,6 +193,15 @@ namespace Microsoft.DecisionService.Crawl
 
                 if (!string.IsNullOrEmpty(text))
                     articleText.AppendLine(text);
+            }
+            
+            if (string.IsNullOrWhiteSpace(articleText.ToString()))
+            {
+                if (!string.IsNullOrEmpty(response.Title))
+                    articleText.AppendLine(response.Title);
+
+                if (!string.IsNullOrEmpty(response.Description))
+                    articleText.AppendLine(response.Description);
             }
 
             response.Article = WebUtility.HtmlDecode(articleText.ToString());

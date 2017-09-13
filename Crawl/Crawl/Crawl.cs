@@ -98,7 +98,7 @@ namespace Microsoft.DecisionService.Crawl
 
                         CrawlResponse result = null;
 
-                        if (contentType.StartsWith("text/html"))
+                        if (string.IsNullOrWhiteSpace(contentType) || contentType.StartsWith("text/html"))
                             result = await DownloadHtml(uri, userAgent, reqBody);
 
                         if (contentType.StartsWith("application/json"))
