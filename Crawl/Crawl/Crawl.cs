@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.DecisionService.Crawl
 {
@@ -71,7 +72,7 @@ namespace Microsoft.DecisionService.Crawl
                 {
                     return new CrawlResponse
                     {
-                        Features = await reader.ReadToEndAsync()
+                        Features = JToken.Parse(await reader.ReadToEndAsync())
                     };
                 }
             }
