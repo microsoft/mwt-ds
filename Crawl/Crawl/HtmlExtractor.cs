@@ -187,7 +187,7 @@ namespace Microsoft.DecisionService.Crawl
             if (!string.IsNullOrEmpty(keywords))
             {
                 response.Keywords = keywords.Split(',').Select(k => WebUtility.HtmlDecode(k.Trim())).ToList();
-                response.Features = JsonConvert.SerializeObject(
+                response.Features = 
                     new HtmlFeatures
                     {
                         Keywords = new HtmlKeywordFeatures
@@ -195,7 +195,7 @@ namespace Microsoft.DecisionService.Crawl
                             // make sure individual keywords are represented as individual VW features
                             Keywords = string.Join(" ", response.Keywords.Select(k => k.Replace(' ', '_')))
                         }
-                    });
+                    };
             }
 
             // build article
