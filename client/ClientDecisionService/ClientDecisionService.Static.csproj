@@ -55,8 +55,8 @@
     <DocumentationFile>$(SolutionDir)bin\x64\Release\Microsoft.Research.MultiWorldTesting.ClientLibrary.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="GitLink, Version=2.4.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\gitlink.2.4.1\lib\net45\GitLink.exe</HintPath>
+    <Reference Include="GitLink, Version=2.4.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)\packages\gitlink.2.4.0\lib\net45\GitLink.exe</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.AI.PerfCounterCollector, Version=2.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
