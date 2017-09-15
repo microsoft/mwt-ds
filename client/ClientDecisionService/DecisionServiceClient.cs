@@ -27,7 +27,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         private AzureBlobBackgroundDownloader settingsDownloader;
         private AzureBlobBackgroundDownloader modelDownloader;
         private INumberOfActionsProvider<TContext> numActionsProvider;
- 
+
         private class OfflineRecorder : IRecorder<TContext, int[]>
         {
             public void Record(TContext context, int[] value, object explorerState, object mapperState, string uniqueKey)
@@ -237,7 +237,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         public IRecorder<TContext, int[]> Recorder
         {
             get { return this.recorder; }
-            set 
+            set
             {
                 if (value == null)
                     throw new ArgumentNullException("Recorder");
@@ -256,7 +256,12 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
         public async Task<int> ChooseActionAsync(string uniqueKey, TContext context, IPolicy<TContext> defaultPolicy)
         {
-            return await ChooseActionAsync(uniqueKey, context, (await defaultPolicy.MapContextAsync(context)).Value);
+            return await this.ChooseActionAsync(uniqueKey, context, (await defaultPolicy.MapContextAsync(context)).Value, doNotLog: false);
+        }
+
+        public async Task<int> ChooseActionAsync(string uniqueKey, TContext context, IPolicy<TContext> defaultPolicy, bool doNotLog)
+        {
+            return await this.ChooseActionAsync(uniqueKey, context, (await defaultPolicy.MapContextAsync(context)).Value, doNotLog);
         }
 
         [Obsolete("Use Async version")]
@@ -267,6 +272,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 .GetAwaiter()
                 .GetResult();
         }
+
         [Obsolete("Use Async version")]
         public int ChooseAction(string uniqueKey, TContext context, int defaultAction)
         {
@@ -276,7 +282,12 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 .GetResult();
         }
 
-        public async Task<int> ChooseActionAsync(string uniqueKey, TContext context, int defaultAction)
+        public Task<int> ChooseActionAsync(string uniqueKey, TContext context, int defaultAction)
+        {
+            return ChooseActionAsync(uniqueKey, context, defaultAction, doNotLog: false);
+        }
+
+        public async Task<int> ChooseActionAsync(string uniqueKey, TContext context, int defaultAction, bool doNotLog)
         {
             var numActions = this.numActionsProvider.GetNumberOfActions(context);
             var actions = new int[numActions];
@@ -291,18 +302,18 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 action++;
             }
 
-            return (await this.mwtExplorer.ChooseActionAsync(uniqueKey, context, actions))[0];
-        }
-
-        public async Task<int> ChooseActionAsync(string uniqueKey, TContext context)
-        {
-            return (await this.ChooseRankingAsync(uniqueKey, context))[0];
+            return (await this.mwtExplorer.ChooseActionAsync(uniqueKey, context, actions, doNotLog))[0];
         }
 
         [Obsolete("Use Async version")]
         public int ChooseAction(string uniqueKey, TContext context)
         {
             return this.ChooseRanking(uniqueKey, context)[0];
+        }
+
+        public async Task<int> ChooseActionAsync(string uniqueKey, TContext context)
+        {
+            return (await this.ChooseRankingAsync(uniqueKey, context, doNotLog: false))[0];
         }
 
         [Obsolete("Use Async version")]
@@ -332,25 +343,40 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 .GetResult();
         }
 
-        public async Task<int[]> ChooseRankingAsync(string uniqueKey, TContext context, IRanker<TContext> defaultRanker)
+        public Task<int[]> ChooseRankingAsync(string uniqueKey, TContext context, IRanker<TContext> defaultRanker)
         {
-            return await ChooseRankingAsync(uniqueKey, context, (await defaultRanker.MapContextAsync(context)).Value);
+            return this.ChooseRankingAsync(uniqueKey, context, defaultRanker, doNotLog: false);
         }
 
-        public async Task<int[]> ChooseRankingAsync(string uniqueKey, TContext context, int[] defaultActions)
+        public async Task<int[]> ChooseRankingAsync(string uniqueKey, TContext context, IRanker<TContext> defaultRanker, bool doNotLog)
         {
-            return await this.mwtExplorer.ChooseActionAsync(uniqueKey, context, defaultActions);
+            return await ChooseRankingAsync(uniqueKey, context, (await defaultRanker.MapContextAsync(context)).Value, doNotLog);
         }
 
-        public async Task<int[]> ChooseRankingAsync(string uniqueKey, TContext context)
+        public Task<int[]> ChooseRankingAsync(string uniqueKey, TContext context, int[] defaultActions)
+        {
+            return this.ChooseRankingAsync(uniqueKey, context, defaultActions, doNotLog: false);
+        }
+
+        public async Task<int[]> ChooseRankingAsync(string uniqueKey, TContext context, int[] defaultActions, bool doNotLog)
+        {
+            return await this.mwtExplorer.ChooseActionAsync(uniqueKey, context, defaultActions, doNotLog);
+        }
+
+        public Task<int[]> ChooseRankingAsync(string uniqueKey, TContext context)
+        {
+            return this.ChooseRankingAsync(uniqueKey, context, doNotLog: false);
+        }
+
+        public async Task<int[]> ChooseRankingAsync(string uniqueKey, TContext context, bool doNotLog)
         {
             var initialPolicy = this.initialPolicy;
             if (initialPolicy != null)
             {
-                return await this.mwtExplorer.ChooseActionAsync(uniqueKey, context, initialPolicy);
+                return await this.mwtExplorer.ChooseActionAsync(uniqueKey, context, initialPolicy, doNotLog);
             }
 
-            return await this.mwtExplorer.ChooseActionAsync(uniqueKey, context);
+            return await this.mwtExplorer.ChooseActionAsync(uniqueKey, context, doNotLog);
         }
 
         /// <summary>

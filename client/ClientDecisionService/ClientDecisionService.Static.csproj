@@ -217,7 +217,7 @@
     <AssemblyInfo CodeLanguage="CS" OutputFile="$(MSBuildProjectDirectory)\Properties\AssemblyInfo.cs" AssemblyTitle="Microsoft.Research.MultiWorldTesting.ClientLibrary" AssemblyDescription="" AssemblyConfiguration="" AssemblyCompany="Microsoft Corp" AssemblyProduct="Microsoft.Research.MultiWorldTesting.ClientLibrary" AssemblyCopyright="Copyright (C) Microsoft Corp 2014-2016" AssemblyTrademark="" ComVisible="false" CLSCompliant="false" Guid="a991c863-165c-4fd5-b388-45b13df358a8" AssemblyVersion="$(ClientLibraryAssemblyVersion)" AssemblyFileVersion="$(ClientLibraryAssemblyVersion)" />
   </Target>
   <Target Name="AfterBuild">
-    <Exec Command="$(SolutionDir)packages\gitlink.2.4.1\lib\net45\GitLink.exe ..\.. -f $(SolutionDir)\mwt-ds.sln -p $(Platform) -c $(Configuration) -d $(OutDir) -errorsaswarnings -u https://github.com/Microsoft/mwt-ds" Condition="'$(BuildNuget)' == 'true'" />
+    <Exec Command="$(SolutionDir)packages\gitlink.2.4.0\lib\net45\GitLink.exe ..\.. -f $(SolutionDir)\mwt-ds.sln -p $(Platform) -c $(Configuration) -d $(OutDir) -errorsaswarnings -u https://github.com/Microsoft/mwt-ds" Condition="'$(BuildNuget)' == 'true'" />
     <Exec Command=".nuget\nuget pack $(ProjectDir)\$(ProjectName).nuspec -Version $(ClientLibraryAssemblyVersion) -Prop &quot;Configuration=Release;Platform=x64&quot; -Prop SolutionDir=$(SolutionDir) -OutputDirectory $(OutDir) " WorkingDirectory="$(SolutionDir)" Condition="'$(BuildNuget)' == 'true'" />
   </Target>
   <Import Project="$(SolutionDir)\packages\MSBuildTasks.1.5.0.214\build\MSBuildTasks.targets" Condition="Exists('$(SolutionDir)\packages\MSBuildTasks.1.5.0.214\build\MSBuildTasks.targets')" />
