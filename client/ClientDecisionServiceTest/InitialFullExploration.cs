@@ -31,7 +31,7 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         [TestCategory("Client Library")]
         [Priority(0)]
-        public void InitialFullExplorationTest()
+        public async Task InitialFullExplorationTest()
         {
             var recorder = new MyRecorder();
 
@@ -53,7 +53,7 @@ namespace ClientDecisionServiceTest
 
                 using (var ds = DecisionService.CreateJson(config, metaData:metaData).WithRecorder(recorder))
                 {
-                    var decision = ds.ChooseRanking("abc", "{\"a\":1,\"_multi\":[{\"b\":2}]}");
+                    var decision = await ds.ChooseRankingAsync("abc", "{\"a\":1,\"_multi\":[{\"b\":2}]}");
 
                     // since there's not a model loaded why should get 100% exploration
                     // Assert.AreEqual(1f, recorder.LastExplorerState.Probability);
@@ -61,7 +61,7 @@ namespace ClientDecisionServiceTest
                     model.Position = 0;
                     ds.UpdateModel(model);
 
-                    decision = ds.ChooseRanking("abc", "{\"a\":1,\"_multi\":[{\"b\":2}, {\"b\":3}]}");
+                    decision = await ds.ChooseRankingAsync("abc", "{\"a\":1,\"_multi\":[{\"b\":2}, {\"b\":3}]}");
                     // Assert.AreNotEqual(1f, recorder.LastExplorerState.Probability);
 
                     var vwState = recorder.LastMapperState as VWState;

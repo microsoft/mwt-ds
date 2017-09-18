@@ -16,7 +16,7 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         [TestCategory("Client Library")]
         [Priority(1)]
-        public void TestDevModeSettingsAndExampleLog()
+        public async Task TestDevModeSettingsAndExampleLog()
         {
             joinServer.Reset();
 
@@ -57,7 +57,7 @@ namespace ClientDecisionServiceTest
                     Random rg = new Random(i);
                     int numActions = rg.Next(5, 20);
                     var context = TestADFContextWithFeatures.CreateRandom(numActions, rg);
-                    int[] action = ds.ChooseRanking(interId, context);
+                    int[] action = await ds.ChooseRankingAsync(interId, context);
                     ds.ReportReward(i / 100f, obserId);
 
                     eventIdList.Add(interId);

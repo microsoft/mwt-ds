@@ -30,17 +30,34 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// </summary>
         public string Key { get; set; }
 
-        // int, int[]
+        /// <summary>
+        /// The action or ranking (int, int[])
+        /// </summary>
         public object Value { get; set; }
 
+        /// <summary>
+        /// The supplied context.
+        /// </summary>
         public object Context { get; set; }
 
+        /// <summary>
+        /// The state of the explorer (e.g. model id to be able to correlate back).
+        /// </summary>
         public object ExplorerState { get; set; }
 
+        /// <summary>
+        /// The state of the mapper (e.g. model id to be able to correlate back).
+        /// </summary>
         public object MapperState { get; set; }
 
+        /// <summary>
+        /// If pipeline overflows, we drop stochastically.
+        /// </summary>
         public float? ProbabilityOfDrop { get; set; }
 
+        /// <summary>
+        /// Create epsilon greedy interaction???
+        /// </summary>
         public static Interaction CreateEpsilonGreedy<TContext>(string key, TContext context, int action, float probability)
         {
             return Interaction.Create(key, context, action, new GenericExplorerState { Probability = probability });

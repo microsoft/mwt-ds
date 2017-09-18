@@ -17,7 +17,7 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         [TestCategory("Client Library")]
         [Priority(1)]
-        public void TestSingleActionDSUploadSingleEvent()
+        public async Task TestSingleActionDSUploadSingleEvent()
         {
             joinServer.Reset();
 
@@ -35,7 +35,7 @@ namespace ClientDecisionServiceTest
                 .Create<TestContext>(dsConfig)
                 .ExploitUntilModelReady(new ConstantPolicy<TestContext>()))
             {
-                chosenAction = ds.ChooseAction(uniqueKey, new TestContext());
+                chosenAction = await ds.ChooseActionAsync(uniqueKey, new TestContext());
             }
 
             Assert.AreEqual(1, joinServer.RequestCount);
@@ -48,7 +48,7 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         [TestCategory("Client Library")]
         [Priority(1)]
-        public void TestSingleActionDSUploadMultipleEvents()
+        public async Task TestSingleActionDSUploadMultipleEvents()
         {
             joinServer.Reset();
 
@@ -64,8 +64,8 @@ namespace ClientDecisionServiceTest
                 .ExploitUntilModelReady(new ConstantPolicy<TestContext>()))
             {
 
-                int chosenAction1 = ds.ChooseAction(uniqueKey, new TestContext());
-                int chosenAction2 = ds.ChooseAction(uniqueKey, new TestContext());
+                int chosenAction1 = await ds.ChooseActionAsync(uniqueKey, new TestContext());
+                int chosenAction2 = await ds.ChooseActionAsync(uniqueKey, new TestContext());
                 ds.ReportReward(1.0f, uniqueKey);
                 ds.ReportOutcome(JsonConvert.SerializeObject(new { value = "test outcome" }), uniqueKey);
             }
@@ -148,7 +148,7 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
-        public void TestMultiActionDSUploadSingleEvent()
+        public async Task TestMultiActionDSUploadSingleEvent()
         {
             joinServer.Reset();
 
@@ -164,7 +164,7 @@ namespace ClientDecisionServiceTest
                 //.WithTopSlotEpsilonGreedy(.2f)
                 .ExploitUntilModelReady(new ConstantPolicy<TestContext>()))
             {
-                chosenActions = ds.ChooseRanking(uniqueKey, new TestContext());
+                chosenActions = await ds.ChooseRankingAsync(uniqueKey, new TestContext());
             }
 
             Assert.AreEqual(1, joinServer.RequestCount);
@@ -177,7 +177,7 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         [TestCategory("Client Library")]
         [Priority(1)]
-        public void TestMultiActionDSUploadMultipleEvents()
+        public async Task TestMultiActionDSUploadMultipleEvents()
         {
             joinServer.Reset();
 
@@ -191,8 +191,8 @@ namespace ClientDecisionServiceTest
                 //.WithTopSlotEpsilonGreedy(.2f)
                 .ExploitUntilModelReady(new ConstantPolicy<TestContext>()))
             {
-                int[] chosenAction1 = ds.ChooseRanking(uniqueKey, new TestContext());
-                int[] chosenAction2 = ds.ChooseRanking(uniqueKey, new TestContext());
+                int[] chosenAction1 = await ds.ChooseRankingAsync(uniqueKey, new TestContext());
+                int[] chosenAction2 = await ds.ChooseRankingAsync(uniqueKey, new TestContext());
                 ds.ReportReward(1.0f, uniqueKey);
                 ds.ReportOutcome(new { value = "test outcome" }, uniqueKey);
             }
@@ -202,7 +202,7 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         [TestCategory("Client Library")]
         [Priority(1)]
-        public void TestMultiActionDSUploadSelective()
+        public async Task TestMultiActionDSUploadSelective()
         {
             joinServer.Reset();
 
@@ -233,7 +233,7 @@ namespace ClientDecisionServiceTest
             {
                 for (int i = 0; i < numEvents; i++)
                 {
-                    int[] chosenAction1 = ds.ChooseRanking(uniqueKey, new TestContext());
+                    int[] chosenAction1 = await ds.ChooseRankingAsync(uniqueKey, new TestContext());
                 }
             }
             // Some events must have been dropped so the total count cannot be same as original

@@ -95,7 +95,7 @@ namespace ClientDecisionServiceTest
         }
 
         [TestMethod]
-        public void TestDSLocalModelUpdate()
+        public async Task TestDSLocalModelUpdate()
         {
             string vwArgs = "--cb_explore_adf --epsilon 0.2 --cb_type dr -q ::";
             DecisionServiceLocal<FoodContext> dsLocal = new DecisionServiceLocal<FoodContext>(vwArgs, 1, TimeSpan.MaxValue);
@@ -107,17 +107,17 @@ namespace ClientDecisionServiceTest
             // Generate interactions and ensure the model updates at the right frequency
             // (updates every example initially)
             prevModel = dsLocal.Model;
-            dsLocal.ChooseAction(guid1, context, 1);
+            await dsLocal.ChooseActionAsync(guid1, context, 1);
             dsLocal.ReportRewardAndComplete((float)1.0, guid1);
             Assert.IsTrue(!dsLocal.Model.SequenceEqual(prevModel));
 
             // Set the model to update every two examples
             prevModel = dsLocal.Model;
             dsLocal.ModelUpdateInterval = 2;
-            dsLocal.ChooseAction(guid1, context, 1);
+            await dsLocal.ChooseActionAsync(guid1, context, 1);
             dsLocal.ReportRewardAndComplete((float)1.0, guid1);
             Assert.IsFalse(!dsLocal.Model.SequenceEqual(prevModel));
-            dsLocal.ChooseAction(guid2, context, 1);
+            await dsLocal.ChooseActionAsync(guid2, context, 1);
             dsLocal.ReportRewardAndComplete((float)2.0, guid1);
             Assert.IsTrue(!dsLocal.Model.SequenceEqual(prevModel));
         }

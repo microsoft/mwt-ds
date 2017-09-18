@@ -33,12 +33,17 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// </summary>
         protected readonly BatchingConfiguration batchConfig;
         private readonly CancellationTokenSource cancellationTokenSource;
+
+        /// <summary>
+        /// Cancellation token used for shutdown
+        /// </summary>
         protected CancellationToken cancellationToken;
 
         /// <summary>
         /// Constructs an uploader object.
         /// </summary>
         /// <param name="batchConfig">Optional; The batching configuration that controls the buffer size.</param>
+        /// <param name="developmentMode">If true, enables additional logging and disables batching.</param>
         public BaseEventUploader(BatchingConfiguration batchConfig = null, bool developmentMode = false)
         {
             this.cancellationTokenSource = new CancellationTokenSource();
@@ -96,6 +101,9 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// </summary>
         public event EventUploaderSuccessEventHandler SuccessHandler;
 
+        /// <summary>
+        /// Invoke when a batch completed.
+        /// </summary>
         public event EventUploaderCompletedEventHandler CompletionHandler;
 
         internal void FireErrorHandler(Exception e)

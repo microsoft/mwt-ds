@@ -18,7 +18,7 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         [TestCategory("Client Library")]
         [Priority(1)]
-        public void TestRcv1ModelUpdateFromStream()
+        public async Task TestRcv1ModelUpdateFromStream()
         {
             joinServer.Reset();
 
@@ -63,7 +63,7 @@ namespace ClientDecisionServiceTest
 
                     DateTime timeStamp = DateTime.UtcNow;
 
-                    int action = ds.ChooseAction(uniqueKey, context);
+                    int action = await ds.ChooseActionAsync(uniqueKey, context);
 
                     // verify the actions are in the expected range
                     Assert.IsTrue(action >= 1 && action <= numActions);

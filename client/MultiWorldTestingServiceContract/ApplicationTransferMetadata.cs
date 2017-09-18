@@ -27,10 +27,20 @@ namespace Microsoft.Research.MultiWorldTesting.Contract
     /// </summary>
     public enum TrainFrequency
     {
+        /// <summary>
+        /// Low frequency.
+        /// </summary>
         Low = 0,
+
+        /// <summary>
+        /// High frequency.
+        /// </summary>
         High
     }
 
+    /// <summary>
+    /// Defines the content of the client settings file.
+    /// </summary>
     public class ApplicationClientMetadata
     {
         /// <summary>
@@ -68,9 +78,15 @@ namespace Microsoft.Research.MultiWorldTesting.Contract
         /// </summary>
         public string AppInsightsKey { get; set; }
 
+        /// <summary>
+        /// Amount of exploration to apply if no model is available yet.
+        /// </summary>
         public float InitialExplorationEpsilon { get; set; }
     }
 
+    /// <summary>
+    /// Defines the content of the "extra" settings file.
+    /// </summary>
     public class ApplicationExtraMetadata
     {
         /// <summary>
