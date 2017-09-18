@@ -6,8 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
@@ -16,16 +14,28 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
     /// </summary>
     public sealed class PerformanceCounters : IDisposable
     {
+        /// <summary>
+        /// Use to configure performance counters based on members.
+        /// </summary>
         public class PerformanceCounterTypeAttribute : Attribute
         {
+            /// <summary>
+            /// Creates an instance.
+            /// </summary>
             public PerformanceCounterTypeAttribute(PerformanceCounterType type, string name = null)
             {
                 this.Type = type;
                 this.Name = name;
             }
 
+            /// <summary>
+            /// The type of perf counter.
+            /// </summary>
             public PerformanceCounterType Type { get; private set; }
 
+            /// <summary>
+            /// The name of the perf counter.
+            /// </summary>
             public string Name { get; private set; }
         }
 

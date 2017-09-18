@@ -422,12 +422,18 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             }
         }
 
+        /// <summary>
+        /// Diposes resources.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Diposes resources.
+        /// </summary>
         public virtual void Dispose(bool disposing)
         {
             // Always free unmanaged objects, but conditionally free managed objets if this is being
