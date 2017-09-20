@@ -27,11 +27,18 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             this.explore = true;
         }
 
+        /// <summary>
+        /// Enable or disables exploration.
+        /// </summary>
+        /// <param name="explore">True to enable exploration.</param>
         public void EnableExplore(bool explore)
         {
             this.explore = explore;
         }
 
+        /// <summary>
+        /// Maps a context to a decision.
+        /// </summary>
         public ExplorerDecision<TAction> MapContext(PRG random, IReadOnlyCollection<TAction> policyActions, int numActions)
         {
             // Invoke the default policy function to get the action

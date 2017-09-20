@@ -15,7 +15,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
         private ulong V;
 
         /// <summary>
-        /// Equivalent to C++ union containing int & float member.
+        /// Equivalent to C++ union containing int and float member.
         /// </summary>
         [StructLayout(LayoutKind.Explicit)]
         private struct IntFloat
