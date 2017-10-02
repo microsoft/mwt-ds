@@ -114,8 +114,9 @@ if __name__ == '__main__':
     #        if counter >= 50:
                 #break
 
-    shared_features = ['G', 'M', 'O']
-    action_features = ['X', 'T', 'E', 'R', 'S']
+
+    shared_features = ['G', 'M', 'O']               # {Geo, MRefer, OUserAgent}
+    action_features = ['X', 'T', 'E', 'R', 'S']     # {XSentiment, Tags, Emotion, RVisionTags, SVisionAdult}
     marginal_features = ['i']
 
     # disable auto discovery    
@@ -134,11 +135,6 @@ if __name__ == '__main__':
 
     # Base parameters and setting up the cache file
     base_command = "vw --cb_adf -d %s --dsjson -c --power_t 0 --ignore A" % file_name # TODO: VW location should be a command line parameter. 
-    # base_command = "vw --cb_adf -d %s --dsjson -c --power_t 0 --quadratic GT --quadratic MR --quadratic GR --quadratic ME --quadratic OT --quadratic OE --quadratic OR --quadratic MS --quadratic GX --ignore A" % sys.argv[1] # TODO: VW location should be a command line parameter. 
-    # base_command = "vw --cb_adf -d %s --dsjson -c --power_t 0.5 --quadratic GT --quadratic MR --quadratic GR --quadratic ME --quadratic OT --quadratic OE --quadratic OR --quadratic MS --quadratic GX --ignore A" % sys.argv[1] # TODO: VW location should be a command line parameter. 
-    # base_command = "vw --cb_adf -d %s --dsjson -c --quadratic GT --quadratic MR --quadratic GR --quadratic ME --quadratic OT --quadratic OE --quadratic OR --quadratic MS --quadratic GX --ignore A" % sys.argv[1] # TODO: VW location should be a command line parameter. 
-    # base_command = "vw --cb_adf -d %s --dsjson -c --power_t 0 -q OE -q GS -q OS" % sys.argv[1]
-    
     # base_command = "vw --cb_explore_adf --epsilon 0.2 -d %s --json -c --power_t 0" % sys.argv[1] # TODO: VW location should be a command line parameter. 
     #  -q LG -q TG
     # base_command += " --quadratic UG --quadratic RG --quadratic AG --ignore B --ignore C --ignore D --ignore E --ignore F --marginal JK"
