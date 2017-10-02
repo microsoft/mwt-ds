@@ -1,13 +1,7 @@
 import json, os, time, pickle, sys, requests
 import matplotlib.pyplot as plt
 import numpy as np
-
-################################# SETTINGS ################################
-log_dir = r'D:\data\logDownloader'
-save_fig_to_file = False
-fig_dir = r'D:\data\logDownloader\figures'
-pkl_data_fp = os.path.join(log_dir, 'ds_data_dict.pickle')
-###########################################################################
+import configparser
 
 
 # Create dictionary with filename as keys
@@ -47,7 +41,7 @@ def parse_logs(raw_stats, files, overwrite, file_path):
                     c2[d][dev][0] += 1
                     c2[d][dev][2] -= x['_label_cost']
             except Exception as e:
-                print('error',e)
+                print('error: {0}'.format(e))
 
         raw_stats[os.path.basename(fp)] = c2
 
@@ -75,9 +69,19 @@ if __name__ == '__main__':
         print("Usage: python Visualization.py {container_name} [StartDate] [EndDate] [overwrite]")
         print("Example Usage: python Visualization.py cmplx 2017-09-28 2017-09-29")
         sys.exit()
+        
+    config = configparser.ConfigParser()
+    config.read('ds.config')
+    visua_config = config['Visualization']
     
+    log_dir = visua_config['LogDir']
+    pkl_data_fp = visua_config['PickleDataPath']
+    fig_dir = visua_config['FigDir']
+    save_fig_to_file = visua_config['save_fig_to_file'] == "True"
+    
+            
     container = sys.argv[1]
-    print('Container:',container)
+    print('Container: {0}'.format(container))
     
     if not os.path.isdir(os.path.join(log_dir,container)):
         os.makedirs(os.path.join(log_dir,container))
@@ -93,34 +97,24 @@ if __name__ == '__main__':
         
         if len(sys.argv) > 4 and sys.argv[4] == 'overwrite':
             overwrite = True
-            print('Overwrite: True')
+        print('Overwrite: {0}'.format(overwrite))
         
-        file_path = os.path.join(log_dir, container, 'CONTAINER_START_END.json')
-        file_path = file_path.replace("CONTAINER", container)
-        file_path = file_path.replace("START", START)
-        file_path = file_path.replace("END", END)
+        file_path = os.path.join(log_dir, container, container+'_'+START+'_'+END+'.json')
         
         if not overwrite and os.path.isfile(file_path):
-            print('File ('+file_path+') exits, not downloading')
+            print('File ({0}) exits, not downloading'.format(file_path))
         else:
-            print('Download logs:',START,'-',END)
+            print('Downloading logs: {0} - {1}'.format(START, END))
 
             if os.path.isfile(pkl_data_fp):
                 with open(pkl_data_fp, 'rb') as pkl_file:
                     data = pickle.load(pkl_file)
             else:
-                print("Data dict not found at:",pkl_data_fp)
+                print("Data dict not found at: {0}".format(pkl_data_fp))
                 sys.exit()    
 
             t0 = time.time()
-
-            url = "https://cps-staging-exp-experimentation.azurewebsites.net/api/Log?account=ACCOUNT&key=KEY&start=START&end=END&container=CONTAINER"
-            url = url.replace("CONTAINER", container)
-            url = url.replace("START", START)
-            url = url.replace("END", END)
-            for x in data[container]:
-                url = url.replace(x, data[container][x])
-
+            url = visua_config['LogDownloaderURL'].format(**data[container], CONTAINER=container, START=START, END=END)
             r = requests.post(url)
             open(file_path, 'wb').write(r.content)
             print('Download time:',time.time()-t0)
