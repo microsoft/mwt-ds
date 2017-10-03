@@ -100,7 +100,7 @@ namespace Microsoft.DecisionService.Crawl
 
         private static async Task IndexVideo(CrawlResponse reqBody, VideoIndexerSettings settings)
         {
-            if (reqBody == null || string.IsNullOrEmpty(reqBody.Video))
+            if (reqBody == null || string.IsNullOrEmpty(reqBody.Video) || !Uri.TryCreate(reqBody.Video, UriKind.Absolute, out Uri unused))
                 return;
 
             //var account = CloudStorageAccount.Parse(await cogService.GetAzureStorageConnectionStringAsync());
@@ -175,7 +175,10 @@ namespace Microsoft.DecisionService.Crawl
                     // find existing breakdown
                     var breakdownContent = await GetVideoIndexerBreakdownAsync(reqBody, settings, log, cancellationToken);
 
-                    if (breakdownContent == null)
+                    // The GetVideoIndexerBreakdownAsync call can, if the underlying call to VideoIndexer GetBreakdown fails - but the 
+                    // call to VideoIndexer SearchBreakdown succeeds, return a BlobContent with an empty Value, and a short "expires".
+                    // Treat that as the same as not getting a VideoIndexer response.
+                    if (breakdownContent == null || String.IsNullOrWhiteSpace(breakdownContent.Value))
                     {
                         if (string.IsNullOrEmpty(reqBody.Video))
                         {
