@@ -23,7 +23,7 @@ def parse_logs(raw_stats, files, overwrite, file_path):
                 continue
             
             try:
-                x = json.loads(line.strip())
+                x = json.loads(line.split(',"_multi":[', 1)[0].strip()+'}}')
                 
                 # Parse datetime string and device
                 d = x['Timestamp'][:13]
