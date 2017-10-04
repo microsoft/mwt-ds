@@ -188,6 +188,23 @@ if __name__ == '__main__':
             plt.xticks(range(25), list(range(20,24))+list(range(20)))
             plt.title('Reward/Request Ratio over same day of the week (Smoothing '+str(smoothing_hours)+' hours)')
             plt.xlabel('Time of day - EST')
+            
+            plt.figure(3)
+            data2 = [[(x[0],sum(y[1] for y in x[1].values())) for x in pStats if d[1][:10] in x[0]] for d in days[-7:]]
+            [plt.plot([np.mean([x[1] for x in y[i:i+1]]) for i in range(len(y))]) for y in data2]
+            legend = plt.legend([y[0][0][:10] for y in data2], loc='best')
+            plt.xticks(range(25), list(range(20,24))+list(range(20)))
+            plt.title('Request over last 7 days')
+            plt.xlabel('Time of day - EST')
+            
+            # Visualize running average data of Reward/Request over the last 7 days
+            plt.figure(4)
+            data2 = [[(x[0],sum(y[1] for y in x[1].values())) for x in pStats if d[1][:10] in x[0]] for d in reversed(days[::-7])]
+            [plt.plot([np.mean([x[1] for x in y[i:i+1]]) for i in range(len(y))]) for y in data2]
+            legend = plt.legend([y[0][0][:10] for y in data2], loc='best')
+            plt.xticks(range(25), list(range(20,24))+list(range(20)))
+            plt.title('Request over same day of the week')
+            plt.xlabel('Time of day - EST')
 
         # All days and all hours plots
         plt.rcParams.update({'font.size': 16})  # General font size
