@@ -178,7 +178,7 @@ namespace Microsoft.DecisionService.Crawl
                     // The GetVideoIndexerBreakdownAsync call can, if the underlying call to VideoIndexer GetBreakdown fails - but the 
                     // call to VideoIndexer SearchBreakdown succeeds, return a BlobContent with an empty Value, and a short "expires".
                     // Treat that as the same as not getting a VideoIndexer response.
-                    if (breakdownContent == null || String.IsNullOrWhiteSpace(breakdownContent.Value))
+                    if (breakdownContent == null || string.IsNullOrWhiteSpace(breakdownContent.Value))
                     {
                         if (string.IsNullOrEmpty(reqBody.Video))
                         {
