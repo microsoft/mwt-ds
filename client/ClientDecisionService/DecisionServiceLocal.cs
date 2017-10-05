@@ -123,7 +123,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 foreach (var dp in log.FlushCompleteEvents())
                 {
                     uint action = (uint)((int[])dp.InteractData.Value)[0];
-                    var label = new ContextualBanditLabel(action, -dp.Reward, ((GenericTopSlotExplorerState)dp.InteractData.ExplorerState).Probabilities[action - 1]);
+                    var label = new ContextualBanditLabel(action, -dp.Reward, ((GenericTopSlotExplorerState)dp.InteractData.ExplorerState).Probabilities[0]);
                     vw.Learn((TContext)dp.InteractData.Context, label, index: (int)label.Action - 1);
                 }
                 using (MemoryStream currModel = new MemoryStream())
