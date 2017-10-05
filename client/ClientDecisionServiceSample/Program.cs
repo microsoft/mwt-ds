@@ -20,12 +20,14 @@ namespace ClientDecisionServiceSample
             // Sample code showing how to use the simple interface of the client library
             // to perform news recommendation. This example assumes the set of topics 
             // is constant for each decision varies.
-            Sample.NewsRecommendation();
+            //Sample.NewsRecommendation().Wait();
 
             // Sample code showing how to use the simple interface of the client library
             // to perform news recommendation. This example assumes each topic has its 
             // own set of features and the set of topics available for each decision varies.
-            //SampleActionDependentFeature.NewsRecommendation();
+            //SampleActionDependentFeature.NewsRecommendation().Wait();
+
+            SampleHosted.Sample().Wait();
         }
     }
 }

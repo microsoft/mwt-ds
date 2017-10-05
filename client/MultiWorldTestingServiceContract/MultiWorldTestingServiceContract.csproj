@@ -57,7 +57,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -83,18 +83,14 @@
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <Import Project="$(ProjectDir)\..\version.props" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
-    <Error Condition="!Exists('..\..\packages\MSBuildTasks.1.5.0.214\build\MSBuildTasks.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\MSBuildTasks.1.5.0.214\build\MSBuildTasks.targets'))" />
+    <Error Condition="!Exists('$(SolutionDir)\packages\MSBuildTasks.1.5.0.214\build\MSBuildTasks.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\packages\MSBuildTasks.1.5.0.214\build\MSBuildTasks.targets'))" />
   </Target>
   <Target Name="BeforeBuild">
     <AssemblyInfo CodeLanguage="CS" OutputFile="$(MSBuildProjectDirectory)\Properties\AssemblyInfo.cs" AssemblyTitle="Microsoft.Research.MultiWorldTesting.Contract" AssemblyDescription="" AssemblyConfiguration="" AssemblyCompany="Microsoft Corp" AssemblyProduct="Microsoft.Research.MultiWorldTesting.Contract" AssemblyCopyright="Copyright (C) Microsoft Corp 2014-2016" AssemblyTrademark="" ComVisible="false" CLSCompliant="true" Guid="d9d80c55-19ce-48fa-a2ef-7eae466b1f9b" AssemblyVersion="$(ClientLibraryAssemblyVersion)" AssemblyFileVersion="$(ClientLibraryAssemblyVersion)" />
   </Target>
   <Target Name="AfterBuild">
-    <Exec Command="$(SolutionDir)packages\gitlink.2.4.1\lib\net45\GitLink.exe .. -f $(SolutionDir)\mwt-ds.sln -p $(Platform) -c $(Configuration) -d $(OutDir) -errorsaswarnings -u https://github.com/Microsoft/mwt-ds" Condition="'$(BuildNuget)' == 'true'" />
-    <Exec Command=".nuget\nuget pack $(ProjectDir)\$(ProjectName).nuspec -Version $(ClientLibraryAssemblyVersion) -Prop &quot;Configuration=Release;Platform=x64&quot; -Prop SolutionDir=$(SolutionDir) -OutputDirectory $(OutDir) " WorkingDirectory="$(SolutionDir)" Condition="'$(BuildNuget)' == 'true'" />
+    <Exec Command="$(SolutionDir)packages\gitlink.2.4.0\lib\net45\GitLink.exe .. -f $(SolutionDir)\mwt-ds.sln -p $(Platform) -c $(Configuration) -d $(OutDir) -errorsaswarnings -u https://github.com/Microsoft/mwt-ds" Condition="'$(BuildNuget)' == 'true'" />
+    <Exec Command="$(SolutionDir).nuget\nuget pack $(ProjectDir)\$(ProjectName).nuspec -Version $(ClientLibraryAssemblyVersion) -Prop &quot;Configuration=Release;Platform=x64&quot; -Prop SolutionDir=$(SolutionDir) -OutputDirectory $(OutDir) " WorkingDirectory="$(SolutionDir)" Condition="'$(BuildNuget)' == 'true'" />
   </Target>
-  <Import Project="..\..\packages\MSBuildTasks.1.5.0.214\build\MSBuildTasks.targets" Condition="Exists('..\..\packages\MSBuildTasks.1.5.0.214\build\MSBuildTasks.targets')" />
+  <Import Project="$(SolutionDir)\packages\MSBuildTasks.1.5.0.214\build\MSBuildTasks.targets" Condition="Exists('$(SolutionDir)\packages\MSBuildTasks.1.5.0.214\build\MSBuildTasks.targets')" />
 </Project>

@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-        /// <summary>
+    /// <summary>
     /// Performance counters reporting various metrics.
     /// </summary>
     public sealed class PerformanceCounters : IDisposable
@@ -106,7 +106,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             foreach (var p in typeof(PerformanceCounters).GetProperties())
             {
                 var perfCounter = (IDisposable)p.GetValue(this);
-                
+
                 if (perfCounter != null)
                 {
                     perfCounter.Dispose();
@@ -116,28 +116,28 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         }
 
         [PerformanceCounterType(PerformanceCounterType.NumberOfItems64)]
-        public PerformanceCounter InteractionExamplesQueue {get; private set; }
+        public PerformanceCounter InteractionExamplesQueue { get; private set; }
 
         [PerformanceCounterType(PerformanceCounterType.NumberOfItems64)]
-        public PerformanceCounter InteractionExamplesTotal {get; private set; }
+        public PerformanceCounter InteractionExamplesTotal { get; private set; }
 
         [PerformanceCounterType(PerformanceCounterType.RateOfCountsPerSecond32)]
-        public PerformanceCounter InteractionExamplesPerSec {get; private set; }
+        public PerformanceCounter InteractionExamplesPerSec { get; private set; }
 
         [PerformanceCounterType(PerformanceCounterType.RateOfCountsPerSecond64)]
         public PerformanceCounter InteractionExamplesBytesPerSec { get; private set; }
 
         [PerformanceCounterType(PerformanceCounterType.AverageCount64)]
-        public PerformanceCounter AverageInteractionExampleSize {get; private set; }
+        public PerformanceCounter AverageInteractionExampleSize { get; private set; }
 
         [PerformanceCounterType(PerformanceCounterType.AverageBase)]
-        public PerformanceCounter AverageInteractionExampleSizeBase {get; private set; }
+        public PerformanceCounter AverageInteractionExampleSizeBase { get; private set; }
 
         [PerformanceCounterType(PerformanceCounterType.NumberOfItems64)]
-        public PerformanceCounter ObservationExamplesQueue {get; private set; }
+        public PerformanceCounter ObservationExamplesQueue { get; private set; }
 
         [PerformanceCounterType(PerformanceCounterType.NumberOfItems64)]
-        public PerformanceCounter ObservationExamplesTotal {get; private set; }
+        public PerformanceCounter ObservationExamplesTotal { get; private set; }
 
         [PerformanceCounterType(PerformanceCounterType.RateOfCountsPerSecond32)]
         public PerformanceCounter ObservationExamplesPerSec { get; private set; }
@@ -146,10 +146,10 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         public PerformanceCounter ObservationExamplesBytesPerSec { get; private set; }
 
         [PerformanceCounterType(PerformanceCounterType.AverageCount64)]
-        public PerformanceCounter AverageObservationExampleSize {get; private set; }
+        public PerformanceCounter AverageObservationExampleSize { get; private set; }
 
         [PerformanceCounterType(PerformanceCounterType.AverageBase)]
-        public PerformanceCounter AverageObservationExampleSizeBase {get; private set; }
+        public PerformanceCounter AverageObservationExampleSizeBase { get; private set; }
 
 
         internal void ReportInteraction(int eventCount, int sumSize)

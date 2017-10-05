@@ -26,7 +26,7 @@ namespace ClientDecisionServiceSample
         /// Number Of Actions = 10
         /// Vowpal Wabbit Switches = --cb_explore 10 --epsilon 0.2 --cb_type dr
         /// </remarks>
-        public static void NewsRecommendation()
+        public static async Task NewsRecommendation()
         {
             if (String.IsNullOrWhiteSpace(SettingsBlobUri))
             {
@@ -38,7 +38,7 @@ namespace ClientDecisionServiceSample
 
             // Create configuration for the decision service.
             var serviceConfig = new DecisionServiceConfiguration(settingsBlobUri: SettingsBlobUri);
-            
+
             // Enable development mode to easily debug / diagnose data flow and system properties
             // This should be turned off in production deployment
             serviceConfig.DevelopmentMode = true;
@@ -78,7 +78,7 @@ namespace ClientDecisionServiceSample
                     }
 
                     // Perform exploration given user features.
-                    int topicId = service.ChooseAction(uniqueKey, userContext, defaultPolicy);
+                    int topicId = await service.ChooseActionAsync(uniqueKey, userContext, defaultPolicy);
 
                     // Display the news topic chosen by exploration process.
                     Console.WriteLine("Topic {0} was chosen for user {1}.", topicId, user + 1);
@@ -124,17 +124,17 @@ namespace ClientDecisionServiceSample
             this.numTopics = numTopics;
         }
 
-        PolicyDecision<int> IContextMapper<UserContext, int>.MapContext(UserContext context)
+        Task<PolicyDecision<int>> IContextMapper<UserContext, int>.MapContextAsync(UserContext context)
         {
             int chosenAction = (int)Math.Round(context.Features.Sum(f => f.Value) / context.Features.Count + 1);
-            return PolicyDecision.Create(chosenAction);
+            return Task.FromResult(PolicyDecision.Create(chosenAction));
         }
     }
 
     /// <summary>
     /// Represents the user context as a sparse vector of float features.
     /// </summary>
-    public class UserContext 
+    public class UserContext
     {
         public UserContext()
         {

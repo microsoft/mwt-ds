@@ -62,9 +62,9 @@ namespace ClientDecisionServiceTest
 
         public class MockupRanker : IRanker<int[]>
         {
-            public PolicyDecision<int[]> MapContext(int[] context)
+            public Task<PolicyDecision<int[]>> MapContextAsync(int[] context)
             {
-                return context;
+                return Task.FromResult(PolicyDecision.Create(context));
             }
         }
     }
