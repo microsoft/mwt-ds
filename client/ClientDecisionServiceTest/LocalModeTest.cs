@@ -103,24 +103,86 @@ namespace ClientDecisionServiceTest
             string guid1 = Guid.NewGuid().ToString();
             string guid2 = Guid.NewGuid().ToString();
             byte[] prevModel = null;
+            int action;
             
             // Generate interactions and ensure the model updates at the right frequency
             // (updates every example initially)
             prevModel = dsLocal.Model;
-            dsLocal.ChooseAction(guid1, context, 1);
+            dsLocal.ChooseActionAsync(guid1, context, 1);
             dsLocal.ReportRewardAndComplete((float)1.0, guid1);
             Assert.IsTrue(!dsLocal.Model.SequenceEqual(prevModel));
 
             // Set the model to update every two examples
             prevModel = dsLocal.Model;
             dsLocal.ModelUpdateInterval = 2;
-            dsLocal.ChooseAction(guid1, context, 1);
+            action = dsLocal.ChooseActionAsync(guid1, context, 1).Result;
             dsLocal.ReportRewardAndComplete((float)1.0, guid1);
             Assert.IsFalse(!dsLocal.Model.SequenceEqual(prevModel));
-            dsLocal.ChooseAction(guid2, context, 1);
+            action = dsLocal.ChooseActionAsync(guid2, context, 1).Result;
             dsLocal.ReportRewardAndComplete((float)2.0, guid1);
             Assert.IsTrue(!dsLocal.Model.SequenceEqual(prevModel));
         }
+
+        [TestMethod]
+        public void TestDSLocalModelLearning()
+        {
+            const int NumDatapoints = 50;
+            const float Eps = 0.2f;
+            string vwArgs = "--cb_explore_adf --epsilon " + Eps.ToString();
+            DecisionServiceLocal<SimpleADFContext> dsLocal = new DecisionServiceLocal<SimpleADFContext>(vwArgs, 1, TimeSpan.MaxValue);
+            var context = new SimpleADFContext { Id = "Shared", Actions = new int[] { 1, 2, 3 } };
+            int action;
+            int targetActionCnt = 0;
+
+            // Generate interactions and reward the model for the middle action only (learning the
+            // lowest/highest can be done even with bad featurization, which we want to catch).
+            for (int i = 0; i < NumDatapoints; i++)
+            {
+                string guid = Guid.NewGuid().ToString();
+                action = dsLocal.ChooseActionAsync(guid, context, 1).Result;
+                dsLocal.ReportRewardAndComplete((action == 2) ? 1.0f : 0.0f, guid);
+                targetActionCnt += (action == 2) ? 1 : 0;
+            }
+            // Since the model is updated after each datapoint, we expect most exploit predictions 
+            // (1 - Eps) to be the middle action, but allow fro some slack.
+            Console.WriteLine("ratio is {0}", targetActionCnt * 1.0 / NumDatapoints);
+            Assert.IsTrue(targetActionCnt * 1.0 / NumDatapoints >= (1 - Eps*1.1));
+        }
     }
-}
+
+    /// <summary>
+    /// Simple ADF context (similar to FoodContext but even simpler action dependent features)
+    /// </summary>
+    public class SimpleADFContext
+    {
+        public string Id { get; set; }
+
+        [JsonIgnore]
+        public int[] Actions { get; set; }
+
+        [JsonProperty(PropertyName = "_multi")]
+        public SimpleActionFeature[] ActionDependentFeatures
+        {
+            get
+            {
+                return this.Actions
+                    .Select((i) => new SimpleActionFeature() { ActionId = i.ToString() })
+                    .ToArray();
+            }
+        }
+
+        public static IReadOnlyCollection<SimpleActionFeature> GetFeaturesFromContext(SimpleADFContext context)
+        {
+            return context.ActionDependentFeatures;
+        }
+    }
+
+    public class SimpleActionFeature
+    {
+        // Note: If this action is numerical, it will appear as the same feature to VW across
+        // all actions (only one weight will be learned). Further, absent other features the 0th 
+        // action will be ignored, so VW will only see and explore over N-1 actions. 
+        public string ActionId { get; set; }
+    }
+};
 
