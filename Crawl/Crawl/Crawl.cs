@@ -116,8 +116,18 @@ namespace Microsoft.DecisionService.Crawl
                 }
                 catch (WebException we)
                 {
-                    if ((we.Response as HttpWebResponse)?.StatusCode == HttpStatusCode.Forbidden)
-                        continue;
+                    HttpWebResponse httpResponse = we.Response as HttpWebResponse;
+                    if (httpResponse != null)
+                    {
+                        // Ignore known cases where crawl fails due to error on the crawl-target side - these should not
+                        // cause a hard failure on our end.
+                        if (httpResponse.StatusCode == HttpStatusCode.Forbidden ||
+                            httpResponse.StatusCode == HttpStatusCode.NotFound ||
+                            httpResponse.StatusCode == HttpStatusCode.ServiceUnavailable)
+                        {
+                            continue;
+                        }
+                    }
 
                     throw;
                 }
