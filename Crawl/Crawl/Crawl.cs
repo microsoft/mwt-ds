@@ -117,6 +117,27 @@ namespace Microsoft.DecisionService.Crawl
                 catch (WebException we)
                 {
                     HttpWebResponse httpResponse = we.Response as HttpWebResponse;
+                    if (we.Status == WebExceptionStatus.ServerProtocolViolation)
+                    {
+                        // Get a little more telemetry about what is going on here.
+                        IDictionary<string, string> traceData = new Dictionary<string, string>();
+                        traceData["Response.SupportsHeaders"] = we.Response.SupportsHeaders.ToString();
+
+                        for (int i = 0; i < we.Response.Headers.Count; i++)
+                        {
+                            string headerName = we.Response.Headers.GetKey(i);
+                            string headerValue = we.Response.Headers.Get(i);
+                            traceData[$"Response.Headers.{headerName}"] = headerValue;
+                        }
+
+                        if (httpResponse != null)
+                        {
+                            traceData["HttpResponse.StatusCode"] = httpResponse.StatusCode.ToString();
+                        }
+
+                        Services.TelemetryClient.TrackTrace($"Download target ({uri}) ServerProtocolViolation", SeverityLevel.Error, traceData);
+                    }
+
                     if (httpResponse != null)
                     {
                         // Ignore known cases where crawl fails due to error on the crawl-target side - these should not
