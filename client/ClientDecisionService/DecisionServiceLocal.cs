@@ -124,7 +124,24 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 {
                     uint action = (uint)((int[])dp.InteractData.Value)[0];
                     var label = new ContextualBanditLabel(action, -dp.Reward, ((GenericTopSlotExplorerState)dp.InteractData.ExplorerState).Probabilities[0]);
-                    vw.Learn((TContext)dp.InteractData.Context, label, index: (int)label.Action - 1);
+                    // A string (json) context needs to be handled specially, since the C# interface
+                    // doesn't currently handle the CB label properly
+                    if (typeof(TContext) == typeof(string))
+                    {
+                        // Manually insert the CB label fields into the context
+                        string labelStr = string.Format("\"_label_Action\":{0},\"_label_Cost\":{1},\"_label_Probability\":{2},\"_labelIndex\":{3},", 
+                            label.Action, label.Cost, label.Probability, label.Action - 1);
+                        string context = ((string)dp.InteractData.Context).Insert(1, labelStr);
+                        using (var vwJson = new VowpalWabbitJsonSerializer(vw.Native))
+                        using (VowpalWabbitExampleCollection vwExample = vwJson.ParseAndCreate(context))
+                        {
+                            vwExample.Learn();
+                        }
+                    }
+                    else
+                    {
+                        vw.Learn((TContext)dp.InteractData.Context, label, index: (int)label.Action - 1);
+                    }
                 }
                 using (MemoryStream currModel = new MemoryStream())
                 {

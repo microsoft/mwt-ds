@@ -8,6 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
+using VW.Serializer;
+using VW;
 
 namespace ClientDecisionServiceTest
 {
@@ -126,27 +128,38 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         public void TestDSLocalModelLearning()
         {
-            const int NumDatapoints = 50;
+            const int NumDatapoints = 100;
             const float Eps = 0.2f;
             string vwArgs = "--cb_explore_adf --epsilon " + Eps.ToString();
+            // Test both generic class and json string typed versions of DS local
             DecisionServiceLocal<SimpleADFContext> dsLocal = new DecisionServiceLocal<SimpleADFContext>(vwArgs, 1, TimeSpan.MaxValue);
+            DecisionServiceLocal<string> dsLocalJson = new DecisionServiceLocal<string>(vwArgs, 1, TimeSpan.MaxValue);
             var context = new SimpleADFContext { Id = "Shared", Actions = new int[] { 1, 2, 3 } };
             int action;
-            int targetActionCnt = 0;
+            int targetActionCnt = 0, targetActionJsonCnt = 0;
 
             // Generate interactions and reward the model for the middle action only (learning the
             // lowest/highest can be done even with bad featurization, which we want to catch).
             for (int i = 0; i < NumDatapoints; i++)
             {
                 string guid = Guid.NewGuid().ToString();
+                // Test generic class type
                 action = dsLocal.ChooseActionAsync(guid, context, 1).Result;
                 dsLocal.ReportRewardAndComplete((action == 2) ? 1.0f : 0.0f, guid);
                 targetActionCnt += (action == 2) ? 1 : 0;
+
+                string contextJson = JsonConvert.SerializeObject(context);
+                action = dsLocalJson.ChooseActionAsync(guid, contextJson, 1).Result;
+                dsLocalJson.ReportRewardAndComplete((action == 2) ? 1.0f : 0.0f, guid);
+                targetActionJsonCnt += (action == 2) ? 1 : 0;
             }
             // Since the model is updated after each datapoint, we expect most exploit predictions 
             // (1 - Eps) to be the middle action, but allow fro some slack.
             Console.WriteLine("ratio is {0}", targetActionCnt * 1.0 / NumDatapoints);
-            Assert.IsTrue(targetActionCnt * 1.0 / NumDatapoints >= (1 - Eps*1.1));
+            Console.WriteLine("ratio is {0}", targetActionCnt * 1.0 / NumDatapoints);
+
+            Assert.IsTrue(targetActionCnt * 1.0 / NumDatapoints >= (1 - Eps)*0.9);
+            Assert.IsTrue(targetActionJsonCnt * 1.0 / NumDatapoints >= (1 - Eps) * 0.9);
         }
     }
 
