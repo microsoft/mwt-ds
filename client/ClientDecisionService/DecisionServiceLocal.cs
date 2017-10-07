@@ -1,25 +1,20 @@
 ﻿using Microsoft.Research.MultiWorldTesting.Contract;
-using Microsoft.Research.MultiWorldTesting.JoinUploader;
+//using Microsoft.Research.MultiWorldTesting.JoinUploader;
 using Microsoft.Research.MultiWorldTesting.ExploreLibrary;
 using VW;
 using VW.Labels;
 using VW.Serializer;
 using System;
 using System.IO;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Runtime.Caching;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Timers;
-using System.Diagnostics;
+
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
     public class DecisionServiceLocal<TContext> : DecisionServiceClient<TContext>
     {
-        private VowpalWabbit<TContext> vw;
+        private VowpalWabbit<TContext> vw = null;
+        // String (json) contexts need special handling due to limitations in VW C# interface
+        private VowpalWabbit vwJson = null;
         // This serves as the base class's recorder/logger as well, but we keep a reference around
         // becauses it exposes additional APIs that aren't part of those interfaces (yet)
         private InMemoryLogger<TContext, int[]> log;
@@ -34,13 +29,17 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             {
                 using (MemoryStream currModel = new MemoryStream())
                 {
-                    vw.Native.SaveModel(currModel);
+                    VowpalWabbit vwNative = (typeof(TContext) == typeof(string)) ? vwJson.Native : vw.Native;
+                    vwNative.SaveModel(currModel);
                     return currModel.ToArray();
                 }
             }
         }
 
-        public DecisionServiceLocal(string vwArgs, int modelUpdateInterval, TimeSpan expUnit)
+        public DecisionServiceLocal(
+            string vwArgs, 
+            int modelUpdateInterval, 
+            TimeSpan expUnit)
             : base(
             new DecisionServiceConfiguration("")
             {
@@ -53,18 +52,37 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 TrainArguments = vwArgs,
                 InitialExplorationEpsilon = 1f
             },
-            new VWExplorer<TContext>(null, JsonTypeInspector.Default, false))
+            // String (json) contexts require a different type of internal policy
+            ((typeof(TContext) == typeof(string)) ? 
+                  new VWJsonExplorer(null, false) as IContextMapper<TContext, ActionProbability[]> : 
+                  new VWExplorer<TContext>(null, JsonTypeInspector.Default, false)))
         {
             this.log = new InMemoryLogger<TContext, int[]>(expUnit);
             this.Recorder = log;
-            this.vw = new VowpalWabbit<TContext>(
-                new VowpalWabbitSettings(vwArgs)
-                {
-                    TypeInspector = JsonTypeInspector.Default,
-                    EnableStringExampleGeneration = this.config.DevelopmentMode,
-                    EnableStringFloatCompact = true
-                }
-                );
+            // String (json) contexts are handled via a non-generic VW instance, whereas all other
+            // context types use a generic VW instance
+            if (typeof(TContext) == typeof(string))
+            {
+                this.vwJson = new VowpalWabbit(
+                    new VowpalWabbitSettings(vwArgs)
+                    {
+                        TypeInspector = JsonTypeInspector.Default,
+                        EnableStringExampleGeneration = this.config.DevelopmentMode,
+                        EnableStringFloatCompact = true
+                    }
+                    );
+            }
+            else
+            {
+                this.vw = new VowpalWabbit<TContext>(
+                    new VowpalWabbitSettings(vwArgs)
+                    {
+                        TypeInspector = JsonTypeInspector.Default,
+                        EnableStringExampleGeneration = this.config.DevelopmentMode,
+                        EnableStringFloatCompact = true
+                    }
+                    );
+            }
             this.ModelUpdateInterval = modelUpdateInterval;
         }
         
@@ -84,6 +102,11 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             {
                 vw.Dispose();
                 vw = null;
+            }
+            if (vwJson != null)
+            {
+                vwJson.Dispose();
+                vwJson = null;
             }
             base.Dispose();
         }
@@ -124,16 +147,16 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 {
                     uint action = (uint)((int[])dp.InteractData.Value)[0];
                     var label = new ContextualBanditLabel(action, -dp.Reward, ((GenericTopSlotExplorerState)dp.InteractData.ExplorerState).Probabilities[0]);
-                    // A string (json) context needs to be handled specially, since the C# interface
-                    // doesn't currently handle the CB label properly
+                    // String (json) contexts need to be handled specially, since the C# interface
+                    // does not currently handle the CB label properly
                     if (typeof(TContext) == typeof(string))
                     {
                         // Manually insert the CB label fields into the context
                         string labelStr = string.Format("\"_label_Action\":{0},\"_label_Cost\":{1},\"_label_Probability\":{2},\"_labelIndex\":{3},", 
                             label.Action, label.Cost, label.Probability, label.Action - 1);
                         string context = ((string)dp.InteractData.Context).Insert(1, labelStr);
-                        using (var vwJson = new VowpalWabbitJsonSerializer(vw.Native))
-                        using (VowpalWabbitExampleCollection vwExample = vwJson.ParseAndCreate(context))
+                        using (var vwSerializer = new VowpalWabbitJsonSerializer(vwJson.Native))
+                        using (VowpalWabbitExampleCollection vwExample = vwSerializer.ParseAndCreate(context))
                         {
                             vwExample.Learn();
                         }
@@ -145,7 +168,8 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                 }
                 using (MemoryStream currModel = new MemoryStream())
                 {
-                    vw.Native.SaveModel(currModel);
+                    VowpalWabbit vwNative = (typeof(TContext) == typeof(string)) ? vwJson.Native : vw.Native;
+                    vwNative.SaveModel(currModel);
                     currModel.Position = 0;
                     this.UpdateModel(currModel);
                     sinceLastUpdate = 0;

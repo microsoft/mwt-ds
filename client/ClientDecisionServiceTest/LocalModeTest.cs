@@ -135,7 +135,7 @@ namespace ClientDecisionServiceTest
             DecisionServiceLocal<SimpleADFContext> dsLocal = new DecisionServiceLocal<SimpleADFContext>(vwArgs, 1, TimeSpan.MaxValue);
             DecisionServiceLocal<string> dsLocalJson = new DecisionServiceLocal<string>(vwArgs, 1, TimeSpan.MaxValue);
             var context = new SimpleADFContext { Id = "Shared", Actions = new int[] { 1, 2, 3 } };
-            int action;
+            int action, actionJson;
             int targetActionCnt = 0, targetActionJsonCnt = 0;
 
             // Generate interactions and reward the model for the middle action only (learning the
@@ -149,15 +149,14 @@ namespace ClientDecisionServiceTest
                 targetActionCnt += (action == 2) ? 1 : 0;
 
                 string contextJson = JsonConvert.SerializeObject(context);
-                action = dsLocalJson.ChooseActionAsync(guid, contextJson, 1).Result;
-                dsLocalJson.ReportRewardAndComplete((action == 2) ? 1.0f : 0.0f, guid);
-                targetActionJsonCnt += (action == 2) ? 1 : 0;
+                actionJson = dsLocalJson.ChooseActionAsync(guid, contextJson, 1).Result;
+                //TODO: The examples should look identical to VW, so predictions should be identical
+                //Assert.IsTrue(action == actionJson);
+                dsLocalJson.ReportRewardAndComplete((actionJson == 2) ? 1.0f : 0.0f, guid);
+                targetActionJsonCnt += (actionJson == 2) ? 1 : 0;
             }
             // Since the model is updated after each datapoint, we expect most exploit predictions 
             // (1 - Eps) to be the middle action, but allow fro some slack.
-            Console.WriteLine("ratio is {0}", targetActionCnt * 1.0 / NumDatapoints);
-            Console.WriteLine("ratio is {0}", targetActionCnt * 1.0 / NumDatapoints);
-
             Assert.IsTrue(targetActionCnt * 1.0 / NumDatapoints >= (1 - Eps)*0.9);
             Assert.IsTrue(targetActionJsonCnt * 1.0 / NumDatapoints >= (1 - Eps) * 0.9);
         }
