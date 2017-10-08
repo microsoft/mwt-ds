@@ -128,19 +128,19 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         public void TestDSLocalModelLearning()
         {
-            const int NumDatapoints = 100;
+            const int NumEvents = 100;
             const float Eps = 0.2f;
             string vwArgs = "--cb_explore_adf --epsilon " + Eps.ToString();
             // Test both generic class and json string typed versions of DS local
             DecisionServiceLocal<SimpleADFContext> dsLocal = new DecisionServiceLocal<SimpleADFContext>(vwArgs, 1, TimeSpan.MaxValue);
             DecisionServiceLocal<string> dsLocalJson = new DecisionServiceLocal<string>(vwArgs, 1, TimeSpan.MaxValue);
             var context = new SimpleADFContext { Id = "Shared", Actions = new int[] { 1, 2, 3 } };
+
             int action, actionJson;
             int targetActionCnt = 0, targetActionJsonCnt = 0;
-
             // Generate interactions and reward the model for the middle action only (learning the
             // lowest/highest can be done even with bad featurization, which we want to catch).
-            for (int i = 0; i < NumDatapoints; i++)
+            for (int i = 0; i < NumEvents; i++)
             {
                 string guid = Guid.NewGuid().ToString();
                 // Test generic class type
@@ -157,8 +157,52 @@ namespace ClientDecisionServiceTest
             }
             // Since the model is updated after each datapoint, we expect most exploit predictions 
             // (1 - Eps) to be the middle action, but allow fro some slack.
-            Assert.IsTrue(targetActionCnt * 1.0 / NumDatapoints >= (1 - Eps)*0.9);
-            Assert.IsTrue(targetActionJsonCnt * 1.0 / NumDatapoints >= (1 - Eps) * 0.9);
+            Assert.IsTrue(targetActionCnt * 1.0 / NumEvents >= (1 - Eps)*0.9);
+            Assert.IsTrue(targetActionJsonCnt * 1.0 / NumEvents >= (1 - Eps) * 0.9);
+        }
+
+        [TestMethod]
+        public void TestDSLocalConcurrent()
+        {
+            const float Eps = 0.2f;
+            string vwArgs = "--cb_explore_adf --epsilon " + Eps.ToString();
+            DecisionServiceLocal<SimpleADFContext> dsLocal = new DecisionServiceLocal<SimpleADFContext>(vwArgs, 1, TimeSpan.MaxValue);
+            var context = new SimpleADFContext { Id = "Shared", Actions = new int[] { 1, 2, 3 } };
+
+            const int NumThreads = 16;
+            const int NumEventsPerThread = 25;
+            List<Thread> threads = new List<Thread>(NumThreads);
+            int[] targetActionCnts = Enumerable.Repeat<int>(0, NumThreads).ToArray();
+            int idCounter = 0;
+            for (int i = 0; i < NumThreads; i++)
+            {
+                threads.Add(new Thread(() =>
+                {
+                    int id = Interlocked.Increment(ref idCounter) - 1;
+                    Console.WriteLine("in thread {0}", id);
+                    int action;
+                    for (int j = 0; j < NumEventsPerThread; j++)
+                    {
+                        string guid = Guid.NewGuid().ToString();
+                        action = dsLocal.ChooseActionAsync(guid, context, 1).Result;
+                        dsLocal.ReportRewardAndComplete((action == 2) ? 1.0f : 0.0f, guid);
+                        targetActionCnts[id] += (action == 2) ? 1 : 0;
+                    }
+                }));
+            }
+            foreach (Thread t in threads)
+            {
+                t.Start();
+            }
+            foreach (Thread t in threads)
+            {
+                t.Join();
+            }
+
+            // Since the model is updated after each datapoint, we expect most exploit predictions 
+            // (1 - Eps) to be the middle action, but allow fro some slack.
+            Console.WriteLine("Sum of target is {0}, total is {1}", targetActionCnts.Sum(), NumThreads * NumEventsPerThread);
+            Assert.IsTrue(targetActionCnts.Sum() * 1.0 / (NumThreads * NumEventsPerThread) >= (1 - Eps) * 0.9);
         }
     }
 

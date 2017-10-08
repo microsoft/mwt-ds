@@ -6,6 +6,7 @@ using VW.Labels;
 using VW.Serializer;
 using System;
 using System.IO;
+using System.Threading;
 
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
@@ -15,6 +16,8 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         private VowpalWabbit<TContext> vw = null;
         // String (json) contexts need special handling due to limitations in VW C# interface
         private VowpalWabbit vwJson = null;
+        object vwLock = new object();
+        private bool vwDisposed = false;
         // This serves as the base class's recorder/logger as well, but we keep a reference around
         // becauses it exposes additional APIs that aren't part of those interfaces (yet)
         private InMemoryLogger<TContext, int[]> log;
@@ -27,11 +30,16 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         {
             get
             {
-                using (MemoryStream currModel = new MemoryStream())
+                lock (this.vwLock)
                 {
-                    VowpalWabbit vwNative = (typeof(TContext) == typeof(string)) ? vwJson.Native : vw.Native;
-                    vwNative.SaveModel(currModel);
-                    return currModel.ToArray();
+                    // Exit gracefully if the object has been disposed
+                    if (vwDisposed) return null;
+                    using (MemoryStream currModel = new MemoryStream())
+                    {
+                        VowpalWabbit vwNative = (typeof(TContext) == typeof(string)) ? vwJson.Native : vw.Native;
+                        vwNative.SaveModel(currModel);
+                        return currModel.ToArray();
+                    }
                 }
             }
         }
@@ -98,15 +106,19 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                     log = null;
                 }
             }
-            if (vw != null)
+            lock (this.vwLock)
             {
-                vw.Dispose();
-                vw = null;
-            }
-            if (vwJson != null)
-            {
-                vwJson.Dispose();
-                vwJson = null;
+                if (vw != null)
+                {
+                    vw.Dispose();
+                    vw = null;
+                }
+                if (vwJson != null)
+                {
+                    vwJson.Dispose();
+                    vwJson = null;
+                }
+                vwDisposed = true;
             }
             base.Dispose();
         }
@@ -119,7 +131,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         public override void ReportReward(float reward, string uniqueKey)
         {
             base.ReportReward(reward, uniqueKey);
-            sinceLastUpdate++;
+            Interlocked.Increment(ref sinceLastUpdate);
             updateModelMaybe();
         }
 
@@ -135,7 +147,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         {
             // Call our logger directly as this method is not part of the ILogger interface (yet)
             log.ReportRewardAndComplete(uniqueKey, reward);
-            sinceLastUpdate++;
+            Interlocked.Increment(ref sinceLastUpdate);
             updateModelMaybe();
         }
 
@@ -143,36 +155,43 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         {
             if (sinceLastUpdate >= ModelUpdateInterval)
             {
-                foreach (var dp in log.FlushCompleteEvents())
+                // Locking at this level ensures a batch of events is processed completely before
+                // the next batch (finer locking would allow interleaving, violating timeorder
+                lock (this.vwLock)
                 {
-                    uint action = (uint)((int[])dp.InteractData.Value)[0];
-                    var label = new ContextualBanditLabel(action, -dp.Reward, ((GenericTopSlotExplorerState)dp.InteractData.ExplorerState).Probabilities[0]);
-                    // String (json) contexts need to be handled specially, since the C# interface
-                    // does not currently handle the CB label properly
-                    if (typeof(TContext) == typeof(string))
+                    // Exit gracefully if the object has been disposed
+                    if (vwDisposed) return;
+                    foreach (var dp in log.FlushCompleteEvents())
                     {
-                        // Manually insert the CB label fields into the context
-                        string labelStr = string.Format("\"_label_Action\":{0},\"_label_Cost\":{1},\"_label_Probability\":{2},\"_labelIndex\":{3},", 
-                            label.Action, label.Cost, label.Probability, label.Action - 1);
-                        string context = ((string)dp.InteractData.Context).Insert(1, labelStr);
-                        using (var vwSerializer = new VowpalWabbitJsonSerializer(vwJson.Native))
-                        using (VowpalWabbitExampleCollection vwExample = vwSerializer.ParseAndCreate(context))
+                        uint action = (uint)((int[])dp.InteractData.Value)[0];
+                        var label = new ContextualBanditLabel(action, -dp.Reward, ((GenericTopSlotExplorerState)dp.InteractData.ExplorerState).Probabilities[0]);
+                        // String (json) contexts need to be handled specially, since the C# interface
+                        // does not currently handle the CB label properly
+                        if (typeof(TContext) == typeof(string))
                         {
-                            vwExample.Learn();
+                            // Manually insert the CB label fields into the context
+                            string labelStr = string.Format("\"_label_Action\":{0},\"_label_Cost\":{1},\"_label_Probability\":{2},\"_labelIndex\":{3},",
+                                label.Action, label.Cost, label.Probability, label.Action - 1);
+                            string context = ((string)dp.InteractData.Context).Insert(1, labelStr);
+                            using (var vwSerializer = new VowpalWabbitJsonSerializer(vwJson.Native))
+                            using (VowpalWabbitExampleCollection vwExample = vwSerializer.ParseAndCreate(context))
+                            {
+                                vwExample.Learn();
+                            }
+                        }
+                        else
+                        {
+                            vw.Learn((TContext)dp.InteractData.Context, label, index: (int)label.Action - 1);
                         }
                     }
-                    else
+                    using (MemoryStream currModel = new MemoryStream())
                     {
-                        vw.Learn((TContext)dp.InteractData.Context, label, index: (int)label.Action - 1);
+                        VowpalWabbit vwNative = (typeof(TContext) == typeof(string)) ? vwJson.Native : vw.Native;
+                        vwNative.SaveModel(currModel);
+                        currModel.Position = 0;
+                        this.UpdateModel(currModel);
+                        sinceLastUpdate = 0;
                     }
-                }
-                using (MemoryStream currModel = new MemoryStream())
-                {
-                    VowpalWabbit vwNative = (typeof(TContext) == typeof(string)) ? vwJson.Native : vw.Native;
-                    vwNative.SaveModel(currModel);
-                    currModel.Position = 0;
-                    this.UpdateModel(currModel);
-                    sinceLastUpdate = 0;
                 }
             }
         }
