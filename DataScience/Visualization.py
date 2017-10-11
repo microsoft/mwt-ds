@@ -5,11 +5,11 @@ import configparser
 
 
 # Create dictionary with filename as keys
-def parse_logs(raw_stats, files, overwrite, file_path):
+def parse_logs(raw_stats, files, file_paths_to_overwrite):
     t0 = time.time()
     
     for fp in files:
-        if os.path.basename(fp) in raw_stats and not (overwrite and fp == file_path):
+        if os.path.basename(fp) in raw_stats and fp not in file_paths_to_overwrite:
             continue
         print(fp)
         
@@ -132,7 +132,7 @@ if __name__ == '__main__':
 
     files = [x.path for x in os.scandir(os.path.join(log_dir,container)) if x.path.endswith('.json') and container+'_' in x.path and '_skip' not in x.path]
 
-    parse_logs(raw_stats, files, overwrite, file_path)
+    parse_logs(raw_stats, files, {file_path} if overwrite else set())
     
     # Update picke file
     with open(pkl_fp, 'wb') as pkl_file:
