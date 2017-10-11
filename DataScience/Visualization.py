@@ -36,10 +36,19 @@ def parse_logs(raw_stats, files, file_paths_to_overwrite):
                     c2[d] = {}
                 if dev not in c2[d]:
                     c2[d][dev] = [0,0,0]
+                if 'ips' not in c2:
+                    c2['ips'] = {}
+                if d[:10] not in c2['ips']:
+                    c2['ips'][d[:10]] = [0,0]
+                    
                 c2[d][dev][1] += 1
+                c2['ips'][d[:10]][1] += 1
                 if x['_label_cost'] < 0:
                     c2[d][dev][0] += 1
                     c2[d][dev][2] -= x['_label_cost']
+                    if x['_label_Action'] == 1:
+                        c2['ips'][d[:10]][0] += -x['_label_cost']/x['_label_probability']
+                        
             except Exception as e:
                 print('error: {0}'.format(e))
 
@@ -140,10 +149,14 @@ if __name__ == '__main__':
 
     # Create dictionary with hours as keys
     stats = {}
+    stats_ips = {}
     for fn in raw_stats:
-        for h in raw_stats[fn]:
-            stats.setdefault(h, []).append(raw_stats[fn][h])
-
+        for h in raw_stats[fn]: 
+            if h == 'ips':
+                for day in raw_stats[fn]['ips']: 
+                    stats_ips.setdefault(day, []).append(raw_stats[fn]['ips'][day])
+            else:
+                stats.setdefault(h, []).append(raw_stats[fn][h])
     
     ############################ VISUALIZATIONS ##################################################
 
@@ -153,6 +166,7 @@ if __name__ == '__main__':
         if do_by_day:
             pStats = convert_pStats_from_hours_to_days(pStats)
             days = [(i,x[0]) for i,x in enumerate(pStats)]
+            pStats_ips = sorted([(h,sorted(stats_ips[h], key=lambda x : x[-1])[-1]) for h in stats_ips])
         else:
             days = [(i,x[0]) for i,x in enumerate(pStats) if 'T12' in x[0]] # Time is in UTC: T12 is 8am EST
             
@@ -186,7 +200,11 @@ if __name__ == '__main__':
         axarr[0].plot(range(len(p)),[x[1][1] for x in p], label='Total')
         axarr[1].plot(range(len(p)),[x[1][2] for x in p], label='Total')
         axarr[2].plot(range(len(p)),[x[1][2]/max(x[1][1],1) for x in p], label='Total')
-
+        
+        if do_by_day:
+            # IPS traffic plot
+            p = [(y[0], y[1][0]/y[1][1]) for y in pStats_ips]
+            axarr[2].plot(range(len(p)),[x[1] for x in p], label='IPS')
         
         dev_types = {x for y in pStats for x in y[1].keys()}
         dev_types = dev_types - {'Other', 'N/A', 'Android', 'Tablet'}
@@ -205,7 +223,9 @@ if __name__ == '__main__':
         axarr[1].set(ylabel='Rewards')
         axarr[2].set(ylabel='Ratio')
         plt.xticks([x[0] for x in days], [x[1] for x in days],rotation='vertical')
+        legend = axarr[0].legend(loc='best')
         legend = axarr[1].legend(loc='best')
+        legend = axarr[2].legend(loc='best')
         f.subplots_adjust(hspace=0.02, top=0.95, bottom=0.1)
 
         # Save figure to file
