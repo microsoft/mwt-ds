@@ -117,30 +117,40 @@ namespace Microsoft.DecisionService.Crawl
                 catch (WebException we)
                 {
                     HttpWebResponse httpResponse = we.Response as HttpWebResponse;
-                    if (we.Status == WebExceptionStatus.ServerProtocolViolation && we.Response != null)
+                    if (we.Status == WebExceptionStatus.ServerProtocolViolation)
                     {
-                        // Get a little more telemetry about what is going on here.
+                        // Get a little more telemetry about what is going on here, though most cases don't
+                        // have a Response object.
                         IDictionary<string, string> traceData = new Dictionary<string, string>()
                         {
-                            { "Response.SupportsHeaders", we.Response.SupportsHeaders.ToString() }
+                            { "HasResponse", (we.Response != null).ToString() }
                         };
 
-                        if (we.Response.SupportsHeaders)
+                        if (we.Response != null)
                         {
-                            for (int i = 0; i < we.Response.Headers.Count; i++)
+                            traceData["Response.SupportsHeaders"] = we.Response.SupportsHeaders.ToString();
+
+                            if (we.Response.SupportsHeaders)
                             {
-                                string headerName = we.Response.Headers.GetKey(i);
-                                string headerValue = we.Response.Headers.Get(i);
-                                traceData[$"Response.Headers.{headerName}"] = headerValue;
+                                for (int i = 0; i < we.Response.Headers.Count; i++)
+                                {
+                                    string headerName = we.Response.Headers.GetKey(i);
+                                    string headerValue = we.Response.Headers.Get(i);
+                                    traceData[$"Response.Headers.{headerName}"] = headerValue;
+                                }
+                            }
+
+                            if (httpResponse != null)
+                            {
+                                traceData["HttpResponse.StatusCode"] = httpResponse.StatusCode.ToString();
                             }
                         }
 
-                        if (httpResponse != null)
-                        {
-                            traceData["HttpResponse.StatusCode"] = httpResponse.StatusCode.ToString();
-                        }
-
                         Services.TelemetryClient.TrackTrace($"Download target ({uri}) ServerProtocolViolation", SeverityLevel.Error, traceData);
+
+                        // Ignore known cases where crawl fails due to error on the crawl-target side - these should not
+                        // cause a hard failure on our end.
+                        continue;
                     }
 
                     if (httpResponse != null)
