@@ -182,7 +182,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             DataPoint dp;
             if (pendingData.TryGetValue(uniqueKey, out dp))
             {
-                // Guaranteed atomic by the language
+                // Guaranteed atomic by the language (32-bit float)
                 dp.Reward = reward;
             }
             else
@@ -197,7 +197,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             // Attempt to remove and complete the event
             if (pendingData.TryRemove(uniqueKey, out dp))
             {
-                // Guaranteed atomic by the language
+                // Guaranteed atomic by the language (32-bit float)
                 dp.Reward = reward;
                 completeData.AddOrUpdate(dp.Key, dp, (k, oldDp) => dp);
             }

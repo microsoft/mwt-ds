@@ -41,7 +41,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             foreach (var ap in actionProbs)
             {
                 sum += ap.Probability;
-                if (sum > draw)
+                if (sum >= draw)
                 {
                     actionChosen = ap;
                     break;

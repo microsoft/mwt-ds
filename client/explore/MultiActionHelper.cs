@@ -65,7 +65,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                 for (int i = 0; i < size; i++)
                 {
                     sum += probabilities[i];
-                    if (sum > draw)
+                    if (sum >= draw)
                     {
                         runningAction = i + 1;
 

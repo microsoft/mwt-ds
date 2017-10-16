@@ -58,7 +58,7 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
                 {
                     scores[i] = scores[i] / total;
                     sum += scores[i];
-                    if (sum > draw)
+                    if (sum >= draw)
                     {
                         actionIndex = i;
                         actionProbability = scores[i];

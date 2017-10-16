@@ -58,7 +58,9 @@ namespace Microsoft.Research.MultiWorldTesting.ExploreLibrary
             {
                 weights[i] = weights[i] / total;
                 sum += weights[i];
-                if (sum > draw)
+                // This needs to be >=, not >, in case the random draw = 1.0, since sum would never
+                // be > 1.0 and the loop would exit without assigning the right action probability.
+                if (sum >= draw)
                 {
                     actionIndex = i;
                     actionProbability = weights[i];
