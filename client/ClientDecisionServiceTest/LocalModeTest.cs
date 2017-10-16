@@ -110,7 +110,7 @@ namespace ClientDecisionServiceTest
             // Generate interactions and ensure the model updates at the right frequency
             // (updates every example initially)
             prevModel = dsLocal.Model;
-            dsLocal.ChooseActionAsync(guid1, context, 1);
+            action = dsLocal.ChooseActionAsync(guid1, context, 1).Result;
             dsLocal.ReportRewardAndComplete((float)1.0, guid1);
             Assert.IsTrue(!dsLocal.Model.SequenceEqual(prevModel));
 

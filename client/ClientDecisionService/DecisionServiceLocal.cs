@@ -7,6 +7,7 @@ using VW.Serializer;
 using System;
 using System.IO;
 using System.Threading;
+using System.Globalization;
 
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
@@ -170,7 +171,7 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
                         if (typeof(TContext) == typeof(string))
                         {
                             // Manually insert the CB label fields into the context
-                            string labelStr = string.Format("\"_label_Action\":{0},\"_label_Cost\":{1},\"_label_Probability\":{2},\"_labelIndex\":{3},",
+                            string labelStr = string.Format(CultureInfo.InvariantCulture, "\"_label_Action\":{0},\"_label_Cost\":{1},\"_label_Probability\":{2},\"_labelIndex\":{3},",
                                 label.Action, label.Cost, label.Probability, label.Action - 1);
                             string context = ((string)dp.InteractData.Context).Insert(1, labelStr);
                             using (var vwSerializer = new VowpalWabbitJsonSerializer(vwJson.Native))
