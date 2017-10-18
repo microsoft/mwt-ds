@@ -5,11 +5,11 @@ import configparser
 
 
 # Create dictionary with filename as keys
-def parse_logs(raw_stats, files, overwrite, file_path):
+def parse_logs(raw_stats, files, file_paths_to_overwrite):
     t0 = time.time()
     
     for fp in files:
-        if os.path.basename(fp) in raw_stats and not (overwrite and fp == file_path):
+        if os.path.basename(fp) in raw_stats and fp not in file_paths_to_overwrite:
             continue
         print(fp)
         
@@ -23,7 +23,7 @@ def parse_logs(raw_stats, files, overwrite, file_path):
                 continue
             
             try:
-                x = json.loads(line.strip())
+                x = json.loads(line.split(',"_multi":[', 1)[0].strip()+'}}')
                 
                 # Parse datetime string and device
                 d = x['Timestamp'][:13]
@@ -36,10 +36,19 @@ def parse_logs(raw_stats, files, overwrite, file_path):
                     c2[d] = {}
                 if dev not in c2[d]:
                     c2[d][dev] = [0,0,0]
+                if 'ips' not in c2:
+                    c2['ips'] = {}
+                if d[:10] not in c2['ips']:
+                    c2['ips'][d[:10]] = [0,0]
+                    
                 c2[d][dev][1] += 1
+                c2['ips'][d[:10]][1] += 1
                 if x['_label_cost'] < 0:
                     c2[d][dev][0] += 1
                     c2[d][dev][2] -= x['_label_cost']
+                    if x['_label_Action'] == 1:
+                        c2['ips'][d[:10]][0] += -x['_label_cost']/x['_label_probability']
+                        
             except Exception as e:
                 print('error: {0}'.format(e))
 
@@ -132,7 +141,7 @@ if __name__ == '__main__':
 
     files = [x.path for x in os.scandir(os.path.join(log_dir,container)) if x.path.endswith('.json') and container+'_' in x.path and '_skip' not in x.path]
 
-    parse_logs(raw_stats, files, overwrite, file_path)
+    parse_logs(raw_stats, files, {file_path} if overwrite else set())
     
     # Update picke file
     with open(pkl_fp, 'wb') as pkl_file:
@@ -140,10 +149,14 @@ if __name__ == '__main__':
 
     # Create dictionary with hours as keys
     stats = {}
+    stats_ips = {}
     for fn in raw_stats:
-        for h in raw_stats[fn]:
-            stats.setdefault(h, []).append(raw_stats[fn][h])
-
+        for h in raw_stats[fn]: 
+            if h == 'ips':
+                for day in raw_stats[fn]['ips']: 
+                    stats_ips.setdefault(day, []).append(raw_stats[fn]['ips'][day])
+            else:
+                stats.setdefault(h, []).append(raw_stats[fn][h])
     
     ############################ VISUALIZATIONS ##################################################
 
@@ -153,6 +166,7 @@ if __name__ == '__main__':
         if do_by_day:
             pStats = convert_pStats_from_hours_to_days(pStats)
             days = [(i,x[0]) for i,x in enumerate(pStats)]
+            pStats_ips = sorted([(h,sorted(stats_ips[h], key=lambda x : x[-1])[-1]) for h in stats_ips])
         else:
             days = [(i,x[0]) for i,x in enumerate(pStats) if 'T12' in x[0]] # Time is in UTC: T12 is 8am EST
             
@@ -174,6 +188,23 @@ if __name__ == '__main__':
             plt.xticks(range(25), list(range(20,24))+list(range(20)))
             plt.title('Reward/Request Ratio over same day of the week (Smoothing '+str(smoothing_hours)+' hours)')
             plt.xlabel('Time of day - EST')
+            
+            plt.figure(3)
+            data2 = [[(x[0],sum(y[1] for y in x[1].values())) for x in pStats if d[1][:10] in x[0]] for d in days[-7:]]
+            [plt.plot([np.mean([x[1] for x in y[i:i+1]]) for i in range(len(y))]) for y in data2]
+            legend = plt.legend([y[0][0][:10] for y in data2], loc='best')
+            plt.xticks(range(25), list(range(20,24))+list(range(20)))
+            plt.title('Request over last 7 days')
+            plt.xlabel('Time of day - EST')
+            
+            # Visualize running average data of Reward/Request over the last 7 days
+            plt.figure(4)
+            data2 = [[(x[0],sum(y[1] for y in x[1].values())) for x in pStats if d[1][:10] in x[0]] for d in reversed(days[::-7])]
+            [plt.plot([np.mean([x[1] for x in y[i:i+1]]) for i in range(len(y))]) for y in data2]
+            legend = plt.legend([y[0][0][:10] for y in data2], loc='best')
+            plt.xticks(range(25), list(range(20,24))+list(range(20)))
+            plt.title('Request over same day of the week')
+            plt.xlabel('Time of day - EST')
 
         # All days and all hours plots
         plt.rcParams.update({'font.size': 16})  # General font size
@@ -186,7 +217,11 @@ if __name__ == '__main__':
         axarr[0].plot(range(len(p)),[x[1][1] for x in p], label='Total')
         axarr[1].plot(range(len(p)),[x[1][2] for x in p], label='Total')
         axarr[2].plot(range(len(p)),[x[1][2]/max(x[1][1],1) for x in p], label='Total')
-
+        
+        if do_by_day:
+            # IPS traffic plot
+            p = [(y[0], y[1][0]/y[1][1]) for y in pStats_ips]
+            axarr[2].plot(range(len(p)),[x[1] for x in p], label='IPS')
         
         dev_types = {x for y in pStats for x in y[1].keys()}
         dev_types = dev_types - {'Other', 'N/A', 'Android', 'Tablet'}
@@ -205,7 +240,9 @@ if __name__ == '__main__':
         axarr[1].set(ylabel='Rewards')
         axarr[2].set(ylabel='Ratio')
         plt.xticks([x[0] for x in days], [x[1] for x in days],rotation='vertical')
+        legend = axarr[0].legend(loc='best')
         legend = axarr[1].legend(loc='best')
+        legend = axarr[2].legend(loc='best')
         f.subplots_adjust(hspace=0.02, top=0.95, bottom=0.1)
 
         # Save figure to file
