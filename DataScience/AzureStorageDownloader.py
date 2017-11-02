@@ -1,87 +1,58 @@
 from azure.storage.blob import BlockBlobService
-import pickle, os, time, sys, datetime, requests
-import gzip
+import pickle, os, time, sys, datetime, requests, argparse
 import configparser
 
 LogDownloaderURL = "https://cps-staging-exp-experimentation.azurewebsites.net/api/Log?account={ACCOUNT_NAME}&key={ACCOUNT_KEY}&start={START_DATE}&end={END_DATE}&container={CONTAINER}"
 
+
+def valid_date(s):
+    try:
+        return datetime.datetime.strptime(s, "%Y-%m-%d")
+    except ValueError:
+        raise argparse.ArgumentTypeError("Not a valid date: '{0}'. Expected format: YYYY-MM-DD".format(s))
+
 def parse_argv(argv):
 
-    usage_str = ("--------------------------------------------------------------------\n\n"
-                 "Usage: python {} --container container_name --log_dir log_dir [--start_date YYYY-MM-DD] [--end_date YYYY-MM-DD] [--overwrite] [--dry_run] [--skip_current] [--version #] [--auth_fp file_path]\n"
-                 "--------------------------------------------------------------------\n"
-                 "Notes:\n"
-                 "data from end_date is not included\n"
-                 "overwrite: would replace files on disk\n"
-                 "dry_run: print which blobs would have been downloaded, without downloading\n"
-                 "skip_current: if true, avoid downloading a blob which has been modified within the last 10 min\n"
-                 "version: integer describing which version of data downloader to use (default: 2 -> AzureStorageDownloader)"
-                 "auth_fp: file path of pickle file containing azure storage authentication (when this flag is missing, ds.config info is used for authentication\n"
-                 "--------------------------------------------------------------------".format(argv[0]))
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-c','--container', help="container name", required=True)
+    parser.add_argument('-l','--log_dir', help="base dir to download data", required=True)
+    parser.add_argument('-s','--start_date', help="downloading start date (included) - format YYYY-MM-DD", type=valid_date)
+    parser.add_argument('-e','--end_date', help="downaloading end date (not included) - format YYYY-MM-DD", type=valid_date)
+    parser.add_argument('-v','--version', type=int, default=2, help="integer describing which version of data downloader to use (default: 2 -> AzureStorageDownloader)")
+    parser.add_argument('-o','--overwrite_mode', type=int, help="0: don't overwrite (default); 1: ask user if files have different sizes; 2: always overwrite", default=0)
+    parser.add_argument('-a','--auth_fp', default='', help="file path of pickle file containing dictionary for Azure storage authentication (when missing, ds.config info is used instead). Pickle dictionary format: {container : {'ACCOUNT' : AccountName, 'KEY' : AccountKey}}")
+    parser.add_argument('--dry_run', help="print which blobs would have been downloaded, without downloading", action='store_true')
+    parser.add_argument('--skip_current', help="avoid downloading a blob which has been modified within the last 10 min", action='store_true')
+    parser.add_argument('--verbose', action='store_true')
+        
+    kwargs = vars(parser.parse_args(argv[1:]))
+    if len(argv) > 5:
+        if kwargs.get('start_date', None) is None:
+            parser.error('When downloading, the following argument is required: --start_date')
+        
+        if kwargs.get('end_date', None) is None:
+            kwargs['end_date'] = datetime.datetime.utcnow() + datetime.timedelta(days=1) # filling end_date as tomorrow in UTC
+        
+        kwargs['output_fp'] = os.path.join(kwargs['log_dir'], kwargs['container'], kwargs['container']+'_'+kwargs['start_date'].strftime("%Y-%m-%d")+'_'+kwargs['end_date'].strftime("%Y-%m-%d")+'.json')
 
-    kwargs = {}
-    try:
-        ii = 1
-        while ii < len(argv):
-            if argv[ii] == '--container':
-                ii += 1
-                kwargs['container'] = argv[ii]
-            elif argv[ii] == '--log_dir':
-                ii += 1
-                kwargs['log_dir'] = argv[ii]
-            elif argv[ii] == '--overwrite':
-                kwargs['overwrite'] = True
-            elif argv[ii] == '--dry_run':
-                kwargs['dry_run'] = True
-            elif argv[ii] == '--skip_current':
-                kwargs['skip_current'] = True
-            elif argv[ii] == '--version':
-                ii += 1
-                kwargs['version'] = int(argv[ii])
-            elif argv[ii] == '--auth_fp':
-                ii += 1
-                kwargs['auth_fp'] = argv[ii]
-            elif argv[ii] == '--start_date':
-                ii += 1
-                kwargs['start_date'] = datetime.datetime.strptime(argv[ii], '%Y-%m-%d')
-            elif argv[ii] == '--end_date':
-                ii += 1
-                kwargs['end_date'] = datetime.datetime.strptime(argv[ii], '%Y-%m-%d')
-            else:
-                print('Input arg: {} not recognized! Abort!'.format(argv[ii]))
-                print(usage_str)
-                sys.exit()
-            ii += 1
-        
-        if 'container' not in kwargs:
-            raise Exception('--container is a required input')
-            
-        if 'log_dir' not in kwargs:
-            raise Exception('--log_dir is a required input')
-            
-        if len(kwargs) > 2:
-            if 'start_date' not in kwargs:
-                raise Exception('When downloading, --start_date is a required input')
-            
-            if 'end_date' not in kwargs:
-                kwargs['end_date'] = datetime.datetime.utcnow() + datetime.timedelta(days=1) # filling end_date as tomorrow in UTC
-            
-            kwargs['output_fp'] = os.path.join(kwargs['log_dir'], kwargs['container'], kwargs['container']+'_'+kwargs['start_date'].strftime("%Y-%m-%d")+'_'+kwargs['end_date'].strftime("%Y-%m-%d")+'.json')
-        
-    except Exception as e:
-        print('Error: {}'.format(e))
-        print(usage_str)
-        sys.exit()
-        
     return kwargs
 
-def download_container(container, log_dir, start_date=None, end_date=None, overwrite=False, dry_run=False, skip_current=False, version=2, auth_fp='', output_fp=''):
+def update_progress(current, total):
+    barLength = 50 # Length of the progress bar
+    progress = current/total
+    block = int(barLength*progress)
+    text = "\rProgress: [{0}] {1:.1f}%".format( "#"*block + "-"*(barLength-block), progress*100)
+    sys.stdout.write(text)
+    sys.stdout.flush()
+
+def download_container(container, log_dir, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, skip_current=False, version=2, auth_fp='', output_fp='', verbose=False):
     
     print('Start Date: {}'.format(start_date))
     print('End Date: {}'.format(end_date))
-    print('Overwrite: {}'.format(overwrite))
+    print('Overwrite mode: {}'.format(overwrite_mode))
     print('dry_run: {}'.format(dry_run))
     print('skip_current: {}'.format(skip_current))
+    print('version: {}'.format(version))
     
     if not dry_run and not os.path.isdir(os.path.join(log_dir, container)):
         os.makedirs(os.path.join(log_dir, container))
@@ -112,7 +83,7 @@ def download_container(container, log_dir, start_date=None, end_date=None, overw
         sys.exit()
     
     if version == 1: # using LogDownloader api
-        if not overwrite and os.path.isfile(output_fp):
+        if overwrite_mode < 2 and os.path.isfile(output_fp):
             print('File ({}) already exits, not downloading'.format(output_fp))
         else:
             print('Destination: {}\nDownloading...'.format(output_fp), end='')
@@ -123,7 +94,7 @@ def download_container(container, log_dir, start_date=None, end_date=None, overw
                     url = LogDownloaderURL.format(ACCOUNT_NAME=account_name, ACCOUNT_KEY=account_key.replace('+','%2b'), CONTAINER=container, START_DATE=start_date.strftime("%Y-%m-%d"), END_DATE=end_date.strftime("%Y-%m-%d"))
                     r = requests.post(url)
                     open(output_fp, 'wb').write(r.content)
-                    print(' Done!')
+                    print(' Done!\n')
                 except Exception as e:
                     print(' Error: {}'.format(e))
         
@@ -134,9 +105,8 @@ def download_container(container, log_dir, start_date=None, end_date=None, overw
         blobs = bbs.list_blobs(container)
         for blob in blobs:
             if '/data/' not in blob.name:
-                continue
-            fp = os.path.join(log_dir, container, blob.name.replace('/','_'))
-            if os.path.isfile(fp) and not overwrite:
+                if verbose:
+                    print('Skip non-data file: {}'.format(blob.name))
                 continue
             
             blob_day = datetime.datetime.strptime(blob.name.split('/data/', 1)[1].split('_', 1)[0], '%Y/%m/%d')
@@ -146,19 +116,36 @@ def download_container(container, log_dir, start_date=None, end_date=None, overw
             try:
                 bp = bbs.get_blob_properties(container, blob.name)
                 curr_time = datetime.datetime.now(datetime.timezone.utc)
-                diff_time = curr_time-bp.properties.last_modified
-                will_download = (not skip_current) or diff_time > datetime.timedelta(0, 600, 0)    # download blob if not modified in the last 10 min
-                if will_download:
-                    print("\nBlob {}\nUncompressed Size: {:.3f} MB\nLast modified: {}\nCurrent time: {}\nDiff from current time: {} - Will download: {}".format(blob.name, bp.properties.content_length/(1024**2), bp.properties.last_modified, curr_time, diff_time, will_download))
-                    print('Destination: {}\nDownloading...'.format(fp), end='')
-                    if dry_run:
-                        print(' dry_run!')
-                    else:
-                        t0 = time.time()
-                        bbs.get_blob_to_path(container, blob.name, fp)
-                        elapsed_time = time.time()-t0
-                        file_size = os.path.getsize(fp)/(1024**2) # file size in MB
-                        print(' Done! - {:.3f} MB in {:.3f} sec.: Average: {:.3f} MB/sec'.format(file_size, elapsed_time, file_size/elapsed_time))
+                if skip_current and curr_time-bp.properties.last_modified < datetime.timedelta(0, 600, 0):    # skip blob if not modified in the last 10 min
+                    if verbose:
+                        print('Skip current - Time delta: {}'.format(curr_time-bp.properties.last_modified))
+                    continue
+
+                output_fp = os.path.join(log_dir, container, blob.name.replace('/','_'))
+                if overwrite_mode < 2 and os.path.isfile(output_fp):
+                    if overwrite_mode == 0:
+                        if verbose:
+                            print('Output file already exits - Skip: {}'.format(output_fp))
+                        continue
+                    elif overwrite_mode == 1:
+                        file_size = os.path.getsize(output_fp)/(1024**2) # file size in MB
+                        if file_size == bp.properties.content_length/(1024**2): # file size is the same, skip!
+                            if verbose:
+                                print('Skip - Files have same size')
+                            continue
+                        print('Output file already exits: {}\nLocal size: {:.3f} MB\nAzure size: {:.3f} MB'.format(output_fp, file_size, bp.properties.content_length/(1024**2)))
+                        if input("Do you want to overwrite [Y/n]? ") != 'Y':
+                            continue
+
+                print('\nBlob name: {}\nBlob size: {:.3f} MB\nLast modified: {}\nDestination: {}'.format(blob.name, bp.properties.content_length/(1024**2), bp.properties.last_modified, output_fp))
+                if dry_run:
+                    print('dry_run - Not downloading!')
+                else:
+                    t0 = time.time()
+                    bbs.get_blob_to_path(container, blob.name, output_fp, progress_callback=update_progress)
+                    elapsed_time = time.time()-t0
+                    file_size = os.path.getsize(output_fp)/(1024**2) # file size in MB
+                    print('\nDownloaded {:.3f} MB in {:.3f} sec.: Average: {:.3f} MB/sec\n'.format(file_size, elapsed_time, file_size/elapsed_time))
             except Exception as e:
                 print(' Error: {}'.format(e))
 

@@ -82,9 +82,7 @@ if __name__ == '__main__':
     
     ################################# DATA DOWNLOADER #########################################################
     
-    if len(kwargs) > 2:
-        if 'version' not in kwargs:
-            kwargs['version'] = 1
+    if len(sys.argv) > 5:
         AzureStorageDownloader.download_container(**kwargs)
         
     ################################# PARSE LOGS #########################################################
@@ -99,7 +97,7 @@ if __name__ == '__main__':
 
     files = [x.path for x in os.scandir(os.path.join(log_dir,container)) if x.path.endswith('.json') and container+'_' in x.path and '_skip' not in x.path]
 
-    parse_logs(raw_stats, files, {kwargs['output_fp']} if kwargs.get('overwrite', False) else set())
+    parse_logs(raw_stats, files, {kwargs['output_fp']} if kwargs['overwrite_mode'] == 2 else set())
     
     # Update picke file
     with open(pkl_fp, 'wb') as pkl_file:
