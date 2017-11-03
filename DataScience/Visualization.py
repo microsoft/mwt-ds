@@ -1,7 +1,8 @@
-import json, os, time, pickle, sys, requests
+import json, os, time, pickle, sys
 import matplotlib.pyplot as plt
 import numpy as np
 import configparser
+import AzureStorageDownloader
 
 
 # Create dictionary with filename as keys
@@ -74,61 +75,16 @@ def convert_pStats_from_hours_to_days(pStats):
 
 if __name__ == '__main__':
     
-    if len(sys.argv) < 2:
-        print("Usage: python Visualization.py {container_name} [StartDate] [EndDate] [overwrite]")
-        print("Example Usage: python Visualization.py cmplx 2017-09-28 2017-09-29")
-        sys.exit()
+    ################################# PARSE INPUT CMD #########################################################
+    kwargs = AzureStorageDownloader.parse_argv(sys.argv)
+    container = kwargs['container']
+    log_dir = kwargs['log_dir']
+    
+    ################################# DATA DOWNLOADER #########################################################
+    
+    if len(sys.argv) > 5:
+        AzureStorageDownloader.download_container(**kwargs)
         
-    config = configparser.ConfigParser()
-    config.read('ds.config')
-    visua_config = config['Visualization']
-    
-    log_dir = visua_config['LogDir']
-    pkl_data_fp = visua_config['PickleDataPath']
-    fig_dir = visua_config['FigDir']
-    save_fig_to_file = visua_config['save_fig_to_file'] == "True"
-    
-            
-    container = sys.argv[1]
-    print('Container: {0}'.format(container))
-    
-    if not os.path.isdir(os.path.join(log_dir,container)):
-        os.makedirs(os.path.join(log_dir,container))
-
-    overwrite = False
-    file_path = None
-    
-    ################################# LOG DOWNLOADER #########################################################
-    
-    if len(sys.argv) > 3:
-        START = sys.argv[2]
-        END = sys.argv[3]
-        
-        if len(sys.argv) > 4 and sys.argv[4] == 'overwrite':
-            overwrite = True
-        print('Overwrite: {0}'.format(overwrite))
-        
-        file_path = os.path.join(log_dir, container, container+'_'+START+'_'+END+'.json')
-        
-        if not overwrite and os.path.isfile(file_path):
-            print('File ({0}) exits, not downloading'.format(file_path))
-        else:
-            print('Downloading logs: {0} - {1}'.format(START, END))
-
-            if os.path.isfile(pkl_data_fp):
-                with open(pkl_data_fp, 'rb') as pkl_file:
-                    data = pickle.load(pkl_file)
-            else:
-                print("Data dict not found at: {0}".format(pkl_data_fp))
-                sys.exit()    
-
-            t0 = time.time()
-            url = visua_config['LogDownloaderURL'].format(**data[container], CONTAINER=container, START=START, END=END)
-            r = requests.post(url)
-            open(file_path, 'wb').write(r.content)
-            print('Download time:',time.time()-t0)
-            
-
     ################################# PARSE LOGS #########################################################
 
     raw_stats = {}
@@ -141,7 +97,7 @@ if __name__ == '__main__':
 
     files = [x.path for x in os.scandir(os.path.join(log_dir,container)) if x.path.endswith('.json') and container+'_' in x.path and '_skip' not in x.path]
 
-    parse_logs(raw_stats, files, {file_path} if overwrite else set())
+    parse_logs(raw_stats, files, {kwargs['output_fp']} if kwargs['overwrite_mode'] == 2 else set())
     
     # Update picke file
     with open(pkl_fp, 'wb') as pkl_file:
@@ -216,22 +172,29 @@ if __name__ == '__main__':
         p = [(y[0],[sum(y[1][dev][0] for dev in y[1]),sum(y[1][dev][1] for dev in y[1]),sum(y[1][dev][2] for dev in y[1])]) for y in pStats]
         axarr[0].plot(range(len(p)),[x[1][1] for x in p], label='Total')
         axarr[1].plot(range(len(p)),[x[1][2] for x in p], label='Total')
-        axarr[2].plot(range(len(p)),[x[1][2]/max(x[1][1],1) for x in p], label='Total')
-        
+        axarr[2].plot(range(len(p)),[x[1][2]/max(x[1][1],1) for x in p], label='Online performance')
         if do_by_day:
-            # IPS traffic plot
-            p = [(y[0], y[1][0]/y[1][1]) for y in pStats_ips]
-            axarr[2].plot(range(len(p)),[x[1] for x in p], label='IPS')
+            online_perf = np.average([x[1][2]/max(x[1][1],1) for x in p])
         
+        # Per-device traffic plot
         dev_types = {x for y in pStats for x in y[1].keys()}
         dev_types = dev_types - {'Other', 'N/A', 'Android', 'Tablet'}
         if len(dev_types) > 1:    
             for dev in dev_types:
-                # Single device traffic plot
                 p = [(y[0],y[1][dev] if dev in y[1] else [0,0,0]) for y in pStats]
                 axarr[0].plot(range(len(p)),[x[1][1] for x in p], label=dev)
                 axarr[1].plot(range(len(p)),[x[1][2] for x in p], label=dev)
                 axarr[2].plot(range(len(p)),[x[1][2]/max(x[1][1],1) for x in p], label=dev)
+        
+        # Baseline estimate
+        if do_by_day:
+            # IPS traffic plot
+            p = [(y[0], y[1][0]/y[1][1]) for y in pStats_ips]
+            axarr[2].plot(range(len(p)),[x[1] for x in p], label='Baseline estimate')
+            baseline_est = np.average([x[1] for x in p])
+            print('Online performance: {}'.format(online_perf))
+            print('Baseline estimate: {}'.format(baseline_est))
+            print('DS lift: {}'.format(online_perf/baseline_est))
 
         # Grid, axis and legend settings
         for ax in axarr:
@@ -243,13 +206,6 @@ if __name__ == '__main__':
         legend = axarr[0].legend(loc='best')
         legend = axarr[1].legend(loc='best')
         legend = axarr[2].legend(loc='best')
-        f.subplots_adjust(hspace=0.02, top=0.95, bottom=0.1)
-
-        # Save figure to file
-        if save_fig_to_file and os.path.isdir(fig_dir):
-            manager = plt.get_current_fig_manager()
-            manager.window.showFullScreen() # To save full screen png
-            f.savefig(os.path.join(fig_dir, container+('_days' if do_by_day else '_hours')+'.png'))
-            manager.window.showNormal()                
+        f.subplots_adjust(hspace=0.02, top=0.95, bottom=0.1)            
     
     plt.show()
