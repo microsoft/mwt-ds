@@ -46,6 +46,8 @@ def update_progress(current, total):
 
 def download_container(container, log_dir, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, auth_fp=None, output_fp='', verbose=False):
     
+    print('-----'*10)
+    print('Current UTC time: {}'.format(datetime.datetime.now(datetime.timezone.utc)))
     print('Start Date: {}'.format(start_date))
     print('End Date: {}'.format(end_date))
     print('Overwrite mode: {}'.format(overwrite_mode))
@@ -55,9 +57,9 @@ def download_container(container, log_dir, start_date=None, end_date=None, overw
     if not dry_run and not os.path.isdir(os.path.join(log_dir, container)):
         os.makedirs(os.path.join(log_dir, container))
     
-    # Get Azure Storage Autentication
+    # Get Azure Storage Authentication
     if auth_fp:
-        print('Using pickle file for Azure Storage Autentication')
+        print('Authentication: {}'.format(auth_fp))
         try:
             with open(auth_fp, 'rb') as pkl_file:
                 auth_data = pickle.load(pkl_file)
@@ -70,7 +72,7 @@ def download_container(container, log_dir, start_date=None, end_date=None, overw
             print("Error reading data dict from {}: {}".format(auth_fp,e))
             sys.exit()
     else:
-        print('Using ds.config file for Azure Storage Autentication')
+        print('Authentication: ds.config')
         config = configparser.ConfigParser()
         config.read('ds.config')
         account_name = config['DecisionService']['AzureBlobStorageAccountName']
@@ -80,14 +82,17 @@ def download_container(container, log_dir, start_date=None, end_date=None, overw
         print("Invalid Azure Storage Account Key!")
         sys.exit()
     
+    print('-----'*10)
+    
     if version == 1: # using LogDownloader api
         if overwrite_mode < 2 and os.path.isfile(output_fp):
-            print('File ({}) already exits, not downloading'.format(output_fp))
+            print('{} already exits, not downloading'.format(output_fp))
         else:
-            print('Destination: {}\nDownloading...'.format(output_fp), end='')
+            print('Destination: {}'.format(output_fp))
             if dry_run:
-                print(' dry_run!')
+                print('--dry_run - Not downloading!')
             else:
+                print('Downloading...'.format(output_fp), end='')
                 try:
                     url = LogDownloaderURL.format(ACCOUNT_NAME=account_name, ACCOUNT_KEY=account_key.replace('+','%2b'), CONTAINER=container, START_DATE=start_date.strftime("%Y-%m-%d"), END_DATE=end_date.strftime("%Y-%m-%d"))
                     r = requests.post(url)
@@ -100,15 +105,19 @@ def download_container(container, log_dir, start_date=None, end_date=None, overw
         bbs = BlockBlobService(account_name=account_name, account_key=account_key.replace('%2b','+'))
 
         # List all blobs and download them one by one
+        print('Getting blobs list...', end='', flush=True)
         blobs = bbs.list_blobs(container)
+        print(' Done!\nIterating through blobs...\n')
         for blob in blobs:
             if '/data/' not in blob.name:
                 if verbose:
-                    print('Skip non-data file: {}'.format(blob.name))
+                    print('{} - Skip: Non-data blob'.format(blob.name))
                 continue
             
             blob_day = datetime.datetime.strptime(blob.name.split('/data/', 1)[1].split('_', 1)[0], '%Y/%m/%d')
             if (start_date and blob_day < start_date) or (end_date and end_date <= blob_day):
+                if verbose:
+                    print('{} - Skip: Outside of date range'.format(blob.name))
                 continue
 
             try:
@@ -118,25 +127,25 @@ def download_container(container, log_dir, start_date=None, end_date=None, overw
                 if overwrite_mode < 2 and os.path.isfile(output_fp):
                     if overwrite_mode == 0:
                         if verbose:
-                            print('Output file already exits - Skip: {}'.format(output_fp))
+                            print('{} - Skip: Output file already exits'.format(blob.name))
                         continue
                     elif overwrite_mode == 1:
                         file_size = os.path.getsize(output_fp)/(1024**2) # file size in MB
                         if file_size == bp.properties.content_length/(1024**2): # file size is the same, skip!
                             if verbose:
-                                print('Skip - Files have same size')
+                                print('{} - Skip: Output file already exits with same size'.format(blob.name))
                             continue
                         print('Output file already exits: {}\nLocal size: {:.3f} MB\nAzure size: {:.3f} MB'.format(output_fp, file_size, bp.properties.content_length/(1024**2)))
                         if input("Do you want to overwrite [Y/n]? ") != 'Y':
                             continue
 
-                print('\nBlob name: {}\nBlob size: {:.3f} MB\nLast modified: {}\nDestination: {}'.format(blob.name, bp.properties.content_length/(1024**2), bp.properties.last_modified, output_fp))
+                print('Processing: {} (size: {:.3f}MB - Last modified: {})'.format(blob.name, bp.properties.content_length/(1024**2), bp.properties.last_modified))
                 if dry_run:
-                    print('dry_run - Not downloading!')
+                    print('--dry_run - Not downloading!')
                 else:
                     # check if blob was modified within the last 1 hour
                     if datetime.datetime.now(datetime.timezone.utc)-bp.properties.last_modified < datetime.timedelta(0, 3600):
-                        if input("Azure file modified during last hour. Do you want to download anyway [Y/n]? ") != 'Y':
+                        if input("Azure blob currently in use (modified during last hour). Do you want to download anyway [Y/n]? ") != 'Y':
                             continue
                         max_connections = 1 # set max_connections to 1 to prevent crash if azure blob is modified during download
                     else:
@@ -146,10 +155,10 @@ def download_container(container, log_dir, start_date=None, end_date=None, overw
                     bbs.get_blob_to_path(container, blob.name, output_fp, progress_callback=update_progress, max_connections=max_connections)
                     elapsed_time = time.time()-t0
                     file_size = os.path.getsize(output_fp)/(1024**2) # file size in MB
-                    print('\nDownloaded {:.3f} MB in {:.3f} sec.: Average: {:.3f} MB/sec\n'.format(file_size, elapsed_time, file_size/elapsed_time))
+                    print('\nDownloaded {:.3f} MB in {:.3f} sec.: Average: {:.3f} MB/sec'.format(file_size, elapsed_time, file_size/elapsed_time))
             except Exception as e:
                 print(' Error: {}'.format(e))
-
+            
 
 if __name__ == '__main__':
     
