@@ -20,7 +20,7 @@ def parse_argv(argv):
     parser.add_argument('-e','--end_date', help="downaloading end date (not included) - format YYYY-MM-DD", type=valid_date)
     parser.add_argument('-v','--version', type=int, default=2, help="integer describing which version of data downloader to use (default: 2 -> AzureStorageDownloader)")
     parser.add_argument('-o','--overwrite_mode', type=int, help="0: don't overwrite (default); 1: ask user if files have different sizes; 2: always overwrite", default=0)
-    parser.add_argument('-a','--auth_fp', default='', help="file path of pickle file containing dictionary for Azure storage authentication (when missing, ds.config info is used instead). Pickle dictionary format: {container : {'ACCOUNT' : AccountName, 'KEY' : AccountKey}}")
+    parser.add_argument('-a','--auth_fp', help="file path of pickle file containing dictionary for Azure storage authentication (when missing, ds.config info is used instead). Pickle dictionary format: {container : {'ACCOUNT' : AccountName, 'KEY' : AccountKey}}")
     parser.add_argument('--dry_run', help="print which blobs would have been downloaded, without downloading", action='store_true')
     parser.add_argument('--skip_current', help="avoid downloading a blob which has been modified within the last 10 min", action='store_true')
     parser.add_argument('--verbose', action='store_true')
@@ -45,7 +45,7 @@ def update_progress(current, total):
     sys.stdout.write(text)
     sys.stdout.flush()
 
-def download_container(container, log_dir, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, skip_current=False, version=2, auth_fp='', output_fp='', verbose=False):
+def download_container(container, log_dir, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, skip_current=False, version=2, auth_fp=None, output_fp='', verbose=False):
     
     print('Start Date: {}'.format(start_date))
     print('End Date: {}'.format(end_date))
@@ -58,7 +58,7 @@ def download_container(container, log_dir, start_date=None, end_date=None, overw
         os.makedirs(os.path.join(log_dir, container))
     
     # Get Azure Storage Autentication
-    if os.path.isfile(auth_fp):
+    if auth_fp:
         print('Using pickle file for Azure Storage Autentication')
         try:
             with open(auth_fp, 'rb') as pkl_file:
