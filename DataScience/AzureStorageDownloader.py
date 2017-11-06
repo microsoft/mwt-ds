@@ -153,7 +153,7 @@ def download_container(container, log_dir, start_date=None, end_date=None, overw
                 else:
                     # check if blob was modified within the last 1 hour
                     if datetime.datetime.now(datetime.timezone.utc)-bp.properties.last_modified < datetime.timedelta(0, 3600):
-                        if input("Azure blob currently in use (modified during last hour). Do you want to download anyway [Y/n]? ") != 'Y':
+                        if overwrite_mode < 2 and input("Azure blob currently in use (modified during last hour). Do you want to download anyway [Y/n]? ") != 'Y':
                             continue
                         max_connections = 1 # set max_connections to 1 to prevent crash if azure blob is modified during download
                     else:
