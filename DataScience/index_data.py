@@ -21,7 +21,7 @@ if __name__ == '__main__':
     joined_examples_container = ds['JoinedExamplesContainer']
 
     # https://azure-storage.readthedocs.io/en/latest/_modules/azure/storage/blob/models.html#BlobBlock
-    block_blob_service = BlockBlobService(account_name=ds['AzureBlobStorageAccountName'], account_key=ds['AzureBlobStorageAccountKey'])
+    block_blob_service = BlockBlobService(connection_string=self.config['AzureBlobStorageAuthorization']['$Default'])
 
     # Parse start and end dates for getting data
     if len(sys.argv) < 3:
