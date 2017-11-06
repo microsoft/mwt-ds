@@ -19,7 +19,7 @@ if __name__ == '__main__':
     config.read('ds.config')
     ds = config['DecisionService']
     cache_folder = ds['CacheFolder']
-    block_blob_service = BlockBlobService(account_name=ds['AzureBlobStorageAccountName'], account_key=ds['AzureBlobStorageAccountKey'])
+    block_blob_service = BlockBlobService(connection_string=self.config['AzureStorageAuthentication']['$Default'])
     
     joined_data_index = {}
 

@@ -206,9 +206,9 @@ class DataSet:
         self.cache_folder = self.ds['CacheFolder']
         self.joined_examples_container = self.ds['JoinedExamplesContainer']
         self.experimental_unit_duration_days = self.ds['ExperimentalUnitDurationDays']
-
+        
         # https://azure-storage.readthedocs.io/en/latest/_modules/azure/storage/blob/models.html#BlobBlock
-        self.block_blob_service = BlockBlobService(account_name=self.ds['AzureBlobStorageAccountName'], account_key=self.ds['AzureBlobStorageAccountKey'])
+        self.block_blob_service = BlockBlobService(connection_string=self.config['AzureStorageAuthentication']['$Default'])
 
         # Lookback 'experimental_unit_duration_days' for events
         self.start_date_withlookback = start_date + timedelta(days = -int(self.experimental_unit_duration_days))

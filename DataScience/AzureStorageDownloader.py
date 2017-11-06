@@ -1,4 +1,4 @@
-import pickle, os, time, sys, datetime, requests, argparse
+import os, time, sys, datetime, requests, argparse
 import configparser
 try:
     from azure.storage.blob import BlockBlobService
@@ -28,7 +28,6 @@ def parse_argv(argv):
     parser.add_argument('-e','--end_date', help="downaloading end date (not included) - format YYYY-MM-DD", type=valid_date)
     parser.add_argument('-v','--version', type=int, default=2, help="integer describing which version of data downloader to use (default: 2 -> AzureStorageDownloader)")
     parser.add_argument('-o','--overwrite_mode', type=int, help="0: don't overwrite (default); 1: ask user if files have different sizes; 2: always overwrite", default=0)
-    parser.add_argument('-a','--auth_fp', help="file path of pickle file containing dictionary for Azure storage authentication (when missing, ds.config info is used instead). Pickle dictionary format: {container : {'ACCOUNT' : AccountName, 'KEY' : AccountKey}}")
     parser.add_argument('--dry_run', help="print which blobs would have been downloaded, without downloading", action='store_true')
     parser.add_argument('--verbose', action='store_true')
         
@@ -66,28 +65,16 @@ def download_container(container, log_dir, start_date=None, end_date=None, overw
         os.makedirs(os.path.join(log_dir, container))
     
     # Get Azure Storage Authentication
-    if auth_fp:
-        print('Authentication: {}'.format(auth_fp))
-        try:
-            with open(auth_fp, 'rb') as pkl_file:
-                auth_data = pickle.load(pkl_file)
-            if container not in auth_data:
-                print("Container {} not in data dict".format(container))
-                sys.exit()
-            account_name = auth_data[container]['ACCOUNT']
-            account_key = auth_data[container]['KEY']
-        except Exception as e:
-            print("Error reading data dict from {}: {}".format(auth_fp,e))
-            sys.exit()
-    else:
-        print('Authentication: ds.config')
-        config = configparser.ConfigParser()
-        config.read('ds.config')
-        account_name = config['DecisionService']['AzureBlobStorageAccountName']
-        account_key = config['DecisionService']['AzureBlobStorageAccountKey']
-    
-    if len(account_key.replace('%2b','+')) != 88:
-        print("Invalid Azure Storage Account Key!")
+    config = configparser.ConfigParser()
+    config.read('ds.config')
+    connection_string = config['AzureStorageAuthentication'].get(container, config['AzureStorageAuthentication']['$Default'])
+    # Check connection string (and parse for logDownloader)
+    try:
+        connection_string_dict = {x.split('=',1)[0] : x.split('=',1)[1] for x in connection_string.split(';')}
+        if not connection_string_dict['AccountName'] or len(connection_string_dict['AccountKey']) != 88:
+            raise
+    except:
+        print("Error: Invalid Azure Storage ConnectionString.")
         sys.exit()
     
     print('-----'*10)
@@ -102,7 +89,7 @@ def download_container(container, log_dir, start_date=None, end_date=None, overw
             else:
                 print('Downloading...'.format(output_fp), end='')
                 try:
-                    url = LogDownloaderURL.format(ACCOUNT_NAME=account_name, ACCOUNT_KEY=account_key.replace('+','%2b'), CONTAINER=container, START_DATE=start_date.strftime("%Y-%m-%d"), END_DATE=end_date.strftime("%Y-%m-%d"))
+                    url = LogDownloaderURL.format(ACCOUNT_NAME=connection_string_dict['AccountName'], ACCOUNT_KEY=connection_string_dict['AccountKey'].replace('+','%2b'), CONTAINER=container, START_DATE=start_date.strftime("%Y-%m-%d"), END_DATE=end_date.strftime("%Y-%m-%d"))
                     r = requests.post(url)
                     open(output_fp, 'wb').write(r.content)
                     print(' Done!\n')
@@ -110,7 +97,7 @@ def download_container(container, log_dir, start_date=None, end_date=None, overw
                     print(' Error: {}'.format(e))
         
     else: # using BlockBlobService python api
-        bbs = BlockBlobService(account_name=account_name, account_key=account_key.replace('%2b','+'))
+        bbs = BlockBlobService(connection_string=connection_string)
 
         # List all blobs and download them one by one
         print('Getting blobs list...', end='', flush=True)
@@ -173,7 +160,7 @@ if __name__ == '__main__':
     kwargs = parse_argv(sys.argv)
     print('Container: {0}'.format(kwargs['container']))
     print('log_dir: {0}'.format(kwargs['log_dir']))
-
+    
     ################################# PARSE INPUT CMD #########################################################
     
     t0 = time.time()
