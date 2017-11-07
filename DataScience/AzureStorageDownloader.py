@@ -53,6 +53,7 @@ def update_progress(current, total):
 
 def download_container(container, log_dir, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, auth_fp=None, output_fp='', verbose=False):
     
+    t_start = time.time()
     print('-----'*10)
     print('Current UTC time: {}'.format(datetime.datetime.now(datetime.timezone.utc)))
     print('Start Date: {}'.format(start_date))
@@ -153,7 +154,8 @@ def download_container(container, log_dir, start_date=None, end_date=None, overw
                     print('\nDownloaded {:.3f} MB in {:.3f} sec.: Average: {:.3f} MB/sec'.format(file_size, elapsed_time, file_size/elapsed_time))
             except Exception as e:
                 print(' Error: {}'.format(e))
-            
+    print('Total download time:',time.time()-t_start)
+
 
 if __name__ == '__main__':
     
@@ -163,6 +165,4 @@ if __name__ == '__main__':
     
     ################################# PARSE INPUT CMD #########################################################
     
-    t0 = time.time()
     download_container(**kwargs)
-    print('Total download time:',time.time()-t0)
