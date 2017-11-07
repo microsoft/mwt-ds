@@ -18,8 +18,8 @@
 	    <dependency id="Microsoft.ApplicationInsights.TraceListener" version="2.1.0" />
 	    <dependency id="Microsoft.ApplicationInsights.PerfCounterCollector" version="2.1.0"/>
 	    <dependency id="Rx-Main" version="2.2.5" />
-	    <dependency id="VowpalWabbit" version="8.4.0" />
-	    <dependency id="VowpalWabbit.JSON" version="8.4.0" />
+	    <dependency id="VowpalWabbit" version="8.4.0.1" />
+	    <dependency id="VowpalWabbit.JSON" version="8.4.0.1" />
 	    <dependency id="WindowsAzure.ServiceBus" version="3.3.1" />
 	    <dependency id="WindowsAzure.Storage" version="7.1.2" />
 	    <dependency id="Microsoft.Research.MultiWorldTesting.JoinUploader" version="$version$" />

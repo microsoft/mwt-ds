@@ -89,20 +89,20 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Web" />
-    <Reference Include="VowpalWabbit, Version=8.4.0.0, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <HintPath>..\..\packages\VowpalWabbit.8.4.0\lib\net45\VowpalWabbit.dll</HintPath>
+    <Reference Include="VowpalWabbit, Version=8.4.0.1, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
+      <HintPath>..\..\packages\VowpalWabbit.8.4.0.1\lib\net45\VowpalWabbit.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="VowpalWabbit.Common, Version=8.4.0.0, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <HintPath>..\..\packages\VowpalWabbit.8.4.0\lib\net45\VowpalWabbit.Common.dll</HintPath>
+    <Reference Include="VowpalWabbit.Common, Version=8.4.0.1, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
+      <HintPath>..\..\packages\VowpalWabbit.8.4.0.1\lib\net45\VowpalWabbit.Common.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="VowpalWabbit.Core, Version=8.4.0.0, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <HintPath>..\..\packages\VowpalWabbit.8.4.0\lib\net45\VowpalWabbit.Core.dll</HintPath>
+    <Reference Include="VowpalWabbit.Core, Version=8.4.0.1, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
+      <HintPath>..\..\packages\VowpalWabbit.8.4.0.1\lib\net45\VowpalWabbit.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="VowpalWabbit.JSON, Version=8.4.0.0, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
-      <HintPath>..\..\packages\VowpalWabbit.JSON.8.4.0\lib\net45\VowpalWabbit.JSON.dll</HintPath>
+    <Reference Include="VowpalWabbit.JSON, Version=8.4.0.1, Culture=neutral, PublicKeyToken=a76afd1645210483, processorArchitecture=AMD64">
+      <HintPath>..\..\packages\VowpalWabbit.JSON.8.4.0.1\lib\net45\VowpalWabbit.JSON.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
