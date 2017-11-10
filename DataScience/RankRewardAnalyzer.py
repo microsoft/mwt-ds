@@ -53,8 +53,9 @@ def send_rank_and_rewards(base_url, app, local_fp, feed, iter_num=1000, time_sle
                 continue
             eventId = str(r.content.split(b'eventId":"',1)[1].split(b'","',1)[0], 'utf-8')
             eventIds.append(eventId)
-            r2 = s.post(url+'/reward/'+eventId, json=i+.18)
-            f.write('url:{}\tstatus_code:{}\theaders:{}\tcontent:{}\n'.format(url+'/reward/'+eventId,r2.status_code,r2.headers,i+.18))
+            reward = i+.36
+            r2 = s.post(url+'/reward/'+eventId, json=reward)
+            f.write('url:{}\tstatus_code:{}\theaders:{}\tcontent:{}\n'.format(url+'/reward/'+eventId,r2.status_code,r2.headers,reward))
             if r2.status_code != 200 or r2.headers.get('x-msdecision-src', None) != site_str:
                 err[1] += 1
                 print('Reward Error - status_code: {}; headers: {}'.format(r2.status_code,r2.headers))
@@ -96,7 +97,7 @@ def print_stats(local_fp, azure_path, verbose=False, plot_hist=False):
     no_events_idx = []
     for i,x in enumerate(local_rank):
         if x in azure_dict:
-            if float(rew_dict[x]) != -float(azure_dict[x]):
+            if abs(1. + float(azure_dict[x])/float(rew_dict[x])) > 1e-7:
                 if verbose:
                     print('Idx: {} - Error in reward: Local: {} Azure: {} - EventId: {}'.format(i+1,rew_dict[x], azure_dict[x],x))
                 err_rewards_idx.append(i+1)
