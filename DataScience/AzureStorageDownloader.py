@@ -1,4 +1,4 @@
-import os, time, sys, datetime, requests, argparse
+import os, time, sys, datetime, requests, argparse, gzip
 import configparser
 try:
     from azure.storage.blob import BlockBlobService
@@ -29,6 +29,7 @@ def parse_argv(argv):
     parser.add_argument('-v','--version', type=int, default=2, help="integer describing which version of data downloader to use (default: 2 -> AzureStorageDownloader)")
     parser.add_argument('-o','--overwrite_mode', type=int, help="0: don't overwrite (default); 1: ask user if files have different sizes; 2: always overwrite", default=0)
     parser.add_argument('--dry_run', help="print which blobs would have been downloaded, without downloading", action='store_true')
+    parser.add_argument('--no_gzip', help="Skip producing gzip file for Vawpal Wabbit", action='store_true')
     parser.add_argument('--verbose', action='store_true')
         
     kwargs = vars(parser.parse_args(argv[1:]))
@@ -51,7 +52,7 @@ def update_progress(current, total):
     sys.stdout.write(text)
     sys.stdout.flush()
 
-def download_container(container, log_dir, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, auth_fp=None, output_fp='', verbose=False):
+def download_container(container, log_dir, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, auth_fp=None, output_fp='', verbose=False, no_gzip=False):
     
     t_start = time.time()
     print('-----'*10)
@@ -61,6 +62,7 @@ def download_container(container, log_dir, start_date=None, end_date=None, overw
     print('Overwrite mode: {}'.format(overwrite_mode))
     print('dry_run: {}'.format(dry_run))
     print('version: {}'.format(version))
+    print('no_gzip: {}'.format(no_gzip))
     
     if not dry_run and not os.path.isdir(os.path.join(log_dir, container)):
         os.makedirs(os.path.join(log_dir, container))
@@ -98,6 +100,8 @@ def download_container(container, log_dir, start_date=None, end_date=None, overw
                     print(' Error: {}'.format(e))
         
     else: # using BlockBlobService python api
+    
+        output_fps = []
         bbs = BlockBlobService(connection_string=connection_string)
 
         # List all blobs and download them one by one
@@ -119,19 +123,20 @@ def download_container(container, log_dir, start_date=None, end_date=None, overw
             try:
                 bp = bbs.get_blob_properties(container, blob.name)
 
-                output_fp = os.path.join(log_dir, container, blob.name.replace('/','_'))
-                if overwrite_mode < 2 and os.path.isfile(output_fp):
+                fp = os.path.join(log_dir, container, blob.name.replace('/','_'))
+                output_fps.append(fp)
+                if overwrite_mode < 2 and os.path.isfile(fp):
                     if overwrite_mode == 0:
                         if verbose:
                             print('{} - Skip: Output file already exits'.format(blob.name))
                         continue
                     elif overwrite_mode == 1:
-                        file_size = os.path.getsize(output_fp)/(1024**2) # file size in MB
+                        file_size = os.path.getsize(fp)/(1024**2) # file size in MB
                         if file_size == bp.properties.content_length/(1024**2): # file size is the same, skip!
                             if verbose:
                                 print('{} - Skip: Output file already exits with same size'.format(blob.name))
                             continue
-                        print('Output file already exits: {}\nLocal size: {:.3f} MB\nAzure size: {:.3f} MB'.format(output_fp, file_size, bp.properties.content_length/(1024**2)))
+                        print('Output file already exits: {}\nLocal size: {:.3f} MB\nAzure size: {:.3f} MB'.format(fp, file_size, bp.properties.content_length/(1024**2)))
                         if input("Do you want to overwrite [Y/n]? ") != 'Y':
                             continue
 
@@ -148,12 +153,23 @@ def download_container(container, log_dir, start_date=None, end_date=None, overw
                         max_connections = 4
                     print('Downloading...')
                     t0 = time.time()
-                    bbs.get_blob_to_path(container, blob.name, output_fp, progress_callback=update_progress, max_connections=max_connections)
+                    bbs.get_blob_to_path(container, blob.name, fp, progress_callback=update_progress, max_connections=max_connections)
                     elapsed_time = time.time()-t0
-                    file_size = os.path.getsize(output_fp)/(1024**2) # file size in MB
-                    print('\nDownloaded {:.3f} MB in {:.3f} sec.: Average: {:.3f} MB/sec'.format(file_size, elapsed_time, file_size/elapsed_time))
+                    file_size = os.path.getsize(fp)/(1024**2) # file size in MB
+                    print('\nDownloaded {:.3f} MB in {:.3f} sec.: Average: {:.3f} MB/sec'.format(file_size, elapsed_time, file_size/elapsed_time))                    
             except Exception as e:
                 print(' Error: {}'.format(e))
+
+        if not dry_run and not no_gzip:
+            print('Concat and zip files to: {}'.format(output_fp+'.gz'))
+            output_fps.sort(key=lambda x : (len(x),x))
+            with gzip.open(output_fp+'.gz', 'wb') as f_out:
+                for fp in output_fps:
+                    if os.path.isfile(fp):
+                        print('Adding: {}'.format(fp))
+                        with open(fp, 'rb') as f_in:
+                            f_out.write(f_in.read())
+                    
     print('Total download time:',time.time()-t_start)
 
 
