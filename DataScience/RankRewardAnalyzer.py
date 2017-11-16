@@ -95,22 +95,28 @@ def print_stats(local_fp, azure_path, verbose=False, plot_hist=False):
     
     err_rewards_idx = []
     no_events_idx = []
+    no_rewards_idx = []
     for i,x in enumerate(local_rank):
-        if x in azure_dict:
-            if abs(1. + float(azure_dict[x])/float(rew_dict[x])) > 1e-7:
+        if x in rew_dict:
+            if x in azure_dict:
+                if abs(1. + float(azure_dict[x])/float(rew_dict[x])) > 1e-7:
+                    if verbose:
+                        print('Idx: {} - Error in reward: Local: {} Azure: {} - EventId: {}'.format(i+1,rew_dict[x], azure_dict[x],x))
+                    err_rewards_idx.append(i+1)
+            else:
+                no_events_idx.append(i+1)
                 if verbose:
-                    print('Idx: {} - Error in reward: Local: {} Azure: {} - EventId: {}'.format(i+1,rew_dict[x], azure_dict[x],x))
-                err_rewards_idx.append(i+1)
+                    print('Idx: {} - Ranking missing from Azure - EventId: {}'.format(i+1,x))
         else:
-            no_events_idx.append(i+1)
-            if verbose:
-                print('Idx: {} - Ranking missing from Azure - EventId: {}'.format(i+1,x))
+            no_rewards_idx.append(i+1)
 
     dup_local = len(local_rew)-len(rew_dict)
     dup_azure = len(azure_data)-len(azure_dict)
     if verbose:
         print('-----'*10)
         print('Missing events indexes (1-based indexing)\n{}'.format(no_events_idx))
+        print('-----'*10)
+        print('Missing local rewards indexes (1-based indexing)\n{}'.format(no_rewards_idx))
         print('-----'*10)
         print('Wrong rewards indexes (1-based indexing)\n{}'.format(err_rewards_idx))
         if dup_local > 0:
@@ -131,20 +137,30 @@ def print_stats(local_fp, azure_path, verbose=False, plot_hist=False):
     print('Missing EventIds: {}'.format(len(no_events_idx)), end='')
     if no_events_idx:
         print(' (oldest 1-base index: {}/{})'.format(min(no_events_idx),len(local_rank)), end='')
+    print('\nMissing Local Rewards: {}'.format(len(no_rewards_idx)), end='')
+    if no_rewards_idx:
+        print(' (oldest 1-base index: {}/{})'.format(min(no_rewards_idx),len(local_rank)), end='')
     print('\nWrong rewards: {}'.format(len(err_rewards_idx)))
     print('-----'*10)
     print('status_codes errors: {}'.format(err_codes.most_common()))
     print('Lines skipped in Local file: {}'.format(lines_errs))
     print('-----'*10)
     if plot_hist:
-        plt.rcParams.update({'font.size': 16})  # General font size
-        plt.hist(err_rewards_idx, 1000, label='No reward', color='xkcd:orange')
-        plt.hist(no_events_idx, 1000, label='No rank', color='xkcd:blue')
-        plt.title('Missing rank and reward requests', fontsize=30)
-        plt.xlabel('Request index', fontsize=18)
-        plt.ylabel('Bin Count', fontsize=18)
-        plt.legend()
-        plt.show()
+        if err_rewards_idx or no_events_idx or no_rewards_idx:
+            plt.rcParams.update({'font.size': 16})  # General font size
+            if err_rewards_idx:
+                plt.hist(err_rewards_idx, label='Wrong reward', color='xkcd:orange')
+            if no_events_idx:
+                plt.hist(no_events_idx, label='No rank', color='xkcd:blue')
+            if no_rewards_idx:
+                plt.hist(no_rewards_idx, label='No reward', color='xkcd:red')
+            plt.title('Missing/Wrong rank and reward requests', fontsize=30)
+            plt.xlabel('Request index', fontsize=18)
+            plt.ylabel('Bin Count', fontsize=18)
+            plt.legend()
+            plt.show()
+        else:
+            print('Nothing to plot! All is good!')
 
 
 if __name__ == '__main__':
