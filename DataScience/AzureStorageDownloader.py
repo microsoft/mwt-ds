@@ -25,11 +25,11 @@ def parse_argv(argv):
     parser.add_argument('-c','--container', help="container name", required=True)
     parser.add_argument('-l','--log_dir', help="base dir to download data", required=True)
     parser.add_argument('-s','--start_date', help="downloading start date (included) - format YYYY-MM-DD", type=valid_date)
-    parser.add_argument('-e','--end_date', help="downaloading end date (not included) - format YYYY-MM-DD", type=valid_date)
+    parser.add_argument('-e','--end_date', help="downloading end date (not included) - format YYYY-MM-DD (default: tomorrow's date)", type=valid_date)
     parser.add_argument('-v','--version', type=int, default=2, help="integer describing which version of data downloader to use (default: 2 -> AzureStorageDownloader)")
     parser.add_argument('-o','--overwrite_mode', type=int, help="0: don't overwrite (default); 1: ask user if files have different sizes; 2: always overwrite", default=0)
     parser.add_argument('--dry_run', help="print which blobs would have been downloaded, without downloading", action='store_true')
-    parser.add_argument('--no_gzip', help="Skip producing gzip file for Vawpal Wabbit", action='store_true')
+    parser.add_argument('--no_gzip', help="Skip producing gzip file for Vowpal Wabbit", action='store_true')
     parser.add_argument('--verbose', action='store_true')
         
     kwargs = vars(parser.parse_args(argv[1:]))
