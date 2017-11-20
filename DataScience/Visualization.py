@@ -6,13 +6,13 @@ import AzureStorageDownloader
 
 
 # Create dictionary with filename as keys
-def parse_logs(raw_stats, files, file_paths_to_overwrite):
+def parse_logs(raw_stats, files):
     t0 = time.time()
     
     for fp in files:
-        if os.path.basename(fp) in raw_stats and fp not in file_paths_to_overwrite:
+        if os.path.basename(fp) in raw_stats and time.time()-os.path.getmtime(fp) > 3600:
             continue
-        print(fp)
+        print('Processing: {} - Last modified: {}'.format(fp,os.path.getmtime(fp)))
         
         c2 = {}
         ii = 0
@@ -20,7 +20,7 @@ def parse_logs(raw_stats, files, file_paths_to_overwrite):
             ii += 1
             if ii % 10000 == 0:
                 print(ii)
-            if 'Timestamp' not in line:
+            if 'Timestamp' not in line or '_label_cost' not in line:
                 continue
             
             try:
@@ -95,9 +95,9 @@ if __name__ == '__main__':
 
     print('raw_stats.keys():',raw_stats.keys())
 
-    files = [x.path for x in os.scandir(os.path.join(log_dir,container)) if x.path.endswith('.json') and container+'_' in x.path and '_skip' not in x.path]
+    files = [x.path for x in os.scandir(os.path.join(log_dir,container)) if x.path.endswith('.json') and '_skip' not in x.name]
 
-    parse_logs(raw_stats, files, {kwargs['output_fp']} if kwargs['overwrite_mode'] == 2 else set())
+    parse_logs(raw_stats, files)
     
     # Update picke file
     with open(pkl_fp, 'wb') as pkl_file:
