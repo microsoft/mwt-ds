@@ -1,4 +1,10 @@
-﻿using Microsoft.DecisionService.Client;
+﻿//------------------------------------------------------------------------------
+// <copyright company="Microsoft Corporation">
+//     Copyright (c) Microsoft Corporation. All rights reserved.
+// </copyright>
+//------------------------------------------------------------------------------
+
+using Microsoft.DecisionService.Client;
 using Microsoft.DecisionService.Client.Models;
 using System.Collections.Generic;
 
@@ -10,10 +16,13 @@ namespace Microsoft.CustomDecisionService.RESTExample
         {
             var client = new CustomDecisionServiceAPI();
 
-            // TODO
-            // 1. Create a new app on https://ds.microsoft.com
-            // 2. Change app1 to your app id
-            var decision = client.Rank(appId: "app1",
+            // 1. Sign in on https://ds.microsoft.com
+            // 2. Create new app
+            //   a.	Select "Custom App" 
+            //   b. Supply Azure storage account
+            //   c. Set Vowpal Wabbit arguments to --cb_explore_adf --epsilon 0.2 -q DT -q LT
+
+            var decision = client.Rank(appId: "<<INSERT appId",
                 decisionRequests: new DecisionRequestCollection(new List<DecisionRequest>
             {
                 new DecisionRequest
@@ -73,7 +82,6 @@ namespace Microsoft.CustomDecisionService.RESTExample
                             }
 
                         }
-
                     }
                 }
             }));

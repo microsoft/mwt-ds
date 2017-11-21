@@ -4,13 +4,27 @@
 // </copyright>
 //------------------------------------------------------------------------------
 
-namespace Microsoft.CustomDecisionService.RESTExample
+using Newtonsoft.Json;
+
+namespace Microsoft.CustomDecisionService.ClientLibraryExample
 {
-    public class SharedContext
+    public class DecisionContext
     {
+        /// <summary>
+        /// From SharedContext (REST)
+        /// </summary>
         public DemographicNamespace Demographics { get; set; }
 
+        /// <summary>
+        /// From SharedContext (REST)
+        /// </summary>
         public LocationNamespace Location { get; set; }
+
+        /// <summary>
+        /// The action array must be annotated as _multi property.
+        /// </summary>
+        [JsonProperty("_multi")]
+        public ActionDependentFeatures[] Actions { get; set; }
     }
 
     public class DemographicNamespace
