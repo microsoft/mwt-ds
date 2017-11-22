@@ -105,7 +105,6 @@ namespace ClientDecisionServiceTest
             string guid1 = Guid.NewGuid().ToString();
             string guid2 = Guid.NewGuid().ToString();
             byte[] prevModel = null;
-            int action;
             
             // Generate interactions and ensure the model updates at the right frequency
             // (updates every example initially)
