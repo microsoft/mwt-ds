@@ -6,10 +6,19 @@ using System.Threading.Tasks.Dataflow;
 
 namespace Microsoft.Research.MultiWorldTesting.JoinUploader
 {
+    /// <summary>
+    /// Delegate definition for success.
+    /// </summary>
     public delegate void EventUploaderSuccessEventHandler(object source, int eventCount, int sumSize, int inputQueueSize);
 
+    /// <summary>
+    /// Delegate definition for error.
+    /// </summary>
     public delegate void EventUploaderErrorEventHandler(object source, Exception e);
 
+    /// <summary>
+    /// Delegate definition for completion.
+    /// </summary>
     public delegate void EventUploaderCompletedEventHandler(object source, string blockName, Task task);
 
     /// <summary>

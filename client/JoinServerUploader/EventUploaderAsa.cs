@@ -31,6 +31,7 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// </summary>
         /// <param name="eventHubConnectionString">The Azure Stream Analytics connection string.</param>
         /// <param name="batchConfig">Optional; The batching configuration to used when uploading data.</param>
+        /// <param name="developmentMode">If true, enables additional logging and disables batching.</param>
         public EventUploaderASA
         (
             string eventHubConnectionString, 
@@ -126,7 +127,7 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// <summary>
         /// Uploads a single event to EventHub asynchronously.
         /// </summary>
-        /// <param name="events">The event to upload.</param>
+        /// <param name="evt">The event to upload.</param>
         /// <returns>A Task object.</returns>
         private Task UploadToEventHubAsync(EventData evt)
         {

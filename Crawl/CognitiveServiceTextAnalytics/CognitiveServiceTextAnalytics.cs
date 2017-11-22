@@ -36,6 +36,9 @@ namespace Microsoft.DecisionService.Crawl
                     if (!string.IsNullOrEmpty(reqBody.Article))
                         textBuilder.AppendLine(reqBody.Article);
 
+                    if (textBuilder.Length == 0)
+                        return null;
+
                     var text = textBuilder.ToString();
 
                     // Based on email thread with Arvind Krishnaa Jagannathan <arjagann@microsoft.com>
@@ -63,7 +66,8 @@ namespace Microsoft.DecisionService.Crawl
                     if (responseObj?.Documents?.Length == 1)
                         blobContent.Output.Add(new JProperty("XSentiment", responseObj.Documents[0].Score));
                 },
-                cancellationToken);
+                isPost: true,
+                cancellationToken: cancellationToken);
         }
 
         public class TextAnalyticRequest

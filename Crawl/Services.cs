@@ -45,7 +45,7 @@ namespace Microsoft.DecisionService.Crawl
             return text.Substring(length);
         }
 
-        public static HttpResponseMessage CreateResponse(this HttpRequestMessage req, BlobContent blobContent)
+        public static HttpResponseMessage CreateResponse(BlobContent blobContent)
         {
             blobContent.Output?.Add(new JProperty("_expires", blobContent.Expires));
 
@@ -65,7 +65,7 @@ namespace Microsoft.DecisionService.Crawl
             return response;
         }
 
-        public static void TrackException(Exception ex, HttpRequestMessage req, TraceWriter log, string reqBodyStr, CrawlResponse reqBody, BlobContent blobContent)
+        public static void TrackException(Exception ex, HttpRequestMessage req, TraceWriter log, string reqBodyStr, CrawlResponse reqBody, BlobContent blobContent = null)
         {
             var props = new Dictionary<string, string>
             {

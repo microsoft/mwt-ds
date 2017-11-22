@@ -58,6 +58,9 @@ namespace Microsoft.Research.MultiWorldTesting.JoinUploader
         /// </summary>
         event EventUploaderSuccessEventHandler SuccessHandler;
 
+        /// <summary>
+        /// Invoked on pipeline completion.
+        /// </summary>
         event EventUploaderCompletedEventHandler CompletionHandler;
     }
 }

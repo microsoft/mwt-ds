@@ -26,13 +26,15 @@ namespace Microsoft.DecisionService.Crawl
 
         private async Task<CloudBlobContainer> GetContainer(DateTime now, string service)
         {
-            var container = this.blobClient.GetContainerReference($"{now:yyyyMM}{service}".ToLowerInvariant());
+            var container = this.blobClient.GetContainerReference(ToContainerName(now, service));
             await container.CreateIfNotExistsAsync();
 
             return container;
         }
 
-        private string ToBlobName(string site, string id)
+        public static string ToContainerName(DateTime now, string service) => $"{now:yyyyMM}{service}".ToLowerInvariant();
+
+        public static string ToBlobName(string site, string id)
         {
             // escape for blob name
             id = id.Replace("//", "__")
@@ -62,7 +64,7 @@ namespace Microsoft.DecisionService.Crawl
             for (int i = 0; i < 2 && cacheItem == null; i++)
             {
                 var container = await this.GetContainer(now.AddMonths(-i), service);
-                var blobName = this.ToBlobName(site, id);
+                var blobName = ToBlobName(site, id);
                 var blob = container.GetBlockBlobReference(blobName);
                 if (currentBlob == null)
                     currentBlob = blob;
@@ -101,7 +103,7 @@ namespace Microsoft.DecisionService.Crawl
         public async Task<BlobContent> PersistAsync(string site, string id, string service, string input, string output, TimeSpan refreshTimeSpan, CancellationToken cancellationToken)
         {
             var container = await this.GetContainer(DateTime.UtcNow, service);
-            var blobName = this.ToBlobName(site, id);
+            var blobName = ToBlobName(site, id);
             var blob = container.GetBlockBlobReference(blobName);
 
             var cacheItem = new CacheItem

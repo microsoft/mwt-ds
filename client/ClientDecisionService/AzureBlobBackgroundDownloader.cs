@@ -13,16 +13,30 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
+    /// <summary>
+    /// Download blobs in background.
+    /// </summary>
     public class AzureBlobBackgroundDownloader : IDisposable
     {
+        /// <summary>
+        /// Download finished event handler.
+        /// </summary>
         public delegate void DownloadedEventHandler(object sender, byte[] data);
 
+        /// <summary>
+        /// Download failed event handler.
+        /// </summary>
         public delegate void FailedEventHandler(object sender, Exception e);
 
+        /// <summary>
+        /// Download finished event handler.
+        /// </summary>
         public event DownloadedEventHandler Downloaded;
 
+        /// <summary>
+        /// Download failed event handler.
+        /// </summary>
         public event FailedEventHandler Failed;
-
 
         private IDisposable disposable;
 
@@ -32,6 +46,9 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 
         private bool downloadImmediately;
 
+        /// <summary>
+        /// Creates a new instance.
+        /// </summary>
         public AzureBlobBackgroundDownloader(string blobAddress, TimeSpan interval, bool downloadImmediately = false, string storageConnectionString = null)
         {
             if (blobAddress == null)
@@ -120,6 +137,9 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             }
         }
 
+        /// <summary>
+        /// Disposes the object.
+        /// </summary>
         public void Dispose()
         {
             if (this.disposable != null)

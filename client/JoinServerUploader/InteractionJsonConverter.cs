@@ -8,18 +8,30 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Research.MultiWorldTesting.JoinUploader
 {
+    /// <summary>
+    /// Custom JSON.NET serializer for interactions.
+    /// </summary>
     public class InteractionJsonConverter : JsonConverter
     {
+        /// <summary>
+        /// True, if it's an interaction type.
+        /// </summary>
         public override bool CanConvert(Type objectType)
         {
             return objectType == typeof(Interaction);
         }
 
+        /// <summary>
+        /// Not supported.
+        /// </summary>
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Serializes the interaction.
+        /// </summary>
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             var v = value as Interaction;

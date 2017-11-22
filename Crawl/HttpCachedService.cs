@@ -32,16 +32,32 @@ namespace Microsoft.DecisionService.Crawl
         internal string apiKey;
         internal string storageConnectionString;
 
-        public HttpCachedService(string containerName)
+        public HttpCachedService(string containerName, string apiKey = null)
         {
             // limit due to Azure Storage container name
             if (containerName.Length > 24 - 6 /* yyyyMM */)
                 throw new ArgumentException($"{nameof(containerName)}: '{containerName}' is too long. Must be {24 - 6} characters at most.");
             this.containerName = containerName;
+
+            this.apiKey = apiKey;
         }
 
         protected virtual void Initialize()
         { }
+
+        public async Task<string> GetAzureStorageConnectionStringAsync()
+        {
+            await this.InitializeAsync();
+
+            return this.storageConnectionString;
+        }
+
+        public async Task<HttpClient> GetHttpClientAsync()
+        {
+            await this.InitializeAsync();
+
+            return this.client;
+        }
 
         private async Task InitializeAsync()
         {
@@ -60,15 +76,19 @@ namespace Microsoft.DecisionService.Crawl
                 var keyVault = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(keyVaultHelper.GetAccessToken));
 
                 this.endpoint = (await keyVault.GetSecretAsync(keyVaultUrl, containerName + "Endpoint").ConfigureAwait(false)).Value;
-                this.apiKey = (await keyVault.GetSecretAsync(keyVaultUrl, containerName + "Key").ConfigureAwait(false)).Value;
                 this.storageConnectionString = (await keyVault.GetSecretAsync(keyVaultUrl, "StorageConnectionString").ConfigureAwait(false)).Value;
+
+                if (string.IsNullOrEmpty(this.apiKey))
+                    this.apiKey = (await keyVault.GetSecretAsync(keyVaultUrl, containerName + "Key").ConfigureAwait(false)).Value;
             }
             else
             {
                 // fallback to local settings
                 this.endpoint = ConfigurationManager.AppSettings[containerName + "Endpoint"];
-                this.apiKey = ConfigurationManager.AppSettings[containerName + "Key"];
                 this.storageConnectionString = ConfigurationManager.AppSettings["StorageConnectionString"];
+
+                if (string.IsNullOrEmpty(this.apiKey))
+                    this.apiKey = ConfigurationManager.AppSettings[containerName + "Key"];
             }
 
             this.client = new HttpClient()
@@ -79,7 +99,7 @@ namespace Microsoft.DecisionService.Crawl
             this.Initialize();
         }
 
-        public async Task<BlobContent> PostAsync(TraceWriter log, string site, string id, object request, bool forceRefresh, CancellationToken cancellationToken)
+        public async Task<BlobContent> RequestAsync(TraceWriter log, string site, string id, object request, bool forceRefresh, bool isPost, CancellationToken cancellationToken)
         {
             await this.InitializeAsync();
 
@@ -123,13 +143,22 @@ namespace Microsoft.DecisionService.Crawl
 
                     var stopwatchReqeust = Stopwatch.StartNew();
 
-                    // make the actual HTTP request
-                    responseMessage = await this.client.PostAsync(
-                        string.Empty,
-                        new StringContent(
-                            body,
-                            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
-                            contentType));
+                    if (isPost)
+                    {
+                        // make the actual HTTP request
+                        responseMessage = await this.client.PostAsync(
+                            string.Empty,
+                            new StringContent(
+                                body,
+                                new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
+                                contentType), 
+                            cancellationToken);
+                    }
+                    else
+                    {
+                        // make the actual HTTP request
+                        responseMessage = await this.client.GetAsync(body, cancellationToken);
+                    }
 
                     Services.TelemetryClient.TrackDependency(this.containerName, this.endpoint, this.containerName, null,
                         DateTime.UtcNow, stopwatchReqeust.Elapsed,
@@ -191,6 +220,7 @@ namespace Microsoft.DecisionService.Crawl
         public async Task<HttpResponseMessage> InvokeAsync(HttpRequestMessage req, TraceWriter log,
             Func<CrawlResponse, object> requestBodyFunc,
             Action<CrawlResponse, BlobContent> responseAction,
+            bool isPost,
             CancellationToken cancellationToken)
         {
             log.Info("Crawl." + this.containerName);
@@ -212,12 +242,26 @@ namespace Microsoft.DecisionService.Crawl
                     operation.Telemetry.Properties.Add("AppId", reqBody.Site);
                     operation.Telemetry.Properties.Add("ActionId", reqBody.Id);
 
-                    blobContent = await this.PostAsync(
+                    var serviceRequestBody = requestBodyFunc(reqBody);
+
+                    if (serviceRequestBody == null)
+                    {
+                        return new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+                        {
+                            Content = new StringContent(
+                                string.Empty,
+                                new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
+                                "application/json")
+                        };
+                    }
+
+                    blobContent = await this.RequestAsync(
                         log,
                         reqBody.Site,
                         reqBody.Id,
-                        requestBodyFunc(reqBody),
+                        serviceRequestBody,
                         reqBody.ForceRefresh,
+                        isPost,
                         cancellationToken);
 
                     if (blobContent != null)
@@ -232,7 +276,7 @@ namespace Microsoft.DecisionService.Crawl
                         }
                     }
 
-                    return req.CreateResponse(blobContent);
+                    return Services.CreateResponse(blobContent);
                 }
             }
             catch (Exception ex)

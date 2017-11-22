@@ -25,6 +25,7 @@
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
     <TargetFrameworkProfile />
+    <Use64BitIISExpress />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -82,11 +83,11 @@
     <Reference Include="Microsoft.Data.Services.Client, Version=5.8.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)\packages\Microsoft.Data.Services.Client.5.8.2\lib\net40\Microsoft.Data.Services.Client.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.IdentityModel.Clients.ActiveDirectory, Version=3.13.9.1126, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\Microsoft.IdentityModel.Clients.ActiveDirectory.3.13.9\lib\net45\Microsoft.IdentityModel.Clients.ActiveDirectory.dll</HintPath>
+    <Reference Include="Microsoft.IdentityModel.Clients.ActiveDirectory, Version=3.16.1.24801, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)\packages\Microsoft.IdentityModel.Clients.ActiveDirectory.3.16.1\lib\net45\Microsoft.IdentityModel.Clients.ActiveDirectory.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.IdentityModel.Clients.ActiveDirectory.Platform, Version=3.13.9.1126, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\Microsoft.IdentityModel.Clients.ActiveDirectory.3.13.9\lib\net45\Microsoft.IdentityModel.Clients.ActiveDirectory.Platform.dll</HintPath>
+    <Reference Include="Microsoft.IdentityModel.Clients.ActiveDirectory.Platform, Version=3.16.1.24801, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)\packages\Microsoft.IdentityModel.Clients.ActiveDirectory.3.16.1\lib\net45\Microsoft.IdentityModel.Clients.ActiveDirectory.Platform.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Rest.ClientRuntime, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)\packages\Microsoft.Rest.ClientRuntime.2.3.7\lib\net452\Microsoft.Rest.ClientRuntime.dll</HintPath>
@@ -137,6 +138,23 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="VideoIndexer\Breakdown\VideoBreakdown.cs" />
+    <Compile Include="VideoIndexer\Breakdown\VideoBreakdownAudioEffects.cs" />
+    <Compile Include="VideoIndexer\Breakdown\VideoBreakdownBreakdown.cs" />
+    <Compile Include="VideoIndexer\Breakdown\VideoBreakdownContentModeration.cs" />
+    <Compile Include="VideoIndexer\Breakdown\VideoBreakdownFace.cs" />
+    <Compile Include="VideoIndexer\Breakdown\VideoBreakdownInsights.cs" />
+    <Compile Include="VideoIndexer\Breakdown\VideoBreakdownSentiment.cs" />
+    <Compile Include="VideoIndexer\Breakdown\VideoBreakdownSummarizedInsights.cs" />
+    <Compile Include="VideoIndexer\Breakdown\VideoBreakdownTopic.cs" />
+    <Compile Include="VideoIndexer\Breakdown\VideoBreakdownTranscriptBlock.cs" />
+    <Compile Include="VideoIndexer\Breakdown\VideoBreakdownTranscriptBlockLine.cs" />
+    <Compile Include="VideoIndexer\Ooyala\Ooyala.cs" />
+    <Compile Include="VideoIndexer\Ooyala\OoyalaVideo.cs" />
+    <Compile Include="VideoIndexer\VideoIndexer.cs" />
+    <Compile Include="VideoIndexer\VideoIndexerFeaturizer.cs" />
+    <Compile Include="VideoIndexer\Search\VideoIndexerSearchResult.cs" />
+    <Compile Include="VideoIndexer\Search\VideoIndexerSearchResultItem.cs" />
     <Content Include="packages.config">
       <SubType>Designer</SubType>
     </Content>
@@ -151,6 +169,8 @@
     <Compile Include="CognitiveServiceEntityLinking\CognitiveServiceEntityLinking.cs" />
     <Compile Include="CognitiveServiceTextAnalytics\CognitiveServiceTextAnalytics.cs" />
     <Compile Include="HttpCachedService.cs" />
+    <Compile Include="VideoIndexer\Ooyala\JSON.cs" />
+    <Compile Include="VideoIndexer\Ooyala\OoyalaAPI.cs" />
     <Compile Include="RawStringConverter.cs" />
     <Compile Include="RSS\RSS.cs" />
     <Content Include="CognitiveServiceVision\function.json" />
@@ -159,6 +179,7 @@
     <Content Include="CognitiveServiceTextAnalytics\function.json" />
     <Content Include="AzureMLTopic\function.json" />
     <None Include="Properties\PublishProfiles\DevProfile.pubxml" />
+    <Content Include="VideoIndexer\function.json" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

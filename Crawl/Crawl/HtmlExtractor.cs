@@ -12,8 +12,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
+using Newtonsoft.Json;
 
-namespace Microsoft.DecisionService.Crawl 
+namespace Microsoft.DecisionService.Crawl
 {
     /// <summary>
     /// https://moz.com/blog/meta-data-templates-123
@@ -127,10 +128,21 @@ namespace Microsoft.DecisionService.Crawl
             return plaintext.ToString();
         }
 
+        private class HtmlFeatures
+        {
+            public HtmlKeywordFeatures Keywords { get; set; }
+        }
+
+        private class HtmlKeywordFeatures
+        {
+            [JsonProperty("_text")]
+            public string Keywords { get; set; }
+        }
+
         public static CrawlResponse Parse(string html, Uri sourceUrl)
         {
             var response = new CrawlResponse();
-                    
+
             var doc = new HtmlDocument();
             doc.LoadHtml(html);
 
@@ -149,7 +161,7 @@ namespace Microsoft.DecisionService.Crawl
             response.Description = FindMeta(head, "meta[@property='og:description' or name='og:description' or @property='twitter:description' or @name='twitter:description' or @name='description']");
 
             if (string.IsNullOrEmpty(response.Description))
-                response.Title = FindValue(head, "title");
+                response.Description = FindValue(head, "title");
 
             if (response.Description != null)
                 response.Description = WebUtility.HtmlDecode(response.Description.Trim());
@@ -168,6 +180,22 @@ namespace Microsoft.DecisionService.Crawl
 
                 // TODO: support relative URLs too
                 response.Image = img;
+            }
+
+            // extract keywords
+            var keywords = FindMeta(head, "meta[@name='keywords']");
+            if (!string.IsNullOrEmpty(keywords))
+            {
+                response.Keywords = keywords.Split(',').Select(k => WebUtility.HtmlDecode(k.Trim())).ToList();
+                response.Features = 
+                    new HtmlFeatures
+                    {
+                        Keywords = new HtmlKeywordFeatures
+                        {
+                            // make sure individual keywords are represented as individual VW features
+                            Keywords = string.Join(" ", response.Keywords.Select(k => k.Replace(' ', '_')))
+                        }
+                    };
             }
 
             // build article
@@ -190,11 +218,22 @@ namespace Microsoft.DecisionService.Crawl
                     articleText.AppendLine(text);
             }
 
+            if (string.IsNullOrWhiteSpace(articleText.ToString()))
+            {
+                if (!string.IsNullOrEmpty(response.Title))
+                    articleText.AppendLine(response.Title);
+
+                if (!string.IsNullOrEmpty(response.Description))
+                    articleText.AppendLine(response.Description);
+            }
+
             response.Article = WebUtility.HtmlDecode(articleText.ToString());
-            
+
             // <meta property="microsoft:ds_id" content="255308" data-react-helmet="true">
             var dsId = FindMeta(head, "meta[@property='microsoft:ds_id' or name='microsoft:ds_id']");
             response.PassThroughDetails = WebUtility.HtmlDecode(dsId);
+
+
 
             return response;
         }

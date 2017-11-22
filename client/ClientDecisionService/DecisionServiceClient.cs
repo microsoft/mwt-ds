@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
-    public class DecisionServiceClient<TContext> : IDisposable
+    public class DecisionServiceClient<TContext> : IDecisionServiceClient<TContext>
     {
         private readonly IContextMapper<TContext, ActionProbability[]> internalPolicy;
         private IRecorder<TContext, int[]> recorder;
@@ -422,12 +422,18 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             }
         }
 
+        /// <summary>
+        /// Diposes resources.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Diposes resources.
+        /// </summary>
         public virtual void Dispose(bool disposing)
         {
             // Always free unmanaged objects, but conditionally free managed objets if this is being

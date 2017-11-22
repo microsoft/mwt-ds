@@ -5,8 +5,14 @@ using System.Net;
 
 namespace Microsoft.Research.MultiWorldTesting.Contract
 {
+    /// <summary>
+    /// Helper class to download meta data.
+    /// </summary>
     public static class ApplicationMetadataUtil
     {
+        /// <summary>
+        /// Download and deserialize settings.
+        /// </summary>
         public static TMetadata DownloadMetadata<TMetadata>(string blobUri)
         {
             string jsonMetadata = "";

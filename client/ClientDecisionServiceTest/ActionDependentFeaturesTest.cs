@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.Research.MultiWorldTesting.ClientLibrary;
+using System.Threading.Tasks;
 
 namespace ClientDecisionServiceTest
 {
@@ -14,7 +15,7 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         [TestCategory("Client Library")]
         [Priority(1)]
-        public void TestADFExplorationResult()
+        public async Task TestADFExplorationResult()
         {
             joinServer.Reset();
 
@@ -36,7 +37,7 @@ namespace ClientDecisionServiceTest
                 for (int i = 1; i <= 100; i++)
                 {
                     var adfContext = new TestADFContext(i);
-                    int[] action = ds.ChooseRanking(uniqueKey, adfContext);
+                    int[] action = await ds.ChooseRankingAsync(uniqueKey, adfContext);
 
                     Assert.AreEqual(i, action.Length);
 
@@ -55,7 +56,7 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         [TestCategory("Client Library")]
         [Priority(1)]
-        public void TestADFModelUpdateFromStream()
+        public async Task TestADFModelUpdateFromStream()
         {
             joinServer.Reset();
 
@@ -92,7 +93,7 @@ namespace ClientDecisionServiceTest
                     int numActions = rg.Next(5, 20);
                     var context = TestADFContextWithFeatures.CreateRandom(numActions, rg);
 
-                    int[] action = ds.ChooseRanking(uniqueKey, context);
+                    int[] action = await ds.ChooseRankingAsync(uniqueKey, context);
 
                     Assert.AreEqual(numActions, action.Length);
 

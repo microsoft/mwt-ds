@@ -16,7 +16,7 @@ config.read('ds.config')
 ds = config['DecisionService']
 
 # https://azure-storage.readthedocs.io/en/latest/_modules/azure/storage/blob/models.html#BlobBlock
-block_blob_service = BlockBlobService(account_name=ds['AzureBlobStorageAccountName'], account_key=ds['AzureBlobStorageAccountKey'])
+block_blob_service = BlockBlobService(connection_string=self.config['AzureStorageAuthentication']['$Default'])
 
 def parse_name(blob):
     m = re.search('^([0-9]{4})/([0-9]{2})/([0-9]{2})/([0-9]{2})/(.*)\.json$', blob.name)

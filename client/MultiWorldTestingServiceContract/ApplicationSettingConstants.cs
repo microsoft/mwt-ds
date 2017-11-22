@@ -6,8 +6,14 @@
 
 namespace Microsoft.Research.MultiWorldTesting.Contract
 {
+    /// <summary>
+    /// Unused class.
+    /// </summary>
     public class ApplicationSettingConstants
     {
+        /// <summary>
+        /// Unused.
+        /// </summary>
         public const string UseLatestModelSetting = "latest";
     }
 }

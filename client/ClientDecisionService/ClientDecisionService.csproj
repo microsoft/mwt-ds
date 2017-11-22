@@ -160,6 +160,7 @@
     <Compile Include="DecisionServiceHttpModule.cs" />
     <Compile Include="DecisionServiceLocal.cs" />
     <Compile Include="DecisionServiceStaticClient.cs" />
+    <Compile Include="IDecisionServiceClient.cs" />
     <Compile Include="InMemoryLogger.cs" />
     <Compile Include="JoinServerType.cs" />
     <Compile Include="JoinServiceLogger.cs" />

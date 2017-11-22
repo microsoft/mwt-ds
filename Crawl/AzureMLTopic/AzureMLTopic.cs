@@ -51,7 +51,8 @@ namespace Microsoft.DecisionService.Crawl
                     if (topicRemoteRaw != null)
                         blobContent.Output.Add(new JProperty("topics", topicRemoteRaw.Value<string>().Split(',').Select(float.Parse).ToArray()));
                 },
-                cancellationToken);
+                isPost: true,
+                cancellationToken: cancellationToken);
         }
 
         public class StringTable

@@ -36,6 +36,9 @@ namespace Microsoft.DecisionService.Crawl
                     if (!string.IsNullOrEmpty(reqBody.Article))
                         textBuilder.AppendLine(reqBody.Article);
 
+                    if (textBuilder.Length == 0)
+                        return null;
+
                     return Services.Limit(textBuilder.ToString(), 10240);
                 },
                 (reqBody, blobContent) =>
@@ -52,7 +55,8 @@ namespace Microsoft.DecisionService.Crawl
                         blobContent.Output.Add("Tags", new JObject(q));
                     }
                 },
-                cancellationToken);
+                isPost: true,
+                cancellationToken: cancellationToken);
         }
 
         public class EntityResponse

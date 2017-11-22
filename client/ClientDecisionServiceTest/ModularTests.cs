@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using VW.Serializer;
 using Microsoft.Research.MultiWorldTesting.Contract;
+using System.Threading.Tasks;
 
 namespace ClientDecisionServiceTest
 {
@@ -36,7 +37,7 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         [TestCategory("Client Library")]
         [Priority(0)]
-        public void TestSingleActionOfflineModeCustomLogger()
+        public async Task TestSingleActionOfflineModeCustomLogger()
         {
             var dsConfig = new DecisionServiceConfiguration("") { OfflineMode = true, OfflineApplicationID = "" };
 
@@ -54,7 +55,7 @@ namespace ClientDecisionServiceTest
             {
                 for (int i = 0; i < numChooseAction; i++)
                 {
-                    ds.ChooseAction(i.ToString(), new TestContext());
+                    await ds.ChooseActionAsync(i.ToString(), new TestContext());
                 }
 
                 Assert.AreEqual(numChooseAction, recorder.NumRecord);
@@ -85,7 +86,7 @@ namespace ClientDecisionServiceTest
         [TestCategory("Client Library")]
         [Priority(1)]
         [Ignore]
-        public void TestSingleActionOnlineModeCustomLogger()
+        public async Task TestSingleActionOnlineModeCustomLogger()
         {
             var dsConfig = new DecisionServiceConfiguration(MockCommandCenter.SettingsBlobUri)
             {
@@ -103,7 +104,7 @@ namespace ClientDecisionServiceTest
             {
                 for (int i = 0; i < numChooseAction; i++)
                 {
-                    ds.ChooseAction(i.ToString(), new TestContext());
+                    await ds.ChooseActionAsync(i.ToString(), new TestContext());
                 }
 
                 Assert.AreEqual(numChooseAction, recorder.NumRecord);
@@ -134,7 +135,7 @@ namespace ClientDecisionServiceTest
         [ExpectedException(typeof(Exception))]
         [TestCategory("Client Library")]
         [Priority(0)]
-        public void TestMultiActionOfflineModeArgument()
+        public async Task TestMultiActionOfflineModeArgument()
         {
             var metaData = new ApplicationClientMetadata
             {
@@ -145,14 +146,14 @@ namespace ClientDecisionServiceTest
                 new DecisionServiceConfiguration("") { OfflineMode = true, OfflineApplicationID = "" },
                 metaData))
             {
-                ds.ChooseAction("", "{}");
+                await ds.ChooseActionAsync("", "{}");
             }
         }
 
         [TestMethod]
         [TestCategory("Client Library")]
         [Priority(0)]
-        public void TestMultiActionOfflineModeCustomLogger()
+        public async Task TestMultiActionOfflineModeCustomLogger()
         {
             var dsConfig = new DecisionServiceConfiguration("") { OfflineMode = true, OfflineApplicationID = "" };
             var metaData = new ApplicationClientMetadata
@@ -168,7 +169,7 @@ namespace ClientDecisionServiceTest
             {
                 for (int i = 0; i < numChooseAction; i++)
                 {
-                    ds.ChooseAction(i.ToString(), new TestContext());
+                    await ds.ChooseActionAsync(i.ToString(), new TestContext());
                 }
 
                 Assert.AreEqual(numChooseAction, recorder.NumRecord);
@@ -197,7 +198,7 @@ namespace ClientDecisionServiceTest
         [TestMethod]
         [TestCategory("Client Library")]
         [Priority(1)]
-        public void TestMultiActionOnlineModeCustomLogger()
+        public async Task TestMultiActionOnlineModeCustomLogger()
         {
             joinServer.Reset();
 
@@ -216,7 +217,7 @@ namespace ClientDecisionServiceTest
             {
                 for (int i = 0; i < numChooseAction; i++)
                 {
-                    ds.ChooseAction(i.ToString(), new TestContext());
+                    await ds.ChooseActionAsync(i.ToString(), new TestContext());
                 }
 
                 Assert.AreEqual(numChooseAction, recorder.NumRecord);

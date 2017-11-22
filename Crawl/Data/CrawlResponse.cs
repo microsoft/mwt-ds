@@ -29,6 +29,9 @@ namespace Microsoft.DecisionService.Crawl.Data
         [JsonProperty("description", NullValueHandling = NullValueHandling.Ignore)]
         public string Description { get; set; }
 
+        [JsonProperty("keywords", NullValueHandling = NullValueHandling.Ignore)]
+        public List<string> Keywords { get; set; }
+
         [JsonProperty("type", NullValueHandling = NullValueHandling.Ignore)]
         public string Type { get; set; }
 
@@ -46,5 +49,11 @@ namespace Microsoft.DecisionService.Crawl.Data
 
         [JsonProperty("forceRefresh")]
         public bool ForceRefresh { get; set; } = false;
+
+        [JsonProperty("video", NullValueHandling = NullValueHandling.Ignore)]
+        public string Video { get; set; }
+
+        [JsonProperty("features", NullValueHandling = NullValueHandling.Ignore)]
+        public object Features { get; set; }
     }
 }

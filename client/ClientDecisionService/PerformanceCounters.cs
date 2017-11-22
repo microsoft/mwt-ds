@@ -6,8 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
@@ -16,16 +14,28 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
     /// </summary>
     public sealed class PerformanceCounters : IDisposable
     {
+        /// <summary>
+        /// Use to configure performance counters based on members.
+        /// </summary>
         public class PerformanceCounterTypeAttribute : Attribute
         {
+            /// <summary>
+            /// Creates an instance.
+            /// </summary>
             public PerformanceCounterTypeAttribute(PerformanceCounterType type, string name = null)
             {
                 this.Type = type;
                 this.Name = name;
             }
 
+            /// <summary>
+            /// The type of perf counter.
+            /// </summary>
             public PerformanceCounterType Type { get; private set; }
 
+            /// <summary>
+            /// The name of the perf counter.
+            /// </summary>
             public string Name { get; private set; }
         }
 
@@ -101,6 +111,9 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             this.initialized = true;
         }
 
+        /// <summary>
+        /// Disposes the resources.
+        /// </summary>
         public void Dispose()
         {
             foreach (var p in typeof(PerformanceCounters).GetProperties())
@@ -115,39 +128,75 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             }
         }
 
+        /// <summary>
+        /// Number of interactions queued.
+        /// </summary>
         [PerformanceCounterType(PerformanceCounterType.NumberOfItems64)]
         public PerformanceCounter InteractionExamplesQueue { get; private set; }
 
+        /// <summary>
+        /// Total number of interactions seen.
+        /// </summary>
         [PerformanceCounterType(PerformanceCounterType.NumberOfItems64)]
         public PerformanceCounter InteractionExamplesTotal { get; private set; }
 
+        /// <summary>
+        /// Number of interactions processed per second.
+        /// </summary>
         [PerformanceCounterType(PerformanceCounterType.RateOfCountsPerSecond32)]
         public PerformanceCounter InteractionExamplesPerSec { get; private set; }
 
+        /// <summary>
+        /// Number of bytes (from interaction) per second.
+        /// </summary>
         [PerformanceCounterType(PerformanceCounterType.RateOfCountsPerSecond64)]
         public PerformanceCounter InteractionExamplesBytesPerSec { get; private set; }
 
+        /// <summary>
+        /// Average size of interactions (in bytes).
+        /// </summary>
         [PerformanceCounterType(PerformanceCounterType.AverageCount64)]
         public PerformanceCounter AverageInteractionExampleSize { get; private set; }
 
+        /// <summary>
+        /// Average size of interactions (in bytes) - Base.
+        /// </summary>
         [PerformanceCounterType(PerformanceCounterType.AverageBase)]
         public PerformanceCounter AverageInteractionExampleSizeBase { get; private set; }
 
+        /// <summary>
+        /// Number of observations queued.
+        /// </summary>
         [PerformanceCounterType(PerformanceCounterType.NumberOfItems64)]
         public PerformanceCounter ObservationExamplesQueue { get; private set; }
 
+        /// <summary>
+        /// Total number of observations seen.
+        /// </summary>
         [PerformanceCounterType(PerformanceCounterType.NumberOfItems64)]
         public PerformanceCounter ObservationExamplesTotal { get; private set; }
 
+        /// <summary>
+        /// Number of observations per second.
+        /// </summary>
         [PerformanceCounterType(PerformanceCounterType.RateOfCountsPerSecond32)]
         public PerformanceCounter ObservationExamplesPerSec { get; private set; }
 
+        /// <summary>
+        /// Number of bytes of observations per second.
+        /// </summary>
         [PerformanceCounterType(PerformanceCounterType.RateOfCountsPerSecond64)]
         public PerformanceCounter ObservationExamplesBytesPerSec { get; private set; }
 
+        /// <summary>
+        /// Average observation size in bytes.
+        /// </summary>
         [PerformanceCounterType(PerformanceCounterType.AverageCount64)]
         public PerformanceCounter AverageObservationExampleSize { get; private set; }
 
+        /// <summary>
+        /// Average observation size in bytes - Base.
+        /// </summary>
         [PerformanceCounterType(PerformanceCounterType.AverageBase)]
         public PerformanceCounter AverageObservationExampleSizeBase { get; private set; }
 

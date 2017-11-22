@@ -9,6 +9,10 @@ using VW.Serializer;
 
 namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
 {
+    /// <summary>
+    /// Vowpal Wabbit based ranker.
+    /// </summary>
+    /// <typeparam name="TContext"></typeparam>
     public class VWRanker<TContext> :
         VWBaseContextMapper<VowpalWabbit<TContext>, TContext, int[]>,
         IRanker<TContext>, INumberOfActionsProvider<TContext>
@@ -18,7 +22,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         /// <summary>
         /// Constructor using a memory stream.
         /// </summary>
-        /// <param name="vwModelStream">The VW model memory stream.</param>
         public VWRanker(Stream vwModelStream = null, ITypeInspector typeInspector = null, bool developmentMode = false)
             : base(vwModelStream, typeInspector, developmentMode)
         {
@@ -30,11 +33,22 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             }) as IVowpalWabbitMultiExampleSerializerCompiler<TContext>;
         }
 
+        /// <summary>
+        /// Sub classes must override and create a new VW pool.
+        /// </summary>
         protected override VowpalWabbitThreadedPredictionBase<VowpalWabbit<TContext>> CreatePool(VowpalWabbitSettings settings)
         {
             return new VowpalWabbitThreadedPrediction<TContext>(settings);
         }
 
+        /// <summary>
+        /// Determines the action to take for a given context.
+        /// This implementation should be thread-safe if multithreading is needed.
+        /// </summary>
+        /// <param name="vw">The Vowpal Wabbit instance to use.</param>
+        /// <param name="context">A user-defined context for the decision.</param>
+        /// <returns>A decision tuple containing the index of the action to take (1-based), and the Id of the model or policy used to make the decision.
+        /// Can be null if the Policy is not ready yet (e.g. model not loaded).</returns>
         protected override PolicyDecision<int[]> MapContext(VowpalWabbit<TContext> vw, TContext context)
         {
             if (this.developmentMode)
@@ -54,12 +68,19 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             return PolicyDecision.Create(actions, state);
         }
 
+        /// <summary>
+        /// Returns the number of actions defined by this context.
+        /// </summary>
+
         public int GetNumberOfActions(TContext context)
         {
             return this.serializer.GetNumberOfActionDependentExamples(context);
         }
     }
 
+    /// <summary>
+    /// Vowpal Wabbit based ranker using C# defined context and action dependent features.
+    /// </summary>
     public class VWRanker<TContext, TActionDependentFeature> :
         VWBaseContextMapper<VowpalWabbit<TContext, TActionDependentFeature>, TContext, int[]>,
         IRanker<TContext>, INumberOfActionsProvider<TContext>
@@ -69,7 +90,6 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
         /// <summary>
         /// Constructor using a memory stream.
         /// </summary>
-        /// <param name="vwModelStream">The VW model memory stream.</param>
         public VWRanker(
             Func<TContext, IReadOnlyCollection<TActionDependentFeature>> getContextFeaturesFunc,
             Stream vwModelStream = null,
@@ -80,11 +100,22 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             this.getContextFeaturesFunc = getContextFeaturesFunc;
         }
 
+        /// <summary>
+        /// Sub classes must override and create a new VW pool.
+        /// </summary>
         protected override VowpalWabbitThreadedPredictionBase<VowpalWabbit<TContext, TActionDependentFeature>> CreatePool(VowpalWabbitSettings settings)
         {
             return new VowpalWabbitThreadedPrediction<TContext, TActionDependentFeature>(settings);
         }
 
+        /// <summary>
+        /// Determines the action to take for a given context.
+        /// This implementation should be thread-safe if multithreading is needed.
+        /// </summary>
+        /// <param name="vw">The Vowpal Wabbit instance to use.</param>
+        /// <param name="context">A user-defined context for the decision.</param>
+        /// <returns>A decision tuple containing the index of the action to take (1-based), and the Id of the model or policy used to make the decision.
+        /// Can be null if the Policy is not ready yet (e.g. model not loaded).</returns>
         protected override PolicyDecision<int[]> MapContext(VowpalWabbit<TContext, TActionDependentFeature> vw, TContext context)
         {
             if (this.developmentMode)
@@ -104,6 +135,9 @@ namespace Microsoft.Research.MultiWorldTesting.ClientLibrary
             return PolicyDecision.Create(actions, state);
         }
 
+        /// <summary>
+        /// Returns the number of actions defined by this context.
+        /// </summary>
         public int GetNumberOfActions(TContext context)
         {
             var adfs = this.getContextFeaturesFunc(context);

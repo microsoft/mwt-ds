@@ -19,7 +19,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.DecisionService.Crawl
 {
-    public sealed class RSS
+    public static class RSS
     {
         private static HttpClient client = new HttpClient();
 
@@ -30,6 +30,92 @@ namespace Microsoft.DecisionService.Crawl
 
             [JsonProperty("param")]
             public string Parameter { get; set; }
+        }
+
+        public static string ParseRSS(string data)
+        {
+            var rss = XDocument.Parse(data);
+
+            string parseFormat = "ddd, dd MMM yyyy HH:mm:ss zzz";
+            string parseFormat2 = "ddd, dd MMM yyyy HH:mm:ss Z";
+
+            var items = rss.DescendantNodes()
+                .OfType<XElement>()
+                .Where(a => a.Name == "item")
+                .Select((elem, index) =>
+                {
+
+                    var pubDateStr = elem.Descendants("pubDate").FirstOrDefault()?.Value;
+                    if (pubDateStr != null)
+                        pubDateStr = pubDateStr.Trim();
+
+                    DateTime pubDate;
+                    if (!DateTime.TryParseExact(pubDateStr, parseFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out pubDate))
+                        if (!DateTime.TryParseExact(pubDateStr, parseFormat2, CultureInfo.InvariantCulture, DateTimeStyles.None, out pubDate))
+                            pubDate = DateTime.UtcNow;
+
+                    return new { elem, pubDate, index };
+                })
+                .OrderByDescending(elem => elem.pubDate)
+                // limit the feed to avoid getting too many
+                .Take(15)
+                // Note: this is very important for the Dashboard
+                // The order of the items allows customers to specify their base-line policy
+                .OrderBy(elem => elem.index)
+                .Select(x => x.elem);
+
+            var actions = from x in items
+                          let id = x.Descendants("link").FirstOrDefault()?.Value
+                          let title = x.Descendants("title").FirstOrDefault()?.Value
+                          let features = x.Descendants("features").FirstOrDefault()?.Value
+                          let guid = x.Descendants("guid").FirstOrDefault()?.Value
+                          let video = x.Descendants("content").FirstOrDefault()?.Attribute("url")?.Value
+                          select new
+                          {
+                              ids = NullIfEmpty(ToId(id), ToId(video)),
+                              features = title == null && features == null ? null : new
+                              {
+                                  _title = title,
+                                  Feed = TryParseJson(features)
+                              },
+                              // TODO: properly support 4.2.6.  The "atom:id" Element
+                              details = guid == null ? null : new[] { new { guid } }
+                          };
+
+            return JsonConvert.SerializeObject(
+                actions,
+                Formatting.None,
+                new JsonSerializerSettings
+                {
+                    NullValueHandling = NullValueHandling.Ignore
+                });
+        }
+
+        private static T[] NullIfEmpty<T>(params T[] array) 
+            where T: class
+        {
+            array = array.Where(x => x != null).ToArray();
+            return array.Length == 0 ? null : array;
+        }
+
+        private static object ToId(string id)
+        {
+            return string.IsNullOrEmpty(id) ? null : new { id };
+        }
+
+        private static object TryParseJson(string features)
+        {
+            if (string.IsNullOrEmpty(features))
+                return null;
+
+            try
+            {
+                return JObject.Parse(features);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
         public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceWriter log)
@@ -51,51 +137,8 @@ namespace Microsoft.DecisionService.Crawl
 
                 // TODO: use HttpCachedService (also as means of failover if the RSS stream is down)
                 string data = await client.GetStringAsync(reqBody.Url.ToString());
-                var rss = XDocument.Parse(data);
 
-                string parseFormat = "ddd, dd MMM yyyy HH:mm:ss zzz";
-                string parseFormat2 = "ddd, dd MMM yyyy HH:mm:ss Z";
-
-                var items = rss.DescendantNodes()
-                    .OfType<XElement>()
-                    .Where(a => a.Name == "item")
-                    .Select((elem, index) =>
-                    {
-
-                        var pubDateStr = elem.Descendants("pubDate").FirstOrDefault()?.Value;
-                        if (pubDateStr != null)
-                            pubDateStr = pubDateStr.Trim();
-
-                        DateTime pubDate;
-                        if (!DateTime.TryParseExact(pubDateStr, parseFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out pubDate))
-                            if (!DateTime.TryParseExact(pubDateStr, parseFormat2, CultureInfo.InvariantCulture, DateTimeStyles.None, out pubDate))
-                                pubDate = DateTime.UtcNow;
-
-                        return new { elem, pubDate, index };
-                    })
-                    .OrderByDescending(elem => elem.pubDate)
-                    // limit the feed to avoid getting too many
-                    .Take(15)
-                    // Note: this is very important for the Dashboard
-                    // The order of the items allows customers to specify their base-line policy
-                    .OrderBy(elem => elem.index)
-                    .Select(x => x.elem);
-
-                var actions = items.Select(x => new
-                {
-                    ids = new[] { new { id = x.Descendants("link").FirstOrDefault()?.Value } },
-                    features = new
-                    {
-                        _title = x.Descendants("title").FirstOrDefault()?.Value
-                    },
-                    details = new []
-                    {
-                        // TODO: properly support 4.2.6.  The "atom:id" Element
-                        new { guid = x.Descendants("guid").FirstOrDefault()?.Value }
-                    }
-                }).ToList();
-
-                jsonResponse = JsonConvert.SerializeObject(actions);
+                jsonResponse = ParseRSS(data);
 
                 if (log.Level == TraceLevel.Verbose)
                     log.Trace(new TraceEvent(TraceLevel.Verbose, $"Successfully transformed '{url}' '{data}' to '{jsonResponse}'"));
@@ -105,7 +148,7 @@ namespace Microsoft.DecisionService.Crawl
             catch (HttpRequestException hre)
             {
                 var msg = $"RSS Featurization failed '{url}' for '{req.RequestUri.ToString()}': '{hre.Message}'";
-                
+
                 log.Warning(msg);
                 // TODO: maybe switch to dependency w/ status failed?
                 Services.TelemetryClient.TrackEvent(msg,
@@ -127,7 +170,7 @@ namespace Microsoft.DecisionService.Crawl
                         { "Service", req.RequestUri.ToString() },
                         { "Url", url }
                     });
-                
+
                 // swallow the error message and return empty. That way we can differentiate between real outages 
                 // remote errors
             }
