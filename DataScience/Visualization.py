@@ -77,7 +77,7 @@ if __name__ == '__main__':
     
     ################################# PARSE INPUT CMD #########################################################
     kwargs = AzureStorageDownloader.parse_argv(sys.argv)
-    container = kwargs['container']
+    app_id = kwargs['app_id']
     log_dir = kwargs['log_dir']
     
     ################################# DATA DOWNLOADER #########################################################
@@ -88,14 +88,14 @@ if __name__ == '__main__':
     ################################# PARSE LOGS #########################################################
 
     raw_stats = {}
-    pkl_fp = os.path.join(log_dir, 'ds_'+container+'_hours.pickle')
+    pkl_fp = os.path.join(log_dir, 'ds_'+app_id+'_hours.pickle')
     if os.path.isfile(pkl_fp):
         with open(pkl_fp, 'rb') as pkl_file:
             raw_stats = pickle.load(pkl_file)
 
     print('raw_stats.keys():',raw_stats.keys())
 
-    files = [x.path for x in os.scandir(os.path.join(log_dir,container)) if x.path.endswith('.json') and '_skip' not in x.name]
+    files = [x.path for x in os.scandir(os.path.join(log_dir,app_id)) if x.path.endswith('.json') and '_skip' not in x.name]
 
     parse_logs(raw_stats, files)
     
@@ -166,7 +166,7 @@ if __name__ == '__main__':
         plt.rcParams.update({'font.size': 16})  # General font size
 
         f, axarr = plt.subplots(3, sharex=True)
-        f.suptitle('Container: '+container, fontsize=30)
+        f.suptitle('App Id: '+app_id, fontsize=30)
 
         # Total traffic plot        
         p = [(y[0],[sum(y[1][dev][0] for dev in y[1]),sum(y[1][dev][1] for dev in y[1]),sum(y[1][dev][2] for dev in y[1])]) for y in pStats]

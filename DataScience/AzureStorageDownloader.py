@@ -22,7 +22,7 @@ def valid_date(s):
 def parse_argv(argv):
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-c','--container', help="container name", required=True)
+    parser.add_argument('-a','--app_id', help="app id (aka Azure storage container name)", required=True)
     parser.add_argument('-l','--log_dir', help="base dir to download data", required=True)
     parser.add_argument('-s','--start_date', help="downloading start date (included) - format YYYY-MM-DD", type=valid_date)
     parser.add_argument('-e','--end_date', help="downloading end date (not included) - format YYYY-MM-DD (default: tomorrow's date)", type=valid_date)
@@ -40,7 +40,7 @@ def parse_argv(argv):
         if kwargs.get('end_date', None) is None:
             kwargs['end_date'] = datetime.datetime.utcnow() + datetime.timedelta(days=1) # filling end_date as tomorrow in UTC
         
-        kwargs['output_fp'] = os.path.join(kwargs['log_dir'], kwargs['container'], kwargs['container']+'_'+kwargs['start_date'].strftime("%Y-%m-%d")+'_'+kwargs['end_date'].strftime("%Y-%m-%d")+'.json')
+        kwargs['output_fp'] = os.path.join(kwargs['log_dir'], kwargs['app_id'], kwargs['app_id']+'_'+kwargs['start_date'].strftime("%Y-%m-%d")+'_'+kwargs['end_date'].strftime("%Y-%m-%d")+'.json')
 
     return kwargs
 
@@ -52,7 +52,7 @@ def update_progress(current, total):
     sys.stdout.write(text)
     sys.stdout.flush()
 
-def download_container(container, log_dir, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, auth_fp=None, output_fp='', verbose=False, no_gzip=False):
+def download_container(app_id, log_dir, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, auth_fp=None, output_fp='', verbose=False, no_gzip=False):
     
     t_start = time.time()
     print('-----'*10)
@@ -64,13 +64,13 @@ def download_container(container, log_dir, start_date=None, end_date=None, overw
     print('version: {}'.format(version))
     print('no_gzip: {}'.format(no_gzip))
     
-    if not dry_run and not os.path.isdir(os.path.join(log_dir, container)):
-        os.makedirs(os.path.join(log_dir, container))
+    if not dry_run and not os.path.isdir(os.path.join(log_dir, app_id)):
+        os.makedirs(os.path.join(log_dir, app_id))
     
     # Get Azure Storage Authentication
     config = configparser.ConfigParser()
     config.read('ds.config')
-    connection_string = config['AzureStorageAuthentication'].get(container, config['AzureStorageAuthentication']['$Default'])
+    connection_string = config['AzureStorageAuthentication'].get(app_id, config['AzureStorageAuthentication']['$Default'])
     # Check connection string (and parse for logDownloader)
     try:
         connection_string_dict = {x.split('=',1)[0] : x.split('=',1)[1] for x in connection_string.split(';')}
@@ -92,7 +92,7 @@ def download_container(container, log_dir, start_date=None, end_date=None, overw
             else:
                 print('Downloading...'.format(output_fp), end='')
                 try:
-                    url = LogDownloaderURL.format(ACCOUNT_NAME=connection_string_dict['AccountName'], ACCOUNT_KEY=connection_string_dict['AccountKey'].replace('+','%2b'), CONTAINER=container, START_DATE=start_date.strftime("%Y-%m-%d"), END_DATE=end_date.strftime("%Y-%m-%d"))
+                    url = LogDownloaderURL.format(ACCOUNT_NAME=connection_string_dict['AccountName'], ACCOUNT_KEY=connection_string_dict['AccountKey'].replace('+','%2b'), CONTAINER=app_id, START_DATE=start_date.strftime("%Y-%m-%d"), END_DATE=end_date.strftime("%Y-%m-%d"))
                     r = requests.post(url)
                     open(output_fp, 'wb').write(r.content)
                     print(' Done!\n')
@@ -106,7 +106,7 @@ def download_container(container, log_dir, start_date=None, end_date=None, overw
 
         # List all blobs and download them one by one
         print('Getting blobs list...', end='', flush=True)
-        blobs = bbs.list_blobs(container)
+        blobs = bbs.list_blobs(app_id)
         print(' Done!\nIterating through blobs...\n')
         for blob in blobs:
             if '/data/' not in blob.name:
@@ -121,9 +121,9 @@ def download_container(container, log_dir, start_date=None, end_date=None, overw
                 continue
 
             try:
-                bp = bbs.get_blob_properties(container, blob.name)
+                bp = bbs.get_blob_properties(app_id, blob.name)
 
-                fp = os.path.join(log_dir, container, blob.name.replace('/','_'))
+                fp = os.path.join(log_dir, app_id, blob.name.replace('/','_'))
                 output_fps.append(fp)
                 if overwrite_mode < 2 and os.path.isfile(fp):
                     if overwrite_mode == 0:
@@ -153,7 +153,7 @@ def download_container(container, log_dir, start_date=None, end_date=None, overw
                         max_connections = 4
                     print('Downloading...')
                     t0 = time.time()
-                    bbs.get_blob_to_path(container, blob.name, fp, progress_callback=update_progress, max_connections=max_connections)
+                    bbs.get_blob_to_path(app_id, blob.name, fp, progress_callback=update_progress, max_connections=max_connections)
                     elapsed_time = time.time()-t0
                     file_size = os.path.getsize(fp)/(1024**2) # file size in MB
                     print('\nDownloaded {:.3f} MB in {:.3f} sec.: Average: {:.3f} MB/sec'.format(file_size, elapsed_time, file_size/elapsed_time))                    
@@ -176,7 +176,7 @@ def download_container(container, log_dir, start_date=None, end_date=None, overw
 if __name__ == '__main__':
     
     kwargs = parse_argv(sys.argv)
-    print('Container: {0}'.format(kwargs['container']))
+    print('app_id: {0}'.format(kwargs['app_id']))
     print('log_dir: {0}'.format(kwargs['log_dir']))
     
     ################################# PARSE INPUT CMD #########################################################
