@@ -10,7 +10,8 @@ import configparser
 import gzip
 import itertools
 import time
-import numpy as np
+from enum import Enum
+#import numpy as np
 
 class Command:
     def __init__(self, base, learning_rate="", cb_type="", marginal_list="", ignore_list="", interaction_list="", regularization=""):
@@ -64,15 +65,65 @@ def run_experiment(command, timeout=1000):
     
 def run_experiment_set(command_list):
     # Run the experiments in parallel using 20 processes
+    # TODO: Make this a parameter
     p = Pool(20)
     results = p.map(run_experiment, command_list)
     results.sort(key=lambda result: result.loss)
+    p.close()
+    p.join()
     del p
     result_writer(results)
     return results
 
+# Expects j_obj to have type 'dict' and ns_set to be a set (unique elements).
+# Returns a PropType object (defined below) to indicate whether basic properties
+# were found or marginal properties.
+class PropType(Enum):
+    NONE = 1
+    BASIC = 2
+    MARGINAL = 3
+def detect_namespaces(j_obj, ns_set, marginal_set=None):
+    prop_type = PropType.NONE
+    if (j_obj is None) or type(j_obj) is not dict:
+        return prop_type
+
+    # The rule is: recurse into objects until a flat list of properties is found; the
+    # nearest enclosing name is the namespace
+    for kv_entry in j_obj.items():
+        key = kv_entry[0]
+        value = kv_entry[1]
+
+        # Ignore entries whose key begins with an '_'
+        if key[0] == '_':
+            continue
+
+        if type(value) is list:
+            # Unwrap lists so we retain knowledge of the enclosing key name
+            for item in value:
+                ret_val = detect_namespaces(item, ns_set, marginal_set)
+                if ret_val is PropType.BASIC:
+                    ns_set.add(key[0])
+                elif (marginal_set != None) and (ret_val is PropType.MARGINAL):
+                    marginal_set.add(key[0])
+        elif type(value) is dict:
+            # Recurse on the value
+            ret_val = detect_namespaces(value, ns_set, marginal_set)
+            if ret_val is PropType.BASIC:
+                ns_set.add(key[0])
+            elif (marginal_set != None) and (ret_val is PropType.MARGINAL):
+                marginal_set.add(key[0])
+        elif value is not None:
+            prop_type = PropType.BASIC
+
+    # If basic properties were found, check if they are actually marginal properties
+    if prop_type is PropType.BASIC:
+        if (j_obj.get('constant', 0) == 1) and ('id' in j_obj):
+            prop_type = PropType.MARGINAL
+
+    return prop_type
+
 if __name__ == '__main__':
-    # Identify namespaces and detect marginal features
+    # TODO: Use argparse for this
     if len(sys.argv) < 2:
         print("Usage: python Experimentation.py {file_name} {max_q_terms}")
         print("       file_name is the merged Decision Service logs in JSON format")
@@ -87,42 +138,30 @@ if __name__ == '__main__':
         max_q_terms = int(sys.argv[2])
     print("Setting max_q_terms = ",max_q_terms)
 
-    # a if condition else b 
-    #with gzip.open(file_name, 'rt', encoding='utf8') if file_name.endswith('.gz') else open(file_name, 'r', encoding="utf8") as data:
-    #    counter = 0
-    #    shared_features = []
-    #    action_features = []
-    #    marginal_features = []
-    #    for line in data:
-    #        counter += 1
-    #        event = json.loads(line)
-    #        for feature in event.keys():
-    #            if feature[0] != '_' and feature[0] not in shared_features:
-    #                shared_features.append(feature[0])
-    #        action_set = event['_multi']
-    #        for action in action_set:
-    #            for feature in action.keys():
-    #                # print(type(action[feature]))
-    #                if action[feature] is dict:
-    #                    if feature[0] != '_' and feature[0] not in action_features:
-    #                        action_features.append(feature[0])
-    #                        print (str(action[feature]).encode(sys.stdout.encoding, errors='replace'))
-    #                        print (feature)
-    #                        if action[feature].get('constant', 0) == 1 and 'id' in action[feature]:
-    #                            marginal_features.append(feature[0])
-    #        # We are assuming the schema is consistent throughout the file, so we don't need to read all of it
-    #        if counter >= 50:
-                #break
+    # TODO: Allow shared/action features to be specified
+    shared_features = set()
+    action_features = set()
+    marginal_features = set()
 
+    # Identify namespaces and detect marginal features
+    with gzip.open(file_name, 'rt', encoding='utf8') if file_name.endswith('.gz') else open(file_name, 'r', encoding="utf8") as data:
+        counter = 0
+        for line in data:
+            counter += 1
+            event = json.loads(line)
+            # Separate the shared features from the action features for namespace analysis
+            context = event['c']
+            action_set = context['_multi']
+            del context['_multi']
+            detect_namespaces(context, shared_features, marginal_features)
+            # Namespace detection expects object of type 'dict', so unwrap the action list 
+            for action in action_set:
+                detect_namespaces(action, action_features, marginal_features)
 
-    shared_features = ['G', 'M', 'O']               # {Geo, MRefer, OUserAgent}
-    action_features = ['X', 'T', 'E', 'R', 'S']     # {XSentiment, Tags, Emotion, RVisionTags, SVisionAdult}
-    marginal_features = ['i']
-
-    # disable auto discovery    
-    # shared_features = []
-    # action_features = []
-    # marginal_features = []
+            # We assume the schema is consistent throughout the file, but since some
+            # namespaces may not appear in every datapoint, check enough points.
+            if counter >= 1:
+                break
 
     # Read config file to get certain parameter values for experimentation
     config = configparser.ConfigParser()
@@ -133,8 +172,10 @@ if __name__ == '__main__':
     print("Action feature namespaces: " + str(action_features))
     print("Marginal feature namespaces: " + str(marginal_features))
 
+    # TODO: Make cb_adf optional mode? Assume epsilon
+    
     # Base parameters and setting up the cache file
-    base_command = "vw --cb_adf -d %s --dsjson -c --power_t 0 --ignore A" % file_name # TODO: VW location should be a command line parameter. 
+    base_command = "./vw --cb_adf -d %s --dsjson -c" % file_name # TODO: VW location should be a command line parameter. 
     # base_command = "vw --cb_explore_adf --epsilon 0.2 -d %s --json -c --power_t 0" % sys.argv[1] # TODO: VW location should be a command line parameter. 
     #  -q LG -q TG
     # base_command += " --quadratic UG --quadratic RG --quadratic AG --ignore B --ignore C --ignore D --ignore E --ignore F --marginal JK"
@@ -220,7 +261,6 @@ if __name__ == '__main__':
     # Building greedily from best found above
     
     temp_interaction_list = list(best_interaction_list)
-    all_features = shared_features + action_features
     while True:
         command_list = []
         for features in shared_features:
