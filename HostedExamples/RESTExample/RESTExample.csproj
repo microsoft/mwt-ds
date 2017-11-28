@@ -55,6 +55,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Context.cs" />
+    <Compile Include="Example1.cs" />
+    <Compile Include="Example2.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

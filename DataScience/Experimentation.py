@@ -1,17 +1,15 @@
 from subprocess import Popen, PIPE, check_output, STDOUT, TimeoutExpired
 import re
-from multiprocessing import Pool, Process, Queue
-import sys
+import multiprocessing
+import sys, os
 import json
-import queue
-import threading
 from datetime import datetime
-import configparser
+import configparser, argparse
 import gzip
 import itertools
 import time
 from enum import Enum
-#import numpy as np
+
 
 class Command:
     def __init__(self, base, learning_rate="", cb_type="", marginal_list="", ignore_list="", interaction_list="", regularization=""):
@@ -63,10 +61,9 @@ def run_experiment(command, timeout=1000):
     command.loss = float(loss)
     return command
     
-def run_experiment_set(command_list):
-    # Run the experiments in parallel using 20 processes
-    # TODO: Make this a parameter
-    p = Pool(20)
+def run_experiment_set(command_list, n_proc):
+    # Run the experiments in parallel using n_proc processes
+    p = multiprocessing.Pool(n_proc)
     results = p.map(run_experiment, command_list)
     results.sort(key=lambda result: result.loss)
     p.close()
@@ -122,21 +119,24 @@ def detect_namespaces(j_obj, ns_set, marginal_set=None):
 
     return prop_type
 
-if __name__ == '__main__':
-    # TODO: Use argparse for this
-    if len(sys.argv) < 2:
-        print("Usage: python Experimentation.py {file_name} {max_q_terms}")
-        print("       file_name is the merged Decision Service logs in JSON format")
-        print("       max_q_terms is the max number of quadratic terms in the brute force search (default: 3)")
-        sys.exit()
-        
-    t0 = time.time()
 
-    file_name = sys.argv[1]
-    max_q_terms = 3
-    if len(sys.argv) > 2:
-        max_q_terms = int(sys.argv[2])
-    print("Setting max_q_terms = ",max_q_terms)
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-f','--file_path', help="data file path", required=True)
+    parser.add_argument('-q','--max_q_terms', type=int, help="number of quadratic terms to explore with brute-force", default=3)
+    parser.add_argument('-p','--n_proc', type=int, help="number of parallel processors used", default=multiprocessing.cpu_count()-1)
+    parser.add_argument('-b','--base_command', help="base command before data file path (default: vw --cb_adf --dsjson -c -d )", default='vw --cb_adf --dsjson -c -d ')
+    parser.add_argument('--only_lr', help="sweep only over the learning rate", action='store_true')
+
+    args = parser.parse_args()
+    file_path = args.file_path
+    max_q_terms = args.max_q_terms
+    n_proc = args.n_proc
+    base_command = args.base_command + ('' if args.base_command[-1] == ' ' else ' ') + file_path
+    only_lr = args.only_lr
+    print(base_command)
+    t0 = time.time()
 
     # TODO: Allow shared/action features to be specified
     shared_features = set()
@@ -144,7 +144,7 @@ if __name__ == '__main__':
     marginal_features = set()
 
     # Identify namespaces and detect marginal features
-    with gzip.open(file_name, 'rt', encoding='utf8') if file_name.endswith('.gz') else open(file_name, 'r', encoding="utf8") as data:
+    with gzip.open(file_path, 'rt', encoding='utf8') if file_path.endswith('.gz') else open(file_path, 'r', encoding="utf8") as data:
         counter = 0
         for line in data:
             counter += 1
@@ -163,24 +163,21 @@ if __name__ == '__main__':
             if counter >= 1:
                 break
 
-    # Read config file to get certain parameter values for experimentation
-    config = configparser.ConfigParser()
-    config.read('ds.config')
-    experiments_config = config['Experimentation']
-    
     print("Shared feature namespaces: " + str(shared_features))
     print("Action feature namespaces: " + str(action_features))
     print("Marginal feature namespaces: " + str(marginal_features))
 
-    # TODO: Make cb_adf optional mode? Assume epsilon
+    input('Press ENTER to continue...')
     
-    # Base parameters and setting up the cache file
-    base_command = "./vw --cb_adf -d %s --dsjson -c" % file_name # TODO: VW location should be a command line parameter. 
-    # base_command = "vw --cb_explore_adf --epsilon 0.2 -d %s --json -c --power_t 0" % sys.argv[1] # TODO: VW location should be a command line parameter. 
-    #  -q LG -q TG
-    # base_command += " --quadratic UG --quadratic RG --quadratic AG --ignore B --ignore C --ignore D --ignore E --ignore F --marginal JK"
-    initial_command = Command(base_command, learning_rate=0.5)
-    run_experiment(initial_command, timeout=3600)
+    # Read config file to get certain parameter values for experimentation
+    config = configparser.ConfigParser()
+    config.read('ds.config')
+    experiments_config = config['Experimentation']
+   
+    if not os.path.exists(file_path+'.cache'):
+        print('Setting up the cache file')
+        initial_command = Command(base_command, learning_rate=0.5)
+        run_experiment(initial_command, timeout=3600)
     
     # Learning rates
     command_list = []
@@ -190,8 +187,11 @@ if __name__ == '__main__':
         command = Command(base_command, learning_rate=learning_rate)
         command_list.append(command)
         
-    results = run_experiment_set(command_list)
+    results = run_experiment_set(command_list, n_proc)
     best_learning_rate = results[0].learning_rate
+    
+    if only_lr:
+        sys.exit()
     
     # CB type
     cb_types = ['ips', 'dr']
@@ -201,7 +201,7 @@ if __name__ == '__main__':
         command = Command(base_command, learning_rate=best_learning_rate, cb_type=cb_type)
         command_list.append(command)
         
-    results = run_experiment_set(command_list)
+    results = run_experiment_set(command_list, n_proc)
     best_cb_type = results[0].cb_type
 
     # Add Marginals
@@ -218,7 +218,7 @@ if __name__ == '__main__':
         if len(command_list) == 0:
             break
 
-        results = run_experiment_set(command_list)
+        results = run_experiment_set(command_list, n_proc)
         if results[0].loss < best_loss:
             best_loss = results[0].loss
             best_marginal_list = list(results[0].marginal_list)
@@ -231,7 +231,7 @@ if __name__ == '__main__':
     
     # Which namespaces to interact
     
-    # Test all combinations up to max_q_terms (default: 3)
+    # Test all combinations up to max_q_terms
     best_interaction_list = []
     command_list = []
     
@@ -252,7 +252,7 @@ if __name__ == '__main__':
         command_list.append(command)
     
     print('len(command_list)',len(command_list))
-    results = run_experiment_set(command_list)
+    results = run_experiment_set(command_list, n_proc)
     if results[0].loss < best_loss:
         best_loss = results[0].loss
         best_interaction_list = list(results[0].interaction_list)
@@ -276,7 +276,7 @@ if __name__ == '__main__':
         if len(command_list) == 0:
             break
 
-        results = run_experiment_set(command_list)
+        results = run_experiment_set(command_list, n_proc)
         if results[0].loss < best_loss:
             best_loss = results[0].loss
             best_interaction_list = list(results[0].interaction_list)
@@ -290,7 +290,7 @@ if __name__ == '__main__':
         command = Command(base_command, learning_rate=best_learning_rate, cb_type=best_cb_type, marginal_list=best_marginal_list, interaction_list=best_interaction_list, regularization=regularization)
         command_list.append(command)
         
-    results = run_experiment_set(command_list)
+    results = run_experiment_set(command_list, n_proc)
     best_regularization = results[0].regularization
     
     # Learning rates
@@ -301,7 +301,7 @@ if __name__ == '__main__':
         command = Command(base_command, learning_rate=learning_rate, cb_type=best_cb_type, marginal_list=best_marginal_list, interaction_list=best_interaction_list, regularization=regularization)
         command_list.append(command)
         
-    results = run_experiment_set(command_list)
+    results = run_experiment_set(command_list, n_proc)
     best_learning_rate = results[0].learning_rate
 
     # TODO: Repeat above process of tuning parameters and interactions until convergence / no more improvements.
