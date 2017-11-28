@@ -124,9 +124,12 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-f','--file_path', help="data file path", required=True)
-    parser.add_argument('-q','--max_q_terms', type=int, help="number of quadratic terms to explore with brute-force", default=3)
-    parser.add_argument('-p','--n_proc', type=int, help="number of parallel processors used", default=multiprocessing.cpu_count()-1)
+    parser.add_argument('-q','--max_q_terms', type=int, help="number of quadratic terms to explore with brute-force (default: 2)", default=2)
+    parser.add_argument('-p','--n_proc', type=int, help="number of parallel processes to use (default: auto-detect)", default=multiprocessing.cpu_count()-1)
     parser.add_argument('-b','--base_command', help="base command before data file path (default: vw --cb_adf --dsjson -c -d )", default='vw --cb_adf --dsjson -c -d ')
+    parser.add_argument('-s','--shared_namespaces', type=str, help="shared feature namespaces; e.g. 'abc' means namespaces a, b, and c (default: auto-detect)", default='')
+    parser.add_argument('-a','--action_namespaces', type=str, help="action feature namespaces (default: auto-detect)", default='')
+    parser.add_argument('-m','--marginal_namespaces', type=str, help="marginal feature namespaces (default: auto-detect)", default='')
     parser.add_argument('--only_lr', help="sweep only over the learning rate", action='store_true')
 
     args = parser.parse_args()
@@ -135,39 +138,48 @@ if __name__ == '__main__':
     n_proc = args.n_proc
     base_command = args.base_command + ('' if args.base_command[-1] == ' ' else ' ') + file_path
     only_lr = args.only_lr
-    print(base_command)
+    shared_features = set(list(args.shared_namespaces))
+    action_features = set(list(args.action_namespaces))
+    marginal_features = set(list(args.marginal_namespaces))
     t0 = time.time()
 
-    # TODO: Allow shared/action features to be specified
-    shared_features = set()
-    action_features = set()
-    marginal_features = set()
-
     # Identify namespaces and detect marginal features
-    with gzip.open(file_path, 'rt', encoding='utf8') if file_path.endswith('.gz') else open(file_path, 'r', encoding="utf8") as data:
-        counter = 0
-        for line in data:
-            counter += 1
-            event = json.loads(line)
-            # Separate the shared features from the action features for namespace analysis
-            context = event['c']
-            action_set = context['_multi']
-            del context['_multi']
-            detect_namespaces(context, shared_features, marginal_features)
-            # Namespace detection expects object of type 'dict', so unwrap the action list 
-            for action in action_set:
-                detect_namespaces(action, action_features, marginal_features)
+    if not (shared_features and action_features and marginal_features):
+        shared_tmp = set()
+        action_tmp = set()
+        marginal_tmp = set()
+        with gzip.open(file_path, 'rt', encoding='utf8') if file_path.endswith('.gz') else open(file_path, 'r', encoding="utf8") as data:
+            counter = 0
+            for line in data:
+                counter += 1
+                event = json.loads(line)
+                # Separate the shared features from the action features for namespace analysis
+                context = event['c']
+                action_set = context['_multi']
+                del context['_multi']
+                detect_namespaces(context, shared_tmp, marginal_tmp)
+                # Namespace detection expects object of type 'dict', so unwrap the action list 
+                for action in action_set:
+                    detect_namespaces(action, action_tmp, marginal_tmp)
 
-            # We assume the schema is consistent throughout the file, but since some
-            # namespaces may not appear in every datapoint, check enough points.
-            if counter >= 1:
-                break
+                # We assume the schema is consistent throughout the file, but since some
+                # namespaces may not appear in every datapoint, check enough points.
+                if counter >= 1:
+                    break
+        # Only overwrite the namespaces that were not specified by the user
+        if not shared_features:
+            shared_features = shared_tmp
+        if not action_features:
+            action_features = action_tmp
+        if not marginal_features:
+            marginal_features = marginal_tmp
 
+    print("Base command: " + base_command)
     print("Shared feature namespaces: " + str(shared_features))
     print("Action feature namespaces: " + str(action_features))
     print("Marginal feature namespaces: " + str(marginal_features))
 
-    input('Press ENTER to continue...')
+    input('\nPress ENTER to start...')
     
     # Read config file to get certain parameter values for experimentation
     config = configparser.ConfigParser()
