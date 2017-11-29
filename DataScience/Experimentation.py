@@ -3,7 +3,7 @@ import re
 import multiprocessing
 import sys, os
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 import configparser, argparse
 import gzip
 import itertools
@@ -325,12 +325,13 @@ if __name__ == '__main__':
     best_learning_rate = results[0].learning_rate
 
     # TODO: Repeat above process of tuning parameters and interactions until convergence / no more improvements.
-    
-    print("\nBest parameters found after elapsed time {0}:".format(datetime.now()-t0).strftime("%H:%M:%S"))
+
+    elapsed_time = datetime.now() - t0
+    elapsed_time -= timedelta(microseconds=elapsed_time.microseconds)
+    print("\nBest parameters found after elapsed time {0}:".format(elapsed_time))
     print("Best learning rate: {0}".format(best_learning_rate))
     print("Best cb type: {0}".format(best_cb_type))
     print("Best marginals: {0}".format(best_marginal_list))
     print("Best interactions: {0}".format(best_interaction_list))
     print("Best regularization: {0}".format(best_regularization))
     print("Best loss: {0}".format(best_loss))
-    print("Elapsed time: {0}".format(time.time()-t0))
