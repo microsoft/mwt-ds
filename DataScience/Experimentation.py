@@ -8,6 +8,7 @@ import configparser, argparse
 import gzip
 import itertools
 import time
+from math import log, pow, ceil
 from enum import Enum
 
 
@@ -123,13 +124,17 @@ def detect_namespaces(j_obj, ns_set, marginal_set=None):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-f','--file_path', help="data file path", required=True)
+    parser.add_argument('-f','--file_path', help="data file", required=True)
     parser.add_argument('-q','--max_q_terms', type=int, help="number of quadratic terms to explore with brute-force (default: 2)", default=2)
     parser.add_argument('-p','--n_proc', type=int, help="number of parallel processes to use (default: auto-detect)", default=multiprocessing.cpu_count()-1)
-    parser.add_argument('-b','--base_command', help="base command before data file path (default: vw --cb_adf --dsjson -c -d )", default='vw --cb_adf --dsjson -c -d ')
-    parser.add_argument('-s','--shared_namespaces', type=str, help="shared feature namespaces; e.g. 'abc' means namespaces a, b, and c (default: auto-detect)", default='')
+    # Construct default VW path in platform-agnostic away
+    vwPath = os.path.join('.', 'vw')
+    parser.add_argument('-b','--base_command', help="base command (default: vw --cb_adf --dsjson -c -d )", default=vwPath + ' --cb_adf --dsjson -c -d ')
+    parser.add_argument('-l','--lr_min_max', type=str, help="learning rate range expressed as 'min,max' (default: '0.00001,0.5')", default='0.00001,0.5')
+    parser.add_argument('-s','--shared_namespaces', type=str, help="shared feature namespaces; e.g., 'abc' means namespaces a, b, and c (default: auto-detect)", default='')
     parser.add_argument('-a','--action_namespaces', type=str, help="action feature namespaces (default: auto-detect)", default='')
     parser.add_argument('-m','--marginal_namespaces', type=str, help="marginal feature namespaces (default: auto-detect)", default='')
+    parser.add_argument('--auto_lines', type=int, help="number of lines to scan for auto detectdetected parameters (default: 100)", default=100)
     parser.add_argument('--only_lr', help="sweep only over the learning rate", action='store_true')
 
     args = parser.parse_args()
@@ -137,13 +142,15 @@ if __name__ == '__main__':
     max_q_terms = args.max_q_terms
     n_proc = args.n_proc
     base_command = args.base_command + ('' if args.base_command[-1] == ' ' else ' ') + file_path
+    [lr_min, lr_max] = [float(i) for i in args.lr_min_max.split(',')]
     only_lr = args.only_lr
     shared_features = set(list(args.shared_namespaces))
     action_features = set(list(args.action_namespaces))
     marginal_features = set(list(args.marginal_namespaces))
-    t0 = time.time()
+    auto_lines = args.auto_lines
+    t0 = datetime.now()
 
-    # Identify namespaces and detect marginal features
+    # Identify namespaces and detect marginal features (unless already specified)
     if not (shared_features and action_features and marginal_features):
         shared_tmp = set()
         action_tmp = set()
@@ -164,7 +171,7 @@ if __name__ == '__main__':
 
                 # We assume the schema is consistent throughout the file, but since some
                 # namespaces may not appear in every datapoint, check enough points.
-                if counter >= 1:
+                if counter >= auto_lines:
                     break
         # Only overwrite the namespaces that were not specified by the user
         if not shared_features:
@@ -175,6 +182,7 @@ if __name__ == '__main__':
             marginal_features = marginal_tmp
 
     print("Base command: " + base_command)
+    print("Learning rate range: [{0},{1}]".format(lr_min, lr_max))
     print("Shared feature namespaces: " + str(shared_features))
     print("Action feature namespaces: " + str(action_features))
     print("Marginal feature namespaces: " + str(marginal_features))
@@ -186,15 +194,15 @@ if __name__ == '__main__':
     config.read('ds.config')
     experiments_config = config['Experimentation']
    
-    if not os.path.exists(file_path+'.cache'):
+    if not os.path.exists(file_path + '.cache'):
         print('Setting up the cache file')
         initial_command = Command(base_command, learning_rate=0.5)
         run_experiment(initial_command, timeout=3600)
-    
-    # Learning rates
+
+    # Learning rate: tune this initially so we have something to use while evaluating
+    # other parameters. We will retune this again at the end.
     command_list = []
-    learning_rates = experiments_config["LearningRates"].split(',')
-    learning_rates = list(map(float, learning_rates))
+    learning_rates = [lr_min*pow(2,i) for i in range(ceil(log(lr_max/lr_min, 2)))]
     for learning_rate in learning_rates:
         command = Command(base_command, learning_rate=learning_rate)
         command_list.append(command)
@@ -269,8 +277,9 @@ if __name__ == '__main__':
         best_loss = results[0].loss
         best_interaction_list = list(results[0].interaction_list)
     
-    
-    # Building greedily from best found above
+    ###
+    # Build greedily from the best parameters found above
+    ###
     
     temp_interaction_list = list(best_interaction_list)
     while True:
@@ -307,8 +316,7 @@ if __name__ == '__main__':
     
     # Learning rates
     command_list = []
-    learning_rates = experiments_config["LearningRates"].split(',')
-    learning_rates = list(map(float, learning_rates))
+    learning_rates = [lr_min*pow(2,i) for i in range(ceil(log(lr_max/lr_min, 2)))]
     for learning_rate in learning_rates:
         command = Command(base_command, learning_rate=learning_rate, cb_type=best_cb_type, marginal_list=best_marginal_list, interaction_list=best_interaction_list, regularization=regularization)
         command_list.append(command)
@@ -318,7 +326,7 @@ if __name__ == '__main__':
 
     # TODO: Repeat above process of tuning parameters and interactions until convergence / no more improvements.
     
-    print("Best parameters:")
+    print("\nBest parameters found after elapsed time {0}:".format(datetime.now()-t0).strftime("%H:%M:%S"))
     print("Best learning rate: {0}".format(best_learning_rate))
     print("Best cb type: {0}".format(best_cb_type))
     print("Best marginals: {0}".format(best_marginal_list))
