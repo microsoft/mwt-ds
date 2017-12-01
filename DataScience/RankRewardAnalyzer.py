@@ -109,6 +109,8 @@ def print_stats(local_fp, azure_path, verbose=False, plot_hist=False):
                     print('Idx: {} - Ranking missing from Azure - EventId: {}'.format(i+1,x))
         else:
             no_rewards_idx.append(i+1)
+            if verbose:
+                print('Idx: {} - Reward missing from local - EventId: {}'.format(i+1,x))
 
     dup_local = len(local_rew)-len(rew_dict)
     dup_azure = len(azure_data)-len(azure_dict)
@@ -149,12 +151,18 @@ def print_stats(local_fp, azure_path, verbose=False, plot_hist=False):
         if err_rewards_idx or no_events_idx or no_rewards_idx:
             plt.rcParams.update({'font.size': 16})  # General font size
             if err_rewards_idx:
-                plt.hist(err_rewards_idx, label='Wrong reward', color='xkcd:orange')
+                a = plt.hist(err_rewards_idx, 50, label='Wrong reward', color='xkcd:orange')
+                if verbose:
+                    print('err_rewards_idx',a)
             if no_events_idx:
-                plt.hist(no_events_idx, label='No rank', color='xkcd:blue')
+                b = plt.hist(no_events_idx, 50, label='No rank', color='xkcd:blue')
+                if verbose:
+                    print('no_events_idx',b)
             if no_rewards_idx:
-                plt.hist(no_rewards_idx, label='No reward', color='xkcd:red')
-            plt.title('Missing/Wrong rank and reward requests', fontsize=30)
+                c = plt.hist(no_rewards_idx, 50, label='No local reward', color='xkcd:red')
+                if verbose:
+                    print('no_rewards_idx',c)
+            plt.title('Missing/Wrong rank and reward requests', fontsize=20)
             plt.xlabel('Request index', fontsize=18)
             plt.ylabel('Bin Count', fontsize=18)
             plt.legend()
