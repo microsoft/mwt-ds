@@ -90,8 +90,8 @@ def detect_namespaces(j_obj, ns_set, marginal_set=None):
         key = kv_entry[0]
         value = kv_entry[1]
 
-        # Ignore entries whose key begins with an '_'
-        if key[0] == '_':
+        # Ignore entries whose key begins with an '_' except _text
+        if key[0] == '_' and key != '_text':
             continue
 
         if type(value) is list:
