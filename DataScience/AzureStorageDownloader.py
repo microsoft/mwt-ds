@@ -27,7 +27,7 @@ def parse_argv(argv):
     parser.add_argument('-s','--start_date', help="downloading start date (included) - format YYYY-MM-DD", type=valid_date)
     parser.add_argument('-e','--end_date', help="downloading end date (not included) - format YYYY-MM-DD (default: tomorrow's date)", type=valid_date)
     parser.add_argument('-v','--version', type=int, default=2, help="integer describing which version of data downloader to use (default: 2 -> AzureStorageDownloader)")
-    parser.add_argument('-o','--overwrite_mode', type=int, help="0: don't overwrite (default); 1: ask user if files have different sizes; 2: always overwrite", default=0)
+    parser.add_argument('-o','--overwrite_mode', type=int, help="0: don't overwrite (default); 1: ask user if files have different sizes; 2: always overwrite; 3: overwrite only if different sizes, without asking", default=0)
     parser.add_argument('--dry_run', help="print which blobs would have been downloaded, without downloading", action='store_true')
     parser.add_argument('--no_gzip', help="Skip producing gzip file for Vowpal Wabbit", action='store_true')
     parser.add_argument('--verbose', action='store_true')
@@ -125,19 +125,19 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
 
                 fp = os.path.join(log_dir, app_id, blob.name.replace('/','_'))
                 output_fps.append(fp)
-                if overwrite_mode < 2 and os.path.isfile(fp):
+                if os.path.isfile(fp):
                     if overwrite_mode == 0:
                         if verbose:
                             print('{} - Skip: Output file already exits'.format(blob.name))
                         continue
-                    elif overwrite_mode == 1:
+                    elif overwrite_mode in {1, 3}:
                         file_size = os.path.getsize(fp)/(1024**2) # file size in MB
                         if file_size == bp.properties.content_length/(1024**2): # file size is the same, skip!
                             if verbose:
                                 print('{} - Skip: Output file already exits with same size'.format(blob.name))
                             continue
                         print('Output file already exits: {}\nLocal size: {:.3f} MB\nAzure size: {:.3f} MB'.format(fp, file_size, bp.properties.content_length/(1024**2)))
-                        if input("Do you want to overwrite [Y/n]? ") != 'Y':
+                        if overwrite_mode == 1 and input("Do you want to overwrite [Y/n]? ") != 'Y':
                             continue
 
                 print('Processing: {} (size: {:.3f}MB - Last modified: {})'.format(blob.name, bp.properties.content_length/(1024**2), bp.properties.last_modified))
