@@ -50,15 +50,15 @@ def send_rank_and_rewards(base_url, app, local_fp, feed, iter_num=1000, time_sle
             if r.status_code != 200 or r.headers.get('x-msdecision-src', None) != site_str or b'rewardAction' not in r.content:
                 err[0] += 1
                 print('Rank Error - status_code: {}; headers: {}; content: {}'.format(r.status_code,r.headers,r.content))
-                continue
-            eventId = str(r.content.split(b'eventId":"',1)[1].split(b'","',1)[0], 'utf-8')
-            eventIds.append(eventId)
-            reward = i+.36
-            r2 = s.post(url+'/reward/'+eventId, json=reward)
-            f.write('url:{}\tstatus_code:{}\theaders:{}\tcontent:{}\n'.format(url+'/reward/'+eventId,r2.status_code,r2.headers,reward))
-            if r2.status_code != 200 or r2.headers.get('x-msdecision-src', None) != site_str:
-                err[1] += 1
-                print('Reward Error - status_code: {}; headers: {}'.format(r2.status_code,r2.headers))
+            else:
+                eventId = str(r.content.split(b'eventId":"',1)[1].split(b'","',1)[0], 'utf-8')
+                eventIds.append(eventId)
+                reward = i+.36
+                r2 = s.post(url+'/reward/'+eventId, json=reward)
+                f.write('url:{}\tstatus_code:{}\theaders:{}\tcontent:{}\n'.format(url+'/reward/'+eventId,r2.status_code,r2.headers,reward))
+                if r2.status_code != 200 or r2.headers.get('x-msdecision-src', None) != site_str:
+                    err[1] += 1
+                    print('Reward Error - status_code: {}; headers: {}'.format(r2.status_code,r2.headers))
             
             update_progress(i, iter_num, 'Errors: {}'.format(err))
             time.sleep(time_sleep)
@@ -85,9 +85,10 @@ def print_stats(local_fp, azure_path, verbose=False, plot_hist=False):
             err_codes.update([x.split('status_code:',1)[1].split('\t',1)[0]])
 
     if os.path.isdir(azure_path):
-        azure_data = [(x.strip().split('EventId":"',1)[1].split('","',1)[0], x.strip().split('_label_cost":',1)[1].split(',"',1)[0]) for azure_fp in scantree(azure_path) if azure_fp.name.endswith('.json') for x in open(azure_fp.path, encoding='utf-8')]
+        files = [azure_fp.path for azure_fp in scantree(azure_path) if azure_fp.name.endswith('.json')]
     else:
-        azure_data = [(x.strip().split('EventId":"',1)[1].split('","',1)[0], x.strip().split('_label_cost":',1)[1].split(',"',1)[0]) for x in open(azure_path, encoding='utf-8')]
+        files = [azure_path]
+    azure_data = [(x.strip().split('EventId":"',1)[1].split('","',1)[0], x.strip().split('_label_cost":',1)[1].split(',"',1)[0]) for azure_fp in files for x in open(azure_fp, encoding='utf-8') if x.startswith('{"_label_cost":')]
     
     local_rank_set = set(local_rank)
     rew_dict = {y[0] : y[1] for y in local_rew}
