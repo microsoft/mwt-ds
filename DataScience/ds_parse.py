@@ -113,4 +113,38 @@ def cmplx_json_to_csv(input_file, output_file):
             i += 1
             if i % 100000 == 0:
                 print(i)
-    
+
+
+'''
+####################################################################################################################################
+# SLOW IMPLEMENTATIONS ALREADY TESTED
+####################################################################################################################################
+
+import ijson, io
+def ijson_cooked(x):
+    ##############################################
+    # 35x slower than json_cooked with the pure Python parser
+    # I'm unable to install YAJL, to use import ijson.backends.yajl2_cffi as ijson
+    ##############################################
+    f = io.StringIO(x.strip())
+    parser = ijson.parse(f)
+    i = 0
+    output = []
+    for prefix, event, value in parser:
+        i += 1
+        if prefix != None and event != 'map_key':
+            output.append(value)
+        if prefix == 'c':
+            break
+    return output[7],output[1],output[5],float(output[2]),output[3],len(output)-11
+
+import parse
+def parse_cooked(x):
+    ##############################################
+    # 40x slower than json_cooked with the pure Python parser
+    # I'm unable to install YAJL, to use import ijson.backends.yajl2_cffi as ijson
+    ##############################################
+    r = parse.parse('{"_label_cost":{:n},"_label_probability":{:g},"_label_Action":{:n},"_labelIndex":{:n},"Timestamp":"{}","Version":"{:n}","EventId":"{}","a":{},{}', x)
+    return r[7],r[1],r[5],r[2],r[3],len(r.fixed)-8
+
+'''
