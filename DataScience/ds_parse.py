@@ -20,29 +20,6 @@ def json_cooked(x):
     a_vec = x[ind7+7:ind8].split(',')   # len('","a":[') = 7
     num_a = len(a_vec)
     return ei,r,ts,float(p),int(a_vec[0]),num_a
-    
-def json_cooked2(x):
-    #################################
-    # Optimized version based on expected structure:
-    # {"_label_cost":0,"_label_probability":1,"_label_Action":1,"_labelIndex":0,"Timestamp":"2017-10-12T00:00:34.4380000Z","Version":"1","EventId":"ru-ru_8579.Hero.Qr13khq7hUiuZqwN","a":[1],"c"...
-    # Assumption: "Version" value is 1 digit
-    #
-    # Performance: 4x faster than Python JSON parser js = json.loads(x.strip())
-    #################################
-    ind1 = x.find(',',16)               # equal to: x.find(',"_label_prob',16)
-    ind2 = x.find(',',ind1+23)          # equal to: x.find(',"_label_Action',ind1+23)
-    ind4 = x.find(',"T',ind2+34)        # equal to: x.find(',"Timestamp',ind2+34)
-    ind5 = x.find('"',ind4+36)          # equal to: x.find('","Version',ind4+36)
-    ind7 = x.find('"',ind5+28)          # equal to: x.find('","a',ind5+28)
-    ind8 = x.find(']',ind7+8)           # equal to: x.find('],"c',ind7+8)
-
-    r = x[15:ind1]                      # len('{"_label_cost":') = 15
-    p = x[ind1+22:ind2]                 # len(',"_label_probability":') = 22
-    ts = x[ind4+14:ind5]                # len(',"Timestamp":"') = 14
-    ei = x[ind5+27:ind7]                # len('","Version":"1","EventId":"') = 27
-    a_vec = x[ind7+7:ind8].split(',')   # len('","a":[') = 7
-    num_a = len(a_vec)
-    return ei,r,ts,float(p),int(a_vec[0]),num_a
 
 def json_dangling(x):
     #################################
