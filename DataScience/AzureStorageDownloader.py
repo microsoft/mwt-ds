@@ -37,6 +37,7 @@ def parse_argv(argv):
     parser.add_argument('--dry_run', help="print which blobs would have been downloaded, without downloading", action='store_true')
     parser.add_argument('--no_gzip', help="Skip producing gzip file for Vowpal Wabbit", action='store_true')
     parser.add_argument('--verbose', action='store_true')
+    parser.add_argument('--delta_mod_t', type=int, default=3600, help='time window in sec to detect if a file is currently in use (default=3600 - 1 hour)')
         
     kwargs = vars(parser.parse_args(argv[1:]))
     if len(argv) > 5:
@@ -58,7 +59,7 @@ def update_progress(current, total):
     sys.stdout.write(text)
     sys.stdout.flush()
 
-def download_container(app_id, log_dir, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, auth_fp=None, output_fp='', verbose=False, no_gzip=False):
+def download_container(app_id, log_dir, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, auth_fp=None, output_fp='', verbose=False, no_gzip=False, delta_mod_t=3600):
     
     t_start = time.time()
     print('-----'*10)
@@ -151,10 +152,10 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                 if dry_run:
                     print('--dry_run - Not downloading!')
                 else:
-                    # check if blob was modified within the last 1 hour
-                    if datetime.datetime.now(datetime.timezone.utc)-bp.properties.last_modified < datetime.timedelta(0, 3600):
+                    # check if blob was modified in the last delta_mod_t sec
+                    if datetime.datetime.now(datetime.timezone.utc)-bp.properties.last_modified < datetime.timedelta(0, delta_mod_t):
                         if overwrite_mode < 2:
-                            if input("Azure blob currently in use (modified during last hour). Do you want to download anyway [Y/n]? ") != 'Y':
+                            if input("Azure blob currently in use (modified in the last delta_mod_t={} sec). Do you want to download anyway [Y/n]? ".format(delta_mod_t)) != 'Y':
                                 print()
                                 continue
                         elif overwrite_mode == 4:
