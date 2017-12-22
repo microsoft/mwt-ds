@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import configparser
 import AzureStorageDownloader
+import ds_parse
 
 
 # Create dictionary with filename as keys
@@ -24,14 +25,10 @@ def parse_logs(raw_stats, files):
                 continue
             
             try:
-                x = json.loads(line.split(',"_multi":[', 1)[0].strip()+'}}')
+                ei,r,ts,p,a,num_a,dev = ds_parse.json_cooked(line, do_devType=True)
                 
-                # Parse datetime string and device
-                d = x['Timestamp'][:13]
-                if 'DeviceType' in x['c']['OUserAgent']:
-                    dev = x['c']['OUserAgent']['DeviceType']
-                else:
-                    dev = 'N/A'
+                # extract date from ts
+                d = ts[:13]
                 
                 if d not in c2:
                     c2[d] = {}
@@ -44,11 +41,12 @@ def parse_logs(raw_stats, files):
                     
                 c2[d][dev][1] += 1
                 c2['ips'][d[:10]][1] += 1
-                if x['_label_cost'] < 0:
+                if r != '0':
+                    r = float(r)
                     c2[d][dev][0] += 1
-                    c2[d][dev][2] -= x['_label_cost']
-                    if x['_label_Action'] == 1:
-                        c2['ips'][d[:10]][0] += -x['_label_cost']/x['_label_probability']
+                    c2[d][dev][2] -= r
+                    if a == 1:
+                        c2['ips'][d[:10]][0] -= r/p
                         
             except Exception as e:
                 print('error: {0}'.format(e))
