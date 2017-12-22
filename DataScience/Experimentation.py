@@ -134,9 +134,7 @@ if __name__ == '__main__':
     parser.add_argument('-f','--file_path', help="data file", required=True)
     parser.add_argument('-q','--max_q_terms', type=int, help="number of quadratic terms to explore with brute-force (default: 2)", default=2)
     parser.add_argument('-p','--n_proc', type=int, help="number of parallel processes to use (default: auto-detect)", default=multiprocessing.cpu_count()-1)
-    # Construct default VW path in platform-agnostic away
-    vwPath = os.path.join('.', 'vw')
-    parser.add_argument('-b','--base_command', help="base command (default: vw --cb_adf --dsjson -c -d )", default=vwPath + ' --cb_adf --dsjson -c -d ')
+    parser.add_argument('-b','--base_command', help="base command (default: vw --cb_adf --dsjson -c -d )", default='vw --cb_adf --dsjson -c -d ')
     parser.add_argument('-l','--lr_min_max', type=check_min_max, help="learning rate range as positive values 'min,max' (default: 1e-5,0.5)", default='1e-5,0.5')
     parser.add_argument('-r','--reg_min_max', type=check_min_max, help="L1 regularization range as positive values 'min,max' (default: 1e-9,0.1)", default='1e-9,0.1')
     parser.add_argument('-s','--shared_namespaces', type=str, help="shared feature namespaces; e.g., 'abc' means namespaces a, b, and c (default: auto-detect)", default='')
