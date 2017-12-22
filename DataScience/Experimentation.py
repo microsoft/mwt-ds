@@ -8,8 +8,8 @@ import configparser, argparse
 import gzip
 import itertools
 import time
-from math import log, pow, ceil
 from enum import Enum
+import numpy as np
 
 
 class Command:
@@ -21,23 +21,21 @@ class Command:
         self.ignore_list = ignore_list
         self.interaction_list = interaction_list
         self.regularization = regularization
-        full_command = base
-        if learning_rate != "":
-            full_command = "{0} -l {1}".format(full_command, learning_rate)
+        self.full_command = base
         if cb_type != "":
-            full_command = "{0} --cb_type {1}".format(full_command, cb_type)
+            self.full_command += " --cb_type {}".format(cb_type)
         if len(marginal_list) != 0:
-            full_command = "{0} --marginal {1}".format(full_command, ''.join(marginal_list))
+            self.full_command += " --marginal {}".format(''.join(marginal_list))
         if len(ignore_list) != 0:
             for ignored_namespace in ignore_list:
-                full_command = "{0} --ignore {1}".format(full_command, ignored_namespace)
+                self.full_command += " --ignore {}".format(ignored_namespace)
         if len(interaction_list) != 0:
             for interaction in interaction_list:
-                full_command = "{0} -q {1}".format(full_command, interaction)
+                self.full_command += " -q {}".format(interaction)
         if regularization != "":
-            full_command = "{0} --l1 {1}".format(full_command, regularization)
-        self.full_command = full_command
-        print(full_command)
+            self.full_command += " --l1 {}".format(regularization)
+        if learning_rate != "":
+            self.full_command += " -l {}".format(learning_rate)
         self.loss = None
         
 def result_writer(command_list):
@@ -60,6 +58,7 @@ def run_experiment(command, timeout=1000):
     m = re.search('average loss = (.+)\n', str(results))
     loss = m.group(1)
     command.loss = float(loss)
+    print("\nAve. Loss: {:12}Policy: {}".format(str(command.loss),command.full_command), end='')
     return command
     
 def run_experiment_set(command_list, n_proc):
@@ -120,12 +119,19 @@ def detect_namespaces(j_obj, ns_set, marginal_set=None):
 
     return prop_type
 
-# Ensures min <= max and min > 0
-def check_min_max(val):
-    [val_min, val_max] = sorted([float(i) for i in val.split(',')])
-    if (val_min <= 0) or (val_min > val_max):
-        raise argparse.ArgumentTypeError("{0} is an invalid range (make sure both values are positive and min <= max".format(val))
-    return val
+# Ensures validity of min_max_steps input
+def check_min_max_steps(val):
+    try:
+        temp = val.split(',')
+        if len(temp) != 3:
+            raise
+        val_min, val_max = map(float, temp[:2])
+        steps = int(temp[2])
+        if steps < 1 or val_min <= 0 or val_min >= val_max:
+            raise
+    except:
+        raise argparse.ArgumentTypeError('Input "{}" is an invalid range (make sure values are positive, min < max, and steps > 0)'.format(val))
+    return val_min, val_max, steps
 
 
 if __name__ == '__main__':
@@ -135,8 +141,8 @@ if __name__ == '__main__':
     parser.add_argument('-q','--max_q_terms', type=int, help="number of quadratic terms to explore with brute-force (default: 2)", default=2)
     parser.add_argument('-p','--n_proc', type=int, help="number of parallel processes to use (default: auto-detect)", default=multiprocessing.cpu_count()-1)
     parser.add_argument('-b','--base_command', help="base command (default: vw --cb_adf --dsjson -c -d )", default='vw --cb_adf --dsjson -c -d ')
-    parser.add_argument('-l','--lr_min_max', type=check_min_max, help="learning rate range as positive values 'min,max' (default: 1e-5,0.5)", default='1e-5,0.5')
-    parser.add_argument('-r','--reg_min_max', type=check_min_max, help="L1 regularization range as positive values 'min,max' (default: 1e-9,0.1)", default='1e-9,0.1')
+    parser.add_argument('-l','--lr_min_max_steps', type=check_min_max_steps, help="learning rate range as positive values 'min,max,steps' (default: 1e-5,0.5,17)", default='1e-5,0.5,17')
+    parser.add_argument('-r','--reg_min_max_steps', type=check_min_max_steps, help="L1 regularization range as positive values 'min,max,steps' (default: 1e-9,0.1,9)", default='1e-9,0.1,9')
     parser.add_argument('-s','--shared_namespaces', type=str, help="shared feature namespaces; e.g., 'abc' means namespaces a, b, and c (default: auto-detect)", default='')
     parser.add_argument('-a','--action_namespaces', type=str, help="action feature namespaces (default: auto-detect)", default='')
     parser.add_argument('-m','--marginal_namespaces', type=str, help="marginal feature namespaces (default: auto-detect)", default='')
@@ -147,9 +153,11 @@ if __name__ == '__main__':
     file_path = args.file_path
     max_q_terms = args.max_q_terms
     n_proc = args.n_proc
-    base_command = args.base_command + ('' if args.base_command[-1] == ' ' else ' ') + file_path
-    [lr_min, lr_max] = sorted([float(i) for i in args.lr_min_max.split(',')])
-    [reg_min, reg_max] = sorted([float(i) for i in args.reg_min_max.split(',')])
+    base_command = args.base_command + ('' if args.base_command[-1] == ' ' else ' ') + file_path    
+    lr_min, lr_max, lr_steps = args.lr_min_max_steps
+    learning_rates = np.logspace(np.log10(lr_min), np.log10(lr_max), lr_steps)
+    reg_min, reg_max, reg_steps = args.reg_min_max_steps
+    regularizations = np.logspace(np.log10(reg_min), np.log10(reg_max), reg_steps)
     only_lr = args.only_lr
     shared_features = set(list(args.shared_namespaces))
     action_features = set(list(args.action_namespaces))
@@ -187,57 +195,65 @@ if __name__ == '__main__':
         if not marginal_features:
             marginal_features = marginal_tmp
 
-    print("Base command: " + base_command)
-    print("Learning rate range: [{0},{1}]".format(lr_min, lr_max))
-    print("L1 regularization range: [{0},{1}]".format(reg_min, reg_max))
+    print("Base command: {}".format(base_command))
+    print('Learning rates: ['+', '.join(map(str,learning_rates))+']')
+    print('L1 regularization: ['+', '.join(map(str,regularizations))+']')
     print("Shared feature namespaces: " + str(shared_features))
     print("Action feature namespaces: " + str(action_features))
     print("Marginal feature namespaces: " + str(marginal_features))
 
     input('\nPress ENTER to start...')
 
+    best_loss = np.inf
+    best_cb_type = 'ips'
     t0 = datetime.now()
     
-    # Read config file to get certain parameter values for experimentation
-    #config = configparser.ConfigParser()
-    #config.read('ds.config')
-    #experiments_config = config['Experimentation']
-   
-    if not os.path.exists(file_path + '.cache'):
-        print('Setting up the cache file')
-        initial_command = Command(base_command, learning_rate=0.5)
-        run_experiment(initial_command, timeout=3600)
+    if ' -c ' in base_command:    
+        if not os.path.exists(file_path+'.cache'):
+            print('\nCreating the cache file...')
+            initial_command = Command(base_command, learning_rate=0.5)
+            results = run_experiment(initial_command, timeout=3600)
+            if results[0].loss < best_loss:
+                best_loss = results[0].loss
+                best_learning_rate = results[0].learning_rate
+                
+    else:
+        if os.path.exists(file_path+'.cache'):
+            input('Warning: Cache file found, but not used (-c not in CLI). Press to continue anyway...')
 
     # Learning rate: tune this initially so we have something to use while evaluating
     # other parameters. We will retune this again at the end.
     command_list = []
-    # Test learning rates separated by powers of 2
-    learning_rates = [lr_min*pow(2,i) for i in range(ceil(log(lr_max/lr_min, 2)))]
-    if learning_rates[-1] != lr_max:
-        learning_rates.append(lr_max)
     for learning_rate in learning_rates:
         command = Command(base_command, learning_rate=learning_rate)
         command_list.append(command)
-        
+    print('\nTesting {} learning_rates...'.format(len(command_list)))
     results = run_experiment_set(command_list, n_proc)
-    best_learning_rate = results[0].learning_rate
+    if results[0].loss < best_loss:
+        best_loss = results[0].loss
+        best_learning_rate = results[0].learning_rate
     
     if only_lr:
+        elapsed_time = datetime.now() - t0
+        elapsed_time -= timedelta(microseconds=elapsed_time.microseconds)
+        print("\nBest parameters found after elapsed time {0}:".format(elapsed_time))
+        print("Best learning rate: {0}".format(best_learning_rate))
+        print("Best loss: {0}".format(best_loss))
         sys.exit()
     
     # CB type
-    cb_types = ['ips', 'dr']
-    
+    cb_types = ['dr']       # ips is default (avoid to recheck it)
     command_list = []
     for cb_type in cb_types:
         command = Command(base_command, learning_rate=best_learning_rate, cb_type=cb_type)
         command_list.append(command)
         
     results = run_experiment_set(command_list, n_proc)
-    best_cb_type = results[0].cb_type
+    if results[0].loss < best_loss:
+        best_loss = results[0].loss
+        best_cb_type = results[0].cb_type
 
     # Add Marginals
-    best_loss = results[0].loss
     best_marginal_list = []
     while True:
         command_list = []
@@ -256,9 +272,7 @@ if __name__ == '__main__':
             best_marginal_list = list(results[0].marginal_list)
         else:
             break
-    
-    best_loss = results[0].loss
-    
+        
     # TODO: Which namespaces to ignore
     # Which namespaces to interact
     
@@ -281,7 +295,7 @@ if __name__ == '__main__':
         command = Command(base_command, learning_rate=best_learning_rate, cb_type=best_cb_type, marginal_list=best_marginal_list, interaction_list=interaction_list)
         command_list.append(command)
     
-    print('len(command_list)',len(command_list))
+    print('\nTesting {} different interactions...'.format(len(command_list)))
     results = run_experiment_set(command_list, n_proc)
     if results[0].loss < best_loss:
         best_loss = results[0].loss
@@ -290,7 +304,7 @@ if __name__ == '__main__':
     ###
     # Build greedily from the best parameters found above
     ###
-    
+    print('\nBuilding interactions greedily...')
     temp_interaction_list = list(best_interaction_list)
     while True:
         command_list = []
@@ -312,29 +326,20 @@ if __name__ == '__main__':
             best_loss = results[0].loss
             best_interaction_list = list(results[0].interaction_list)
         temp_interaction_list = list(results[0].interaction_list)
-        
-    # Regularization
-    # Test regularizations separated by powers of 10
-    regularizations = [reg_min*pow(10,i) for i in range(ceil(log(reg_max/reg_min, 10)))]
-    if regularizations[-1] != reg_max:
-        regularizations.append(reg_max)
+
+    # Regularization and Learning rates grid search
     command_list = []
-    for regularization in regularizations:
-        command = Command(base_command, learning_rate=best_learning_rate, cb_type=best_cb_type, marginal_list=best_marginal_list, interaction_list=best_interaction_list, regularization=regularization)
-        command_list.append(command)
-        
-    results = run_experiment_set(command_list, n_proc)
-    best_regularization = results[0].regularization
-    
-    # Learning rates
-    command_list = []
-    learning_rates = [lr_min*pow(2,i) for i in range(ceil(log(lr_max/lr_min, 2)))]
     for learning_rate in learning_rates:
-        command = Command(base_command, learning_rate=learning_rate, cb_type=best_cb_type, marginal_list=best_marginal_list, interaction_list=best_interaction_list, regularization=regularization)
-        command_list.append(command)
-        
+        for regularization in regularizations:
+            command = Command(base_command, learning_rate=learning_rate, cb_type=best_cb_type, marginal_list=best_marginal_list, interaction_list=best_interaction_list, regularization=regularization)
+            command_list.append(command)
+    
+    print('\nTesting {} different hyperparamters...'.format(len(command_list)))
     results = run_experiment_set(command_list, n_proc)
-    best_learning_rate = results[0].learning_rate
+    if results[0].loss < best_loss:
+        best_loss = results[0].loss
+        best_learning_rate = results[0].learning_rate
+        best_regularization = results[0].regularization
 
     # TODO: Repeat above process of tuning parameters and interactions until convergence / no more improvements.
 
