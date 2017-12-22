@@ -7,13 +7,14 @@ import ds_parse
 
 
 # Create dictionary with filename as keys
-def parse_logs(raw_stats, files):
+def parse_logs(raw_stats, files, delta_mod_t=3600):
     t0 = time.time()
     
     for fp in files:
-        if os.path.basename(fp) in raw_stats and time.time()-os.path.getmtime(fp) > 3600:
+        delta_t = time.time()-os.path.getmtime(fp)
+        if os.path.basename(fp) in raw_stats and delta_t > delta_mod_t:
             continue
-        print('Processing: {} - Last modified: {}'.format(fp,os.path.getmtime(fp)))
+        print('Processing: {} - Last modified: {:.1f} sec ago < delta_mod_t={} sec'.format(fp,delta_t,delta_mod_t))
         
         c2 = {}
         ii = 0
@@ -77,6 +78,7 @@ if __name__ == '__main__':
     kwargs = AzureStorageDownloader.parse_argv(sys.argv)
     app_id = kwargs['app_id']
     log_dir = kwargs['log_dir']
+    delta_mod_t = kwargs['delta_mod_t']
     
     ################################# DATA DOWNLOADER #########################################################
     
@@ -95,7 +97,7 @@ if __name__ == '__main__':
 
     files = [x.path for x in os.scandir(os.path.join(log_dir,app_id)) if x.path.endswith('.json') and '_skip' not in x.name]
 
-    parse_logs(raw_stats, files)
+    parse_logs(raw_stats, files, delta_mod_t)
     
     # Update picke file
     with open(pkl_fp, 'wb') as pkl_file:
