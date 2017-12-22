@@ -3,11 +3,12 @@ import re
 import multiprocessing
 import sys, os
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 import configparser, argparse
 import gzip
 import itertools
 import time
+from math import log, pow, ceil
 from enum import Enum
 
 
@@ -119,14 +120,29 @@ def detect_namespaces(j_obj, ns_set, marginal_set=None):
 
     return prop_type
 
+# Ensures min <= max and min > 0
+def check_min_max(val):
+    [val_min, val_max] = sorted([float(i) for i in val.split(',')])
+    if (val_min <= 0) or (val_min > val_max):
+        raise argparse.ArgumentTypeError("{0} is an invalid range (make sure both values are positive and min <= max".format(val))
+    return val
+
 
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-f','--file_path', help="data file path", required=True)
-    parser.add_argument('-q','--max_q_terms', type=int, help="number of quadratic terms to explore with brute-force", default=3)
-    parser.add_argument('-p','--n_proc', type=int, help="number of parallel processors used", default=multiprocessing.cpu_count()-1)
-    parser.add_argument('-b','--base_command', help="base command before data file path (default: vw --cb_adf --dsjson -c -d )", default='vw --cb_adf --dsjson -c -d ')
+    parser.add_argument('-f','--file_path', help="data file", required=True)
+    parser.add_argument('-q','--max_q_terms', type=int, help="number of quadratic terms to explore with brute-force (default: 2)", default=2)
+    parser.add_argument('-p','--n_proc', type=int, help="number of parallel processes to use (default: auto-detect)", default=multiprocessing.cpu_count()-1)
+    # Construct default VW path in platform-agnostic away
+    vwPath = os.path.join('.', 'vw')
+    parser.add_argument('-b','--base_command', help="base command (default: vw --cb_adf --dsjson -c -d )", default=vwPath + ' --cb_adf --dsjson -c -d ')
+    parser.add_argument('-l','--lr_min_max', type=check_min_max, help="learning rate range as positive values 'min,max' (default: 1e-5,0.5)", default='1e-5,0.5')
+    parser.add_argument('-r','--reg_min_max', type=check_min_max, help="L1 regularization range as positive values 'min,max' (default: 1e-9,0.1)", default='1e-9,0.1')
+    parser.add_argument('-s','--shared_namespaces', type=str, help="shared feature namespaces; e.g., 'abc' means namespaces a, b, and c (default: auto-detect)", default='')
+    parser.add_argument('-a','--action_namespaces', type=str, help="action feature namespaces (default: auto-detect)", default='')
+    parser.add_argument('-m','--marginal_namespaces', type=str, help="marginal feature namespaces (default: auto-detect)", default='')
+    parser.add_argument('--auto_lines', type=int, help="number of lines to scan for auto detectdetected parameters (default: 100)", default=100)
     parser.add_argument('--only_lr', help="sweep only over the learning rate", action='store_true')
 
     args = parser.parse_args()
@@ -134,55 +150,73 @@ if __name__ == '__main__':
     max_q_terms = args.max_q_terms
     n_proc = args.n_proc
     base_command = args.base_command + ('' if args.base_command[-1] == ' ' else ' ') + file_path
+    [lr_min, lr_max] = sorted([float(i) for i in args.lr_min_max.split(',')])
+    [reg_min, reg_max] = sorted([float(i) for i in args.reg_min_max.split(',')])
     only_lr = args.only_lr
-    print(base_command)
-    t0 = time.time()
+    shared_features = set(list(args.shared_namespaces))
+    action_features = set(list(args.action_namespaces))
+    marginal_features = set(list(args.marginal_namespaces))
+    auto_lines = args.auto_lines
 
-    # TODO: Allow shared/action features to be specified
-    shared_features = set()
-    action_features = set()
-    marginal_features = set()
+    # Identify namespaces and detect marginal features (unless already specified)
+    if not (shared_features and action_features and marginal_features):
+        shared_tmp = set()
+        action_tmp = set()
+        marginal_tmp = set()
+        with gzip.open(file_path, 'rt', encoding='utf8') if file_path.endswith('.gz') else open(file_path, 'r', encoding="utf8") as data:
+            counter = 0
+            for line in data:
+                counter += 1
+                event = json.loads(line)
+                # Separate the shared features from the action features for namespace analysis
+                context = event['c']
+                action_set = context['_multi']
+                del context['_multi']
+                detect_namespaces(context, shared_tmp, marginal_tmp)
+                # Namespace detection expects object of type 'dict', so unwrap the action list 
+                for action in action_set:
+                    detect_namespaces(action, action_tmp, marginal_tmp)
 
-    # Identify namespaces and detect marginal features
-    with gzip.open(file_path, 'rt', encoding='utf8') if file_path.endswith('.gz') else open(file_path, 'r', encoding="utf8") as data:
-        counter = 0
-        for line in data:
-            counter += 1
-            event = json.loads(line)
-            # Separate the shared features from the action features for namespace analysis
-            context = event['c']
-            action_set = context['_multi']
-            del context['_multi']
-            detect_namespaces(context, shared_features, marginal_features)
-            # Namespace detection expects object of type 'dict', so unwrap the action list 
-            for action in action_set:
-                detect_namespaces(action, action_features, marginal_features)
+                # We assume the schema is consistent throughout the file, but since some
+                # namespaces may not appear in every datapoint, check enough points.
+                if counter >= auto_lines:
+                    break
+        # Only overwrite the namespaces that were not specified by the user
+        if not shared_features:
+            shared_features = shared_tmp
+        if not action_features:
+            action_features = action_tmp
+        if not marginal_features:
+            marginal_features = marginal_tmp
 
-            # We assume the schema is consistent throughout the file, but since some
-            # namespaces may not appear in every datapoint, check enough points.
-            if counter >= 1:
-                break
-
+    print("Base command: " + base_command)
+    print("Learning rate range: [{0},{1}]".format(lr_min, lr_max))
+    print("L1 regularization range: [{0},{1}]".format(reg_min, reg_max))
     print("Shared feature namespaces: " + str(shared_features))
     print("Action feature namespaces: " + str(action_features))
     print("Marginal feature namespaces: " + str(marginal_features))
 
-    input('Press ENTER to continue...')
+    input('\nPress ENTER to start...')
+
+    t0 = datetime.now()
     
     # Read config file to get certain parameter values for experimentation
-    config = configparser.ConfigParser()
-    config.read('ds.config')
-    experiments_config = config['Experimentation']
+    #config = configparser.ConfigParser()
+    #config.read('ds.config')
+    #experiments_config = config['Experimentation']
    
-    if not os.path.exists(file_path+'.cache'):
+    if not os.path.exists(file_path + '.cache'):
         print('Setting up the cache file')
         initial_command = Command(base_command, learning_rate=0.5)
         run_experiment(initial_command, timeout=3600)
-    
-    # Learning rates
+
+    # Learning rate: tune this initially so we have something to use while evaluating
+    # other parameters. We will retune this again at the end.
     command_list = []
-    learning_rates = experiments_config["LearningRates"].split(',')
-    learning_rates = list(map(float, learning_rates))
+    # Test learning rates separated by powers of 2
+    learning_rates = [lr_min*pow(2,i) for i in range(ceil(log(lr_max/lr_min, 2)))]
+    if learning_rates[-1] != lr_max:
+        learning_rates.append(lr_max)
     for learning_rate in learning_rates:
         command = Command(base_command, learning_rate=learning_rate)
         command_list.append(command)
@@ -228,13 +262,11 @@ if __name__ == '__main__':
     best_loss = results[0].loss
     
     # TODO: Which namespaces to ignore
-    
     # Which namespaces to interact
     
     # Test all combinations up to max_q_terms
     best_interaction_list = []
     command_list = []
-    
     n_sf = len(shared_features)
     n_af = len(action_features)
     for x in itertools.product([0, 1], repeat=n_sf*n_af):
@@ -257,8 +289,9 @@ if __name__ == '__main__':
         best_loss = results[0].loss
         best_interaction_list = list(results[0].interaction_list)
     
-    
-    # Building greedily from best found above
+    ###
+    # Build greedily from the best parameters found above
+    ###
     
     temp_interaction_list = list(best_interaction_list)
     while True:
@@ -283,8 +316,10 @@ if __name__ == '__main__':
         temp_interaction_list = list(results[0].interaction_list)
         
     # Regularization
-    regularizations = experiments_config["RegularizationValues"].split(',')
-    regularizations = list(map(float, regularizations))
+    # Test regularizations separated by powers of 10
+    regularizations = [reg_min*pow(10,i) for i in range(ceil(log(reg_max/reg_min, 10)))]
+    if regularizations[-1] != reg_max:
+        regularizations.append(reg_max)
     command_list = []
     for regularization in regularizations:
         command = Command(base_command, learning_rate=best_learning_rate, cb_type=best_cb_type, marginal_list=best_marginal_list, interaction_list=best_interaction_list, regularization=regularization)
@@ -295,8 +330,7 @@ if __name__ == '__main__':
     
     # Learning rates
     command_list = []
-    learning_rates = experiments_config["LearningRates"].split(',')
-    learning_rates = list(map(float, learning_rates))
+    learning_rates = [lr_min*pow(2,i) for i in range(ceil(log(lr_max/lr_min, 2)))]
     for learning_rate in learning_rates:
         command = Command(base_command, learning_rate=learning_rate, cb_type=best_cb_type, marginal_list=best_marginal_list, interaction_list=best_interaction_list, regularization=regularization)
         command_list.append(command)
@@ -305,12 +339,13 @@ if __name__ == '__main__':
     best_learning_rate = results[0].learning_rate
 
     # TODO: Repeat above process of tuning parameters and interactions until convergence / no more improvements.
-    
-    print("Best parameters:")
+
+    elapsed_time = datetime.now() - t0
+    elapsed_time -= timedelta(microseconds=elapsed_time.microseconds)
+    print("\nBest parameters found after elapsed time {0}:".format(elapsed_time))
     print("Best learning rate: {0}".format(best_learning_rate))
     print("Best cb type: {0}".format(best_cb_type))
     print("Best marginals: {0}".format(best_marginal_list))
     print("Best interactions: {0}".format(best_interaction_list))
     print("Best regularization: {0}".format(best_regularization))
     print("Best loss: {0}".format(best_loss))
-    print("Elapsed time: {0}".format(time.time()-t0))
