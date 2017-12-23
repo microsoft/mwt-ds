@@ -3,16 +3,18 @@ import matplotlib.pyplot as plt
 import numpy as np
 import configparser
 import AzureStorageDownloader
+import ds_parse
 
 
 # Create dictionary with filename as keys
-def parse_logs(raw_stats, files):
+def parse_logs(raw_stats, files, delta_mod_t=3600):
     t0 = time.time()
     
     for fp in files:
-        if os.path.basename(fp) in raw_stats and time.time()-os.path.getmtime(fp) > 3600:
+        delta_t = time.time()-os.path.getmtime(fp)
+        if os.path.basename(fp) in raw_stats and delta_t > delta_mod_t:
             continue
-        print('Processing: {} - Last modified: {}'.format(fp,os.path.getmtime(fp)))
+        print('Processing: {} - Last modified: {:.1f} sec ago < delta_mod_t={} sec'.format(fp,delta_t,delta_mod_t))
         
         c2 = {}
         ii = 0
@@ -24,14 +26,10 @@ def parse_logs(raw_stats, files):
                 continue
             
             try:
-                x = json.loads(line.split(',"_multi":[', 1)[0].strip()+'}}')
+                ei,r,ts,p,a,num_a,dev = ds_parse.json_cooked(line, do_devType=True)
                 
-                # Parse datetime string and device
-                d = x['Timestamp'][:13]
-                if 'DeviceType' in x['c']['OUserAgent']:
-                    dev = x['c']['OUserAgent']['DeviceType']
-                else:
-                    dev = 'N/A'
+                # extract date from ts
+                d = ts[:13]
                 
                 if d not in c2:
                     c2[d] = {}
@@ -44,11 +42,12 @@ def parse_logs(raw_stats, files):
                     
                 c2[d][dev][1] += 1
                 c2['ips'][d[:10]][1] += 1
-                if x['_label_cost'] < 0:
+                if r != '0':
+                    r = float(r)
                     c2[d][dev][0] += 1
-                    c2[d][dev][2] -= x['_label_cost']
-                    if x['_label_Action'] == 1:
-                        c2['ips'][d[:10]][0] += -x['_label_cost']/x['_label_probability']
+                    c2[d][dev][2] -= r
+                    if a == 1:
+                        c2['ips'][d[:10]][0] -= r/p
                         
             except Exception as e:
                 print('error: {0}'.format(e))
@@ -79,6 +78,7 @@ if __name__ == '__main__':
     kwargs = AzureStorageDownloader.parse_argv(sys.argv)
     app_id = kwargs['app_id']
     log_dir = kwargs['log_dir']
+    delta_mod_t = kwargs['delta_mod_t']
     
     ################################# DATA DOWNLOADER #########################################################
     
@@ -97,7 +97,7 @@ if __name__ == '__main__':
 
     files = [x.path for x in os.scandir(os.path.join(log_dir,app_id)) if x.path.endswith('.json') and '_skip' not in x.name]
 
-    parse_logs(raw_stats, files)
+    parse_logs(raw_stats, files, delta_mod_t)
     
     # Update picke file
     with open(pkl_fp, 'wb') as pkl_file:

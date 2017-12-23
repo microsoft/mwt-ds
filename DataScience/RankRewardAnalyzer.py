@@ -1,4 +1,4 @@
-import requests, time, json, os, argparse, sys, collections
+import requests, time, json, os, argparse, sys, collections, ds_parse
 import matplotlib.pyplot as plt
 
 
@@ -50,15 +50,15 @@ def send_rank_and_rewards(base_url, app, local_fp, feed, iter_num=1000, time_sle
             if r.status_code != 200 or r.headers.get('x-msdecision-src', None) != site_str or b'rewardAction' not in r.content:
                 err[0] += 1
                 print('Rank Error - status_code: {}; headers: {}; content: {}'.format(r.status_code,r.headers,r.content))
-                continue
-            eventId = str(r.content.split(b'eventId":"',1)[1].split(b'","',1)[0], 'utf-8')
-            eventIds.append(eventId)
-            reward = i+.36
-            r2 = s.post(url+'/reward/'+eventId, json=reward)
-            f.write('url:{}\tstatus_code:{}\theaders:{}\tcontent:{}\n'.format(url+'/reward/'+eventId,r2.status_code,r2.headers,reward))
-            if r2.status_code != 200 or r2.headers.get('x-msdecision-src', None) != site_str:
-                err[1] += 1
-                print('Reward Error - status_code: {}; headers: {}'.format(r2.status_code,r2.headers))
+            else:
+                eventId = str(ds_parse.extract_field(r.content,b'eventId":"',b'","'), 'utf-8')
+                eventIds.append(eventId)
+                reward = i+.36
+                r2 = s.post(url+'/reward/'+eventId, json=reward)
+                f.write('url:{}\tstatus_code:{}\theaders:{}\tcontent:{}\n'.format(url+'/reward/'+eventId,r2.status_code,r2.headers,reward))
+                if r2.status_code != 200 or r2.headers.get('x-msdecision-src', None) != site_str:
+                    err[1] += 1
+                    print('Reward Error - status_code: {}; headers: {}'.format(r2.status_code,r2.headers))
             
             update_progress(i, iter_num, 'Errors: {}'.format(err))
             time.sleep(time_sleep)
@@ -76,18 +76,19 @@ def print_stats(local_fp, azure_path, verbose=False, plot_hist=False):
     for x in open(local_fp, encoding='utf-8'):
         if 'status_code:200' in x:
             if '/rank/' in x and '"eventId":"' in x:
-                local_rank.append(x.split('"eventId":"',1)[1].split('","',1)[0])
+                local_rank.append(ds_parse.local_rank(x))
             elif '/reward/' in x and 'content:' in x:
-                local_rew.append((x.split('/reward/',1)[1].split('\t',1)[0], x.strip().split('content:',1)[1]))
+                local_rew.append(ds_parse.local_reward(x))
             else:
                 lines_errs += 1
         else:
-            err_codes.update([x.split('status_code:',1)[1].split('\t',1)[0]])
+            err_codes.update([ds_parse.extract_field(x,'status_code:','\t')])
 
     if os.path.isdir(azure_path):
-        azure_data = [(x.strip().split('EventId":"',1)[1].split('","',1)[0], x.strip().split('_label_cost":',1)[1].split(',"',1)[0]) for azure_fp in scantree(azure_path) if azure_fp.name.endswith('.json') for x in open(azure_fp.path, encoding='utf-8')]
+        files = [azure_fp.path for azure_fp in scantree(azure_path) if azure_fp.name.endswith('.json')]
     else:
-        azure_data = [(x.strip().split('EventId":"',1)[1].split('","',1)[0], x.strip().split('_label_cost":',1)[1].split(',"',1)[0]) for x in open(azure_path, encoding='utf-8')]
+        files = [azure_path]
+    azure_data = [ds_parse.json_cooked(x)[:2] for azure_fp in files for x in open(azure_fp, encoding='utf-8') if x.startswith('{"_label_cost":')]
     
     local_rank_set = set(local_rank)
     rew_dict = {y[0] : y[1] for y in local_rew}
@@ -109,6 +110,8 @@ def print_stats(local_fp, azure_path, verbose=False, plot_hist=False):
                     print('Idx: {} - Ranking missing from Azure - EventId: {}'.format(i+1,x))
         else:
             no_rewards_idx.append(i+1)
+            if verbose:
+                print('Idx: {} - Reward missing from local - EventId: {}'.format(i+1,x))
 
     dup_local = len(local_rew)-len(rew_dict)
     dup_azure = len(azure_data)-len(azure_dict)
@@ -149,12 +152,18 @@ def print_stats(local_fp, azure_path, verbose=False, plot_hist=False):
         if err_rewards_idx or no_events_idx or no_rewards_idx:
             plt.rcParams.update({'font.size': 16})  # General font size
             if err_rewards_idx:
-                plt.hist(err_rewards_idx, label='Wrong reward', color='xkcd:orange')
+                a = plt.hist(err_rewards_idx, 50, label='Wrong reward', color='xkcd:orange')
+                if verbose:
+                    print('err_rewards_idx',a)
             if no_events_idx:
-                plt.hist(no_events_idx, label='No rank', color='xkcd:blue')
+                b = plt.hist(no_events_idx, 50, label='No rank', color='xkcd:blue')
+                if verbose:
+                    print('no_events_idx',b)
             if no_rewards_idx:
-                plt.hist(no_rewards_idx, label='No reward', color='xkcd:red')
-            plt.title('Missing/Wrong rank and reward requests', fontsize=30)
+                c = plt.hist(no_rewards_idx, 50, label='No local reward', color='xkcd:red')
+                if verbose:
+                    print('no_rewards_idx',c)
+            plt.title('Missing/Wrong rank and reward requests', fontsize=20)
             plt.xlabel('Request index', fontsize=18)
             plt.ylabel('Bin Count', fontsize=18)
             plt.legend()

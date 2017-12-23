@@ -21,16 +21,23 @@ def valid_date(s):
 
 def parse_argv(argv):
 
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('-a','--app_id', help="app id (aka Azure storage container name)", required=True)
     parser.add_argument('-l','--log_dir', help="base dir to download data", required=True)
     parser.add_argument('-s','--start_date', help="downloading start date (included) - format YYYY-MM-DD", type=valid_date)
     parser.add_argument('-e','--end_date', help="downloading end date (not included) - format YYYY-MM-DD (default: tomorrow's date)", type=valid_date)
-    parser.add_argument('-v','--version', type=int, default=2, help="integer describing which version of data downloader to use (default: 2 -> AzureStorageDownloader)")
-    parser.add_argument('-o','--overwrite_mode', type=int, help="0: don't overwrite (default); 1: ask user if files have different sizes; 2: always overwrite", default=0)
+    parser.add_argument('-v','--version', type=int, default=2, help='''version of data downloader to use:
+    1: logDownloader (for uncooked old logs) [deprecated]
+    2: AzureStorageDownloader [default]''')
+    parser.add_argument('-o','--overwrite_mode', type=int, help='''    0: don't overwrite - ask if blobs are currently used [default]
+    1: ask user if files have different sizes and if blobs are currently used
+    2: always overwrite - download currently used blobs
+    3: overwrite only if different sizes, without asking - download currently used blobs
+    4: overwrite only if different sizes, without asking - skip currently used blobs''', default=0)
     parser.add_argument('--dry_run', help="print which blobs would have been downloaded, without downloading", action='store_true')
     parser.add_argument('--no_gzip', help="Skip producing gzip file for Vowpal Wabbit", action='store_true')
     parser.add_argument('--verbose', action='store_true')
+    parser.add_argument('--delta_mod_t', type=int, default=3600, help='time window in sec to detect if a file is currently in use (default=3600 - 1 hour)')
         
     kwargs = vars(parser.parse_args(argv[1:]))
     if len(argv) > 5:
@@ -52,7 +59,7 @@ def update_progress(current, total):
     sys.stdout.write(text)
     sys.stdout.flush()
 
-def download_container(app_id, log_dir, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, auth_fp=None, output_fp='', verbose=False, no_gzip=False):
+def download_container(app_id, log_dir, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, auth_fp=None, output_fp='', verbose=False, no_gzip=False, delta_mod_t=3600):
     
     t_start = time.time()
     print('-----'*10)
@@ -111,13 +118,13 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
         for blob in blobs:
             if '/data/' not in blob.name:
                 if verbose:
-                    print('{} - Skip: Non-data blob'.format(blob.name))
+                    print('{} - Skip: Non-data blob\n'.format(blob.name))
                 continue
             
             blob_day = datetime.datetime.strptime(blob.name.split('/data/', 1)[1].split('_', 1)[0], '%Y/%m/%d')
             if (start_date and blob_day < start_date) or (end_date and end_date <= blob_day):
                 if verbose:
-                    print('{} - Skip: Outside of date range'.format(blob.name))
+                    print('{} - Skip: Outside of date range\n'.format(blob.name))
                 continue
 
             try:
@@ -125,29 +132,35 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
 
                 fp = os.path.join(log_dir, app_id, blob.name.replace('/','_'))
                 output_fps.append(fp)
-                if overwrite_mode < 2 and os.path.isfile(fp):
+                if os.path.isfile(fp):
                     if overwrite_mode == 0:
                         if verbose:
-                            print('{} - Skip: Output file already exits'.format(blob.name))
+                            print('{} - Skip: Output file already exits\n'.format(blob.name))
                         continue
-                    elif overwrite_mode == 1:
+                    elif overwrite_mode in {1, 3, 4}:
                         file_size = os.path.getsize(fp)/(1024**2) # file size in MB
                         if file_size == bp.properties.content_length/(1024**2): # file size is the same, skip!
                             if verbose:
-                                print('{} - Skip: Output file already exits with same size'.format(blob.name))
+                                print('{} - Skip: Output file already exits with same size\n'.format(blob.name))
                             continue
                         print('Output file already exits: {}\nLocal size: {:.3f} MB\nAzure size: {:.3f} MB'.format(fp, file_size, bp.properties.content_length/(1024**2)))
-                        if input("Do you want to overwrite [Y/n]? ") != 'Y':
+                        if overwrite_mode == 1 and input("Do you want to overwrite [Y/n]? ") != 'Y':
+                            print()
                             continue
 
                 print('Processing: {} (size: {:.3f}MB - Last modified: {})'.format(blob.name, bp.properties.content_length/(1024**2), bp.properties.last_modified))
                 if dry_run:
                     print('--dry_run - Not downloading!')
                 else:
-                    # check if blob was modified within the last 1 hour
-                    if datetime.datetime.now(datetime.timezone.utc)-bp.properties.last_modified < datetime.timedelta(0, 3600):
-                        if overwrite_mode < 2 and input("Azure blob currently in use (modified during last hour). Do you want to download anyway [Y/n]? ") != 'Y':
-                            continue
+                    # check if blob was modified in the last delta_mod_t sec
+                    if datetime.datetime.now(datetime.timezone.utc)-bp.properties.last_modified < datetime.timedelta(0, delta_mod_t):
+                        if overwrite_mode < 2:
+                            if input("Azure blob currently in use (modified in the last delta_mod_t={} sec). Do you want to download anyway [Y/n]? ".format(delta_mod_t)) != 'Y':
+                                print()
+                                continue
+                        elif overwrite_mode == 4:
+                            print("Azure blob currently in use (modified during last hour). Skipping!\n")
+                            continue                        
                         max_connections = 1 # set max_connections to 1 to prevent crash if azure blob is modified during download
                     else:
                         max_connections = 4
@@ -156,7 +169,7 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                     bbs.get_blob_to_path(app_id, blob.name, fp, progress_callback=update_progress, max_connections=max_connections)
                     elapsed_time = time.time()-t0
                     file_size = os.path.getsize(fp)/(1024**2) # file size in MB
-                    print('\nDownloaded {:.3f} MB in {:.3f} sec.: Average: {:.3f} MB/sec'.format(file_size, elapsed_time, file_size/elapsed_time))                    
+                    print('\nDownloaded {:.3f} MB in {:.3f} sec.: Average: {:.3f} MB/sec\n'.format(file_size, elapsed_time, file_size/elapsed_time))
             except Exception as e:
                 print(' Error: {}'.format(e))
 
