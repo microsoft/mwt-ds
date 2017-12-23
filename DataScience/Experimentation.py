@@ -140,7 +140,8 @@ if __name__ == '__main__':
     parser.add_argument('-f','--file_path', help="data file", required=True)
     parser.add_argument('-q','--max_q_terms', type=int, help="number of quadratic terms to explore with brute-force (default: 2)", default=2)
     parser.add_argument('-p','--n_proc', type=int, help="number of parallel processes to use (default: auto-detect)", default=multiprocessing.cpu_count()-1)
-    parser.add_argument('-b','--base_command', help="base command (default: vw --cb_adf --dsjson -c -d )", default='vw --cb_adf --dsjson -c -d ')
+    def_command = os.path.join('.', 'vw --cb_adf --dsjson -c')
+    parser.add_argument('-b','--base_command', help="base command (default: '" + def_command + "'", default=def_command)
     parser.add_argument('-l','--lr_min_max_steps', type=check_min_max_steps, help="learning rate range as positive values 'min,max,steps' (default: 1e-5,0.5,17)", default='1e-5,0.5,17')
     parser.add_argument('-r','--reg_min_max_steps', type=check_min_max_steps, help="L1 regularization range as positive values 'min,max,steps' (default: 1e-9,0.1,9)", default='1e-9,0.1,9')
     parser.add_argument('-s','--shared_namespaces', type=str, help="shared feature namespaces; e.g., 'abc' means namespaces a, b, and c (default: auto-detect)", default='')
@@ -153,7 +154,7 @@ if __name__ == '__main__':
     file_path = args.file_path
     max_q_terms = args.max_q_terms
     n_proc = args.n_proc
-    base_command = args.base_command + ('' if args.base_command[-1] == ' ' else ' ') + file_path    
+    base_command = args.base_command + ('' if args.base_command[-1] == ' ' else ' ') + '-d ' + file_path
     lr_min, lr_max, lr_steps = args.lr_min_max_steps
     learning_rates = np.logspace(np.log10(lr_min), np.log10(lr_max), lr_steps)
     reg_min, reg_max, reg_steps = args.reg_min_max_steps
