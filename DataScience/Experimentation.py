@@ -215,7 +215,7 @@ if __name__ == '__main__':
     command_list = []
     # Test learning rates separated by powers of 2
     learning_rates = [lr_min*pow(2,i) for i in range(ceil(log(lr_max/lr_min, 2)))]
-    if learning_rates[-1] != lr_max:
+    if (len(learning_rates) == 0) or (learning_rates[-1] != lr_max):
         learning_rates.append(lr_max)
     for learning_rate in learning_rates:
         command = Command(base_command, learning_rate=learning_rate)
@@ -318,7 +318,7 @@ if __name__ == '__main__':
     # Regularization
     # Test regularizations separated by powers of 10
     regularizations = [reg_min*pow(10,i) for i in range(ceil(log(reg_max/reg_min, 10)))]
-    if regularizations[-1] != reg_max:
+    if (len(regularizations) == 0) or (regularizations[-1] != reg_max):
         regularizations.append(reg_max)
     command_list = []
     for regularization in regularizations:
