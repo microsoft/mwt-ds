@@ -58,7 +58,7 @@ def run_experiment(command, timeout=1000):
     m = re.search('average loss = (.+)\n', str(results))
     loss = m.group(1)
     command.loss = float(loss)
-    print("\nAve. Loss: {:12}Policy: {}".format(str(command.loss),command.full_command), end='')
+    print("Ave. Loss: {:12}Policy: {}".format(str(command.loss),command.full_command))
     return command
     
 def run_experiment_set(command_list, n_proc):
@@ -204,8 +204,10 @@ if __name__ == '__main__':
 
     input('\nPress ENTER to start...')
 
+    best_command = ''
     best_loss = np.inf
     best_cb_type = 'ips'
+    best_learning_rate = 0.5
     t0 = datetime.now()
     
     if ' -c ' in base_command:    
@@ -216,6 +218,7 @@ if __name__ == '__main__':
             if results[0].loss < best_loss:
                 best_loss = results[0].loss
                 best_learning_rate = results[0].learning_rate
+                best_command = results[0].full_command
                 
     else:
         if os.path.exists(file_path+'.cache'):
@@ -232,6 +235,7 @@ if __name__ == '__main__':
     if results[0].loss < best_loss:
         best_loss = results[0].loss
         best_learning_rate = results[0].learning_rate
+        best_command = results[0].full_command
     
     if only_lr:
         elapsed_time = datetime.now() - t0
@@ -252,6 +256,7 @@ if __name__ == '__main__':
     if results[0].loss < best_loss:
         best_loss = results[0].loss
         best_cb_type = results[0].cb_type
+        best_command = results[0].full_command
 
     # Add Marginals
     best_marginal_list = []
@@ -270,6 +275,7 @@ if __name__ == '__main__':
         if results[0].loss < best_loss:
             best_loss = results[0].loss
             best_marginal_list = list(results[0].marginal_list)
+            best_command = results[0].full_command
         else:
             break
         
@@ -300,6 +306,7 @@ if __name__ == '__main__':
     if results[0].loss < best_loss:
         best_loss = results[0].loss
         best_interaction_list = list(results[0].interaction_list)
+        best_command = results[0].full_command
     
     ###
     # Build greedily from the best parameters found above
@@ -328,27 +335,32 @@ if __name__ == '__main__':
         temp_interaction_list = list(results[0].interaction_list)
 
     # Regularization and Learning rates grid search
+    best_regularization = None
     command_list = []
     for learning_rate in learning_rates:
         for regularization in regularizations:
             command = Command(base_command, learning_rate=learning_rate, cb_type=best_cb_type, marginal_list=best_marginal_list, interaction_list=best_interaction_list, regularization=regularization)
             command_list.append(command)
     
-    print('\nTesting {} different hyperparamters...'.format(len(command_list)))
+    print('\nTesting {} different hyperparameters...'.format(len(command_list)))
     results = run_experiment_set(command_list, n_proc)
     if results[0].loss < best_loss:
         best_loss = results[0].loss
         best_learning_rate = results[0].learning_rate
         best_regularization = results[0].regularization
+        best_command = results[0].full_command
 
     # TODO: Repeat above process of tuning parameters and interactions until convergence / no more improvements.
 
     elapsed_time = datetime.now() - t0
     elapsed_time -= timedelta(microseconds=elapsed_time.microseconds)
-    print("\nBest parameters found after elapsed time {0}:".format(elapsed_time))
+    print("\n\n*************************")
+    print("Best parameters found after elapsed time {0}:".format(elapsed_time))
     print("Best learning rate: {0}".format(best_learning_rate))
     print("Best cb type: {0}".format(best_cb_type))
     print("Best marginals: {0}".format(best_marginal_list))
     print("Best interactions: {0}".format(best_interaction_list))
     print("Best regularization: {0}".format(best_regularization))
     print("Best loss: {0}".format(best_loss))
+    print("Best overall command: {0}".format(best_command))
+    print("*************************")
