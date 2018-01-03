@@ -1,5 +1,9 @@
-import os, time, sys, datetime, requests, argparse, gzip
-import configparser
+import sys
+if sys.maxsize < 2**32:     # check for 32-bit python version
+    if input("32-bit python interpreter detected. There may be problems downloading large files. Do you want to continue anyway [Y/n]? ") != 'Y':
+        sys.exit()
+
+import os, time, datetime, argparse, gzip, configparser
 try:
     from azure.storage.blob import BlockBlobService
 except ImportError as e:
@@ -99,6 +103,7 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
             else:
                 print('Downloading...'.format(output_fp), end='')
                 try:
+                    import requests
                     url = LogDownloaderURL.format(ACCOUNT_NAME=connection_string_dict['AccountName'], ACCOUNT_KEY=connection_string_dict['AccountKey'].replace('+','%2b'), CONTAINER=app_id, START_DATE=start_date.strftime("%Y-%m-%d"), END_DATE=end_date.strftime("%Y-%m-%d"))
                     r = requests.post(url)
                     open(output_fp, 'wb').write(r.content)
@@ -159,7 +164,7 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                                 print()
                                 continue
                         elif overwrite_mode == 4:
-                            print("Azure blob currently in use (modified during last hour). Skipping!\n")
+                            print("Azure blob currently in use (modified in the last delta_mod_t={} sec). Skipping!\n".format(delta_mod_t))
                             continue                        
                         max_connections = 1 # set max_connections to 1 to prevent crash if azure blob is modified during download
                     else:
