@@ -175,7 +175,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-f','--file_path', help="data file", required=True)
-    parser.add_argument('-q','--max_q_terms', type=int, help="number of quadratic terms to explore with brute-force (default: 2)", default=2)
+    parser.add_argument('-q','--max_q_terms', type=int, help="number of quadratic terms to test with brute-force (default: 2)", default=2)
     parser.add_argument('-p','--n_proc', type=int, help="number of parallel processes to use (default: auto-detect)", default=multiprocessing.cpu_count()-1)
     parser.add_argument('-b','--base_command', help="base command (default: vw --cb_adf --dsjson -c )", default='vw --cb_adf --dsjson -c ')
     parser.add_argument('-l','--lr_min_max_steps', type=check_min_max_steps, help="learning rate range as positive values 'min,max,steps' (default: 1e-5,0.5,4)", default='1e-5,0.5,4')
@@ -186,6 +186,7 @@ if __name__ == '__main__':
     parser.add_argument('-m','--marginal_namespaces', type=str, help="marginal feature namespaces (default: auto-detect)", default='')
     parser.add_argument('--auto_lines', type=int, help="number of lines to scan for auto detectdetected parameters (default: 100)", default=100)
     parser.add_argument('--only_hp', help="sweep only over the learning rate", action='store_true')
+    parser.add_argument('--q_greedy_stop', help="number of rounds without improvements to stop quadratic terms greedy search (default: 3)", type=int, default=3)
 
     args = parser.parse_args()
     file_path = args.file_path
@@ -203,6 +204,7 @@ if __name__ == '__main__':
     marginal_features = set(list(args.marginal_namespaces))
     auto_lines = args.auto_lines
     only_hp = args.only_hp
+    q_greedy_stop = args.q_greedy_stop
 
     # Identify namespaces and detect marginal features (unless already specified)
     if not (shared_features and action_features and marginal_features):
@@ -339,10 +341,11 @@ if __name__ == '__main__':
     if results[0].loss < best_command.loss:
         best_command = results[0]
     
-    # Build greedily on top of the best parameters found above
+    # Build greedily on top of the best parameters found above (stop when no improvements for q_greedy_stop consecutive rounds)
     print('\nBuilding interactions greedily...')
     temp_interaction_list = set(best_command.interaction_list)
-    while True:
+    rounds_without_improvements = 0
+    while rounds_without_improvements < q_greedy_stop:
         command_list = []
         for features in shared_features:
             for action_feature in action_features:
@@ -358,6 +361,9 @@ if __name__ == '__main__':
         results = run_experiment_set(command_list, n_proc)
         if results[0].loss < best_command.loss:
             best_command = results[0]
+            rounds_without_improvements = 0
+        else:
+            rounds_without_improvements += 1
         temp_interaction_list = set(results[0].interaction_list)
 
     # Regularization, Learning rates, and Power_t rates grid search
