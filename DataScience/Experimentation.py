@@ -56,8 +56,7 @@ def run_experiment(command, timeout=1000):
             print("Timeout expired for command {0}".format(command.full_command))
             
     m = re.search('average loss = (.+)\n', str(results))
-    loss = m.group(1)
-    command.loss = float(loss)
+    command.loss = float(m.group(1))
     print("Ave. Loss: {:12}Policy: {}".format(str(command.loss),command.full_command))
     return command
     
@@ -130,7 +129,7 @@ def check_min_max_steps(val):
         if steps < 1 or val_min <= 0 or val_min >= val_max:
             raise
     except:
-        raise argparse.ArgumentTypeError('Input "{}" is an invalid range (make sure values are positive, min < max, and steps > 0)'.format(val))
+        raise argparse.ArgumentTypeError('Input "{}" is an invalid range (make sure that max > min > 0 and steps > 0)'.format(val))
     return val_min, val_max, steps
 
 
@@ -140,7 +139,7 @@ if __name__ == '__main__':
     parser.add_argument('-f','--file_path', help="data file", required=True)
     parser.add_argument('-q','--max_q_terms', type=int, help="number of quadratic terms to explore with brute-force (default: 2)", default=2)
     parser.add_argument('-p','--n_proc', type=int, help="number of parallel processes to use (default: auto-detect)", default=multiprocessing.cpu_count()-1)
-    parser.add_argument('-b','--base_command', help="base command (default: vw --cb_adf --dsjson -c -d )", default='vw --cb_adf --dsjson -c -d ')
+    parser.add_argument('-b','--base_command', help="base command (default: vw --cb_adf --dsjson -c )", default='vw --cb_adf --dsjson -c ')
     parser.add_argument('-l','--lr_min_max_steps', type=check_min_max_steps, help="learning rate range as positive values 'min,max,steps' (default: 1e-5,0.5,17)", default='1e-5,0.5,17')
     parser.add_argument('-r','--reg_min_max_steps', type=check_min_max_steps, help="L1 regularization range as positive values 'min,max,steps' (default: 1e-9,0.1,9)", default='1e-9,0.1,9')
     parser.add_argument('-s','--shared_namespaces', type=str, help="shared feature namespaces; e.g., 'abc' means namespaces a, b, and c (default: auto-detect)", default='')
@@ -153,16 +152,16 @@ if __name__ == '__main__':
     file_path = args.file_path
     max_q_terms = args.max_q_terms
     n_proc = args.n_proc
-    base_command = args.base_command + ('' if args.base_command[-1] == ' ' else ' ') + file_path    
+    base_command = args.base_command + ('' if args.base_command[-1] == ' ' else ' ') + '-d ' + file_path
     lr_min, lr_max, lr_steps = args.lr_min_max_steps
     learning_rates = np.logspace(np.log10(lr_min), np.log10(lr_max), lr_steps)
     reg_min, reg_max, reg_steps = args.reg_min_max_steps
     regularizations = np.logspace(np.log10(reg_min), np.log10(reg_max), reg_steps)
-    only_lr = args.only_lr
     shared_features = set(list(args.shared_namespaces))
     action_features = set(list(args.action_namespaces))
     marginal_features = set(list(args.marginal_namespaces))
     auto_lines = args.auto_lines
+    only_lr = args.only_lr
 
     # Identify namespaces and detect marginal features (unless already specified)
     if not (shared_features and action_features and marginal_features):
@@ -195,14 +194,18 @@ if __name__ == '__main__':
         if not marginal_features:
             marginal_features = marginal_tmp
 
+    print("\n*********** SETTINGS ******************")
     print("Base command: {}".format(base_command))
+    print()
     print('Learning rates: ['+', '.join(map(str,learning_rates))+']')
     print('L1 regularization: ['+', '.join(map(str,regularizations))+']')
+    print()
     print("Shared feature namespaces: " + str(shared_features))
     print("Action feature namespaces: " + str(action_features))
     print("Marginal feature namespaces: " + str(marginal_features))
-
-    input('\nPress ENTER to start...')
+    print("***************************************")
+    if input('Press ENTER to start (any other key to exit)...' ) != '':
+        sys.exit()
 
     best_command = ''
     best_loss = np.inf
@@ -246,6 +249,7 @@ if __name__ == '__main__':
         sys.exit()
     
     # CB type
+    print('\nTesting cb types...')
     cb_types = ['dr']       # ips is default (avoid to recheck it)
     command_list = []
     for cb_type in cb_types:
@@ -260,9 +264,10 @@ if __name__ == '__main__':
 
     # Add Marginals
     best_marginal_list = []
+    print('\nTesting marginals...')
     while True:
         command_list = []
-        for feature in marginal_features:         
+        for feature in marginal_features:
             marginal_list = list(best_marginal_list)
             marginal_list.append(feature)
             command = Command(base_command, learning_rate=best_learning_rate, cb_type=best_cb_type, marginal_list=marginal_list)
