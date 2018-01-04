@@ -269,6 +269,8 @@ if __name__ == '__main__':
         command_list = []
         for feature in marginal_features:
             marginal_list = list(best_marginal_list)
+            if feature in marginal_list:
+                continue
             marginal_list.append(feature)
             command = Command(base_command, learning_rate=best_learning_rate, cb_type=best_cb_type, marginal_list=marginal_list)
             command_list.append(command)
