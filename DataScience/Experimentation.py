@@ -140,13 +140,13 @@ if __name__ == '__main__':
     parser.add_argument('-q','--max_q_terms', type=int, help="number of quadratic terms to explore with brute-force (default: 2)", default=2)
     parser.add_argument('-p','--n_proc', type=int, help="number of parallel processes to use (default: auto-detect)", default=multiprocessing.cpu_count()-1)
     parser.add_argument('-b','--base_command', help="base command (default: vw --cb_adf --dsjson -c )", default='vw --cb_adf --dsjson -c ')
-    parser.add_argument('-l','--lr_min_max_steps', type=check_min_max_steps, help="learning rate range as positive values 'min,max,steps' (default: 1e-5,0.5,17)", default='1e-5,0.5,17')
-    parser.add_argument('-r','--reg_min_max_steps', type=check_min_max_steps, help="L1 regularization range as positive values 'min,max,steps' (default: 1e-9,0.1,9)", default='1e-9,0.1,9')
+    parser.add_argument('-l','--lr_min_max_steps', type=check_min_max_steps, help="learning rate range as positive values 'min,max,steps' (default: 1e-5,0.5,4)", default='1e-5,0.5,4')
+    parser.add_argument('-r','--reg_min_max_steps', type=check_min_max_steps, help="L1 regularization range as positive values 'min,max,steps' (default: 1e-9,0.1,5)", default='1e-9,0.1,5')
     parser.add_argument('-s','--shared_namespaces', type=str, help="shared feature namespaces; e.g., 'abc' means namespaces a, b, and c (default: auto-detect)", default='')
     parser.add_argument('-a','--action_namespaces', type=str, help="action feature namespaces (default: auto-detect)", default='')
     parser.add_argument('-m','--marginal_namespaces', type=str, help="marginal feature namespaces (default: auto-detect)", default='')
     parser.add_argument('--auto_lines', type=int, help="number of lines to scan for auto detectdetected parameters (default: 100)", default=100)
-    parser.add_argument('--only_lr', help="sweep only over the learning rate", action='store_true')
+    parser.add_argument('--only_hp', help="sweep only over the learning rate", action='store_true')
 
     args = parser.parse_args()
     file_path = args.file_path
@@ -161,7 +161,7 @@ if __name__ == '__main__':
     action_features = set(list(args.action_namespaces))
     marginal_features = set(list(args.marginal_namespaces))
     auto_lines = args.auto_lines
-    only_lr = args.only_lr
+    only_hp = args.only_hp
 
     # Identify namespaces and detect marginal features (unless already specified)
     if not (shared_features and action_features and marginal_features):
@@ -227,24 +227,27 @@ if __name__ == '__main__':
         if os.path.exists(file_path+'.cache'):
             input('Warning: Cache file found, but not used (-c not in CLI). Press to continue anyway...')
 
-    # Learning rate: tune this initially so we have something to use while evaluating
-    # other parameters. We will retune this again at the end.
+    # Regularization and Learning rates grid search
     command_list = []
     for learning_rate in learning_rates:
-        command = Command(base_command, learning_rate=learning_rate)
-        command_list.append(command)
-    print('\nTesting {} learning_rates...'.format(len(command_list)))
+        for regularization in regularizations:
+            command = Command(base_command, regularization=regularization, learning_rate=learning_rate)
+            command_list.append(command)
+
+    print('\nTesting {} different hyperparameters...'.format(len(command_list)))
     results = run_experiment_set(command_list, n_proc)
     if results[0].loss < best_loss:
         best_loss = results[0].loss
         best_learning_rate = results[0].learning_rate
         best_command = results[0].full_command
+        best_regularization = results[0].regularization
     
-    if only_lr:
+    if only_hp:
         elapsed_time = datetime.now() - t0
         elapsed_time -= timedelta(microseconds=elapsed_time.microseconds)
         print("\nBest parameters found after elapsed time {0}:".format(elapsed_time))
         print("Best learning rate: {0}".format(best_learning_rate))
+        print("Best regularization: {0}".format(best_regularization))
         print("Best loss: {0}".format(best_loss))
         sys.exit()
     
