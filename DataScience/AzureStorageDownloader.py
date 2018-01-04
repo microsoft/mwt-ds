@@ -8,10 +8,11 @@ try:
     from azure.storage.blob import BlockBlobService
 except ImportError as e:
     print('ImportError: {}'.format(e))
-    if input("azure.storage.blob is required. Do you want to install it [Y/n]? ") != 'Y':
-        sys.exit()
-    import pip
-    pip.main(['install', 'azure.storage.blob'])
+    if input("azure.storage.blob is required. Do you want to install it [Y/n]? ") == 'Y':
+        import pip
+        pip.main(['install', 'azure.storage.blob'])
+        print('Please re-run script.')
+    sys.exit()
 
 
 LogDownloaderURL = "https://cps-staging-exp-experimentation.azurewebsites.net/api/Log?account={ACCOUNT_NAME}&key={ACCOUNT_KEY}&start={START_DATE}&end={END_DATE}&container={CONTAINER}"
