@@ -71,11 +71,11 @@ def process_dsjson_file(fp, d=None, e=None):
                 clicks[a][0] -= r
                 clicks[a][1] -= r/p
         else:
-            ei,r,ts,et = json_dangling(x)
+            ei,r,et = json_dangling(x)
             # t1 = datetime.datetime.strptime(ts, "%Y-%m-%dT%H:%M:%S.%f0Z")
             # t2 = datetime.datetime.strptime(et.replace('Z','').split('.')[0], "%Y-%m-%dT%H:%M:%S")
             if e is not None:
-                e.setdefault(ei, []).append((fp,i,ts,et))
+                e.setdefault(ei, []).append((fp,i,r,et))
             e_c += 1
             e_s.add(ei)
     return clicks, d_s, e_s, d_c, e_c, slot_len_c, d, e
@@ -92,7 +92,7 @@ def process_dsjson_file_mp(fp, n_proc=10, n_chunks=50):
             lines_d[d_c % n_chunks].append(x)
             d_c += 1
         else:
-            ei,r,ts,et = json_dangling(x)
+            ei,r,et = json_dangling(x)
             # t1 = datetime.datetime.strptime(ts, "%Y-%m-%dT%H:%M:%S.%f0Z")
             # t2 = datetime.datetime.strptime(et.replace('Z','').split('.')[0], "%Y-%m-%dT%H:%M:%S")
             e_c += 1
@@ -196,19 +196,23 @@ def json_dangling(x):
     #################################
     # Optimized version based on expected structure:
     # {"Timestamp":"2017-11-27T01:19:13.4610000Z","RewardValue":1.0,"EnqueuedTimeUtc":"2017-08-23T03:31:06.85Z","EventId":"d8a0391be9244d6cb124115ba33251f6"}
+    # {"RewardValue":1.0,"EnqueuedTimeUtc":"2018-01-03T20:12:20.028Z","EventId":"tr-tr_8580.Hero.HyxjxHF8/0WMGsuP","Observations":[{"v":1.0,"EventId":"tr-tr_8580.Hero.HyxjxHF8/0WMGsuP","ActionId":null}]}
     #
     # Performance: 3x faster than Python JSON parser js = json.loads(x.strip())
     #################################
-    ind1 = x.find('"',36)               # equal to: x.find('","RewardValue',36)
-    ind2 = x.find(',',ind1+16)          # equal to: x.find(',"EnqueuedTimeUtc',ind1+16)
+    if x.startswith('{"Timestamp"'):
+        ind1 = x.find('"',36)               # equal to: x.find('","RewardValue',36)
+        ind2 = x.find(',',ind1+16)          # equal to: x.find(',"EnqueuedTimeUtc',ind1+16)
+        r = x[ind1+16:ind2]                 # len('","RewardValue":') = 16
+    else:
+        ind2 = x.find(',',15)               # equal to: x.find(',"EnqueuedTimeUtc',15)
+        r = x[15:ind2]                      # len('{"RewardValue":') = 15
     ind3 = x.find('"',ind2+39)          # equal to: x.find('","EventId',ind2+39)
     ind4 = x.find('"',ind3+40)          # equal to: x.find('"}',ind3+30)
 
-    ts = x[14:ind1]                     # len('{"Timestamp":"') = 14
-    r = x[ind1+16:ind2]                 # len('","RewardValue":') = 16
     et = x[ind2+20:ind3]                # len(',"EnqueuedTimeUtc":"') = 20
     ei = x[ind3+13:ind4]                # len('","EventId":"') = 13
-    return ei,r,ts,et
+    return ei,r,et
 
 def extract_field(x,sep1,sep2,space=1):
     ind1 = x.find(sep1)
