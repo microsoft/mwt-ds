@@ -188,23 +188,22 @@ if __name__ == '__main__':
     parser.add_argument('--only_hp', help="sweep only over the learning rate", action='store_true')
     parser.add_argument('--q_greedy_stop', help="number of rounds without improvements to stop quadratic terms greedy search (default: 3)", type=int, default=3)
 
-    args = parser.parse_args()
-    file_path = args.file_path
-    max_q_terms = args.max_q_terms
-    n_proc = args.n_proc
-    base_command = args.base_command + ('' if args.base_command[-1] == ' ' else ' ') + '-d ' + file_path
-    lr_min, lr_max, lr_steps = args.lr_min_max_steps
+    # Parse input and create variables
+    args_dict = vars(parser.parse_args())   # this creates a dictionary with all input CLI
+    for x in args_dict:
+        locals()[x] = args_dict[x]  # this is equivalent to foo = args.foo
+
+    # Additional processing of inputs not covered by above
+    base_command += ('' if base_command[-1] == ' ' else ' ') + '-d ' + file_path
+    lr_min, lr_max, lr_steps = lr_min_max_steps
     learning_rates = np.logspace(np.log10(lr_min), np.log10(lr_max), lr_steps)
-    reg_min, reg_max, reg_steps = args.reg_min_max_steps
+    reg_min, reg_max, reg_steps = reg_min_max_steps
     regularizations = np.logspace(np.log10(reg_min), np.log10(reg_max), reg_steps)
-    pt_min, pt_max, pt_steps = args.pt_min_max_steps
+    pt_min, pt_max, pt_steps = pt_min_max_steps
     power_t_rates = np.logspace(np.log10(pt_min), np.log10(pt_max), pt_steps)
-    shared_features = set(list(args.shared_namespaces))
-    action_features = set(list(args.action_namespaces))
-    marginal_features = set(list(args.marginal_namespaces))
-    auto_lines = args.auto_lines
-    only_hp = args.only_hp
-    q_greedy_stop = args.q_greedy_stop
+    shared_features = set(shared_namespaces)
+    action_features = set(action_namespaces)
+    marginal_features = set(marginal_namespaces)
 
     # Identify namespaces and detect marginal features (unless already specified)
     if not (shared_features and action_features and marginal_features):
