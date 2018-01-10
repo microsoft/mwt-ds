@@ -52,8 +52,8 @@ def process_dsjson_file(fp, d=None, e=None):
     d_s = set()
     e_c = 0
     d_c = 0
-    for i,x in enumerate(open(fp, encoding='utf-8')):
-        if x.startswith('{"_label_cost":'):
+    for i,x in enumerate(open(fp, 'rb')):
+        if x.startswith(b'{"_label_cost":'):
             ei,r,ts,p,a,num_a = json_cooked(x)
             # ts = datetime.datetime.strptime(ts, "%Y-%m-%dT%H:%M:%S.%f0Z")
             slot_len_c.update([num_a])
@@ -66,7 +66,7 @@ def process_dsjson_file(fp, d=None, e=None):
 
             clicks[a][2] += 1/p
             clicks[a][3] += 1
-            if r != '0':
+            if r != b'0':
                 r = float(r)
                 clicks[a][0] -= r
                 clicks[a][1] -= r/p
@@ -87,8 +87,8 @@ def process_dsjson_file_mp(fp, n_proc=10, n_chunks=50):
     d_c = 0
     
     lines_d = [[] for i in range(n_chunks)]
-    for x in open(fp, encoding='utf-8'):
-        if x.startswith('{"_label'):
+    for x in open(fp, 'rb'):
+        if x.startswith(b'{"_label'):
             lines_d[d_c % n_chunks].append(x)
             d_c += 1
         else:
@@ -140,7 +140,7 @@ def process_dsjson_cooked_lines(lines):
 
         clicks[a][2] += 1/p
         clicks[a][3] += 1
-        if r != '0':
+        if r != b'0':
             r = float(r)
             clicks[a][0] -= r
             clicks[a][1] -= r/p
@@ -168,29 +168,29 @@ def json_cooked(x, do_devType=False):
     #
     # Performance: 4x faster than Python JSON parser js = json.loads(x.strip())
     #################################
-    ind1 = x.find(',',16)               # equal to: x.find(',"_label_prob',16)
-    ind2 = x.find(',',ind1+23)          # equal to: x.find(',"_label_Action',ind1+23)
-    ind4 = x.find(',"T',ind2+34)        # equal to: x.find(',"Timestamp',ind2+34)
-    ind5 = x.find('"',ind4+36)          # equal to: x.find('","Version',ind4+36)
-    ind7 = x.find('"',ind5+28)          # equal to: x.find('","a',ind5+28)
-    ind8 = x.find(']',ind7+8)           # equal to: x.find('],"c',ind7+8)
+    ind1 = x.find(b',',16)              # equal to: x.find(',"_label_prob',16)
+    ind2 = x.find(b',',ind1+23)         # equal to: x.find(',"_label_Action',ind1+23)
+    ind4 = x.find(b',"T',ind2+34)       # equal to: x.find(',"Timestamp',ind2+34)
+    ind5 = x.find(b'"',ind4+36)         # equal to: x.find('","Version',ind4+36)
+    ind7 = x.find(b'"',ind5+28)         # equal to: x.find('","a',ind5+28)
+    ind8 = x.find(b']',ind7+8)          # equal to: x.find('],"c',ind7+8)
 
     r = x[15:ind1]                      # len('{"_label_cost":') = 15
-    p = x[ind1+22:ind2]                 # len(',"_label_probability":') = 22
+    p = float(x[ind1+22:ind2])          # len(',"_label_probability":') = 22
     ts = x[ind4+14:ind5]                # len(',"Timestamp":"') = 14
     ei = x[ind5+27:ind7]                # len('","Version":"1","EventId":"') = 27
-    a_vec = x[ind7+7:ind8].split(',')   # len('","a":[') = 7
+    a_vec = x[ind7+7:ind8].split(b',')  # len('","a":[') = 7
     num_a = len(a_vec)
     if do_devType:
-        ind9 = x.find('"DeviceType',ind8)
+        ind9 = x.find(b'"DeviceType',ind8)
         if ind9 > -1:
-            ind10 = x.find('"},"_mul', ind9+15)
+            ind10 = x.find(b'"},"_mul', ind9+15)
             devType = x[ind9+14:ind10]   # len('"DeviceType":"') = 14
         else:
-            devType = 'N/A'
-        return ei,r,ts,float(p),int(a_vec[0]),num_a,devType
+            devType = b'N/A'
+        return ei,r,ts,p,int(a_vec[0]),num_a,devType
     else:
-        return ei,r,ts,float(p),int(a_vec[0]),num_a
+        return ei,r,ts,p,int(a_vec[0]),num_a
 
 def json_dangling(x):
     #################################
@@ -200,18 +200,18 @@ def json_dangling(x):
     #
     # Performance: 3x faster than Python JSON parser js = json.loads(x.strip())
     #################################
-    if x.startswith('{"Timestamp"'):
-        ind1 = x.find('"',36)               # equal to: x.find('","RewardValue',36)
-        ind2 = x.find(',',ind1+16)          # equal to: x.find(',"EnqueuedTimeUtc',ind1+16)
+    if x.startswith(b'{"Timestamp"'):
+        ind1 = x.find(b'"',36)              # equal to: x.find('","RewardValue',36)
+        ind2 = x.find(b',',ind1+16)         # equal to: x.find(',"EnqueuedTimeUtc',ind1+16)
         r = x[ind1+16:ind2]                 # len('","RewardValue":') = 16
     else:
-        ind2 = x.find(',',15)               # equal to: x.find(',"EnqueuedTimeUtc',15)
+        ind2 = x.find(b',',15)              # equal to: x.find(',"EnqueuedTimeUtc',15)
         r = x[15:ind2]                      # len('{"RewardValue":') = 15
-    ind3 = x.find('"',ind2+39)          # equal to: x.find('","EventId',ind2+39)
-    ind4 = x.find('"',ind3+40)          # equal to: x.find('"}',ind3+30)
+    ind3 = x.find(b'"',ind2+39)             # equal to: x.find('","EventId',ind2+39)
+    ind4 = x.find(b'"',ind3+40)             # equal to: x.find('"}',ind3+30)
 
-    et = x[ind2+20:ind3]                # len(',"EnqueuedTimeUtc":"') = 20
-    ei = x[ind3+13:ind4]                # len('","EventId":"') = 13
+    et = x[ind2+20:ind3]                    # len(',"EnqueuedTimeUtc":"') = 20
+    ei = x[ind3+13:ind4]                    # len('","EventId":"') = 13
     return ei,r,et
 
 def extract_field(x,sep1,sep2,space=1):
