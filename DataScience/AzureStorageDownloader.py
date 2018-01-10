@@ -3,7 +3,7 @@ if sys.maxsize < 2**32:     # check for 32-bit python version
     if input("32-bit python interpreter detected. There may be problems downloading large files. Do you want to continue anyway [Y/n]? ") != 'Y':
         sys.exit()
 
-import os, time, datetime, argparse, gzip, configparser
+import os, time, datetime, argparse, gzip, configparser, shutil
 try:
     from azure.storage.blob import BlockBlobService
 except ImportError as e:
@@ -38,7 +38,8 @@ def parse_argv(argv):
     1: ask user if files have different sizes and if blobs are currently used
     2: always overwrite - download currently used blobs
     3: overwrite only if different sizes, without asking - download currently used blobs
-    4: overwrite only if different sizes, without asking - skip currently used blobs''', default=0)
+    4: overwrite only if different sizes, without asking - skip currently used blobs
+    5: don't overwrite and append if larger size, without asking - download currently used blobs''', default=0)
     parser.add_argument('--dry_run', help="print which blobs would have been downloaded, without downloading", action='store_true')
     parser.add_argument('--no_gzip', help="Skip producing gzip file for Vowpal Wabbit", action='store_true')
     parser.add_argument('--verbose', action='store_true')
@@ -139,20 +140,25 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                 fp = os.path.join(log_dir, app_id, blob.name.replace('/','_'))
                 output_fps.append(fp)
                 if os.path.isfile(fp):
+                    file_size = os.path.getsize(fp)
                     if overwrite_mode == 0:
                         if verbose:
                             print('{} - Skip: Output file already exits\n'.format(blob.name))
                         continue
-                    elif overwrite_mode in {1, 3, 4}:
-                        file_size = os.path.getsize(fp)/(1024**2) # file size in MB
-                        if file_size == bp.properties.content_length/(1024**2): # file size is the same, skip!
+                    elif overwrite_mode in {1, 3, 4, 5}:
+                        if file_size == bp.properties.content_length: # file size is the same, skip!
                             if verbose:
                                 print('{} - Skip: Output file already exits with same size\n'.format(blob.name))
                             continue
-                        print('Output file already exits: {}\nLocal size: {:.3f} MB\nAzure size: {:.3f} MB'.format(fp, file_size, bp.properties.content_length/(1024**2)))
+                        print('Output file already exits: {}\nLocal size: {:.3f} MB\nAzure size: {:.3f} MB'.format(fp, file_size/(1024**2), bp.properties.content_length/(1024**2)))
+                        if overwrite_mode == 5 and file_size > bp.properties.content_length: # local file size is larger, skip with warning!
+                            print('{} - Skip: Output file already exits with larger size\n'.format(blob.name))
+                            continue
                         if overwrite_mode == 1 and input("Do you want to overwrite [Y/n]? ") != 'Y':
                             print()
                             continue
+                else:
+                    file_size = None
 
                 print('Processing: {} (size: {:.3f}MB - Last modified: {})'.format(blob.name, bp.properties.content_length/(1024**2), bp.properties.last_modified))
                 if dry_run:
@@ -170,12 +176,24 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                         max_connections = 1 # set max_connections to 1 to prevent crash if azure blob is modified during download
                     else:
                         max_connections = 4
-                    print('Downloading...')
                     t0 = time.time()
-                    bbs.get_blob_to_path(app_id, blob.name, fp, progress_callback=update_progress, max_connections=max_connections)
+                    if overwrite_mode == 5 and file_size:
+                        print('Resume downloading with max_connections = {}...'.format(max_connections))
+                        if max_connections == 1:
+                            bbs.get_blob_to_path(app_id, blob.name, fp, progress_callback=update_progress, max_connections=1, start_range=file_size, open_mode='ab')
+                        else:
+                            temp_fp = fp + '.temp'
+                            bbs.get_blob_to_path(app_id, blob.name, temp_fp, progress_callback=update_progress, max_connections=max_connections, start_range=file_size)
+                            with open(fp, 'ab') as f1, open(temp_fp, 'rb') as f2:
+                                shutil.copyfileobj(f2, f1, length=1024*1024*100)   # writing chunks of 100MB to avoid consuming memory
+                            os.remove(temp_fp)
+                        download_size_MB = (os.path.getsize(fp)-file_size)/(1024**2) # file size in MB
+                    else:
+                        print('Downloading with max_connections = {}...'.format(max_connections))
+                        bbs.get_blob_to_path(app_id, blob.name, fp, progress_callback=update_progress, max_connections=max_connections)
+                        download_size_MB = os.path.getsize(fp)/(1024**2) # file size in MB
                     elapsed_time = time.time()-t0
-                    file_size = os.path.getsize(fp)/(1024**2) # file size in MB
-                    print('\nDownloaded {:.3f} MB in {:.3f} sec.: Average: {:.3f} MB/sec\n'.format(file_size, elapsed_time, file_size/elapsed_time))
+                    print('\nDownloaded {:.3f} MB in {:.3f} sec.: Average: {:.3f} MB/sec\n'.format(download_size_MB, elapsed_time, download_size_MB/elapsed_time))
             except Exception as e:
                 print(' Error: {}'.format(e))
 
