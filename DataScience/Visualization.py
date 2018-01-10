@@ -18,18 +18,19 @@ def parse_logs(raw_stats, files, delta_mod_t=3600):
         
         c2 = {}
         ii = 0
-        for line in open(fp, encoding="utf8"):
+        for line in open(fp, 'rb'):
             ii += 1
             if ii % 10000 == 0:
                 print(ii)
-            if 'Timestamp' not in line or '_label_cost' not in line:
+            if b'Timestamp' not in line or b'_label_cost' not in line:
                 continue
             
             try:
                 ei,r,ts,p,a,num_a,dev = ds_parse.json_cooked(line, do_devType=True)
                 
                 # extract date from ts
-                d = ts[:13]
+                d = str(ts[:13], 'utf-8')
+                dev = str(dev, 'utf-8')
                 
                 if d not in c2:
                     c2[d] = {}
@@ -42,7 +43,7 @@ def parse_logs(raw_stats, files, delta_mod_t=3600):
                     
                 c2[d][dev][1] += 1
                 c2['ips'][d[:10]][1] += 1
-                if r != '0':
+                if r != b'0':
                     r = float(r)
                     c2[d][dev][0] += 1
                     c2[d][dev][2] -= r
