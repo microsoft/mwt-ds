@@ -41,7 +41,7 @@ def parse_argv(argv):
     4: overwrite only if different sizes, without asking - skip currently used blobs
     5: don't overwrite and append if larger size, without asking - download currently used blobs''', default=0)
     parser.add_argument('--dry_run', help="print which blobs would have been downloaded, without downloading", action='store_true')
-    parser.add_argument('--no_gzip', help="Skip producing gzip file for Vowpal Wabbit", action='store_true')
+    parser.add_argument('--create_gzip', help="Create gzip file for Vowpal Wabbit", action='store_true')
     parser.add_argument('--verbose', action='store_true')
     parser.add_argument('--delta_mod_t', type=int, default=3600, help='time window in sec to detect if a file is currently in use (default=3600 - 1 hour)')
         
@@ -65,7 +65,7 @@ def update_progress(current, total):
     sys.stdout.write(text)
     sys.stdout.flush()
 
-def download_container(app_id, log_dir, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, auth_fp=None, output_fp='', verbose=False, no_gzip=False, delta_mod_t=3600):
+def download_container(app_id, log_dir, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, auth_fp=None, output_fp='', verbose=False, create_gzip=False, delta_mod_t=3600):
     
     t_start = time.time()
     print('-----'*10)
@@ -75,7 +75,7 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
     print('Overwrite mode: {}'.format(overwrite_mode))
     print('dry_run: {}'.format(dry_run))
     print('version: {}'.format(version))
-    print('no_gzip: {}'.format(no_gzip))
+    print('create_gzip: {}'.format(create_gzip))
     
     if not dry_run and not os.path.isdir(os.path.join(log_dir, app_id)):
         os.makedirs(os.path.join(log_dir, app_id))
@@ -197,15 +197,21 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
             except Exception as e:
                 print(' Error: {}'.format(e))
 
-        if not dry_run and not no_gzip:
-            print('Concat and zip files to: {}'.format(output_fp+'.gz'))
-            output_fps.sort(key=lambda x : (len(x),x))
-            with gzip.open(output_fp+'.gz', 'wb') as f_out:
-                for fp in output_fps:
-                    if os.path.isfile(fp):
-                        print('Adding: {}'.format(fp))
-                        with open(fp, 'rb') as f_in:
-                            f_out.write(f_in.read())
+        if create_gzip:
+            if output_fps:
+                print('Concat and zip files to: {}'.format(output_fp+'.gz'))
+                if dry_run:
+                    print('--dry_run - Not downloading!')
+                else:
+                    output_fps.sort(key=lambda x : (x.split('_data_',1)[0], list(map(int,x.name.split('data_')[1].split('_')[:-1]))))
+                    with gzip.open(output_fp+'.gz', 'wb') as f_out:
+                        for fp in output_fps:
+                            if os.path.isfile(fp):
+                                print('Adding: {}'.format(fp))
+                                with open(fp, 'rb') as f_in:
+                                    f_out.write(f_in.read())
+            else:
+                print('No file downloaded, skipping creating gzip file.')
                     
     print('Total download time:',time.time()-t_start)
 
