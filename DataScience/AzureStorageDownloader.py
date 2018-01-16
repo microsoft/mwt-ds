@@ -31,9 +31,8 @@ def parse_argv(argv):
     parser.add_argument('-o','--overwrite_mode', type=int, help='''    0: don't overwrite - ask if blobs are currently used [default]
     1: ask user if files have different sizes and if blobs are currently used
     2: always overwrite - download currently used blobs
-    3: overwrite only if different sizes, without asking - download currently used blobs
-    4: overwrite only if different sizes, without asking - skip currently used blobs
-    5: don't overwrite and append if larger size, without asking - download currently used blobs''', default=0)
+    3: don't overwrite and append if larger size, without asking - download currently used blobs
+    4: don't overwrite and append if larger size, without asking - skip currently used blobs''', default=0)
     parser.add_argument('--dry_run', help="print which blobs would have been downloaded, without downloading", action='store_true')
     parser.add_argument('--create_gzip', help="create gzip file for Vowpal Wabbit", action='store_true')
     parser.add_argument('--delta_mod_t', type=int, default=3600, help='time window in sec to detect if a file is currently in use (default=3600 - 1 hour)')
@@ -142,13 +141,13 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                         if verbose:
                             print('{} - Skip: Output file already exits\n'.format(blob.name))
                         continue
-                    elif overwrite_mode in {1, 3, 4, 5}:
+                    elif overwrite_mode in {1, 3, 4}:
                         if file_size == bp.properties.content_length: # file size is the same, skip!
                             if verbose:
                                 print('{} - Skip: Output file already exits with same size\n'.format(blob.name))
                             continue
                         print('Output file already exits: {}\nLocal size: {:.3f} MB\nAzure size: {:.3f} MB'.format(fp, file_size/(1024**2), bp.properties.content_length/(1024**2)))
-                        if overwrite_mode == 5 and file_size > bp.properties.content_length: # local file size is larger, skip with warning!
+                        if overwrite_mode in {3, 4} and file_size > bp.properties.content_length: # local file size is larger, skip with warning!
                             print('{} - Skip: Output file already exits with larger size\n'.format(blob.name))
                             continue
                         if overwrite_mode == 1 and input("Do you want to overwrite [Y/n]? ") != 'Y':
@@ -174,7 +173,7 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                     else:
                         max_connections = 4
                     t0 = time.time()
-                    if overwrite_mode == 5 and file_size:
+                    if overwrite_mode in {3, 4} and file_size:
                         print('Resume downloading with max_connections = {}...'.format(max_connections))
                         if max_connections == 1:
                             bbs.get_blob_to_path(app_id, blob.name, fp, progress_callback=update_progress, max_connections=1, start_range=file_size, open_mode='ab')
