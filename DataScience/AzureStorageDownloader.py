@@ -117,7 +117,7 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
         
     else: # using BlockBlobService python api
     
-        output_fps = []
+        downloaded_fps = []
         bbs = BlockBlobService(connection_string=connection_string)
 
         # List all blobs and download them one by one
@@ -140,7 +140,7 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                 bp = bbs.get_blob_properties(app_id, blob.name)
 
                 fp = os.path.join(log_dir, app_id, blob.name.replace('/','_'))
-                output_fps.append(fp)
+                downloaded_fps.append(fp)
                 if os.path.isfile(fp):
                     file_size = os.path.getsize(fp)
                     if overwrite_mode == 0:
@@ -200,22 +200,36 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                 print(' Error: {}'.format(e))
 
         if create_gzip:
-            if output_fps:
-                print('Concat and zip files to: {}'.format(output_fp+'.gz'))
-                if dry_run:
-                    print('--dry_run - Not downloading!')
-                else:
-                    output_fps.sort(key=lambda x : (x.split('_data_',1)[0], list(map(int,x.name.split('data_')[1].split('_')[:-1]))))
-                    with gzip.open(output_fp+'.gz', 'wb') as f_out:
-                        for fp in output_fps:
-                            if os.path.isfile(fp):
-                                print('Adding: {}'.format(fp))
-                                with open(fp, 'rb') as f_in:
-                                    f_out.write(f_in.read())
+            if downloaded_fps:
+                models = {}
+                for fp in downloaded_fps:
+                    models.setdefault(os.path.basename(fp).split('_data_',1)[0], []).append(fp)
+                for model in models:
+                    models[model].sort(key=lambda x : list(map(int,x.split('_data_')[1].split('_')[:3])))
+                    start_date = '-'.join(models[model][0].split('_data_')[1].split('_')[:3])
+                    end_date = '-'.join(models[model][-1].split('_data_')[1].split('_')[:3])
+                    output_fp = os.path.join(log_dir, app_id, app_id+'_'+model+'_data_'+start_date+'_'+end_date+'.json.gz')
+                    print('Concat and zip files of LastConfigurationEditDate={} to: {}'.format(model, output_fp))
+                    if os.path.isfile(output_fp):
+                        if overwrite_mode == {0, 3, 4}:
+                            print('Output file already exits. Skipping creating gzip file'.format(output_fp))
+                            continue
+                        elif overwrite_mode == 1 and input('Output file already exits. Do you want to overwrite [Y/n]? '.format(output_fp)) != 'Y':
+                            continue
+                    if dry_run:
+                        print('--dry_run - Not downloading!')
+                    else:
+                        with gzip.open(output_fp, 'wb') as f_out:
+                            for fp in models[model]:
+                                if os.path.isfile(fp):
+                                    print('Adding: {}'.format(fp))
+                                    with open(fp, 'rb') as f_in:
+                                        f_out.write(f_in.read())
             else:
-                print('No file downloaded, skipping creating gzip file.')
+                print('No file downloaded, skipping creating gzip files.')
                     
     print('Total download time:',time.time()-t_start)
+    print()
 
 
 if __name__ == '__main__':
