@@ -163,21 +163,21 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                     file_size = None
 
                 print('Processing: {} (size: {:.3f}MB - Last modified: {})'.format(blob.name, bp.properties.content_length/(1024**2), bp.properties.last_modified))
+                # check if blob was modified in the last delta_mod_t sec
+                if datetime.datetime.now(datetime.timezone.utc)-bp.properties.last_modified < datetime.timedelta(0, delta_mod_t):
+                    if overwrite_mode < 2:
+                        if input("Azure blob currently in use (modified in the last delta_mod_t={} sec). Do you want to download anyway [Y/n]? ".format(delta_mod_t)) != 'Y':
+                            print()
+                            continue
+                    elif overwrite_mode == 4:
+                        print('Azure blob currently in use (modified in the last delta_mod_t={} sec). Skipping!\n'.format(delta_mod_t))
+                        continue                        
+                    max_connections = 1 # set max_connections to 1 to prevent crash if azure blob is modified during download
+                else:
+                    max_connections = 4
                 if dry_run:
                     print('--dry_run - Not downloading!')
                 else:
-                    # check if blob was modified in the last delta_mod_t sec
-                    if datetime.datetime.now(datetime.timezone.utc)-bp.properties.last_modified < datetime.timedelta(0, delta_mod_t):
-                        if overwrite_mode < 2:
-                            if input("Azure blob currently in use (modified in the last delta_mod_t={} sec). Do you want to download anyway [Y/n]? ".format(delta_mod_t)) != 'Y':
-                                print()
-                                continue
-                        elif overwrite_mode == 4:
-                            print("Azure blob currently in use (modified in the last delta_mod_t={} sec). Skipping!\n".format(delta_mod_t))
-                            continue                        
-                        max_connections = 1 # set max_connections to 1 to prevent crash if azure blob is modified during download
-                    else:
-                        max_connections = 4
                     t0 = time.time()
                     if overwrite_mode in {3, 4} and file_size:
                         print('Resume downloading with max_connections = {}...'.format(max_connections))
