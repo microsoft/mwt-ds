@@ -30,7 +30,7 @@ def parse_argv(argv):
     parser.add_argument('-a','--app_id', help="app id (i.e., Azure storage blob container name)", required=True)
     parser.add_argument('-l','--log_dir', help="base dir to download data (a subfolder will be created)", required=True)
     parser.add_argument('-s','--start_date', help="downloading start date (included) - format YYYY-MM-DD", type=valid_date)
-    parser.add_argument('-e','--end_date', help="downloading end date (not included) - format YYYY-MM-DD (default: tomorrow's date)", type=valid_date)
+    parser.add_argument('-e','--end_date', help="downloading end date (included) - format YYYY-MM-DD", type=valid_date)
     parser.add_argument('-o','--overwrite_mode', type=int, help='''    0: don't overwrite - ask if blobs are currently used [default]
     1: ask user if files have different sizes and if blobs are currently used
     2: always overwrite - download currently used blobs
@@ -46,15 +46,13 @@ def parse_argv(argv):
     2: for cooked logs [default]''')
     
     kwargs = vars(parser.parse_args(argv[1:]))
-    if len(argv) > 5:
+    if kwargs['version'] == 1:
         if kwargs.get('start_date', None) is None:
-            parser.error('When downloading, the following argument is required: --start_date')
+            parser.error('When downloading using version=1, the following argument is required: --start_date')
         
         if kwargs.get('end_date', None) is None:
-            kwargs['end_date'] = datetime.datetime.utcnow() + datetime.timedelta(days=1) # filling end_date as tomorrow in UTC
+            kwargs['end_date'] = datetime.datetime.utcnow() # filling end_date with UTC now
         
-        kwargs['output_fp'] = os.path.join(kwargs['log_dir'], kwargs['app_id'], kwargs['app_id']+'_'+kwargs['start_date'].strftime("%Y-%m-%d")+'_'+kwargs['end_date'].strftime("%Y-%m-%d")+'.json')
-
     return kwargs
 
 def update_progress(current, total):
@@ -65,7 +63,7 @@ def update_progress(current, total):
     sys.stdout.write(text)
     sys.stdout.flush()
 
-def download_container(app_id, log_dir, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, auth_fp=None, output_fp='', verbose=False, create_gzip=False, delta_mod_t=3600):
+def download_container(app_id, log_dir, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, verbose=False, create_gzip=False, delta_mod_t=3600):
     
     t_start = time.time()
     print('-----'*10)
@@ -96,6 +94,7 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
     print('-----'*10)
     
     if version == 1: # using LogDownloader api
+        output_fp = os.path.join(log_dir, app_id, app_id+'_'+start_date.strftime("%Y-%m-%d")+'_'+end_date.strftime("%Y-%m-%d")+'.json')
         if overwrite_mode < 2 and os.path.isfile(output_fp):
             print('{} already exits, not downloading'.format(output_fp))
         else:
@@ -106,7 +105,7 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                 print('Downloading...'.format(output_fp), end='')
                 try:
                     import requests
-                    url = LogDownloaderURL.format(ACCOUNT_NAME=connection_string_dict['AccountName'], ACCOUNT_KEY=connection_string_dict['AccountKey'].replace('+','%2b'), CONTAINER=app_id, START_DATE=start_date.strftime("%Y-%m-%d"), END_DATE=end_date.strftime("%Y-%m-%d"))
+                    url = LogDownloaderURL.format(ACCOUNT_NAME=connection_string_dict['AccountName'], ACCOUNT_KEY=connection_string_dict['AccountKey'].replace('+','%2b'), CONTAINER=app_id, START_DATE=start_date.strftime("%Y-%m-%d"), END_DATE=(end_date+datetime.timedelta(days=1)).strftime("%Y-%m-%d"))
                     r = requests.post(url)
                     open(output_fp, 'wb').write(r.content)
                     print(' Done!\n')
@@ -129,7 +128,7 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                 continue
             
             blob_day = datetime.datetime.strptime(blob.name.split('/data/', 1)[1].split('_', 1)[0], '%Y/%m/%d')
-            if (start_date and blob_day < start_date) or (end_date and end_date <= blob_day):
+            if (start_date and blob_day < start_date) or (end_date and end_date < blob_day):
                 if verbose:
                     print('{} - Skip: Outside of date range\n'.format(blob.name))
                 continue
