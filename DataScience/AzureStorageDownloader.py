@@ -91,14 +91,20 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
     
     if version == 1: # using LogDownloader api
         output_fp = os.path.join(log_dir, app_id, app_id+'_'+start_date.strftime("%Y-%m-%d")+'_'+end_date.strftime("%Y-%m-%d")+'.json')
-        if overwrite_mode < 2 and os.path.isfile(output_fp):
-            print('{} already exits, not downloading'.format(output_fp))
-        else:
-            print('Destination: {}'.format(output_fp))
+        print('Destination: {}'.format(output_fp))
+        do_download = True
+        if os.path.isfile(output_fp):
+            if overwrite_mode in {0, 3, 4}:
+                print('Output file already exits. Not downloading'.format(output_fp))
+                do_download = False
+            elif overwrite_mode == 1 and input('Output file already exits. Do you want to overwrite [Y/n]? '.format(output_fp)) != 'Y':
+                do_download = False
+                
+        if do_download:
             if dry_run:
                 print('--dry_run - Not downloading!')
             else:
-                print('Downloading...'.format(output_fp), end='')
+                print('Downloading...', end='')
                 try:
                     import requests
                     LogDownloaderURL = "https://cps-staging-exp-experimentation.azurewebsites.net/api/Log?account={ACCOUNT_NAME}&key={ACCOUNT_KEY}&start={START_DATE}&end={END_DATE}&container={CONTAINER}"
