@@ -89,7 +89,7 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
     
     print('-----'*10)
     
-    if version == 1: # using LogDownloader api
+    if version == 1: # using C# api for uncooked logs
         output_fp = os.path.join(log_dir, app_id, app_id+'_'+start_date.strftime("%Y-%m-%d")+'_'+end_date.strftime("%Y-%m-%d")+'.json')
         print('Destination: {}'.format(output_fp))
         do_download = True
@@ -115,7 +115,7 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                 except Exception as e:
                     print(' Error: {}'.format(e))
         
-    else: # using BlockBlobService python api
+    else: # using BlockBlobService python api for cooked logs
     
         downloaded_fps = []
         bbs = BlockBlobService(connection_string=connection_string)
