@@ -1,4 +1,4 @@
-from subprocess import Popen, PIPE, check_output, STDOUT, TimeoutExpired
+from subprocess import check_output, STDOUT, TimeoutExpired, DEVNULL
 import re
 import multiprocessing
 import sys, os
@@ -7,7 +7,6 @@ from datetime import datetime, timedelta
 import configparser, argparse
 import gzip
 import itertools
-import time
 from enum import Enum
 import numpy as np
 
@@ -172,6 +171,12 @@ def check_min_max_steps(val):
 
 
 if __name__ == '__main__':
+
+    try:
+        check_output(['vw','-h'], stderr=DEVNULL)
+    except:
+        print("Error: Vowpal Wabbit executable not found. Please install and add it to your path")
+        sys.exit()
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-f','--file_path', help="data file path (.json or .json.gz format - each line is a dsjson)", required=True)
