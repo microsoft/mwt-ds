@@ -15,9 +15,6 @@ except ImportError as e:
     sys.exit()
 
 
-LogDownloaderURL = "https://cps-staging-exp-experimentation.azurewebsites.net/api/Log?account={ACCOUNT_NAME}&key={ACCOUNT_KEY}&start={START_DATE}&end={END_DATE}&container={CONTAINER}"
-
-
 def valid_date(s):
     try:
         return datetime.datetime.strptime(s, "%Y-%m-%d")
@@ -105,6 +102,7 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                 print('Downloading...'.format(output_fp), end='')
                 try:
                     import requests
+                    LogDownloaderURL = "https://cps-staging-exp-experimentation.azurewebsites.net/api/Log?account={ACCOUNT_NAME}&key={ACCOUNT_KEY}&start={START_DATE}&end={END_DATE}&container={CONTAINER}"
                     url = LogDownloaderURL.format(ACCOUNT_NAME=connection_string_dict['AccountName'], ACCOUNT_KEY=connection_string_dict['AccountKey'].replace('+','%2b'), CONTAINER=app_id, START_DATE=start_date.strftime("%Y-%m-%d"), END_DATE=(end_date+datetime.timedelta(days=1)).strftime("%Y-%m-%d"))
                     r = requests.post(url)
                     open(output_fp, 'wb').write(r.content)
