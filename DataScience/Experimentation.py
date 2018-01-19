@@ -322,22 +322,17 @@ if __name__ == '__main__':
     # TODO: Which namespaces to ignore
     
     # Test all combinations up to q_bruteforce_terms
-    command_list = []
-    n_sf = len(shared_features)
-    n_af = len(action_features)
-    for x in itertools.product([0, 1], repeat=n_sf*n_af):
-        if sum(x) > q_bruteforce_terms:
-            continue
+    possible_interactions = set()
+    for features in shared_features:
+        for action_feature in action_features:
+            interaction = '{0}{1}'.format(features, action_feature)
+            possible_interactions.add(interaction)
     
-        interaction_list = set()
-        for i,features in enumerate(shared_features):
-            for j,action_feature in enumerate(action_features):
-                if x[i*n_af+j]:
-                    interaction = '{0}{1}'.format(features, action_feature)
-                    interaction_list.add(interaction)
-
-        command = Command(base_command, clone_from=best_command, interaction_list=interaction_list)
-        command_list.append(command)
+    command_list = []    
+    for i in range(q_bruteforce_terms+1):    
+        for interaction_list in itertools.combinations(possible_interactions, i):
+            command = Command(base_command, clone_from=best_command, interaction_list=interaction_list)
+            command_list.append(command)
     
     print('\nTesting {} different interactions (brute-force phase)...'.format(len(command_list)))
     results = run_experiment_set(command_list, n_proc)
