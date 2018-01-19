@@ -1,4 +1,4 @@
-from subprocess import Popen, PIPE, check_output, STDOUT, TimeoutExpired
+from subprocess import check_output, STDOUT, TimeoutExpired, DEVNULL
 import re
 import multiprocessing
 import sys, os
@@ -7,7 +7,6 @@ from datetime import datetime, timedelta
 import configparser, argparse
 import gzip
 import itertools
-import time
 from enum import Enum
 import numpy as np
 
@@ -173,20 +172,26 @@ def check_min_max_steps(val):
 
 if __name__ == '__main__':
 
+    try:
+        check_output(['vw','-h'], stderr=DEVNULL)
+    except:
+        print("Error: Vowpal Wabbit executable not found. Please install and add it to your path")
+        sys.exit()
+
     parser = argparse.ArgumentParser()
-    parser.add_argument('-f','--file_path', help="data file", required=True)
-    parser.add_argument('-q','--max_q_terms', type=int, help="number of quadratic terms to test with brute-force (default: 2)", default=2)
-    parser.add_argument('-p','--n_proc', type=int, help="number of parallel processes to use (default: auto-detect)", default=multiprocessing.cpu_count()-1)
-    parser.add_argument('-b','--base_command', help="base command (default: vw --cb_adf --dsjson -c )", default='vw --cb_adf --dsjson -c ')
+    parser.add_argument('-f','--file_path', help="data file path (.json or .json.gz format - each line is a dsjson)", required=True)
+    parser.add_argument('-b','--base_command', help="base Vowpal Wabbit command (default: vw --cb_adf --dsjson -c )", default='vw --cb_adf --dsjson -c ')
+    parser.add_argument('-p','--n_proc', type=int, help="number of parallel processes to use (default: logical processors)", default=multiprocessing.cpu_count())
+    parser.add_argument('-s','--shared_namespaces', type=str, help="shared feature namespaces; e.g., 'abc' means namespaces a, b, and c (default: auto-detect from data file)", default='')
+    parser.add_argument('-a','--action_namespaces', type=str, help="action feature namespaces (default: auto-detect from data file)", default='')
+    parser.add_argument('-m','--marginal_namespaces', type=str, help="marginal feature namespaces (default: auto-detect from data file)", default='')
+    parser.add_argument('--auto_lines', type=int, help="number of data file lines to scan to auto-detect features namespaces (default: 100)", default=100)
+    parser.add_argument('--only_hp', help="sweep only over hyper-parameters (`learning rate`, `L1 regularization`, and `power_t`)", action='store_true')
     parser.add_argument('-l','--lr_min_max_steps', type=check_min_max_steps, help="learning rate range as positive values 'min,max,steps' (default: 1e-5,0.5,4)", default='1e-5,0.5,4')
     parser.add_argument('-r','--reg_min_max_steps', type=check_min_max_steps, help="L1 regularization range as positive values 'min,max,steps' (default: 1e-9,0.1,5)", default='1e-9,0.1,5')
     parser.add_argument('-t','--pt_min_max_steps', type=check_min_max_steps, help="Power_t range as positive values 'min,max,steps' (default: 1e-9,0.5,5)", default='1e-9,0.5,5')
-    parser.add_argument('-s','--shared_namespaces', type=str, help="shared feature namespaces; e.g., 'abc' means namespaces a, b, and c (default: auto-detect)", default='')
-    parser.add_argument('-a','--action_namespaces', type=str, help="action feature namespaces (default: auto-detect)", default='')
-    parser.add_argument('-m','--marginal_namespaces', type=str, help="marginal feature namespaces (default: auto-detect)", default='')
-    parser.add_argument('--auto_lines', type=int, help="number of lines to scan for auto detectdetected parameters (default: 100)", default=100)
-    parser.add_argument('--only_hp', help="sweep only over the learning rate", action='store_true')
-    parser.add_argument('--q_greedy_stop', help="number of rounds without improvements to stop quadratic terms greedy search (default: 3)", type=int, default=3)
+    parser.add_argument('--q_bruteforce_terms', type=int, help="number of quadratic pairs to test in brute-force phase (default: 2)", default=2)
+    parser.add_argument('--q_greedy_stop', type=int, help="rounds without improvements after which quadratic greedy search phase is halted (default: 3)", default=3)
 
     # Parse input and create variables
     args_dict = vars(parser.parse_args())   # this creates a dictionary with all input CLI
@@ -237,7 +242,7 @@ if __name__ == '__main__':
             marginal_features = marginal_tmp
 
     print("\n*********** SETTINGS ******************")
-    print("Base command: {}".format(base_command))
+    print("Base command + log file: {}".format(base_command))
     print()
     print('Learning rates: ['+', '.join(map(str,learning_rates))+']')
     print('L1 regularization: ['+', '.join(map(str,regularizations))+']')
@@ -315,14 +320,13 @@ if __name__ == '__main__':
             break
         
     # TODO: Which namespaces to ignore
-    # Which namespaces to interact
     
-    # Test all combinations up to max_q_terms
+    # Test all combinations up to q_bruteforce_terms
     command_list = []
     n_sf = len(shared_features)
     n_af = len(action_features)
     for x in itertools.product([0, 1], repeat=n_sf*n_af):
-        if sum(x) > max_q_terms:
+        if sum(x) > q_bruteforce_terms:
             continue
     
         interaction_list = set()
@@ -335,13 +339,13 @@ if __name__ == '__main__':
         command = Command(base_command, clone_from=best_command, interaction_list=interaction_list)
         command_list.append(command)
     
-    print('\nTesting {} different interactions...'.format(len(command_list)))
+    print('\nTesting {} different interactions (brute-force phase)...'.format(len(command_list)))
     results = run_experiment_set(command_list, n_proc)
     if results[0].loss < best_command.loss:
         best_command = results[0]
     
     # Build greedily on top of the best parameters found above (stop when no improvements for q_greedy_stop consecutive rounds)
-    print('\nBuilding interactions greedily...')
+    print('\nTesting interactions (greedy phase)...')
     temp_interaction_list = set(best_command.interaction_list)
     rounds_without_improvements = 0
     while rounds_without_improvements < q_greedy_stop:

@@ -2,7 +2,7 @@ import json, os, time, pickle, sys
 import matplotlib.pyplot as plt
 import numpy as np
 import configparser
-import AzureStorageDownloader
+import LogDownloader
 import ds_parse
 
 
@@ -75,7 +75,7 @@ def convert_pStats_from_hours_to_days(pStats):
 if __name__ == '__main__':
     
     ################################# PARSE INPUT CMD #########################################################
-    kwargs = AzureStorageDownloader.parse_argv(sys.argv)
+    kwargs = LogDownloader.parse_argv(sys.argv)
     app_id = kwargs['app_id']
     log_dir = kwargs['log_dir']
     delta_mod_t = kwargs['delta_mod_t']
@@ -83,7 +83,7 @@ if __name__ == '__main__':
     ################################# DATA DOWNLOADER #########################################################
     
     if len(sys.argv) > 5:
-        AzureStorageDownloader.download_container(**kwargs)
+        LogDownloader.download_container(**kwargs)
         
     ################################# PARSE LOGS #########################################################
 
