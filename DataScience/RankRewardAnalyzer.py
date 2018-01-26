@@ -41,6 +41,7 @@ def send_rank_and_rewards(base_url, app, local_fp, feed, iter_num=1000, time_sle
     s = requests.Session()
     s.headers.update({'Content-Type': 'application/json', 'Accept':'application/json'})
     
+    os.makedirs(os.path.dirname(local_fp), exist_ok=True)
     with open(local_fp, 'a') as f:
         eventIds = []
         err = [0,0]
@@ -88,11 +89,11 @@ def print_stats(local_fp, azure_path, verbose=False, plot_hist=False):
         files = [azure_fp.path for azure_fp in scantree(azure_path) if azure_fp.name.endswith('.json')]
     else:
         files = [azure_path]
-    azure_data = [ds_parse.json_cooked(x)[:2] for azure_fp in files for x in open(azure_fp, encoding='utf-8') if x.startswith('{"_label_cost":')]
+    azure_data = [ds_parse.json_cooked(x)[:2] for azure_fp in files for x in open(azure_fp, 'rb') if x.startswith(b'{"_label_cost":')]
     
     local_rank_set = set(local_rank)
     rew_dict = {y[0] : y[1] for y in local_rew}
-    azure_dict = {y[0] : y[1] for y in azure_data}
+    azure_dict = {str(y[0], 'utf-8') : str(y[1], 'utf-8') for y in azure_data}
     
     err_rewards_idx = []
     no_events_idx = []
