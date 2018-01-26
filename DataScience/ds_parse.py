@@ -179,6 +179,37 @@ def cmplx_json_to_csv(input_file, output_file):
             if i % 100000 == 0:
                 print(i)
 
+def get_e_from_eh_obs(fp):
+    e = {};
+    for x in open(fp, 'rb'):
+        ei = extract_field(x, b'"EventId":"', b'","')
+        ts = x[5:].split(b' Offset:',1)[0]
+        e.setdefault(ei, []).append(ts)
+        
+    return e
+
+def create_time_hist(d,e, normed=True, cumulative=True, scale_sec=1, n_bins=100, td_day_start=None):
+    import matplotlib.pyplot as plt
+    import datetime
+    t_vec = []
+    for x in e:
+        if x in d:
+            td = datetime.datetime.strptime(str(d[x][0][-1],'utf-8').split('.')[0].replace('Z',''), "%Y-%m-%dT%H:%M:%S")
+            if td_day_start and td < datetime.datetime.strptime(td_day_start, "%Y-%m-%d"):
+                continue
+            if type(e[x][0]) == list:
+                te = datetime.datetime.strptime(str(e[x][0][-1],'utf-8').split('.')[0].replace('Z',''), "%Y-%m-%dT%H:%M:%S")
+            else:
+                te = datetime.datetime.strptime(str(e[x][0],'utf-8').split('.')[0].replace('Z',''), '%m/%d/%Y %I:%M:%S %p')
+            t_vec.append((te-td).total_seconds()/scale_sec)
+    
+    print('len(e): {}'.format(len(e)))
+    print('len(t_vec): {}'.format(len(t_vec)))
+    plt.hist(t_vec, n_bins, normed=normed, cumulative=cumulative, histtype='step')
+    plt.show()
+    
+    return t_vec
+
 
 '''
 ####################################################################################################################################
