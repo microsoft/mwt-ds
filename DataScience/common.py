@@ -40,9 +40,7 @@ class CachedBlob:
         if not os.path.exists(self.filename):
             # download not existing file
             print(self.filename)
-            dn = ntpath.dirname(self.filename)
-            if not os.path.exists(dn):
-                os.makedirs(dn)
+            os.makedirs(ntpath.dirname(self.filename), exist_ok=True)
             block_blob_service.get_blob_to_path(container, name, self.filename)
         else:
             # verify size matches
@@ -218,8 +216,7 @@ class DataSet:
                 
         # create scoring directories for [start_date, end_date] range
         self.scoring_dir = os.path.join(self.cache_folder, 'scoring')
-        if not os.path.exists(self.scoring_dir):
-            os.makedirs(self.scoring_dir)
+        os.makedirs(self.scoring_dir, exist_ok=True)
 
     def download_events(self):
         temp = []

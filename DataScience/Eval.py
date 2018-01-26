@@ -43,9 +43,7 @@ for blob in eval_blobs:
     print(blob[1].name)
     fn = 'c:\\temp\\testdrive\\eval\\{0}'.format(blob[1].name)
     if not os.path.exists(fn):
-        dn  = ntpath.dirname(fn)
-        if not os.path.exists(dn):
-            os.makedirs(dn)
+        os.makedirs(ntpath.dirname(fn), exist_ok=True)
         block_blob_service.get_blob_to_path('mwt-offline-eval', blob[1].name, fn)
     
     f = open(fn, 'r')

@@ -97,8 +97,7 @@ if __name__ == '__main__':
 
     # create scoring directories for [start_date, end_date] range
     scoring_dir = os.path.join(cache_folder, 'scoring')
-    if not os.path.exists(scoring_dir):
-        os.makedirs(scoring_dir)
+    os.makedirs(scoring_dir, exist_ok=True)
 
     for local_date in common.dates_in_range(start_date, end_date):
         scoring_dir_date = os.path.join(scoring_dir, local_date.strftime('%Y/%m/%d'))

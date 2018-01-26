@@ -71,8 +71,8 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
     print('version: {}'.format(version))
     print('create_gzip: {}'.format(create_gzip))
     
-    if not dry_run and not os.path.isdir(os.path.join(log_dir, app_id)):
-        os.makedirs(os.path.join(log_dir, app_id))
+    if not dry_run:
+        os.makedirs(os.path.join(log_dir, app_id), exist_ok=True)
     
     # Get Azure Storage Authentication
     config = configparser.ConfigParser()
