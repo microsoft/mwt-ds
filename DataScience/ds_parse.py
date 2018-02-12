@@ -4,25 +4,22 @@ import multiprocessing,time,collections,os,types
 
 header_str = 'version,date,# rews,rews,# rews1,rews1,rews1 ips,tot ips slot1,tot slot1,tot unique,tot,not joined unique,not joined,1,2,> 2,max(a),time'
 
-def process_files(files, output_file=None):
+def process_files(files, output_file=None, d=None, e=None):
     t0 = time.time()
     fp_list = input_files_to_fp_list(files)
     if output_file:
         f = open(output_file, 'a', 1)
     print(header_str)
-    e = {}
-    d = {}
     for fp in fp_list:
         t1 = time.time()
         print(','.join(os.path.basename(fp)[:-7].split('_data_')), end=',')
-        clicks, d_s, e_s, d_c, e_c, slot_len_c, d, e = process_dsjson_file(fp, d, e)
+        clicks, d_s, e_s, d_c, e_c, slot_len_c = process_dsjson_file(fp, d, e)
         res_list = [sum(clicks[x][i] for x in clicks) for i in range(2)]+clicks.get(1,[0,0,0,0,0])+[len(d_s),d_c,len(e_s),e_c,slot_len_c[1],slot_len_c[2],sum(slot_len_c[i] for i in slot_len_c if i > 2),max(i for i in slot_len_c if slot_len_c[i] > 0)]
         t = time.time()-t1
         print(','.join(map(str,res_list))+',{:.1f}'.format(t))
         if output_file:
             f.write('\t'.join(map(str,os.path.basename(fp)[:-7].split('_data_')+res_list))+'\t{:.1f}'.format(t)+'\n')
     print('Total time: {:.1f} sec'.format(time.time()-t0))
-    return d, e
     
 def process_dsjson_file(fp, d=None, e=None):
     clicks = {}
@@ -57,7 +54,7 @@ def process_dsjson_file(fp, d=None, e=None):
                 e.setdefault(ei, []).append((fp,i,r,et))
             e_c += 1
             e_s.add(ei)
-    return clicks, d_s, e_s, d_c, e_c, slot_len_c, d, e
+    return clicks, d_s, e_s, d_c, e_c, slot_len_c
 
 def input_files_to_fp_list(files):
     if not (isinstance(files, types.GeneratorType) or isinstance(files, list)):
