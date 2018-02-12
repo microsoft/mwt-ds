@@ -1,5 +1,4 @@
 from subprocess import check_output, STDOUT, TimeoutExpired, DEVNULL
-import re
 import multiprocessing
 import sys, os
 import json
@@ -91,10 +90,13 @@ def run_experiment(command, timeout=1000):
             break
         except TimeoutExpired:
             print("Timeout expired for command {0}".format(command.full_command))
-            
-    m = re.search('average loss = (.+)\n', str(results))
-    command.loss = float(m.group(1))
-    print("Ave. Loss: {:12}Policy: {}".format(str(command.loss),command.full_command))
+
+    loss_lines = [x for x in str(results).split('\n') if x.startswith('average loss = ')]
+    if len(loss_lines) != 1:
+        print("Error for command {0}".format(command.full_command))
+    else:
+        command.loss = float(loss_lines[0].split()[3])
+        print("Ave. Loss: {:12}Policy: {}".format(str(command.loss),command.full_command))
     return command
     
 def run_experiment_set(command_list, n_proc):
