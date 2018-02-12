@@ -4,27 +4,9 @@ import multiprocessing,time,collections,os,types
 
 header_str = 'version,date,clicks,clicks1,clicks1 ips,tot ips slot1,tot slot1,tot unique,tot,not joined unique,not joined,1,2,> 2,max(a),time'
 
-# Process dsjson files parallelizing over the files (Faster when files are already in memory)
-def process_files_mp(files, n_proc=5):
+def process_files(files, output_file=None):
     t0 = time.time()
     fp_list = input_files_to_fp_list(files)
-    n_proc = min(n_proc,len(fp_list))
-    print('Using multiprocessing with {} processors on {} files...'.format(n_proc, len(fp_list)))
-    with multiprocessing.Pool(n_proc) as p:
-        r = p.map(compute_dsjson_stats, fp_list)
-    r.sort()
-    print(header_str)
-    for x in r:
-        print(x)
-    print('Total time: {:.1f} sec'.format(time.time()-t0))
-
-# Process dsjson files one-by-one parallelizing over chunks of lines (Faster when files must be loaded from disk)
-def process_files(files, output_file=None, n_proc=1, n_chunks=50):
-    t0 = time.time()
-    fp_list = input_files_to_fp_list(files)
-    if n_proc > 1:
-        n_chunks = max(n_chunks, n_proc)
-        print('Using multiprocessing with {} processors and {} chunks'.format(n_proc, n_chunks))
     if output_file:
         f = open(output_file, 'a', 1)
     print(header_str)
@@ -33,10 +15,7 @@ def process_files(files, output_file=None, n_proc=1, n_chunks=50):
     for fp in fp_list:
         t1 = time.time()
         print(','.join(os.path.basename(fp)[:-7].split('_data_')), end=',')
-        if n_proc > 1:
-            clicks, d_s, e_s, d_c, e_c, slot_len_c = process_dsjson_file_mp(fp, n_proc, n_chunks)
-        else:
-            clicks, d_s, e_s, d_c, e_c, slot_len_c, d, e = process_dsjson_file(fp, d, e)
+        clicks, d_s, e_s, d_c, e_c, slot_len_c, d, e = process_dsjson_file(fp, d, e)
         res_list = [sum(clicks[x][0] for x in clicks)]+clicks[1]+[len(d_s),d_c,len(e_s),e_c,slot_len_c[1],slot_len_c[2],sum(slot_len_c[i] for i in slot_len_c if i > 2),max(i for i in slot_len_c if slot_len_c[i] > 0)]
         t = time.time()-t1
         print(','.join(map(str,res_list))+',{:.1f}'.format(t))
@@ -80,72 +59,6 @@ def process_dsjson_file(fp, d=None, e=None):
             e_s.add(ei)
     return clicks, d_s, e_s, d_c, e_c, slot_len_c, d, e
 
-def process_dsjson_file_mp(fp, n_proc=10, n_chunks=50):
-    d_s = set()
-    e_s = set()
-    e_c = 0
-    d_c = 0
-    
-    lines_d = [[] for i in range(n_chunks)]
-    for x in open(fp, 'rb'):
-        if x.startswith(b'{"_label'):
-            lines_d[d_c % n_chunks].append(x)
-            d_c += 1
-        else:
-            ei,r,et = json_dangling(x)
-            # t1 = datetime.datetime.strptime(ts, "%Y-%m-%dT%H:%M:%S.%f0Z")
-            # t2 = datetime.datetime.strptime(et.replace('Z','').split('.')[0], "%Y-%m-%dT%H:%M:%S")
-            e_c += 1
-            e_s.add(ei)
-    
-    # Map
-    with multiprocessing.Pool(n_proc) as p0:
-        r_d = p0.map(process_dsjson_cooked_lines, lines_d, 1)
-    
-    # Reduce
-    clicks = {}
-    for x in r_d:
-        for y in x[0]:
-            if y in clicks:
-                for i in range(len(clicks[y])):
-                   clicks[y][i] += x[0][y][i]
-            else:
-                clicks[y] = x[0][y]
-                
-    d_s.update(*(x[1] for x in r_d))
-    
-    slot_len_c = r_d[0][2]
-    for x in r_d[1:]:
-        slot_len_c += x[2]      
-    return clicks, d_s, e_s, d_c, e_c, slot_len_c
-
-def compute_dsjson_stats(fp):
-    t0 = time.time()
-    clicks, d_s, e_s, d_c, e_c, slot_len_c, _, _ = process_dsjson_file(fp)
-    res_list = [sum(clicks[x][0] for x in clicks)]+clicks[1]+[len(d_s),d_c,len(e_s),e_c,slot_len_c[1],slot_len_c[2],sum(slot_len_c[i] for i in slot_len_c if i > 2),max(i for i in slot_len_c if slot_len_c[i] > 0)]
-    print('.', end='', flush=True)
-    return ','.join(os.path.basename(fp)[:-7].split('_data_')+list(map(str,res_list)))+',{:.1f}'.format(time.time()-t0)
-    
-def process_dsjson_cooked_lines(lines):
-    clicks = {}
-    slot_len_c = collections.Counter()
-    d_s = set()
-    for x in lines:
-        ei,r,ts,p,a,num_a = json_cooked(x)
-        # ts = datetime.datetime.strptime(ts, "%Y-%m-%dT%H:%M:%S.%f0Z")
-        slot_len_c.update([num_a])
-        d_s.add(ei)
-        if a not in clicks:
-            clicks[a] = [0,0,0,0]
-
-        clicks[a][2] += 1/p
-        clicks[a][3] += 1
-        if r != b'0':
-            r = float(r)
-            clicks[a][0] -= r
-            clicks[a][1] -= r/p
-    return clicks, d_s, slot_len_c
-    
 def input_files_to_fp_list(files):
     if not (isinstance(files, types.GeneratorType) or isinstance(files, list)):
         print('Input is not list or generator. Wrapping it into a list...')
