@@ -2,7 +2,7 @@ import multiprocessing,time,collections,os,types
 
 #########################################################################  CREATE DSJSON FILES STATS #########################################################################
 
-header_str = 'version,date,clicks,clicks1,clicks1 ips,tot ips slot1,tot slot1,tot unique,tot,not joined unique,not joined,1,2,> 2,max(a),time'
+header_str = 'version,date,# rews,rews,# rews1,rews1,rews1 ips,tot ips slot1,tot slot1,tot unique,tot,not joined unique,not joined,1,2,> 2,max(a),time'
 
 def process_files(files, output_file=None):
     t0 = time.time()
@@ -16,7 +16,7 @@ def process_files(files, output_file=None):
         t1 = time.time()
         print(','.join(os.path.basename(fp)[:-7].split('_data_')), end=',')
         clicks, d_s, e_s, d_c, e_c, slot_len_c, d, e = process_dsjson_file(fp, d, e)
-        res_list = [sum(clicks[x][0] for x in clicks)]+clicks.get(1,[0,0,0,0])+[len(d_s),d_c,len(e_s),e_c,slot_len_c[1],slot_len_c[2],sum(slot_len_c[i] for i in slot_len_c if i > 2),max(i for i in slot_len_c if slot_len_c[i] > 0)]
+        res_list = [sum(clicks[x][i] for x in clicks) for i in range(2)]+clicks.get(1,[0,0,0,0,0])+[len(d_s),d_c,len(e_s),e_c,slot_len_c[1],slot_len_c[2],sum(slot_len_c[i] for i in slot_len_c if i > 2),max(i for i in slot_len_c if slot_len_c[i] > 0)]
         t = time.time()-t1
         print(','.join(map(str,res_list))+',{:.1f}'.format(t))
         if output_file:
@@ -34,25 +34,25 @@ def process_dsjson_file(fp, d=None, e=None):
     for i,x in enumerate(open(fp, 'rb')):
         if x.startswith(b'{"_label_cost":'):
             ei,r,ts,p,a,num_a = json_cooked(x)
-            # ts = datetime.datetime.strptime(ts, "%Y-%m-%dT%H:%M:%S.%f0Z")
+
             slot_len_c.update([num_a])
             if d is not None:
                 d.setdefault(ei, []).append((fp,i,p,a,r,num_a,ts))
             d_c += 1
             d_s.add(ei)
             if a not in clicks:
-                clicks[a] = [0,0,0,0]
+                clicks[a] = [0,0,0,0,0]
 
-            clicks[a][2] += 1/p
-            clicks[a][3] += 1
+            clicks[a][3] += 1/p
+            clicks[a][4] += 1
             if r != b'0':
+                clicks[a][0] += 1
                 r = float(r)
-                clicks[a][0] -= r
-                clicks[a][1] -= r/p
+                clicks[a][1] -= r
+                clicks[a][2] -= r/p
         else:
             ei,r,et = json_dangling(x)
-            # t1 = datetime.datetime.strptime(ts, "%Y-%m-%dT%H:%M:%S.%f0Z")
-            # t2 = datetime.datetime.strptime(et.replace('Z','').split('.')[0], "%Y-%m-%dT%H:%M:%S")
+
             if e is not None:
                 e.setdefault(ei, []).append((fp,i,r,et))
             e_c += 1
