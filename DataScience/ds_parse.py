@@ -13,8 +13,8 @@ def process_files(files, output_file=None, d=None, e=None):
     for fp in fp_list:
         t1 = time.time()
         print(','.join(os.path.basename(fp)[:-7].split('_data_')), end=',')
-        clicks, d_s, e_s, d_c, e_c, slot_len_c = process_dsjson_file(fp, d, e)
-        res_list = [sum(clicks[x][i] for x in clicks) for i in range(2)]+clicks.get(1,[0,0,0,0,0])+[len(d_s),d_c,len(e_s),e_c,slot_len_c[1],slot_len_c[2],sum(slot_len_c[i] for i in slot_len_c if i > 2),max(i for i in slot_len_c if slot_len_c[i] > 0)]
+        stats, d_s, e_s, d_c, e_c, slot_len_c = process_dsjson_file(fp, d, e)
+        res_list = [sum(stats[x][i] for x in stats) for i in range(2)]+stats.get(1,[0,0,0,0,0])+[len(d_s),d_c,len(e_s),e_c,slot_len_c[1],slot_len_c[2],sum(slot_len_c[i] for i in slot_len_c if i > 2),max(i for i in slot_len_c if slot_len_c[i] > 0)]
         t = time.time()-t1
         print(','.join(map(str,res_list))+',{:.1f}'.format(t))
         if output_file:
@@ -22,7 +22,7 @@ def process_files(files, output_file=None, d=None, e=None):
     print('Total time: {:.1f} sec'.format(time.time()-t0))
     
 def process_dsjson_file(fp, d=None, e=None):
-    clicks = {}
+    stats = {}
     slot_len_c = collections.Counter()
     e_s = set()
     d_s = set()
@@ -37,16 +37,16 @@ def process_dsjson_file(fp, d=None, e=None):
                 d.setdefault(ei, []).append((fp,i,p,a,r,num_a,ts))
             d_c += 1
             d_s.add(ei)
-            if a not in clicks:
-                clicks[a] = [0,0,0,0,0]
+            if a not in stats:
+                stats[a] = [0,0,0,0,0]
 
-            clicks[a][3] += 1/p
-            clicks[a][4] += 1
+            stats[a][3] += 1/p
+            stats[a][4] += 1
             if r != b'0':
-                clicks[a][0] += 1
+                stats[a][0] += 1
                 r = float(r)
-                clicks[a][1] -= r
-                clicks[a][2] -= r/p
+                stats[a][1] -= r
+                stats[a][2] -= r/p
         else:
             ei,r,et = json_dangling(x)
 
@@ -54,7 +54,7 @@ def process_dsjson_file(fp, d=None, e=None):
                 e.setdefault(ei, []).append((fp,i,r,et))
             e_c += 1
             e_s.add(ei)
-    return clicks, d_s, e_s, d_c, e_c, slot_len_c
+    return stats, d_s, e_s, d_c, e_c, slot_len_c
 
 def input_files_to_fp_list(files):
     if not (isinstance(files, types.GeneratorType) or isinstance(files, list)):
