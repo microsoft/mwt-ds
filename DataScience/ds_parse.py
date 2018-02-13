@@ -16,7 +16,7 @@ def process_files(files, output_file=None):
         t1 = time.time()
         print(','.join(os.path.basename(fp)[:-7].split('_data_')), end=',')
         clicks, d_s, e_s, d_c, e_c, slot_len_c, d, e = process_dsjson_file(fp, d, e)
-        res_list = [sum(clicks[x][0] for x in clicks)]+clicks[1]+[len(d_s),d_c,len(e_s),e_c,slot_len_c[1],slot_len_c[2],sum(slot_len_c[i] for i in slot_len_c if i > 2),max(i for i in slot_len_c if slot_len_c[i] > 0)]
+        res_list = [sum(clicks[x][0] for x in clicks)]+clicks.get(1,[0,0,0,0])+[len(d_s),d_c,len(e_s),e_c,slot_len_c[1],slot_len_c[2],sum(slot_len_c[i] for i in slot_len_c if i > 2),max(i for i in slot_len_c if slot_len_c[i] > 0)]
         t = time.time()-t1
         print(','.join(map(str,res_list))+',{:.1f}'.format(t))
         if output_file:
