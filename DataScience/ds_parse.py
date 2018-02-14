@@ -125,9 +125,9 @@ def json_dangling(x):
     return ei,r,et
 
 def extract_field(x,sep1,sep2,space=1):
-    ind1 = x.find(sep1)
+    ind1 = x.find(sep1)+len(sep1)
     ind2 = x.find(sep2,ind1+space)
-    return x[ind1+len(sep1):ind2]
+    return x[ind1:ind2]
 
 def local_rank(x):
     #################################
