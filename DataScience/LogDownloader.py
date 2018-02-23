@@ -78,14 +78,6 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
     config = configparser.ConfigParser()
     config.read('ds.config')
     connection_string = config['AzureStorageAuthentication'].get(app_id, config['AzureStorageAuthentication']['$Default'])
-    # Check connection string (and parse for logDownloader)
-    try:
-        connection_string_dict = {x.split('=',1)[0] : x.split('=',1)[1] for x in connection_string.split(';')}
-        if not connection_string_dict['AccountName'] or len(connection_string_dict['AccountKey']) != 88:
-            raise
-    except:
-        print("Error: Invalid Azure Storage ConnectionString.")
-        sys.exit()
     
     print('-----'*10)
     
@@ -108,6 +100,10 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                 try:
                     import requests
                     LogDownloaderURL = "https://cps-staging-exp-experimentation.azurewebsites.net/api/Log?account={ACCOUNT_NAME}&key={ACCOUNT_KEY}&start={START_DATE}&end={END_DATE}&container={CONTAINER}"
+                    connection_string_dict = {x.split('=',1)[0] : x.split('=',1)[1] for x in connection_string.split(';')}
+                    if not connection_string_dict['AccountName'] or len(connection_string_dict['AccountKey']) != 88:
+                        print("Error: Invalid Azure Storage ConnectionString.")
+                        sys.exit()
                     url = LogDownloaderURL.format(ACCOUNT_NAME=connection_string_dict['AccountName'], ACCOUNT_KEY=connection_string_dict['AccountKey'].replace('+','%2b'), CONTAINER=app_id, START_DATE=start_date.strftime("%Y-%m-%d"), END_DATE=(end_date+datetime.timedelta(days=1)).strftime("%Y-%m-%d"))
                     r = requests.post(url)
                     open(output_fp, 'wb').write(r.content)
@@ -120,9 +116,13 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
         downloaded_fps = []
         bbs = BlockBlobService(connection_string=connection_string)
 
-        # List all blobs and download them one by one
-        print('Getting blobs list...', end='', flush=True)
-        blobs = bbs.list_blobs(app_id)
+        try:
+            # List all blobs and download them one by one
+            print('Getting blobs list...', end='', flush=True)
+            blobs = bbs.list_blobs(app_id)
+        except:
+            sys.exit()
+
         print(' Done!\nIterating through blobs...\n')
         for blob in blobs:
             if '/data/' not in blob.name:
