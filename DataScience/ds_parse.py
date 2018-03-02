@@ -127,7 +127,10 @@ def json_dangling(x):
 def extract_field(x,sep1,sep2,space=1):
     ind1 = x.find(sep1)+len(sep1)
     ind2 = x.find(sep2,ind1+space)
-    return x[ind1:ind2]
+    if ind2 == -1:
+        return x[ind1:]
+    else:
+        return x[ind1:ind2]
 
 def local_rank(x):
     #################################
