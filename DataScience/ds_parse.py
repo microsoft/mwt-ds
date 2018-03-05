@@ -2,7 +2,7 @@ import multiprocessing,time,collections,os,types
 
 #########################################################################  CREATE DSJSON FILES STATS #########################################################################
 
-header_str = 'version,date,# rews,rews,# rews1,rews1,rews1 ips,tot ips slot1,tot slot1,tot unique,tot,not joined unique,not joined,1,2,> 2,max(a),time'
+header_str = 'version,date,# rews,sum rews,# rews multi a,sum rews multi a,# rews1,sum rews1,rews1 ips,tot ips slot1,tot slot1,tot unique,tot,not joined unique,not joined,1,2,> 2,max(a),time'
 
 def process_files(files, output_file=None, d=None, e=None):
     t0 = time.time()
@@ -13,8 +13,8 @@ def process_files(files, output_file=None, d=None, e=None):
     for fp in fp_list:
         t1 = time.time()
         print(','.join(os.path.basename(fp)[:-7].split('_data_')), end=',')
-        stats, d_s, e_s, d_c, e_c, slot_len_c = process_dsjson_file(fp, d, e)
-        res_list = [sum(stats[x][i] for x in stats) for i in range(2)]+stats.get(1,[0,0,0,0,0])+[len(d_s),d_c,len(e_s),e_c,slot_len_c[1],slot_len_c[2],sum(slot_len_c[i] for i in slot_len_c if i > 2),max(i for i in slot_len_c if slot_len_c[i] > 0)]
+        stats, d_s, e_s, d_c, e_c, slot_len_c, rew_multi_a = process_dsjson_file(fp, d, e)
+        res_list = [sum(stats[x][i] for x in stats) for i in range(2)]+rew_multi_a+stats.get(1,[0,0,0,0,0])+[len(d_s),d_c,len(e_s),e_c,slot_len_c[1],slot_len_c[2],sum(slot_len_c[i] for i in slot_len_c if i > 2),max(i for i in slot_len_c if slot_len_c[i] > 0)]
         t = time.time()-t1
         print(','.join(map(str,res_list))+',{:.1f}'.format(t))
         if output_file:
@@ -28,6 +28,7 @@ def process_dsjson_file(fp, d=None, e=None):
     d_s = set()
     e_c = 0
     d_c = 0
+    rew_multi_a = [0,0]
     for i,x in enumerate(open(fp, 'rb')):
         if x.startswith(b'{"_label_cost":'):
             ei,r,ts,p,a,num_a = json_cooked(x)
@@ -47,6 +48,9 @@ def process_dsjson_file(fp, d=None, e=None):
                 r = float(r)
                 stats[a][1] -= r
                 stats[a][2] -= r/p
+                if num_a > 1:
+                    rew_multi_a[0] += 1
+                    rew_multi_a[1] -= r
         else:
             ei,r,et = json_dangling(x)
 
@@ -54,7 +58,7 @@ def process_dsjson_file(fp, d=None, e=None):
                 e.setdefault(ei, []).append((fp,i,r,et))
             e_c += 1
             e_s.add(ei)
-    return stats, d_s, e_s, d_c, e_c, slot_len_c
+    return stats, d_s, e_s, d_c, e_c, slot_len_c, rew_multi_a
 
 def input_files_to_fp_list(files):
     if not (isinstance(files, types.GeneratorType) or isinstance(files, list)):
