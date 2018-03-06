@@ -220,16 +220,23 @@ if __name__ == '__main__':
         with gzip.open(file_path, 'rt', encoding='utf8') if file_path.endswith('.gz') else open(file_path, 'r', encoding="utf8") as data:
             counter = 0
             for line in data:
+                if not line.startswith('{"_label_cost"'):
+                    continue
+
                 counter += 1
                 event = json.loads(line)
                 # Separate the shared features from the action features for namespace analysis
-                context = event['c']
-                action_set = context['_multi']
-                del context['_multi']
-                detect_namespaces(context, shared_tmp, marginal_tmp)
-                # Namespace detection expects object of type 'dict', so unwrap the action list 
-                for action in action_set:
-                    detect_namespaces(action, action_tmp, marginal_tmp)
+                if 'c' in event:
+                    context = event['c']
+                    action_set = context['_multi']
+                    del context['_multi']
+                    detect_namespaces(context, shared_tmp, marginal_tmp)
+                    # Namespace detection expects object of type 'dict', so unwrap the action list
+                    for action in action_set:
+                        detect_namespaces(action, action_tmp, marginal_tmp)
+                else:
+                    print('Error: c not in json:',line)
+                    input('Press ENTER to continue...')
 
                 # We assume the schema is consistent throughout the file, but since some
                 # namespaces may not appear in every datapoint, check enough points.
