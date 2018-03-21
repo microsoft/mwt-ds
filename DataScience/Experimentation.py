@@ -1,4 +1,4 @@
-from subprocess import check_output, STDOUT, TimeoutExpired, DEVNULL
+from subprocess import check_output, STDOUT, TimeoutExpired, DEVNULL, Popen
 import multiprocessing, psutil
 import sys, os
 import json
@@ -169,6 +169,27 @@ def parse_min_max_steps(val):
         raise argparse.ArgumentTypeError('Input "{}" is an invalid range (make sure that steps > 0, max >= min >= 0, and min > 0 if steps > 1)'.format(val))
     return np.logspace(np.log10(val_min), np.log10(val_max), steps) if steps > 1 else [val_min]
 
+def generate_predictions_files(log_fp, policies):
+
+    predictions_files = []
+    print('Generating predictions files (using --cb_explore_adf) for {} policies:'.format(len(policies)))
+    for name,policy in policies:
+        print('Name: {} Ave. Loss: {} cmd: {}'.format(name, policy.loss, policy.full_command.replace('--cb_adf', '--cb_explore_adf')))
+    print("*************************")
+
+    processes = []
+    for name,policy in policies:
+        pred_fp = log_fp + '.' + name + '.pred'
+        predictions_files.append(pred_fp)
+        cmd = policy.full_command.replace('--cb_adf', '--cb_explore_adf') + ' -p ' + pred_fp + ' -P 100000'
+        p = Popen(cmd.split(' '), stdout=DEVNULL, stderr=DEVNULL)
+        processes.append(p)
+
+    for p in processes:
+        p.wait()
+        
+    return predictions_files
+
 
 if __name__ == '__main__':
 
@@ -192,6 +213,7 @@ if __name__ == '__main__':
     parser.add_argument('-t','--power_t_rates', type=parse_min_max_steps, help="Power_t range as positive values 'min,max,steps' (default: 1e-9,0.5,5)", default='1e-9,0.5,5')
     parser.add_argument('--q_bruteforce_terms', type=int, help="number of quadratic pairs to test in brute-force phase (default: 2)", default=2)
     parser.add_argument('--q_greedy_stop', type=int, help="rounds without improvements after which quadratic greedy search phase is halted (default: 3)", default=3)
+    parser.add_argument('--generate_predictions', help="generate prediction files for best policies", action='store_true')
 
     # Parse input and create variables
     args_dict = vars(parser.parse_args())   # this creates a dictionary with all input CLI
@@ -262,6 +284,8 @@ if __name__ == '__main__':
     action_features = {x[0] for x in action_features}
     marginal_features = {x[0] for x in marginal_features}
     
+    best_commands = []
+    
     best_command = Command(base_command)
     t0 = datetime.now()
     
@@ -287,108 +311,113 @@ if __name__ == '__main__':
     results = run_experiment_set(command_list, n_proc)
     if results[0].loss < best_command.loss:
         best_command = results[0]
+        best_commands.append(['Hyper1', results[0]])
     
-    if only_hp:
-        elapsed_time = datetime.now() - t0
-        elapsed_time -= timedelta(microseconds=elapsed_time.microseconds)
-        print("\nBest parameters found after elapsed time {0}:".format(elapsed_time))
-        best_command.prints()
-        sys.exit()
-    
-    # CB type
-    print('\nTesting cb types...')
-    cb_types = ['mtr']       # ips is default (avoid to recheck it)
-    command_list = []
-    for cb_type in cb_types:
-        command = Command(base_command, clone_from=best_command, cb_type=cb_type)
-        command_list.append(command)
-        
-    results = run_experiment_set(command_list, n_proc)
-    if results[0].loss < best_command.loss:
-        best_command = results[0]
-
-    # Add Marginals
-    print('\nTesting marginals...')
-    while True:
+    if not only_hp:        
+        # CB type
+        print('\nTesting cb types...')
+        cb_types = ['mtr']       # ips is default (avoid to recheck it)
         command_list = []
-        for feature in marginal_features:
-            if feature in best_command.marginal_list:
-                continue
-            command = Command(base_command, clone_from=best_command, marginal_list={feature})
+        for cb_type in cb_types:
+            command = Command(base_command, clone_from=best_command, cb_type=cb_type)
             command_list.append(command)
-        
-        if len(command_list) == 0:
-            break
-
+            
         results = run_experiment_set(command_list, n_proc)
         if results[0].loss < best_command.loss:
             best_command = results[0]
-        else:
-            break
+            best_commands.append(['cbType', results[0]])
+
+        # Add Marginals
+        print('\nTesting marginals...')
+        while True:
+            command_list = []
+            for feature in marginal_features:
+                if feature in best_command.marginal_list:
+                    continue
+                command = Command(base_command, clone_from=best_command, marginal_list={feature})
+                command_list.append(command)
+            
+            if len(command_list) == 0:
+                break
+
+            results = run_experiment_set(command_list, n_proc)
+            if results[0].loss < best_command.loss:
+                best_command = results[0]
+                best_commands.append(['Marginals', results[0]])
+            else:
+                break
+            
+        # TODO: Which namespaces to ignore
         
-    # TODO: Which namespaces to ignore
-    
-    # Test all combinations up to q_bruteforce_terms
-    possible_interactions = set()
-    for features in shared_features:
-        for action_feature in action_features:
-            interaction = '{0}{1}'.format(features, action_feature)
-            possible_interactions.add(interaction)
-    
-    command_list = []    
-    for i in range(q_bruteforce_terms+1):    
-        for interaction_list in itertools.combinations(possible_interactions, i):
-            command = Command(base_command, clone_from=best_command, interaction_list=interaction_list)
-            command_list.append(command)
-    
-    print('\nTesting {} different interactions (brute-force phase)...'.format(len(command_list)))
-    results = run_experiment_set(command_list, n_proc)
-    if results[0].loss < best_command.loss:
-        best_command = results[0]
-    
-    # Build greedily on top of the best parameters found above (stop when no improvements for q_greedy_stop consecutive rounds)
-    print('\nTesting interactions (greedy phase)...')
-    temp_interaction_list = set(best_command.interaction_list)
-    rounds_without_improvements = 0
-    while rounds_without_improvements < q_greedy_stop:
-        command_list = []
+        # Test all combinations up to q_bruteforce_terms
+        possible_interactions = set()
         for features in shared_features:
             for action_feature in action_features:
                 interaction = '{0}{1}'.format(features, action_feature)
-                if interaction in temp_interaction_list:
-                    continue
-                command = Command(base_command, clone_from=best_command, interaction_list=temp_interaction_list.union({interaction}))   # union() keeps temp_interaction_list unchanged
+                possible_interactions.add(interaction)
+        
+        command_list = []    
+        for i in range(q_bruteforce_terms+1):    
+            for interaction_list in itertools.combinations(possible_interactions, i):
+                command = Command(base_command, clone_from=best_command, interaction_list=interaction_list)
                 command_list.append(command)
         
-        if len(command_list) == 0:
-            break
-
+        print('\nTesting {} different interactions (brute-force phase)...'.format(len(command_list)))
         results = run_experiment_set(command_list, n_proc)
         if results[0].loss < best_command.loss:
             best_command = results[0]
-            rounds_without_improvements = 0
-        else:
-            rounds_without_improvements += 1
-        temp_interaction_list = set(results[0].interaction_list)
+            best_commands.append(['Inter-len'+str(len(results[0].interaction_list)),results[0]])
+        
+        # Build greedily on top of the best parameters found above (stop when no improvements for q_greedy_stop consecutive rounds)
+        print('\nTesting interactions (greedy phase)...')
+        temp_interaction_list = set(best_command.interaction_list)
+        rounds_without_improvements = 0
+        while rounds_without_improvements < q_greedy_stop:
+            command_list = []
+            for features in shared_features:
+                for action_feature in action_features:
+                    interaction = '{0}{1}'.format(features, action_feature)
+                    if interaction in temp_interaction_list:
+                        continue
+                    command = Command(base_command, clone_from=best_command, interaction_list=temp_interaction_list.union({interaction}))   # union() keeps temp_interaction_list unchanged
+                    command_list.append(command)
+            
+            if len(command_list) == 0:
+                break
 
-    # Regularization, Learning rates, and Power_t rates grid search
-    command_list = []
-    for learning_rate in learning_rates:
-        for regularization in regularizations:
-            for power_t in power_t_rates:
-                command = Command(base_command, clone_from=best_command, regularization=regularization, learning_rate=learning_rate, power_t=power_t)
-                command_list.append(command)
+            results = run_experiment_set(command_list, n_proc)
+            if results[0].loss < best_command.loss:
+                best_command = results[0]
+                best_commands.append(['Inter-len'+str(len(results[0].interaction_list)),results[0]])
+                rounds_without_improvements = 0
+            else:
+                rounds_without_improvements += 1
+            temp_interaction_list = set(results[0].interaction_list)
 
-    print('\nTesting {} different hyperparameters...'.format(len(command_list)))
-    results = run_experiment_set(command_list, n_proc)
-    if results[0].loss < best_command.loss:
-        best_command = results[0]
+        # Regularization, Learning rates, and Power_t rates grid search
+        command_list = []
+        for learning_rate in learning_rates:
+            for regularization in regularizations:
+                for power_t in power_t_rates:
+                    command = Command(base_command, clone_from=best_command, regularization=regularization, learning_rate=learning_rate, power_t=power_t)
+                    command_list.append(command)
 
-    # TODO: Repeat above process of tuning parameters and interactions until convergence / no more improvements.
+        print('\nTesting {} different hyperparameters...'.format(len(command_list)))
+        results = run_experiment_set(command_list, n_proc)
+        if results[0].loss < best_command.loss:
+            best_command = results[0]
+            best_commands.append(['Hyper2', results[0]])
 
-    elapsed_time = datetime.now() - t0
-    elapsed_time -= timedelta(microseconds=elapsed_time.microseconds)
+        # TODO: Repeat above process of tuning parameters and interactions until convergence / no more improvements.
+
+    t1 = datetime.now()
     print("\n\n*************************")
-    print("Best parameters found after elapsed time {0}:".format(elapsed_time))
+    print("Best parameters found after {}:".format((t1-t0)-timedelta(microseconds=(t1-t0).microseconds)))
     best_command.prints()
     print("*************************")
+
+    if generate_predictions:
+        _ = generate_predictions_files(file_path, best_commands)
+        t2 = datetime.now()
+        print('Predictions Generation Time:',(t2-t1)-timedelta(microseconds=(t2-t1).microseconds))
+        print('Total Elapsed Time:',(t2-t0)-timedelta(microseconds=(t2-t0).microseconds))
