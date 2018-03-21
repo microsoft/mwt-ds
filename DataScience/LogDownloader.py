@@ -114,7 +114,7 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                 try:
                     import requests
                     LogDownloaderURL = "https://cps-staging-exp-experimentation.azurewebsites.net/api/Log?account={ACCOUNT_NAME}&key={ACCOUNT_KEY}&start={START_DATE}&end={END_DATE}&container={CONTAINER}"
-                    connection_string_dict = {x.split('=',1)[0] : x.split('=',1)[1] for x in connection_string.split(';')}
+                    connection_string_dict = dict(x.split('=',1) for x in connection_string.split(';'))
                     if not connection_string_dict['AccountName'] or len(connection_string_dict['AccountKey']) != 88:
                         print("Error: Invalid Azure Storage ConnectionString.")
                         sys.exit()
