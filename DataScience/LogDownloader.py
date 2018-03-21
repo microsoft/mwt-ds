@@ -28,11 +28,11 @@ def parse_argv(argv):
     parser.add_argument('-l','--log_dir', help="base dir to download data (a subfolder will be created)", required=True)
     parser.add_argument('-s','--start_date', help="downloading start date (included) - format YYYY-MM-DD", type=valid_date)
     parser.add_argument('-e','--end_date', help="downloading end date (included) - format YYYY-MM-DD", type=valid_date)
-    parser.add_argument('-o','--overwrite_mode', type=int, help='''    0: don't overwrite - ask if blobs are currently used [default]
-    1: ask user if files have different sizes and if blobs are currently used
-    2: always overwrite - download currently used blobs
-    3: don't overwrite and append if larger size, without asking - download currently used blobs
-    4: don't overwrite and append if larger size, without asking - skip currently used blobs''', default=0)
+    parser.add_argument('-o','--overwrite_mode', type=int, help='''    0: never overwrite; ask the user whether blobs are currently used [default]
+    1: ask the user how to proceed when the files have different sizes or when the blobs are currently being used
+    2: always overwrite; download currently used blobs
+    3: never overwrite; append if the size is larger, without asking; download currently used blobs
+    4: never overwrite; append if the size is larger, without asking; skip currently used blobs''', default=0)
     parser.add_argument('--dry_run', help="print which blobs would have been downloaded, without downloading", action='store_true')
     parser.add_argument('--create_gzip', help="create gzip file for Vowpal Wabbit", action='store_true')
     parser.add_argument('--delta_mod_t', type=int, default=3600, help='time window in sec to detect if a file is currently in use (default=3600 - 1 hour)')
