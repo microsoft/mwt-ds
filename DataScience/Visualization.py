@@ -25,36 +25,34 @@ def parse_logs(raw_stats, files, delta_mod_t=3600):
             ii += 1
             if ii % 10000 == 0:
                 print(ii)
-            if b'Timestamp' not in line or b'_label_cost' not in line:
+            if not line.startswith(b'{"_label_cost'):
                 continue
             
-            try:
-                ei,r,ts,p,a,num_a,dev = ds_parse.json_cooked(line, do_devType=True)
+            ei,r,ts,p,a,num_a,dev = ds_parse.json_cooked(line, do_devType=True)
+            
+            # extract date from ts
+            d = str(ts[:13], 'utf-8')
+            dev = str(dev, 'utf-8')
+            
+            if d not in c2:
+                c2[d] = {}
+            if dev not in c2[d]:
+                c2[d][dev] = [0,0,0]
+            if 'ips' not in c2:
+                c2['ips'] = {}
+            if d[:10] not in c2['ips']:
+                c2['ips'][d[:10]] = [0,0]
                 
-                # extract date from ts
-                d = str(ts[:13], 'utf-8')
-                dev = str(dev, 'utf-8')
-                
-                if d not in c2:
-                    c2[d] = {}
-                if dev not in c2[d]:
-                    c2[d][dev] = [0,0,0]
-                if 'ips' not in c2:
-                    c2['ips'] = {}
-                if d[:10] not in c2['ips']:
-                    c2['ips'][d[:10]] = [0,0]
-                    
-                c2[d][dev][1] += 1
-                c2['ips'][d[:10]][1] += 1
-                if r != b'0':
-                    r = float(r)
-                    c2[d][dev][0] += 1
-                    c2[d][dev][2] -= r
-                    if a == 1:
-                        c2['ips'][d[:10]][0] -= r/p
-                        
-            except Exception as e:
-                print('error: {0}'.format(e))
+            c2[d][dev][1] += 1
+            if a == 1:
+                c2['ips'][d[:10]][1] += 1/p
+            if r != b'0':
+                r = float(r)
+                c2[d][dev][0] += 1
+                c2[d][dev][2] -= r
+                if a == 1:
+                    c2['ips'][d[:10]][0] -= r/p
+
 
         raw_stats[os.path.basename(fp)] = c2
 
