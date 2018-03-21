@@ -8,6 +8,7 @@ import gzip
 import itertools
 from enum import Enum
 import numpy as np
+import collections
 
 
 class Command:
@@ -134,16 +135,16 @@ def detect_namespaces(j_obj, ns_set, marginal_set=None):
             for item in value:
                 ret_val = detect_namespaces(item, ns_set, marginal_set)
                 if ret_val is PropType.BASIC:
-                    ns_set.add(key[0])
+                    ns_set.update([key])
                 elif (marginal_set != None) and (ret_val is PropType.MARGINAL):
-                    marginal_set.add(key[0])
+                    marginal_set.update([key])
         elif type(value) is dict:
             # Recurse on the value
             ret_val = detect_namespaces(value, ns_set, marginal_set)
             if ret_val is PropType.BASIC:
-                ns_set.add(key[0])
+                ns_set.update([key])
             elif (marginal_set != None) and (ret_val is PropType.MARGINAL):
-                marginal_set.add(key[0])
+                marginal_set.update([key])
         elif value is not None:
             prop_type = PropType.BASIC
 
@@ -205,9 +206,9 @@ if __name__ == '__main__':
 
     # Identify namespaces and detect marginal features (unless already specified)
     if not (shared_features and action_features and marginal_features):
-        shared_tmp = set()
-        action_tmp = set()
-        marginal_tmp = set()
+        shared_tmp = collections.Counter()
+        action_tmp = collections.Counter()
+        marginal_tmp = collections.Counter()
         with gzip.open(file_path, 'rt', encoding='utf8') if file_path.endswith('.gz') else open(file_path, 'r', encoding="utf8") as data:
             counter = 0
             for line in data:
@@ -255,6 +256,10 @@ if __name__ == '__main__':
     if input('Press ENTER to start (any other key to exit)...' ) != '':
         sys.exit()
 
+    shared_features = {x[0] for x in shared_features}
+    action_features = {x[0] for x in action_features}
+    marginal_features = {x[0] for x in marginal_features}
+    
     best_command = Command(base_command)
     t0 = datetime.now()
     
