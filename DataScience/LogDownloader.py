@@ -20,6 +20,20 @@ def valid_date(s):
         return datetime.datetime.strptime(s, "%Y-%m-%d")
     except ValueError:
         raise argparse.ArgumentTypeError("Not a valid date: '{0}'. Expected format: YYYY-MM-DD".format(s))
+        
+def cmp_files(f1, f2, start_range_f1=0, start_range_f2=0, bufsize=8*1024):
+    with open(f1, 'rb') as fp1, open(f2, 'rb') as fp2:
+        if start_range_f1 != 0:
+            fp1.seek(start_range_f1, 0 if start_range_f1 > 0 else 2)
+        if start_range_f2 != 0:
+            fp2.seek(start_range_f2, 0 if start_range_f2 > 0 else 2)
+        while True:
+            b1 = fp1.read(bufsize)
+            b2 = fp2.read(bufsize)
+            if b1 != b2:
+                return False
+            if not b1:
+                return True
 
 def parse_argv(argv):
 
@@ -180,16 +194,22 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                 else:
                     t0 = time.time()
                     if overwrite_mode in {3, 4} and file_size:
-                        print('Resume downloading with max_connections = {}...'.format(max_connections))
-                        if max_connections == 1:
-                            bbs.get_blob_to_path(app_id, blob.name, fp, progress_callback=update_progress, max_connections=1, start_range=file_size, open_mode='ab')
-                        else:
-                            temp_fp = fp + '.temp'
+                        print('Check validity of remote file... ', end='')
+                        temp_fp = fp + '.temp'
+                        cmpsize = min(file_size,8*1024**2)
+                        bbs.get_blob_to_path(app_id, blob.name, temp_fp, max_connections=max_connections, start_range=file_size-cmpsize, end_range=file_size-1)
+                        if cmp_files(fp, temp_fp, -cmpsize):
+                            print('Valid!')
+                            print('Resume downloading with max_connections = {}...'.format(max_connections))
                             bbs.get_blob_to_path(app_id, blob.name, temp_fp, progress_callback=update_progress, max_connections=max_connections, start_range=file_size)
                             with open(fp, 'ab') as f1, open(temp_fp, 'rb') as f2:
-                                shutil.copyfileobj(f2, f1, length=1024*1024*100)   # writing chunks of 100MB to avoid consuming memory
+                                shutil.copyfileobj(f2, f1, length=100*1024**2)   # writing chunks of 100MB to avoid consuming memory
                             os.remove(temp_fp)
-                        download_size_MB = (os.path.getsize(fp)-file_size)/(1024**2) # file size in MB
+                            download_size_MB = (os.path.getsize(fp)-file_size)/(1024**2) # file size in MB
+                        else:
+                            os.remove(temp_fp)
+                            print('Invalid! - Skip\n')
+                            continue
                     else:
                         print('Downloading with max_connections = {}...'.format(max_connections))
                         bbs.get_blob_to_path(app_id, blob.name, fp, progress_callback=update_progress, max_connections=max_connections)
