@@ -12,9 +12,12 @@ def parse_logs(raw_stats, files, delta_mod_t=3600):
     
     for fp in files:
         delta_t = time.time()-os.path.getmtime(fp)
-        if os.path.basename(fp) in raw_stats and delta_t > delta_mod_t:
-            continue
-        print('Processing: {} - Last modified: {:.1f} sec ago < delta_mod_t={} sec'.format(fp,delta_t,delta_mod_t))
+        if os.path.basename(fp) in raw_stats:
+            if delta_t > delta_mod_t:
+                continue
+            print('Processing: {} - Last modified: {:.1f} sec ago < delta_mod_t={} sec'.format(fp,delta_t,delta_mod_t))
+        else:
+            print('Processing: {}'.format(fp))
         
         c2 = {}
         ii = 0
@@ -96,7 +99,7 @@ if __name__ == '__main__':
 
     print('raw_stats.keys():',raw_stats.keys())
 
-    files = [x.path for x in os.scandir(os.path.join(log_dir,app_id)) if x.path.endswith('.json') and '_skip' not in x.name]
+    files = [x.path for x in os.scandir(os.path.join(log_dir,app_id)) if x.path.endswith('.json') and '_skip' not in x.name and x.name.startswith('20') and x.name[14:20] == '_data_']
 
     parse_logs(raw_stats, files, delta_mod_t)
     
@@ -108,22 +111,25 @@ if __name__ == '__main__':
     stats = {}
     stats_ips = {}
     for fn in raw_stats:
-        for h in raw_stats[fn]: 
-            if h == 'ips':
-                for day in raw_stats[fn]['ips']: 
-                    stats_ips.setdefault(day, []).append(raw_stats[fn]['ips'][day])
+        for d in raw_stats[fn]:
+            if d == 'ips':
+                for day in raw_stats[fn]['ips']:
+                    # if there are multiple entries with same hour, take the one with the largest total traffic
+                    if day not in stats_ips or raw_stats[fn]['ips'][day][1] > stats_ips[day][1]:
+                        stats_ips[day] = raw_stats[fn]['ips'][day]
             else:
-                stats.setdefault(h, []).append(raw_stats[fn][h])
+                # if there are multiple entries with same hour, take the one with the largest total traffic (sum over all devices)
+                if d not in stats or sum(raw_stats[fn][d][dev][1] for dev in raw_stats[fn][d]) > sum(stats[d][dev][1] for dev in stats[d]):
+                    stats[d] = raw_stats[fn][d]
+    
+    pStats = sorted([(d,stats[d]) for d in stats])
+    pStats_ips = sorted([(day,stats_ips[day]) for day in stats_ips])
     
     ############################ VISUALIZATIONS ##################################################
-
     for do_by_day in [False, True]:    
-        pStats = sorted([(fn,sorted(stats[fn], key=lambda x : sum(x[k][1] for k in x))[-1]) for fn in stats])
-        
         if do_by_day:
-            pStats = convert_pStats_from_hours_to_days(pStats)
+            pStats = convert_pStats_from_hours_to_days(pStats)      # update pStats to be day by day
             days = [(i,x[0]) for i,x in enumerate(pStats)]
-            pStats_ips = sorted([(h,sorted(stats_ips[h], key=lambda x : x[-1])[-1]) for h in stats_ips])
         else:
             days = [(i,x[0]) for i,x in enumerate(pStats) if 'T12' in x[0]] # Time is in UTC: T12 is 8am EST
             
