@@ -30,6 +30,10 @@ def process_dsjson_file(fp, d=None, e=None):
     d_c = 0
     rew_multi_a = [0,0]
     for i,x in enumerate(open(fp, 'rb')):
+        if not (x.startswith(b'{"') or x.strip().endswith(b'}')):
+            print('Corrupted line: {}'.format(x))
+            continue
+        
         if x.startswith(b'{"_label_cost":'):
             ei,r,ts,p,a,num_a = json_cooked(x)
 
