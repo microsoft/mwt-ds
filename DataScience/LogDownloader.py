@@ -50,6 +50,7 @@ def parse_argv(argv):
     parser.add_argument('--dry_run', help="print which blobs would have been downloaded, without downloading", action='store_true')
     parser.add_argument('--create_gzip', help="create gzip file for Vowpal Wabbit", action='store_true')
     parser.add_argument('--delta_mod_t', type=int, default=3600, help='time window in sec to detect if a file is currently in use (default=3600 - 1 hour)')
+    parser.add_argument('--max_connections', type=int, default=4, help='number of max_connections (default=4)')
     parser.add_argument('--verbose', help="print more details", action='store_true')
     parser.add_argument('-v','--version', type=int, default=2, help='''version of log downloader to use:
     1: for uncooked logs (only for backward compatibility) [deprecated]
@@ -73,7 +74,7 @@ def update_progress(current, total):
     sys.stdout.write(text)
     sys.stdout.flush()
 
-def download_container(app_id, log_dir, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, verbose=False, create_gzip=False, delta_mod_t=3600):
+def download_container(app_id, log_dir, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, verbose=False, create_gzip=False, delta_mod_t=3600, max_connections=4):
     
     t_start = time.time()
     print('-----'*10)
@@ -187,8 +188,7 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                         print('Azure blob currently in use (modified in the last delta_mod_t={} sec). Skipping!\n'.format(delta_mod_t))
                         continue                        
                     max_connections = 1 # set max_connections to 1 to prevent crash if azure blob is modified during download
-                else:
-                    max_connections = 4
+
                 if dry_run:
                     print('--dry_run - Not downloading!')
                 else:
