@@ -1,4 +1,4 @@
-import multiprocessing,time,collections,os,types
+import time,collections,os,types,gzip
 
 #########################################################################  CREATE DSJSON FILES STATS #########################################################################
 
@@ -29,7 +29,7 @@ def process_dsjson_file(fp, d=None, e=None):
     e_c = 0
     d_c = 0
     rew_multi_a = [0,0]
-    for i,x in enumerate(open(fp, 'rb')):
+    for i,x in enumerate(gzip.open(fp, 'rb') if fp.endswith('.gz') else open(fp, 'rb')):
         if not (x.startswith(b'{"') or x.strip().endswith(b'}')):
             print('Corrupted line: {}'.format(x))
             continue
