@@ -157,19 +157,19 @@ def detect_namespaces(j_obj, ns_set, marginal_set=None):
 
     return prop_type
 
-# Ensures validity of min_max_steps input
-def check_min_max_steps(val):
+# Ensures validity and parse min_max_steps input
+def parse_min_max_steps(val):
     try:
         temp = val.split(',')
         if len(temp) != 3:
             raise
         val_min, val_max = map(float, temp[:2])
         steps = int(temp[2])
-        if steps < 1 or val_min <= 0 or val_min >= val_max:
+        if steps < 1 or val_min <= 0 or (steps > 1 and val_min >= val_max):
             raise
     except:
-        raise argparse.ArgumentTypeError('Input "{}" is an invalid range (make sure that max > min > 0 and steps > 0)'.format(val))
-    return val_min, val_max, steps
+        raise argparse.ArgumentTypeError('Input "{}" is an invalid range (make sure that steps > 0, min > 0, and max > min if steps > 1)'.format(val))
+    return np.logspace(np.log10(val_min), np.log10(val_max), steps)
 
 
 if __name__ == '__main__':
@@ -189,9 +189,9 @@ if __name__ == '__main__':
     parser.add_argument('-m','--marginal_namespaces', type=str, help="marginal feature namespaces (default: auto-detect from data file)", default='')
     parser.add_argument('--auto_lines', type=int, help="number of data file lines to scan to auto-detect features namespaces (default: 100)", default=100)
     parser.add_argument('--only_hp', help="sweep only over hyper-parameters (`learning rate`, `L1 regularization`, and `power_t`)", action='store_true')
-    parser.add_argument('-l','--lr_min_max_steps', type=check_min_max_steps, help="learning rate range as positive values 'min,max,steps' (default: 1e-5,0.5,4)", default='1e-5,0.5,4')
-    parser.add_argument('-r','--reg_min_max_steps', type=check_min_max_steps, help="L1 regularization range as positive values 'min,max,steps' (default: 1e-9,0.1,5)", default='1e-9,0.1,5')
-    parser.add_argument('-t','--pt_min_max_steps', type=check_min_max_steps, help="Power_t range as positive values 'min,max,steps' (default: 1e-9,0.5,5)", default='1e-9,0.5,5')
+    parser.add_argument('-l','--learning_rates', type=parse_min_max_steps, help="learning rate range as positive values 'min,max,steps' (default: 1e-5,0.5,4)", default='1e-5,0.5,4')
+    parser.add_argument('-r','--regularizations', type=parse_min_max_steps, help="L1 regularization range as positive values 'min,max,steps' (default: 1e-9,0.1,5)", default='1e-9,0.1,5')
+    parser.add_argument('-t','--power_t_rates', type=parse_min_max_steps, help="Power_t range as positive values 'min,max,steps' (default: 1e-9,0.5,5)", default='1e-9,0.5,5')
     parser.add_argument('--q_bruteforce_terms', type=int, help="number of quadratic pairs to test in brute-force phase (default: 2)", default=2)
     parser.add_argument('--q_greedy_stop', type=int, help="rounds without improvements after which quadratic greedy search phase is halted (default: 3)", default=3)
 
@@ -202,12 +202,6 @@ if __name__ == '__main__':
 
     # Additional processing of inputs not covered by above
     base_command += ('' if base_command[-1] == ' ' else ' ') + '-d ' + file_path
-    lr_min, lr_max, lr_steps = lr_min_max_steps
-    learning_rates = np.logspace(np.log10(lr_min), np.log10(lr_max), lr_steps)
-    reg_min, reg_max, reg_steps = reg_min_max_steps
-    regularizations = np.logspace(np.log10(reg_min), np.log10(reg_max), reg_steps)
-    pt_min, pt_max, pt_steps = pt_min_max_steps
-    power_t_rates = np.logspace(np.log10(pt_min), np.log10(pt_max), pt_steps)
     shared_features = set(shared_namespaces)
     action_features = set(action_namespaces)
     marginal_features = set(marginal_namespaces)
