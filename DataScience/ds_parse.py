@@ -1,4 +1,12 @@
-import time,collections,os,types,gzip
+import time,collections,os,types,gzip,sys
+
+def update_progress(current, total, prefix=''):
+    barLength = 50 # Length of the progress bar
+    progress = current/total
+    block = int(barLength*progress)
+    text = "\r{}Progress: [{}] {:.1f}%".format(prefix, "#"*block + "-"*(barLength-block), progress*100)
+    sys.stdout.write(text)
+    sys.stdout.flush()
 
 #########################################################################  CREATE DSJSON FILES STATS #########################################################################
 
@@ -12,13 +20,11 @@ def process_files(files, output_file=None, d=None, e=None):
     print(header_str)
     for fp in fp_list:
         t1 = time.time()
-        print(','.join(os.path.basename(fp)[:-7].split('_data_')), end=',')
         stats, d_s, e_s, d_c, e_c, slot_len_c, rew_multi_a, baselineRandom = process_dsjson_file(fp, d, e)
-        res_list = [sum(stats[x][i] for x in stats) for i in range(2)]+rew_multi_a+stats.get(1,[0,0,0,0,0])+baselineRandom+[len(d_s),d_c,len(e_s),e_c,slot_len_c[1],slot_len_c[2],sum(slot_len_c[i] for i in slot_len_c if i > 2),max(i for i in slot_len_c if slot_len_c[i] > 0)]
-        t = time.time()-t1
-        print(','.join(map(str,res_list))+',{:.1f}'.format(t))
+        res_list = [sum(stats[x][i] for x in stats) for i in range(2)]+rew_multi_a+stats.get(1,[0,0,0,0,0])+baselineRandom+[len(d_s),d_c,len(e_s),e_c,slot_len_c[1],slot_len_c[2],sum(slot_len_c[i] for i in slot_len_c if i > 2),max(i for i in slot_len_c if slot_len_c[i] > 0),'{:.1f}'.format(time.time()-t1)]
+        print(','.join(map(str,os.path.basename(fp)[:-7].split('_data_')+res_list)))
         if output_file:
-            f.write('\t'.join(map(str,os.path.basename(fp)[:-7].split('_data_')+res_list))+'\t{:.1f}'.format(t)+'\n')
+            f.write('\t'.join(map(str,os.path.basename(fp)[:-7].split('_data_')+res_list))+'\n')
     print('Total time: {:.1f} sec'.format(time.time()-t0))
     
 def process_dsjson_file(fp, d=None, e=None):
@@ -30,7 +36,10 @@ def process_dsjson_file(fp, d=None, e=None):
     d_c = 0
     rew_multi_a = [0,0]
     baselineRandom = [0,0]
+    bytes_count = 0
+    tot_bytes = os.path.getsize(fp)
     for i,x in enumerate(gzip.open(fp, 'rb') if fp.endswith('.gz') else open(fp, 'rb')):
+        bytes_count += len(x)
         if not (x.startswith(b'{"') or x.strip().endswith(b'}')):
             print('Corrupted line: {}'.format(x))
             continue
@@ -65,6 +74,12 @@ def process_dsjson_file(fp, d=None, e=None):
                 e.setdefault(ei, []).append((fp,i,r,et))
             e_c += 1
             e_s.add(ei)
+        
+        if (i+1) % 1000 == 0 and not fp.endswith('.gz'):
+            update_progress(bytes_count,tot_bytes, fp+' - ')
+
+    sys.stdout.write("\r")
+    sys.stdout.flush()
     return stats, d_s, e_s, d_c, e_c, slot_len_c, rew_multi_a, baselineRandom
 
 def input_files_to_fp_list(files):
