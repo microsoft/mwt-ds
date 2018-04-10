@@ -7,6 +7,7 @@ def update_progress(current, total, prefix=''):
     text = "\r{}Progress: [{}] {:.1f}%".format(prefix, "#"*block + "-"*(barLength-block), progress*100)
     sys.stdout.write(text)
     sys.stdout.flush()
+    return len(text)-1      # return length of text string not counting the initial \r
 
 #########################################################################  CREATE DSJSON FILES STATS #########################################################################
 
@@ -21,10 +22,12 @@ def process_files(files, output_file=None, d=None, e=None):
     for fp in fp_list:
         t1 = time.time()
         stats, d_s, e_s, d_c, e_c, slot_len_c, rew_multi_a, baselineRandom = process_dsjson_file(fp, d, e)
-        res_list = [sum(stats[x][i] for x in stats) for i in range(2)]+rew_multi_a+stats.get(1,[0,0,0,0,0])+baselineRandom+[len(d_s),d_c,len(e_s),e_c,slot_len_c[1],slot_len_c[2],sum(slot_len_c[i] for i in slot_len_c if i > 2),max(i for i in slot_len_c if slot_len_c[i] > 0),'{:.1f}'.format(time.time()-t1)]
-        print(','.join(map(str,os.path.basename(fp)[:-7].split('_data_')+res_list)))
+        res_list = os.path.basename(fp).replace('_0.json','').split('_data_',1)+[sum(stats[x][i] for x in stats) for i in range(2)]+rew_multi_a+stats.get(1,[0,0,0,0,0])+baselineRandom+[len(d_s),d_c,len(e_s),e_c,slot_len_c[1],slot_len_c[2],sum(slot_len_c[i] for i in slot_len_c if i > 2),max(i for i in slot_len_c if slot_len_c[i] > 0),'{:.1f}'.format(time.time()-t1)]
+        print(','.join(map(str,res_list)))
         if output_file:
-            f.write('\t'.join(map(str,os.path.basename(fp)[:-7].split('_data_')+res_list))+'\n')
+            f.write('\t'.join(map(str,res_list))+'\n')
+    if output_file:
+        f.close()
     print('Total time: {:.1f} sec'.format(time.time()-t0))
     
 def process_dsjson_file(fp, d=None, e=None):
@@ -38,48 +41,49 @@ def process_dsjson_file(fp, d=None, e=None):
     baselineRandom = [0,0]
     bytes_count = 0
     tot_bytes = os.path.getsize(fp)
-    for i,x in enumerate(gzip.open(fp, 'rb') if fp.endswith('.gz') else open(fp, 'rb')):
-        bytes_count += len(x)
-        if not (x.startswith(b'{"') or x.strip().endswith(b'}')):
-            print('Corrupted line: {}'.format(x))
-            continue
-        
-        if x.startswith(b'{"_label_cost":'):
-            ei,r,ts,p,a,num_a = json_cooked(x)
+    with (gzip.open(fp, 'rb') if fp.endswith('.gz') else open(fp, 'rb')) as file_input:
+        for i,x in enumerate(file_input):
+            bytes_count += len(x)
+            if not (x.startswith(b'{"') or x.strip().endswith(b'}')):
+                print('Corrupted line: {}'.format(x))
+                continue
+            
+            if x.startswith(b'{"_label_cost":'):
+                ei,r,ts,p,a,num_a = json_cooked(x)
 
-            slot_len_c.update([num_a])
-            if d is not None:
-                d.setdefault(ei, []).append((fp,i,p,a,r,num_a,ts))
-            d_c += 1
-            d_s.add(ei)
-            if a not in stats:
-                stats[a] = [0,0,0,0,0]
+                slot_len_c.update([num_a])
+                if d is not None:
+                    d.setdefault(ei, []).append((fp,i,p,a,r,num_a,ts))
+                d_c += 1
+                d_s.add(ei)
+                if a not in stats:
+                    stats[a] = [0,0,0,0,0]
 
-            stats[a][3] += 1/p
-            stats[a][4] += 1
-            baselineRandom[1] += 1/p/num_a
-            if r != b'0':
-                stats[a][0] += 1
-                r = float(r)
-                stats[a][1] -= r
-                stats[a][2] -= r/p
-                baselineRandom[0] -= r/p/num_a
-                if num_a > 1:
-                    rew_multi_a[0] += 1
-                    rew_multi_a[1] -= r
-        else:
-            ei,r,et = json_dangling(x)
+                stats[a][3] += 1/p
+                stats[a][4] += 1
+                baselineRandom[1] += 1/p/num_a
+                if r != b'0':
+                    stats[a][0] += 1
+                    r = float(r)
+                    stats[a][1] -= r
+                    stats[a][2] -= r/p
+                    baselineRandom[0] -= r/p/num_a
+                    if num_a > 1:
+                        rew_multi_a[0] += 1
+                        rew_multi_a[1] -= r
+            else:
+                ei,r,et = json_dangling(x)
 
-            if e is not None:
-                e.setdefault(ei, []).append((fp,i,r,et))
-            e_c += 1
-            e_s.add(ei)
-        
-        if (i+1) % 1000 == 0 and not fp.endswith('.gz'):
-            update_progress(bytes_count,tot_bytes, fp+' - ')
-
-    sys.stdout.write("\r")
-    sys.stdout.flush()
+                if e is not None:
+                    e.setdefault(ei, []).append((fp,i,r,et))
+                e_c += 1
+                e_s.add(ei)
+            
+            if (i+1) % 1000 == 0 and not fp.endswith('.gz'):
+                update_progress(bytes_count,tot_bytes, fp+' - ')
+        len_text = update_progress(bytes_count,tot_bytes, fp+' - ')
+        sys.stdout.write("\r" + " "*len_text + "\r")
+        sys.stdout.flush()
     return stats, d_s, e_s, d_c, e_c, slot_len_c, rew_multi_a, baselineRandom
 
 def input_files_to_fp_list(files):
@@ -179,10 +183,10 @@ def local_reward(x):
 
 def cmplx_json_to_csv(input_file, output_file):
     # Used to parse cmplx dsjson lines to csv file
-    with open(output_file, 'w', encoding='utf-8') as f:
+    with open(output_file, 'w', encoding='utf-8') as f, open(input_file, encoding='utf-8') as fin:
         f.write('cost,prob,city,country,state,DeviceBrand,DeviceFamily,DeviceModel,DeviceType,refer,id\n')
         i = 0
-        for x in open(input_file, encoding='utf-8'):
+        for x in fin:
             try:
                 js = json.loads(x.strip())
                 d2 = '"'+('","'.join((js['c']['OUserAgent'].get(x, 'NA').replace('"','') for x in ['_DeviceBrand', '_DeviceFamily', '_DeviceModel', 'DeviceType'])))+'"'
@@ -207,10 +211,11 @@ def cmplx_json_to_csv(input_file, output_file):
 
 def get_e_from_eh_obs(fp):
     e = {};
-    for x in open(fp, 'rb'):
-        ei = extract_field(x, b'"EventId":"', b'","')
-        ts = x[5:].split(b' Offset:',1)[0]
-        e.setdefault(ei, []).append(ts)
+    with open(fp, 'rb') as f:
+        for x in f:
+            ei = extract_field(x, b'"EventId":"', b'","')
+            ts = x[5:].split(b' Offset:',1)[0]
+            e.setdefault(ei, []).append(ts)
         
     return e
 
