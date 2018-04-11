@@ -22,15 +22,34 @@ def process_files(files, output_file=None, d=None, e=None):
     if output_file:
         f = open(output_file, 'a', 1)
     print(header_str)
+    num_a = 20
+    totals_num = [0]*(num_a+2)
+    totals_den = [0]*(num_a+2)
+    totals_cnt = [0]*(num_a+2)
     for fp in fp_list:
         t1 = time.time()
         stats, d_s, e_s, d_c, e_c, slot_len_c, rew_multi_a, baselineRandom, not_activated = process_dsjson_file(fp, d, e)
         res_list = os.path.basename(fp).replace('_0.json','').split('_data_',1)+[sum(stats[x][i] for x in stats) for i in range(3)]+rew_multi_a+stats.get(1,[0,0,0,0,0,0])+baselineRandom+[len(d_s),d_c,len(e_s),e_c,not_activated,slot_len_c[1],slot_len_c[2],sum(slot_len_c[i] for i in slot_len_c if i > 2),max(i for i in slot_len_c if slot_len_c[i] > 0),'{:.1f}'.format(time.time()-t1)]
+        totals_num[0] += res_list[3]
+        totals_den[0] += d_c
+        totals_cnt[0] += d_c
+        totals_num[1] += baselineRandom[0]
+        totals_den[1] += baselineRandom[1]
+        totals_cnt[1] += d_c
+        for i in range(1,num_a+1):
+            if i in stats:
+                totals_num[i+1] += stats[i][3]
+                totals_den[i+1] += stats[i][4]
+                totals_cnt[i+1] += stats[i][5]
         print(','.join(map(str,res_list)))
         if output_file:
             f.write('\t'.join(map(str,res_list))+'\n')
     if output_file:
         f.close()
+    print()
+    print('Total CTR,'+','.join('{:.3%}'.format(totals_num[i]/max(totals_den[i],1)) for i in range(len(totals_num))))
+    print('Total den,'+','.join('{}'.format(totals_den[i]) for i in range(len(totals_den))))
+    print('Total cnt,'+','.join('{}'.format(totals_cnt[i]) for i in range(len(totals_cnt))))
     print('Total time: {:.1f} sec'.format(time.time()-t0))
     
 def process_dsjson_file(fp, d=None, e=None):
