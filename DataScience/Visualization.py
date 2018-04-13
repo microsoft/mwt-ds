@@ -41,18 +41,19 @@ def parse_logs(raw_stats, files, delta_mod_t=3600):
             if 'ips' not in c2:
                 c2['ips'] = {}
             if d[:10] not in c2['ips']:
-                c2['ips'][d[:10]] = [0,0]
+                c2['ips'][d[:10]] = [0,0,0,0]
                 
             c2[d][dev][1] += 1
             if a == 1:
                 c2['ips'][d[:10]][1] += 1/p
+            c2['ips'][d[:10]][3] += 1/p/num_a
             if r != b'0':
                 r = float(r)
                 c2[d][dev][0] += 1
                 c2[d][dev][2] -= r
                 if a == 1:
                     c2['ips'][d[:10]][0] -= r/p
-
+                c2['ips'][d[:10]][2] -= r/p/num_a
 
         raw_stats[os.path.basename(fp)] = c2
 
@@ -113,7 +114,7 @@ if __name__ == '__main__':
             if d == 'ips':
                 for day in raw_stats[fn]['ips']:
                     # if there are multiple entries with same hour, take the one with the largest total traffic
-                    if day not in stats_ips or raw_stats[fn]['ips'][day][1] > stats_ips[day][1]:
+                    if day not in stats_ips or raw_stats[fn]['ips'][day][-1] > stats_ips[day][-1]:
                         stats_ips[day] = raw_stats[fn]['ips'][day]
             else:
                 # if there are multiple entries with same hour, take the one with the largest total traffic (sum over all devices)
@@ -186,7 +187,7 @@ if __name__ == '__main__':
         dev_types = dev_types - {'Other', 'N/A', 'Android', 'Tablet'}
         if len(dev_types) > 1:    
             for dev in dev_types:
-                p = [(y[0],y[1][dev] if dev in y[1] else [0,0,0]) for y in pStats]
+                p = [(y[0],y[1].get(dev, [0,0,0])) for y in pStats]
                 axarr[0].plot(range(len(p)),[x[1][1] for x in p], label=dev)
                 axarr[1].plot(range(len(p)),[x[1][2] for x in p], label=dev)
                 axarr[2].plot(range(len(p)),[x[1][2]/max(x[1][1],1) for x in p], label=dev)
@@ -195,11 +196,15 @@ if __name__ == '__main__':
         if do_by_day:
             # IPS traffic plot
             p = [(y[0], y[1][0]/y[1][1]) for y in pStats_ips]
-            axarr[2].plot(range(len(p)),[x[1] for x in p], label='Baseline estimate')
-            baseline_est = np.average([x[1] for x in p])
-            print('Online performance: {}'.format(online_perf))
-            print('Baseline estimate: {}'.format(baseline_est))
-            print('DS lift: {}'.format(online_perf/baseline_est))
+            axarr[2].plot(range(len(p)),[x[1] for x in p], label='Baseline1')
+            baseline1_est = np.average([x[1] for x in p])
+            p = [(y[0], y[1][2]/y[1][3]) for y in pStats_ips]
+            axarr[2].plot(range(len(p)),[x[1] for x in p], label='BaselineRand')
+            baselineR_est = np.average([x[1] for x in p])
+            print('Online performance: {:.4f}'.format(online_perf))
+            print('Baseline1 estimate: {:.4f}'.format(baseline1_est))
+            print('BaselineR estimate: {:.4f}'.format(baselineR_est))
+            print('DS lift: R:{:.4f} 1:{:.4f}'.format(online_perf/baselineR_est, online_perf/baseline1_est))
 
         # Grid, axis and legend settings
         for ax in axarr:
