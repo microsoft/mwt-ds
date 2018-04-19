@@ -136,33 +136,42 @@ if __name__ == '__main__':
             # Visualize running average data of Reward/Request over the last 7 days
             plt.figure(1)
             data2 = [[(x[0],sum(y[2] for y in x[1].values())/sum(y[1] for y in x[1].values())) for x in pStats if d[1][:10] in x[0]] for d in days[-7:]]
-            [plt.plot([np.mean([x[1] for x in y[i:i+smoothing_hours]]) for i in range(len(y))]) for y in data2]
+            for i,y in enumerate(data2):
+                z = [np.mean([x[1] for x in y[i:i+smoothing_hours]]) for i in range(len(y))]
+                plt.plot(z, linewidth=3) if i+1 == len(data2) else plt.plot(z, linestyle="--")
             legend = plt.legend([y[0][0][:10] for y in data2], loc='best')
             plt.xticks(range(25), list(range(20,24))+list(range(20)))
             plt.title('Reward/Request Ratio over last 7 days (Smoothing '+str(smoothing_hours)+' hours)')
             plt.xlabel('Time of day - EST')
             
-            # Visualize running average data of Reward/Request over the last 7 days
+            # Visualize running average data of Reward/Request over same day of the week
             plt.figure(2)
             data2 = [[(x[0],sum(y[2] for y in x[1].values())/sum(y[1] for y in x[1].values())) for x in pStats if d[1][:10] in x[0]] for d in reversed(days[::-7])]
-            [plt.plot([np.mean([x[1] for x in y[i:i+smoothing_hours]]) for i in range(len(y))]) for y in data2]
+            for i,y in enumerate(data2):
+                z = [np.mean([x[1] for x in y[i:i+smoothing_hours]]) for i in range(len(y))]
+                plt.plot(z, linewidth=3) if i+1 == len(data2) else plt.plot(z, linestyle="--")
             legend = plt.legend([y[0][0][:10] for y in data2], loc='best')
             plt.xticks(range(25), list(range(20,24))+list(range(20)))
             plt.title('Reward/Request Ratio over same day of the week (Smoothing '+str(smoothing_hours)+' hours)')
             plt.xlabel('Time of day - EST')
             
+            # Visualize Requests over the last 7 days
             plt.figure(3)
             data2 = [[(x[0],sum(y[1] for y in x[1].values())) for x in pStats if d[1][:10] in x[0]] for d in days[-7:]]
-            [plt.plot([np.mean([x[1] for x in y[i:i+1]]) for i in range(len(y))]) for y in data2]
+            for i,y in enumerate(data2):
+                z = [x[1] for x in y]
+                plt.plot(z, linewidth=3) if i+1 == len(data2) else plt.plot(z, linestyle="--")
             legend = plt.legend([y[0][0][:10] for y in data2], loc='best')
             plt.xticks(range(25), list(range(20,24))+list(range(20)))
             plt.title('Request over last 7 days')
             plt.xlabel('Time of day - EST')
             
-            # Visualize running average data of Reward/Request over the last 7 days
+            # Visualize Requests over same day of the week
             plt.figure(4)
             data2 = [[(x[0],sum(y[1] for y in x[1].values())) for x in pStats if d[1][:10] in x[0]] for d in reversed(days[::-7])]
-            [plt.plot([np.mean([x[1] for x in y[i:i+1]]) for i in range(len(y))]) for y in data2]
+            for i,y in enumerate(data2):
+                z = [x[1] for x in y]
+                plt.plot(z, linewidth=3) if i+1 == len(data2) else plt.plot(z, linestyle="--")
             legend = plt.legend([y[0][0][:10] for y in data2], loc='best')
             plt.xticks(range(25), list(range(20,24))+list(range(20)))
             plt.title('Request over same day of the week')
@@ -188,9 +197,9 @@ if __name__ == '__main__':
         if len(dev_types) > 1:    
             for dev in dev_types:
                 p = [(y[0],y[1].get(dev, [0,0,0])) for y in pStats]
-                axarr[0].plot(range(len(p)),[x[1][1] for x in p], label=dev)
-                axarr[1].plot(range(len(p)),[x[1][2] for x in p], label=dev)
-                axarr[2].plot(range(len(p)),[x[1][2]/max(x[1][1],1) for x in p], label=dev)
+                axarr[0].plot(range(len(p)),[x[1][1] for x in p], label=dev, linestyle="--")
+                axarr[1].plot(range(len(p)),[x[1][2] for x in p], label=dev, linestyle="--")
+                axarr[2].plot(range(len(p)),[x[1][2]/max(x[1][1],1) for x in p], label=dev, linestyle="--")
         
         # Baseline estimate
         if do_by_day:
