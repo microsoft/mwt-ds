@@ -83,20 +83,17 @@ def result_writer(command_list):
         experiment_file.write(line + "\n")
     experiment_file.flush()
     
-def run_experiment(command, timeout=1000):
-    while True:
-        try:
-            results = check_output(command.full_command.split(' '), stderr=STDOUT, timeout=timeout).decode("utf-8")
-            break
-        except TimeoutExpired:
-            print("Timeout expired for command {0}".format(command.full_command))
-
-    loss_lines = [x for x in str(results).split('\n') if x.startswith('average loss = ')]
-    if len(loss_lines) != 1:
-        print("Error for command {0}".format(command.full_command))
-    else:
-        command.loss = float(loss_lines[0].split()[3])
-        print("Ave. Loss: {:12}Policy: {}".format(str(command.loss),command.full_command))
+def run_experiment(command):
+    try:
+        results = check_output(command.full_command.split(' '), stderr=STDOUT).decode("utf-8")
+        loss_lines = [x for x in str(results).split('\n') if x.startswith('average loss = ')]
+        if len(loss_lines) == 1:
+            command.loss = float(loss_lines[0].split()[3])
+            print("Ave. Loss: {:12}Policy: {}".format(str(command.loss),command.full_command))
+        else:
+            print("Error for command {0}: {} lines with 'average loss = '. Expected 1".format(command.full_command, len(loss_lines)))
+    except Exception as e:
+        print("Error for command {}: {}".format(command.full_command, e))
     return command
     
 def run_experiment_set(command_list, n_proc):
@@ -264,7 +261,7 @@ if __name__ == '__main__':
     if ' -c ' in base_command:    
         if not os.path.exists(file_path+'.cache'):
             print('\nCreating the cache file...')
-            result = run_experiment(best_command, timeout=3600)
+            result = run_experiment(best_command)
             if result.loss < best_command.loss:
                 best_command = result
     else:
