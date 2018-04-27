@@ -44,6 +44,9 @@ def process_dsjson_file(fp, d=None, e=None):
     with (gzip.open(fp, 'rb') if fp.endswith('.gz') else open(fp, 'rb')) as file_input:
         for i,x in enumerate(file_input):
             bytes_count += len(x)
+            if (i+1) % 1000 == 0 and not fp.endswith('.gz'):
+                update_progress(bytes_count,tot_bytes, fp+' - ')
+
             if not (x.startswith(b'{"') or x.strip().endswith(b'}')):
                 print('Corrupted line: {}'.format(x))
                 continue
@@ -59,8 +62,11 @@ def process_dsjson_file(fp, d=None, e=None):
                 if a not in stats:
                     stats[a] = [0,0,0,0,0]
 
-                stats[a][3] += 1/p
                 stats[a][4] += 1
+                if p <= 0:
+                    continue
+
+                stats[a][3] += 1/p
                 baselineRandom[1] += 1/p/num_a
                 if r != b'0':
                     stats[a][0] += 1
@@ -78,9 +84,7 @@ def process_dsjson_file(fp, d=None, e=None):
                     e.setdefault(ei, []).append((fp,i,r,et))
                 e_c += 1
                 e_s.add(ei)
-            
-            if (i+1) % 1000 == 0 and not fp.endswith('.gz'):
-                update_progress(bytes_count,tot_bytes, fp+' - ')
+
         len_text = update_progress(bytes_count,tot_bytes, fp+' - ')
         sys.stdout.write("\r" + " "*len_text + "\r")
         sys.stdout.flush()
