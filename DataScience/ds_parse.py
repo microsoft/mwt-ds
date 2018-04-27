@@ -210,13 +210,23 @@ def cmplx_json_to_csv(input_file, output_file):
                 print(i)
 
 def get_e_from_eh_obs(fp):
+    #################################
+    # Optimized version based on expected structure:
+    # Time:4/27/2018 11:06:31 AM Offset:4305049088 Partition:-11 Seq:256976 Size:126 Data:{"EventId":"WW_Home_Slot_2_20170601_S2_466x264.03B85FA05B4C4704BC5962FB9A29FA36","v":1.0}
+    #################################
     e = {};
     with open(fp, 'rb') as f:
         for x in f:
-            ei = extract_field(x, b'"EventId":"', b'","')
-            ts = x[5:].split(b' Offset:',1)[0]
-            e.setdefault(ei, []).append(ts)
-        
+            ind1 = x.find(b' Offset:')
+            ind2 = x.find(b'Partition:', ind1+8)
+            ind3 = x.find(b' ', ind2+11)
+            ind4 = x.find(b'"EventId":"', ind3+1)
+            ind5 = x.find(b'","', ind4+11)
+
+            ts = x[5:ind1]
+            part = x[ind2+10:ind3]
+            ei = x[ind4+11:ind5]
+            e.setdefault(ei, []).append((ts, part))
     return e
 
 def create_time_hist(d,e, normed=True, cumulative=True, scale_sec=1, n_bins=100, td_day_start=None, ei=None):
