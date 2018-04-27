@@ -1,0 +1,515 @@
+<html>
+<title>Offline Experimentation Dashboard</title>
+<body>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jstat@latest/dist/jstat.min.js"></script>
+
+    <style>
+        /* set the CSS */
+        body{
+            font-family: sans-serif;
+        }
+
+        h1 { 
+            font-size: 2em;
+            margin-top: 0.67em;
+            margin-bottom: 0.67em;
+            margin-left: 500;
+            margin-right: 0;
+            font-weight: bold;
+        }
+
+        .line {
+            fill: none;
+            stroke: steelblue;
+            stroke-width: 2px;
+        }
+
+        .axis {
+            font-size: 12px;
+        }
+        .confidence {
+            /* fill: lightsteelblue; */
+            filter: alpha(opacity=30);
+            opacity: 0.3;
+        }
+        
+        /*
+        .brush .selection {
+            stroke: rgb(70, 70, 70);
+            shape-rendering: crispEdges;
+        }
+
+        .brush .handle {
+            stroke: rgb(70, 70, 70);
+        }
+        */
+
+        .zoom {
+            cursor: move;
+            fill: none;
+            pointer-events: all;
+        }
+
+        /* 
+        .bar { 
+           stroke: steelblue; 
+        }
+        */
+        .error {
+            stroke: steelblue;
+            stroke-width:2px;
+            filter: alpha(opacity=30);
+            opacity: 0.3;
+        }
+
+        .line-events {
+            stroke: red;
+            filter: alpha(opacity=30);
+            opacity: 0.3;
+        }
+
+        #legend {
+            margin-left: 30px;
+        }
+    </style>
+<h1>Offline Experimentation Dashboard</h1>
+<div style="font-size:20px">Aggregation window:
+<select id="windows" style="font-size:18px">
+    <option value="5">5 minutes</option>
+    <option value="60">1 hour</option>
+    <option value="360">6 hour</option>
+    <option value="1440" selected>24 hours</option>
+</select>&emsp;Confidence Interval:
+<select id="pConfInt" style="font-size:18px">
+    <option value="-1." selected>Hide</option>
+    <!-- <option value=".5">p50</option> -->
+    <option value=".25">p75</option>
+    <option value=".1">p90</option>
+    <option value=".05">p95</option>
+</select>&emsp;Interpolation Type:
+<select id="interpolation" style="font-size:18px">
+    <option value="0">Linear</option>
+    <option value="1" selected>Cardinal</option>
+</select>
+</div>
+<script type="text/javascript" charset="utf-8">
+
+    var windowSize = 1440;
+    var confIntervalValue = -1.0;
+    var interpolateTypes = [d3.curveLinear, d3.curveCardinal, d3.curveNatural];
+    var interpolation = interpolateTypes[1];
+
+    function getQueryStringValue (key) {
+        return decodeURIComponent(window.location.search.replace(new RegExp("^(?:.*[&\\?]" + encodeURIComponent(key).replace(/[\.\+\*]/g, "\\$&") + "(?:\\=([^&]*))?)?.*$", "i"), "$1"));
+    }
+    function capitalizeFirstLetter(string) {
+       return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+
+    var url = getQueryStringValue("file");
+    console.log("Input file: " + url);
+    
+    var show_ci = getQueryStringValue("show_ci");
+    console.log("Show CI: " + show_ci);
+
+    var betaInv = function(successes, n, alpha = 0.1) {
+        return {
+            lower: jStat.beta.inv(alpha/2, successes, n - successes + 1),
+            upper: jStat.beta.inv(1 - alpha/2, successes + 1, n - successes)
+        };
+    }
+    
+    var confidenceBounds = function(num, den, maxWeightedCost, alpha){
+        if (typeof(maxWeightedCost) === "number") {
+            if (!(num == 0 || num == den))
+            {
+                var successes = num / (maxWeightedCost + Number.EPSILON);
+                var n = den / (maxWeightedCost + Number.EPSILON);
+                var b = betaInv(successes, n, alpha);
+                return { l: b.lower, u: b.upper};
+            }
+        }
+        return {l: 0, u: 0};
+    }
+
+    var data_all = null;
+    var dataSeries = null;
+    var policyTypes = [];
+    var tot = null;
+
+    var width = 1000,
+        height = 600,
+        padding = 60,
+        barWidth = 565,
+        marginBetweenGraphAndBarChart = 20;
+    var margin = {
+        'top': 20,
+        'right': 35,
+        'bottom': 75,
+        'left': 100
+    };
+    margin.hor = margin.left + margin.right;
+    margin.ver = margin.top + margin.bottom;
+
+    var parseTime = d3.timeParse("%Y-%m-%dT%H:%M:%S%Z");
+
+    var x = d3.scaleUtc()
+        .range([0, width]);
+    var y = d3.scaleLinear()
+        .range([height, 0]);
+
+    var xSlider = d3.scaleUtc()
+        .range([0, width]);
+
+    var z = d3.scaleOrdinal(d3.schemeCategory10);
+
+    render();
+
+function renderData(data) {
+
+    d3.selectAll("svg.graph").remove();
+
+    // point estimates
+    var valueline = d3.line()
+        .x(function (d) { return x(d.ts); })
+        .y(function (d) { return y(d.v); })
+        .curve(interpolation);
+
+    // define the area for the confidence bounds
+    var area = d3.area()
+        .x(function (d) { return x(d.ts); })
+        .y0(function (d) { return y(d.l); })
+        .y1(function (d) { return y(d.u); })
+        .curve(interpolation);
+
+    var svg = d3.select("body").append("svg")
+            .attr("class", "graph")
+            .attr("width", width + margin.left + margin.right + barWidth + marginBetweenGraphAndBarChart + 20)
+            .attr("height", height + margin.top + margin.bottom);
+
+    var g = svg.append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    //var gBar = svg.append("g")
+    //    .attr("transform", "translate(" + (margin.left + width + marginBetweenGraphAndBarChart) + "," + margin.top + ")");
+
+    var legend = svg.append("g");
+
+    //append clip path for lines plotted, hiding those part out of bounds
+    svg.append("defs").append("clipPath")
+        .attr("id", "clip")
+        .append("rect")
+        .attr("width", width)
+        .attr("height", height);
+
+    // filter down to a single window size
+    all = data.filter(function (d) { return d.w === windowSize; });
+
+    // compute confidence bounds
+    all.forEach(function (v){
+        var ci = confidenceBounds(v.n, v.d, v.c, confIntervalValue);
+        v.l = ci.l;
+        v.u = ci.u;
+    });
+
+    // add display name
+    if (dataSeries === null){
+        dataSeries = policyTypes.map(function (p) {
+            var values = all.filter(function (d) { return d.t === p.type; });
+
+            return {
+                values: values,
+                average: tot[p.type]['v'],
+                lower: tot[p.type]['l'],
+                upper: tot[p.type]['u'],
+                type: p.type,
+                visible: capitalizeFirstLetter(p.type) === "Online" ? true : false,     // show only online policy by default
+                visibleConfidence: false
+            };
+        });
+    } else {
+        dataSeries.forEach(function (d) {
+            d.values = all.filter(function (x) { return x.t === d.type; });
+            d.visibleConfidence = confIntervalValue > 0 ? d.visible : false;
+        });
+    }
+
+    // setting up the main plot
+    x.domain(d3.extent(all, function (d) { return d.ts; }));
+    y.domain([0, d3.max(all, function (d) { return d.v })]);
+    z.domain(dataSeries.map(function (p) { return p.type; }));
+
+    // setting up the slider
+    xSlider.domain(x.domain());
+
+    let xAxis = d3.axisBottom(x)
+        .tickFormat(d3.utcFormat("%m/%d %H:%M"));
+
+    var zoom = d3.zoom()
+        .scaleExtent([1, Infinity])
+        .translateExtent([[0, 0], [width, height]])
+        .extent([[0, 0], [width, height]])
+        .on("zoom", zoomed);
+
+    function updateGraphs(dateRange) {
+        x.domain(dateRange);
+
+        var t = d3.transition()
+            .duration(500)
+            .ease(d3.easeLinear);
+
+        g.selectAll("path.line")
+            .attr("d", function (d) { return d.visible ? valueline(d.values) : null; });
+        g.selectAll("path.confidence")
+            .attr("d", function (d) { return d.visible && d.visibleConfidence ? area(d.values) : null; });
+
+    }
+
+    // for mouse-wheel zoom
+    function zoomed() {
+        var t = d3.event.transform;
+        var dateRange = t.rescaleX(xSlider).domain();
+        
+        updateGraphs(dateRange);
+
+        // update x-axis
+        g.select(".area").attr("d", area);
+        g.select(".axis--x").call(xAxis);
+    }
+
+    var policy = g.selectAll(".policies")
+        .data(dataSeries)
+        .enter().append("g")
+        .attr("class", "policy");
+
+    policy.append("path")
+        .attr("class", "line")
+        .attr("d", function (d) { return d.visible ? valueline(d.values) : null; })
+        .style("stroke", function (d) { return z(d.type); })
+        .attr("clip-path", "url(#clip)");
+        
+    // confidence bounds
+    policy.append("path")
+        .attr("class", "confidence")
+        .attr("d", function (d) { return d.visibleConfidence ? area(d.values) : null; })
+        .style("fill", function (d) { return z(d.type); })
+        .attr("clip-path", "url(#clip)");
+
+    // Add the X Axis
+    g.append("g")
+        .attr("class", "axis axis--x")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis);
+
+    g.append("text")
+        .attr("class", "x label")
+        .attr("text-anchor", "end")
+        .attr("x", 510)
+        .attr("y", 640)
+        .text("Timestamp (UTC)");
+
+    svg.append("rect")
+        .attr("class", "zoom")
+        .attr("width", width)
+        .attr("height", height)
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+        .call(zoom);
+
+    //checkboxes
+    legend.selectAll()
+        .data(dataSeries)
+        .enter()
+        .append("rect")
+        .attr("width", 20)
+        .attr("height", 20)
+        .attr("x", width + margin.hor)
+        .attr("y", function (d, i) { return margin.top + i*28 + 12; })  // spacing
+        .attr("fill",function(d) {  return z(d.type); })
+        .attr("opacity", function(d) { if(d.visible){ return 1.0 } else { return 0.2 }});
+    
+    legend.selectAll()
+        .data(dataSeries)
+        .enter()
+        .append("text")
+        .attr("x", width + margin.hor + 25)
+        .attr("y", function (d, i) { return margin.top + (i+1)*28; })  // spacing
+        .attr("font-family", "sans-serif")
+        .attr("font-size", "20px")
+        .text(function(d) { return  capitalizeFirstLetter(d.type); });
+
+    legend.selectAll()
+        .data(dataSeries)
+        .enter()
+        .append("text")
+        .attr("x", width + margin.hor + 250)
+        .attr("y", function (d, i) { return margin.top + (i+1)*28; })  // spacing
+        .attr("font-family", "sans-serif")
+        .attr("font-size", "20px")
+        .text(function(d) { return d3.format(".3%")(d.average); })
+
+    svg.append("text")
+        .attr("x", width + margin.hor + 25)
+        .attr("y", margin.top)  // spacing
+        .attr("font-family", "sans-serif")
+        .attr("font-size", "20px")
+        .attr("font-weight", "bold")
+        .text("Policy Name")
+
+    svg.append("text")
+        .attr("x", width + margin.hor + 225)
+        .attr("y", margin.top)  // spacing
+        .attr("font-family", "sans-serif")
+        .attr("font-size", "20px")
+        .attr("font-weight", "bold")
+        .text("Ave. Reward")
+
+    if (show_ci === 'true')
+    {
+        legend.selectAll()
+            .data(dataSeries)
+            .enter()
+            .append("text")
+            .attr("x", width + margin.hor + 385)
+            .attr("y", function (d, i) { return margin.top + (i+1)*28; })  // spacing
+            .attr("font-family", "sans-serif")
+            .attr("font-size", "20px")
+            .style('fill', function(d){
+                    if(d.upper < tot['online']['v'])
+                        {return 'red';}
+                    else if(d.lower > tot['online']['v'])
+                        {return 'green';}
+                    })
+            .text(function(d) {
+                    if (capitalizeFirstLetter(d.type) === "Online")
+                        {return ''}
+                    else
+                        {return '[' + d3.format(".3%")(d.lower) + ' - ' + d3.format(".3%")(d.upper) + ']'}
+                    })
+        
+        svg.append("text")
+            .attr("x", width + margin.hor + 425)
+            .attr("y", margin.top)  // spacing
+            .attr("font-family", "sans-serif")
+            .attr("font-size", "20px")
+            .attr("font-weight", "bold")
+            .text("CI (p95)")
+    }
+
+    // show/hide policy
+    legend.selectAll("rect").on("click", function(d) {
+        d.visible = !d.visible;
+        d3.select(this).style("opacity", d.visible ? 1.0 : 0.2);
+        d.visibleConfidence = confIntervalValue > 0 ? d.visible : false;
+
+        updateGraphs(x.domain());
+    });
+
+    // Add the Y Axis
+    g.append("g")
+        .attr("class", "axis")
+        .call(d3.axisLeft(y)
+            // .tickFormat(d3.timeFormat("000")) // ALEKH DEMO
+        );
+
+    g.append("text")
+        .attr("class", "y label")
+        .attr("text-anchor", "end")
+        .attr("x", -270)
+        .attr("y", -80)
+        .attr("dy", ".75em")
+        .attr("transform", "rotate(-90)")
+        .text("Ave. Reward");
+
+};
+
+function render() {
+    console.log('confIntervalValue: ' + confIntervalValue);
+    if(data_all === null){
+        console.log('Request data');
+        d3.request(url)
+            .mimeType("application/json")
+            .response(function (xhr) {
+                return d3.dsvFormat('\n').parseRows(xhr.responseText, JSON.parse);
+            })
+            .get(function(error, data){
+                if (error){
+                    alert("Error: File not found!");
+                    throw error;
+                    }
+
+                //parse the date and copy to each data point
+                data.forEach(function (d) {
+                    d.ts = parseTime(d.ts);
+                    d.d.forEach(function (v) {
+                        v.ts = d.ts;
+                        v.v = v.n / (v.d + Number.EPSILON);
+                    });
+                });
+
+                // create a single big array
+                data_all = [].concat.apply([], data.map(function (d) { return d.d; }))
+                    .sort(function (a, b) { return a.ts - b.ts; });
+                
+                var values1440 = data_all.filter(function (d) { return d.w === 1440; });
+                
+                var policyTypesSet = new Set([]);
+                values1440.forEach(function(d){
+                    if(!policyTypesSet.has(d.t))
+                    {
+                        policyTypes.push({type : d.t})
+                        policyTypesSet.add(d.t)
+                    }
+                });
+                console.log(policyTypes);
+                
+                // compute total aggregates
+                tot = {};
+                policyTypes.map(function (p) {
+                    var values = values1440.filter(function (d) { return d.t === p.type; });
+                    tot[p.type] = {
+                        'n' : d3.sum(values, function(d) { return d.n; }),
+                        'd' : d3.sum(values, function(d) { return d.d; }),
+                        'c' : d3.max(values, function(d) { return d.c; }),
+                        'N' : d3.sum(values, function(d) { return d.N; })
+                    };
+                    
+                    var ci = confidenceBounds(tot[p.type].n, tot[p.type].d, tot[p.type].c, 0.05);
+                    tot[p.type]['l'] = ci.l;
+                    tot[p.type]['u'] = ci.u;
+                    tot[p.type]['v'] = tot[p.type]['n'] / (tot[p.type]['d'] + Number.EPSILON);
+                });
+                console.log(tot);
+
+                renderData(data_all);
+            });
+    } else {
+        console.log('Process data');
+        renderData(data_all);
+    };
+};
+
+d3.select('#windows')
+    .on("change", function () {
+        var sect = document.getElementById("windows");
+        windowSize = Number.parseInt(sect.options[sect.selectedIndex].value);
+
+        render();
+    });
+d3.select('#pConfInt')
+    .on("change", function () {
+        var sect = document.getElementById("pConfInt");
+        confIntervalValue = Number.parseFloat(sect.options[sect.selectedIndex].value);
+
+        render();
+    });
+d3.select('#interpolation')
+    .on("change", function () {
+        var sect = document.getElementById("interpolation");
+        interpolation = interpolateTypes[Number.parseInt(sect.options[sect.selectedIndex].value)];
+
+        render();
+    });
+</script>
+</body>
+</html>
