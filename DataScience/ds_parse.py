@@ -219,22 +219,29 @@ def get_e_from_eh_obs(fp):
         
     return e
 
-def create_time_hist(d,e, normed=True, cumulative=True, scale_sec=1, n_bins=100, td_day_start=None):
+def create_time_hist(d,e, normed=True, cumulative=True, scale_sec=1, n_bins=100, td_day_start=None, ei=None):
     import matplotlib.pyplot as plt
     import datetime
     t_vec = []
-    for x in e:
-        if x in d:
-            td = datetime.datetime.strptime(str(d[x][0][-1],'utf-8').split('.')[0].replace('Z',''), "%Y-%m-%dT%H:%M:%S")
-            if td_day_start and td < datetime.datetime.strptime(td_day_start, "%Y-%m-%d"):
-                continue
-            if type(e[x][0]) == list:
-                te = datetime.datetime.strptime(str(e[x][0][-1],'utf-8').split('.')[0].replace('Z',''), "%Y-%m-%dT%H:%M:%S")
-            else:
-                te = datetime.datetime.strptime(str(e[x][0],'utf-8').split('.')[0].replace('Z',''), '%m/%d/%Y %I:%M:%S %p')
-            t_vec.append((te-td).total_seconds()/scale_sec)
-    
+    ei_ = {x for x in e if x in d}
     print('len(e): {}'.format(len(e)))
+    print('len(d): {}'.format(len(d)))
+    print('len(e inter d): {}'.format(len(ei_)))
+    if ei is not None:
+        ei_ = ei_.intersection(ei)
+        print('len(ei): {}'.format(len(ei)))
+        print('len(ei_): {}'.format(len(ei_)))
+    
+    for x in ei_:
+        td = datetime.datetime.strptime(str(d[x][0][-1],'utf-8').split('.')[0].replace('Z',''), "%Y-%m-%dT%H:%M:%S")
+        if td_day_start and td < datetime.datetime.strptime(td_day_start, "%Y-%m-%d"):
+            continue
+        if type(e[x][0]) == list:
+            te = datetime.datetime.strptime(str(e[x][0][-1],'utf-8').split('.')[0].replace('Z',''), "%Y-%m-%dT%H:%M:%S")
+        else:
+            te = datetime.datetime.strptime(str(e[x][0],'utf-8').split('.')[0].replace('Z',''), '%m/%d/%Y %I:%M:%S %p')
+        t_vec.append((te-td).total_seconds()/scale_sec)
+    
     print('len(t_vec): {}'.format(len(t_vec)))
     plt.hist(t_vec, n_bins, normed=normed, cumulative=cumulative, histtype='step')
     plt.show()
