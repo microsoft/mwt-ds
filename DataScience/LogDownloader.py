@@ -127,17 +127,22 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                     print('Error: {}'.format(e))
         
     else: # using BlockBlobService python api for cooked logs
-    
-        bbs = BlockBlobService(connection_string=connection_string)
-
         try:
+            print('Establishing Azure Storage BlockBlobService connection...')
+            bbs = BlockBlobService(connection_string=connection_string)
             # List all blobs and download them one by one
-            print('Getting blobs list...', end='', flush=True)
+            print('Getting blobs list...')
             blobs = bbs.list_blobs(app_id)
-        except:
+        except Exception as e:
+            if e.args[0] == 'dictionary update sequence element #0 has length 1; 2 is required':
+                print("Error: Invalid Azure Storage ConnectionString.")
+            elif e.args[0].startswith('The specified container does not exist.'):
+                print("Error: The specified container ({}) does not exist.".format(app_id))
+            else:
+                print("Error:\nType: {}\nArgs: {}".format(type(e).__name__, e.args))
             sys.exit()
 
-        print(' Done!\nIterating through blobs...\n')
+        print('Iterating through blobs...\n')
         selected_fps = []
         for blob in blobs:
             if '/data/' not in blob.name:
