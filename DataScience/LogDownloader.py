@@ -1,6 +1,6 @@
 import sys
 if sys.maxsize < 2**32:     # check for 32-bit python version
-    if input("32-bit python interpreter detected. There may be problems downloading large files. Do you want to continue anyway [Y/n]? ") != 'Y':
+    if input("32-bit python interpreter detected. There may be problems downloading large files. Do you want to continue anyway [Y/n]? ") not in {'Y', 'y'}:
         sys.exit()
 
 import os, time, datetime, argparse, gzip, configparser, shutil
@@ -8,7 +8,7 @@ try:
     from azure.storage.blob import BlockBlobService
 except ImportError as e:
     print('ImportError: {}'.format(e))
-    if input("azure.storage.blob is required. Do you want to install it [Y/n]? ") == 'Y':
+    if input("azure.storage.blob is required. Do you want to install it [Y/n]? ") in {'Y', 'y'}:
         import pip
         pip.main(['install', 'azure.storage.blob'])
         print('Please re-run script.')
@@ -104,7 +104,7 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
             if overwrite_mode in {0, 3, 4}:
                 print('Output file already exits. Not downloading'.format(output_fp))
                 do_download = False
-            elif overwrite_mode == 1 and input('Output file already exits. Do you want to overwrite [Y/n]? '.format(output_fp)) != 'Y':
+            elif overwrite_mode == 1 and input('Output file already exits. Do you want to overwrite [Y/n]? '.format(output_fp)) not in {'Y', 'y'}:
                 do_download = False
                 
         if do_download:
@@ -124,11 +124,10 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                     open(output_fp, 'wb').write(r.content)
                     print(' Done!\n')
                 except Exception as e:
-                    print(' Error: {}'.format(e))
+                    print('Error: {}'.format(e))
         
     else: # using BlockBlobService python api for cooked logs
     
-        downloaded_fps = []
         bbs = BlockBlobService(connection_string=connection_string)
 
         try:
@@ -139,6 +138,7 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
             sys.exit()
 
         print(' Done!\nIterating through blobs...\n')
+        selected_fps = []
         for blob in blobs:
             if '/data/' not in blob.name:
                 if verbose:
@@ -155,7 +155,7 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                 bp = bbs.get_blob_properties(app_id, blob.name)
 
                 fp = os.path.join(log_dir, app_id, blob.name.replace('/','_'))
-                downloaded_fps.append(fp)
+                selected_fps.append(fp)
                 if os.path.isfile(fp):
                     file_size = os.path.getsize(fp)
                     if overwrite_mode == 0:
@@ -171,7 +171,7 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                         if overwrite_mode in {3, 4} and file_size > bp.properties.content_length: # local file size is larger, skip with warning!
                             print('{} - Skip: Output file already exits with larger size\n'.format(blob.name))
                             continue
-                        if overwrite_mode == 1 and input("Do you want to overwrite [Y/n]? ") != 'Y':
+                        if overwrite_mode == 1 and input("Do you want to overwrite [Y/n]? ") not in {'Y', 'y'}:
                             print()
                             continue
                 else:
@@ -181,7 +181,7 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                 # check if blob was modified in the last delta_mod_t sec
                 if datetime.datetime.now(datetime.timezone.utc)-bp.properties.last_modified < datetime.timedelta(0, delta_mod_t):
                     if overwrite_mode < 2:
-                        if input("Azure blob currently in use (modified in the last delta_mod_t={} sec). Do you want to download anyway [Y/n]? ".format(delta_mod_t)) != 'Y':
+                        if input("Azure blob currently in use (modified in the last delta_mod_t={} sec). Do you want to download anyway [Y/n]? ".format(delta_mod_t)) not in {'Y', 'y'}:
                             print()
                             continue
                     elif overwrite_mode == 4:
@@ -200,29 +200,33 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                         bbs.get_blob_to_path(app_id, blob.name, temp_fp, max_connections=max_connections, start_range=file_size-cmpsize, end_range=file_size-1)
                         if cmp_files(fp, temp_fp, -cmpsize):
                             print('Valid!')
-                            print('Resume downloading with max_connections = {}...'.format(max_connections))
+                            print('Resume downloading to temp file with max_connections = {}...'.format(max_connections))
                             bbs.get_blob_to_path(app_id, blob.name, temp_fp, progress_callback=update_progress, max_connections=max_connections, start_range=file_size)
+                            download_time = time.time()-t0
+                            download_size_MB = os.path.getsize(temp_fp)/(1024**2) # file size in MB
+                            print('\nAppending to local file...')
                             with open(fp, 'ab') as f1, open(temp_fp, 'rb') as f2:
                                 shutil.copyfileobj(f2, f1, length=100*1024**2)   # writing chunks of 100MB to avoid consuming memory
+                            print('Appending completed. Deleting temp file...')
                             os.remove(temp_fp)
-                            download_size_MB = (os.path.getsize(fp)-file_size)/(1024**2) # file size in MB
                         else:
                             os.remove(temp_fp)
                             print('Invalid! - Skip\n')
                             continue
+                        print('Downloaded {:.3f} MB in {:.1f} sec. ({:.3f} MB/sec) - Total elapsed time: {:.1f} sec.\n'.format(download_size_MB, download_time, download_size_MB/download_time, time.time()-t0))
                     else:
                         print('Downloading with max_connections = {}...'.format(max_connections))
                         bbs.get_blob_to_path(app_id, blob.name, fp, progress_callback=update_progress, max_connections=max_connections)
+                        download_time = time.time()-t0
                         download_size_MB = os.path.getsize(fp)/(1024**2) # file size in MB
-                    elapsed_time = time.time()-t0
-                    print('\nDownloaded {:.3f} MB in {:.3f} sec.: Average: {:.3f} MB/sec\n'.format(download_size_MB, elapsed_time, download_size_MB/elapsed_time))
+                        print('\nDownloaded {:.3f} MB in {:.1f} sec. ({:.3f} MB/sec)\n'.format(download_size_MB, download_time, download_size_MB/download_time))
             except Exception as e:
-                print(' Error: {}'.format(e))
+                print('Error: {}'.format(e))
 
         if create_gzip:
-            if downloaded_fps:
+            if selected_fps:
                 models = {}
-                for fp in downloaded_fps:
+                for fp in selected_fps:
                     models.setdefault(os.path.basename(fp).split('_data_',1)[0], []).append(fp)
                 for model in models:
                     models[model].sort(key=lambda x : list(map(int,x.split('_data_')[1].split('_')[:3])))
@@ -231,7 +235,7 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                     output_fp = os.path.join(log_dir, app_id, app_id+'_'+model+'_data_'+start_date+'_'+end_date+'.json.gz')
                     print('Concat and zip files of LastConfigurationEditDate={} to: {}'.format(model, output_fp))
                     if os.path.isfile(output_fp):
-                        if overwrite_mode == {0, 3, 4}:
+                        if overwrite_mode in {0, 3, 4}:
                             print('Output file already exits. Skipping creating gzip file'.format(output_fp))
                             continue
                         elif overwrite_mode == 1 and input('Output file already exits. Do you want to overwrite [Y/n]? '.format(output_fp)) != 'Y':
@@ -248,8 +252,7 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
             else:
                 print('No file downloaded, skipping creating gzip files.')
                     
-    print('Total download time:',time.time()-t_start)
-    print()
+    print('Total elapsed time: {:.1f} sec.\n'.format(time.time()-t_start))
 
 
 if __name__ == '__main__':
