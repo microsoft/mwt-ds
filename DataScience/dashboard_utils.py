@@ -34,6 +34,56 @@ def get_prediction_prob(a0, pred_line):
 
     return pred_prob
 
+def output_dashboard_data(d, dashboard_file):
+    data_dict = collections.OrderedDict()
+    for x in d:
+        for type in d[x]:
+            for field in d[x][type]:
+                data_dict.setdefault(type+'_'+field, []).append(d[x][type][field])
+
+    df = pandas.DataFrame(data_dict, index=pandas.to_datetime([x for x in d]), dtype=float)
+
+    df_col = collections.OrderedDict()
+    for x in df.columns:
+        temp = x.split('_')
+        df_col.setdefault(temp[0],[]).append(temp[1])
+
+    agg_windows = [('5T',5),('H',60),('6H',360),('D',1440)]
+    with open(dashboard_file, 'w') as f:
+        for ag in agg_windows:
+            for index, row in df.resample(ag[0]).agg({type+'_'+field : max if field == 'c' else sum for type in df_col for field in df_col[type]}).replace(np.nan, 0.0).iterrows():
+                d = []
+                for type in df_col:
+                    temp = collections.OrderedDict({field : row[type+'_'+field] for field in df_col[type]})
+                    temp["w"] = ag[1]
+                    temp["t"] = type
+                    d.append(temp)
+                f.write(json.dumps({"ts":index.strftime("%Y-%m-%dT%H:%M:%SZ"),"d":d})+'\n')
+
+def merge_and_unique_stats(stats_files, dashboard_file):
+    d = {}
+    for stats_file in ds_parse.input_files_to_fp_list(stats_files):
+        print('Processing: {}'.format(stats_file))
+        for x in open(stats_file, 'rb'):
+            js = json.loads(x)
+            if js['d'][0]['w'] != 5:
+                continue
+            num = -1
+            den = -1
+            for y in js['d']:
+                if y['t'] == 'online':
+                    num = y['n']
+                    den = y['d']
+                    break
+            if min(num, den) < 0:
+                print('Error: "online" policy stats not found in input:',x)
+                continue
+            if js['ts'] not in d or d[js['ts']]['online']['d'] < den or (d[js['ts']]['online']['d'] == den and d[js['ts']]['online']['n'] < num):
+                d[js['ts']] = {y['t'] : {field : y[field] for field in y if field not in {'w','t'}} for y in js['d']}
+
+    print('Output dashboard data...')
+    output_dashboard_data(d, dashboard_file)
+
 def create_stats(log_fp, dashboard_file, predictions_files=None):
 
     t0 = time.time()
@@ -135,30 +185,7 @@ def create_stats(log_fp, dashboard_file, predictions_files=None):
         print('Error: Prediction file length ({}) is different from number of events in log file ({})'.format([len(pred[name]) for name in pred],evts))
         sys.exit()
 
-    data_dict = collections.OrderedDict()
-    for x in d:
-        for type in d[x]:
-            for field in d[x][type]:
-                data_dict.setdefault(type+'_'+field, []).append(d[x][type][field])
-
-    df = pandas.DataFrame(data_dict, index=pandas.to_datetime([x for x in d]), dtype=float)
-
-    df_col = collections.OrderedDict()
-    for x in df.columns:
-        temp = x.split('_')
-        df_col.setdefault(temp[0],[]).append(temp[1])
-
-    agg_windows = [('5T',5),('H',60),('6H',360),('D',1440)]
-    with open(dashboard_file, 'w') as f:
-        for ag in agg_windows:
-            for index, row in df.resample(ag[0]).agg({type+'_'+field : max if field == 'c' else sum for type in df_col for field in df_col[type]}).replace(np.nan, 0.0).iterrows():
-                d = []
-                for type in df_col:
-                    temp = collections.OrderedDict({field : row[type+'_'+field] for field in df_col[type]})
-                    temp["w"] = ag[1]
-                    temp["t"] = type
-                    d.append(temp)
-                f.write(json.dumps({"ts":index.strftime("%Y-%m-%dT%H:%M:%SZ"),"d":d})+'\n')
+    output_dashboard_data(d, dashboard_file)
     
     print('Total Elapsed Time: {:.1f} sec.'.format(time.time()-t0))
 
