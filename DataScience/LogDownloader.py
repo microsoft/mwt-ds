@@ -52,6 +52,7 @@ def parse_argv(argv):
     parser.add_argument('--delta_mod_t', type=int, default=3600, help='time window in sec to detect if a file is currently in use (default=3600 - 1 hour)')
     parser.add_argument('--max_connections', type=int, default=4, help='number of max_connections (default=4)')
     parser.add_argument('--verbose', help="print more details", action='store_true')
+    parser.add_argument('--confirm', help="confirm before downloading", action='store_true')
     parser.add_argument('-v','--version', type=int, default=2, help='''version of log downloader to use:
     1: for uncooked logs (only for backward compatibility) [deprecated]
     2: for cooked logs [default]''')
@@ -74,7 +75,7 @@ def update_progress(current, total):
     sys.stdout.write(text)
     sys.stdout.flush()
 
-def download_container(app_id, log_dir, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, verbose=False, create_gzip=False, delta_mod_t=3600, max_connections=4):
+def download_container(app_id, log_dir, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, verbose=False, create_gzip=False, delta_mod_t=3600, max_connections=4, confirm=False):
     
     t_start = time.time()
     print('-----'*10)
@@ -158,6 +159,11 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
 
             try:
                 bp = bbs.get_blob_properties(app_id, blob.name)
+
+                if confirm:
+                    if input("{} - Do you want to download [Y/n]? ".format(blob.name)) not in {'Y', 'y'}:
+                        print()
+                        continue
 
                 fp = os.path.join(log_dir, app_id, blob.name.replace('/','_'))
                 selected_fps.append(fp)
