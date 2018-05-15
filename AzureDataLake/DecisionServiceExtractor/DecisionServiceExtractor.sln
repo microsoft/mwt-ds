@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2000
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DecisionServiceExtractor", "DecisionServiceExtractor.csproj", "{0E10BE56-EB3D-4EC9-BF31-A1B9F649A9F2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0E10BE56-EB3D-4EC9-BF31-A1B9F649A9F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E10BE56-EB3D-4EC9-BF31-A1B9F649A9F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E10BE56-EB3D-4EC9-BF31-A1B9F649A9F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E10BE56-EB3D-4EC9-BF31-A1B9F649A9F2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5441A180-B33A-45E0-BAC1-CDDC8B7DD2CC}
+	EndGlobalSection
+EndGlobal
