@@ -1,5 +1,5 @@
 from subprocess import check_output, STDOUT, TimeoutExpired, DEVNULL
-import multiprocessing
+import multiprocessing, psutil
 import sys, os
 import json
 from datetime import datetime, timedelta
@@ -163,11 +163,11 @@ def parse_min_max_steps(val):
             raise
         val_min, val_max = map(float, temp[:2])
         steps = int(temp[2])
-        if steps < 1 or val_min <= 0 or (steps > 1 and val_min >= val_max):
+        if steps < 1 or (not (val_max >= val_min >= 0)) or (steps > 1 and val_min == 0):
             raise
     except:
-        raise argparse.ArgumentTypeError('Input "{}" is an invalid range (make sure that steps > 0, min > 0, and max > min if steps > 1)'.format(val))
-    return np.logspace(np.log10(val_min), np.log10(val_max), steps)
+        raise argparse.ArgumentTypeError('Input "{}" is an invalid range (make sure that steps > 0, max >= min >= 0, and min > 0 if steps > 1)'.format(val))
+    return np.logspace(np.log10(val_min), np.log10(val_max), steps) if steps > 1 else [val_min]
 
 
 if __name__ == '__main__':
@@ -181,7 +181,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-f','--file_path', help="data file path (.json or .json.gz format - each line is a dsjson)", required=True)
     parser.add_argument('-b','--base_command', help="base Vowpal Wabbit command (default: vw --cb_adf --dsjson -c )", default='vw --cb_adf --dsjson -c ')
-    parser.add_argument('-p','--n_proc', type=int, help="number of parallel processes to use (default: logical processors)", default=multiprocessing.cpu_count())
+    parser.add_argument('-p','--n_proc', type=int, help="number of parallel processes to use (default: physical processors)", default=psutil.cpu_count(logical=False))
     parser.add_argument('-s','--shared_namespaces', type=str, help="shared feature namespaces; e.g., 'abc' means namespaces a, b, and c (default: auto-detect from data file)", default='')
     parser.add_argument('-a','--action_namespaces', type=str, help="action feature namespaces (default: auto-detect from data file)", default='')
     parser.add_argument('-m','--marginal_namespaces', type=str, help="marginal feature namespaces (default: auto-detect from data file)", default='')
@@ -243,6 +243,8 @@ if __name__ == '__main__':
             marginal_features = marginal_tmp
 
     print("\n*********** SETTINGS ******************")
+    print("Parallel processes: {}".format(n_proc))
+    print()
     print("Base command + log file: {}".format(base_command))
     print()
     print('Learning rates: ['+', '.join(map(str,learning_rates))+']')
