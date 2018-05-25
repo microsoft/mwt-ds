@@ -110,6 +110,9 @@
     var url = getQueryStringValue("file");
     console.log("Input file: " + url);
     
+    var show_reward_event_plot = getQueryStringValue("plot2");
+    console.log("show_reward_event_plot: " + show_reward_event_plot);
+    
     var show_ci = getQueryStringValue("show_ci");
     console.log("Show CI: " + show_ci);
 
@@ -142,7 +145,9 @@
         height = 600,
         marginForAxisLabel = 40,
         padding = 60,
+        heightSlider = 300,
         barWidth = 565,
+        marginBetweenGraphAndSlider = 100,
         marginBetweenGraphAndBarChart = 20;
     var margin = {
         'top': 20,
@@ -162,6 +167,10 @@
 
     var xSlider = d3.scaleUtc()
         .range([0, width]);
+    var ySliderRewards = d3.scaleLinear()
+        .range([heightSlider, 0]);
+    var ySliderEvents = d3.scaleLinear()
+        .range([heightSlider, 0]);
 
     var z = d3.scaleOrdinal(d3.schemeCategory10);
 
@@ -183,11 +192,21 @@ function renderData(data) {
         .y0(function (d) { return y(d.l); })
         .y1(function (d) { return y(d.u); })
         .curve(interpolation);
+        
+    var eventlineSlider = d3.line()
+        .x(function (d) { return xSlider(d.ts); })
+        .y(function (d) { return ySliderEvents(d.d); })     // d.d == number of events
+        .curve(interpolation);
+        
+    var rewardslineSlider = d3.line()
+        .x(function (d) { return xSlider(d.ts); })
+        .y(function (d) { return ySliderRewards(d.n); })     // d.n == number of rewards
+        .curve(interpolation);
 
     var svg = d3.select("body").append("svg")
             .attr("class", "graph")
             .attr("width", width + margin.left + margin.right + barWidth + marginBetweenGraphAndBarChart + 20)
-            .attr("height", height + margin.top + margin.bottom);
+            .attr("height", height + margin.top + margin.bottom + heightSlider + marginBetweenGraphAndSlider);
 
     var g = svg.append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
@@ -196,6 +215,13 @@ function renderData(data) {
     //    .attr("transform", "translate(" + (margin.left + width + marginBetweenGraphAndBarChart) + "," + margin.top + ")");
 
     var legend = svg.append("g");
+
+    if (show_reward_event_plot === 'true')
+    {
+        var context = svg.append("g") // Brushing context box container
+            .attr("transform", "translate(" + margin.left + "," + (margin.top + height + marginBetweenGraphAndSlider) + ")")
+            .attr("class", "context");
+    }
 
     //append clip path for lines plotted, hiding those part out of bounds
     svg.append("defs").append("clipPath")
@@ -244,6 +270,21 @@ function renderData(data) {
     // setting up the slider
     xSlider.domain(x.domain());
 
+    if (show_reward_event_plot === 'true')
+    {
+        var policyOnline = dataSeries.filter(function(d) { return capitalizeFirstLetter(d.type) === "Online"; })[0];
+        
+        ySliderRewards.domain([0, 1.1*d3.max(policyOnline.values, function (d) { return d.n; })]);
+        ySliderEvents.domain([0, 1.1*d3.max(policyOnline.values, function (d) { return d.d; })]);
+
+        let xAxisSlider = d3.axisBottom(xSlider).tickFormat(d3.utcFormat("%m/%d %H:%M"));
+        
+        context.append("g") // Create brushing xAxis
+            .attr("class", "x axis1 axis")
+            .attr("transform", "translate(0," + heightSlider + ")")
+            .call(xAxisSlider);
+    }
+    
     let xAxis = d3.axisBottom(x)
         .tickFormat(d3.utcFormat("%m/%d %H:%M"));
 
@@ -422,6 +463,63 @@ function renderData(data) {
         .attr("transform", "rotate(-90)")
         .text("Ave. Reward");
 
+    if (show_reward_event_plot === 'true')
+    {
+        let tickEventValues = ySliderEvents.domain();
+        context.append("g")
+            .attr("class", "axis")
+            .attr("transform", "translate(" + width + ",0)")
+            .call(d3.axisRight(ySliderEvents).ticks(5));
+                // .tickFormat(d3.timeFormat("000")) // ALEKH DEMO
+                //.tickValues([tickEventValues[0],  (tickEventValues[1] - tickEventValues[0])/2, tickEventValues[1]]));     // for the slide only have min/mean/max
+
+        let tickValuesRewards = ySliderRewards.domain();
+        context.append("g")
+            .attr("class", "axis")
+            .call(d3.axisLeft(ySliderRewards).ticks(5));
+                // .tickFormat(d3.timeFormat("000")) // ALEKH DEMO
+                //.tickValues([tickValuesRewards[0],  (tickValuesRewards[1] - tickValuesRewards[0])/2, tickValuesRewards[1]]));     // for the slide only have min/mean/max
+            
+        context.append("g")
+            .data([policyOnline])
+            .append("path")
+            .attr("class", "line")
+            .attr("d", function (d) { return eventlineSlider(d.values); })
+            .attr("clip-path", "url(#clipSlider)");
+            
+        context.append("g")
+            .data([policyOnline])
+            .append("path")
+            .attr("class", "line")
+            .style("stroke-dasharray", ("3, 3"))
+            .attr("d", function (d) { return rewardslineSlider(d.values); })
+            .attr("clip-path", "url(#clipSlider)");
+            
+        context.append("text")
+            .attr("class", "y label")
+            .attr("text-anchor", "middle")
+            .attr("x", -(heightSlider/2))
+            .attr("y", -2*marginForAxisLabel)
+            .attr("dy", ".75em")
+            .attr("transform", "rotate(-90)")
+            .text("Rewards (dashed line)");
+            
+        context.append("text")
+            .attr("class", "y label")
+            .attr("text-anchor", "middle")
+            .attr("x", -(heightSlider/2))
+            .attr("y", width + 2*marginForAxisLabel)
+            .attr("dy", ".75em")
+            .attr("transform", "rotate(-90)")
+            .text("Events (solid line)");
+            
+        context.append("text")
+            .attr("class", "x label")
+            .attr("text-anchor", "middle")
+            .attr("x", width/2)
+            .attr("y", heightSlider + marginForAxisLabel)
+            .text("Timestamp (UTC)");
+    }
 };
 
 function render() {
