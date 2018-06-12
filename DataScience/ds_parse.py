@@ -52,11 +52,11 @@ def process_dsjson_file(fp, d=None, e=None):
                 continue
             
             if x.startswith(b'{"_label_cost":'):
-                ei,r,ts,p,a,num_a = json_cooked(x)
+                ei,r,o,ts,p,a,num_a = json_cooked(x)
 
                 slot_len_c.update([num_a])
                 if d is not None:
-                    d.setdefault(ei, []).append((fp,i,p,a,r,num_a,ts))
+                    d.setdefault(ei, []).append((fp,i,p,a,r,o,num_a,ts))
                 d_c += 1
                 d_s.add(ei)
                 if a not in stats:
@@ -68,14 +68,16 @@ def process_dsjson_file(fp, d=None, e=None):
 
                 stats[a][3] += 1/p
                 baselineRandom[1] += 1/p/num_a
-                if r != b'0':
+                if o == 1:
                     stats[a][0] += 1
+                    if num_a > 1:
+                        rew_multi_a[0] += 1
+                if r != b'0':
                     r = float(r)
                     stats[a][1] -= r
                     stats[a][2] -= r/p
                     baselineRandom[0] -= r/p/num_a
                     if num_a > 1:
-                        rew_multi_a[0] += 1
                         rew_multi_a[1] -= r
             else:
                 ei,r,et = json_dangling(x)
@@ -119,6 +121,7 @@ def json_cooked(x, do_devType=False):
     ind7 = x.find(b'"',ind5+28)         # equal to: x.find('","a',ind5+28)
     ind8 = x.find(b']',ind7+8)          # equal to: x.find('],"c',ind7+8)
 
+    o = 1 if b',"o":' in x[ind2+30:ind2+50] else 0
     r = x[15:ind1]                      # len('{"_label_cost":') = 15
     p = float(x[ind1+22:ind2])          # len(',"_label_probability":') = 22
     ts = x[ind4+14:ind5]                # len(',"Timestamp":"') = 14
@@ -132,9 +135,9 @@ def json_cooked(x, do_devType=False):
             devType = x[ind9+14:ind10]   # len('"DeviceType":"') = 14
         else:
             devType = b'N/A'
-        return ei,r,ts,p,int(a_vec[0]),num_a,devType
+        return ei,r,o,ts,p,int(a_vec[0]),num_a,devType
     else:
-        return ei,r,ts,p,int(a_vec[0]),num_a
+        return ei,r,o,ts,p,int(a_vec[0]),num_a
 
 def json_dangling(x):
     #################################

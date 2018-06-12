@@ -28,7 +28,7 @@ def parse_logs(raw_stats, files, delta_mod_t=3600):
             if not line.startswith(b'{"_label_cost'):
                 continue
             
-            ei,r,ts,p,a,num_a,dev = ds_parse.json_cooked(line, do_devType=True)
+            ei,r,o,ts,p,a,num_a,dev = ds_parse.json_cooked(line, do_devType=True)
             
             # extract date from ts
             d = str(ts[:13], 'utf-8')
@@ -47,9 +47,10 @@ def parse_logs(raw_stats, files, delta_mod_t=3600):
             if a == 1:
                 c2['ips'][d[:10]][1] += 1/p
             c2['ips'][d[:10]][3] += 1/p/num_a
+            if o == 1:
+                c2[d][dev][0] += 1
             if r != b'0':
                 r = float(r)
-                c2[d][dev][0] += 1
                 c2[d][dev][2] -= r
                 if a == 1:
                     c2['ips'][d[:10]][0] -= r/p
@@ -186,7 +187,8 @@ if __name__ == '__main__':
         # Total traffic plot        
         p = [(y[0],[sum(y[1][dev][0] for dev in y[1]),sum(y[1][dev][1] for dev in y[1]),sum(y[1][dev][2] for dev in y[1])]) for y in pStats]
         axarr[0].plot(range(len(p)),[x[1][1] for x in p], label='Total')
-        axarr[1].plot(range(len(p)),[x[1][2] for x in p], label='Total')
+        axarr[1].plot(range(len(p)),[x[1][2] for x in p], label='Total Rew')
+        axarr[1].plot(range(len(p)),[x[1][0] for x in p], label='Total Obs', linestyle="--")
         axarr[2].plot(range(len(p)),[x[1][2]/max(x[1][1],1) for x in p], label='Online performance')
         if do_by_day:
             online_perf = np.average([x[1][2]/max(x[1][1],1) for x in p])
