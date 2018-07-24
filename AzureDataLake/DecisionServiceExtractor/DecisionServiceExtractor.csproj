@@ -32,6 +32,21 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.Analytics.Diagnostics, Version=1.0.0.0, Culture=neutral, PublicKeyToken=6ada29624c937801, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.Azure.DataLake.USQL.Interfaces.1.1.0\lib\net45\Microsoft.Analytics.Diagnostics.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Analytics.Interfaces, Version=1.0.0.0, Culture=neutral, PublicKeyToken=9f877b68b06e0b5e, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.Azure.DataLake.USQL.Interfaces.1.1.0\lib\net45\Microsoft.Analytics.Interfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Analytics.Interfaces.Streaming, Version=1.0.0.0, Culture=neutral, PublicKeyToken=8341efbf9a4dc8c9, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.Azure.DataLake.USQL.Interfaces.1.1.0\lib\net45\Microsoft.Analytics.Interfaces.Streaming.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Analytics.Types, Version=1.0.0.0, Culture=neutral, PublicKeyToken=9f877b68b06e0b5e, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.Azure.DataLake.USQL.Interfaces.1.1.0\lib\net45\Microsoft.Analytics.Types.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Analytics.UnitTest, Version=10.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.Azure.DataLake.USQL.Interfaces.1.1.0\lib\net45\Microsoft.Analytics.UnitTest.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\usql\Examples\DataFormats\Microsoft.Analytics.Samples.Formats\bin\Release\Newtonsoft.Json.dll</HintPath>
@@ -42,13 +57,13 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="Microsoft.Analytics.Interfaces" />
-    <Reference Include="Microsoft.Analytics.Interfaces.Streaming" />
-    <Reference Include="Microsoft.Analytics.Types" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="HeaderOnly.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
