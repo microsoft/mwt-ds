@@ -116,7 +116,7 @@ namespace DecisionServiceExtractor
                         case JsonToken.Integer:
                             numActions++;
                             break;
-                        case JsonToken.EndObject:
+                        case JsonToken.EndArray:
                             return numActions;
                     }
                 }
