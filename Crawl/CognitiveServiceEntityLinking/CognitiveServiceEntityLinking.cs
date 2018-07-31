@@ -21,7 +21,7 @@ namespace Microsoft.DecisionService.Crawl
 
         static CognitiveServiceEntityLinking()
         {
-            cogService = new CognitiveService("CogEntityLinking", queryParams: "/link");
+            cogService = new CognitiveService("CogEntityLinking", queryParams: "/entities");
         }
 
         public static Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceWriter log, CancellationToken cancellationToken)
@@ -39,27 +39,35 @@ namespace Microsoft.DecisionService.Crawl
                     if (textBuilder.Length == 0)
                         return null;
 
-                    return Services.Limit(textBuilder.ToString(), 10240);
+                    string text = Services.Limit(textBuilder.ToString(), 10240);
+
+                    // EntityLinking has moved under the TextAnalytics Cognitive Service, so the request body is now shaped
+                    // like the TextAnalytics request
+                    return CognitiveServiceTextAnalytics.CreateRequestFromText(text);
                 },
                 (reqBody, blobContent) =>
                 {
                     blobContent.Output = new JObject();
-                    var entityResponse = JsonConvert.DeserializeObject<EntityResponse>(blobContent.Value);
-
-                    if (entityResponse?.Entities != null)
+                    var responseObj = JsonConvert.DeserializeObject<TextAnalyticResponse<DocumentSentiment>>(blobContent.Value);
+                    if (responseObj?.Documents?.Length == 1)
                     {
-                        var q = entityResponse.Entities
-                            .GroupBy(e => e.Name)
-                            .Select(e => new JProperty(e.Key, e.Max(x => x.Score)));
+                        var entityResponse = responseObj.Documents[0];
 
-                        blobContent.Output.Add("Tags", new JObject(q));
+                        if (entityResponse?.Entities != null)
+                        {
+                            var q = entityResponse.Entities
+                                .GroupBy(e => e.Name)
+                                .Select(e => new JProperty(e.Key, e.Max(x => x.Score)));
+
+                            blobContent.Output.Add("Tags", new JObject(q));
+                        }
                     }
                 },
                 isPost: true,
                 cancellationToken: cancellationToken);
         }
 
-        public class EntityResponse
+        public class DocumentEntities : TextAnalyticDocumentResultBase
         {
             [JsonProperty("entities")]
             public Entity[] Entities { get; set; }

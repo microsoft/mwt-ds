@@ -24,6 +24,26 @@ namespace Microsoft.DecisionService.Crawl
             cogService = new CognitiveService("CogTextAnalytics", queryParams: "/sentiment");
         }
 
+        internal static TextAnalyticRequest CreateRequestFromText(string text)
+        {
+            // Based on email thread with Arvind Krishnaa Jagannathan <arjagann@microsoft.com>
+            if (text.Length >= 10240 / 2)
+            text = text.Substring(0, 10240 / 2);
+
+            return new TextAnalyticRequest
+            {
+                Documents = new List<TextAnalyticDocument>
+                {
+                    new TextAnalyticDocument
+                    {
+                        //Language = "english",
+                        Text = text,
+                        Id = "1"
+                    }
+                }
+            };
+        }
+
         public static Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceWriter log, CancellationToken cancellationToken)
         {
             return cogService.InvokeAsync(req, log, 
@@ -45,24 +65,13 @@ namespace Microsoft.DecisionService.Crawl
                     if (text.Length >= 10240 / 2)
                         text = text.Substring(0, 10240 / 2);
 
-                    return new TextAnalyticRequest
-                    {
-                        Documents = new List<TextAnalyticDocument>
-                        {
-                            new TextAnalyticDocument
-                            {
-                                //Language = "english",
-                                Text = text,
-                                Id = "1"
-                            }
-                        }
-                    };
+                    return CreateRequestFromText(text);
                 },
                 (reqBody, blobContent) =>
                 {
                     blobContent.Output = new JObject();
 
-                    var responseObj = JsonConvert.DeserializeObject<TextAnalyticResponse>(blobContent.Value);
+                    var responseObj = JsonConvert.DeserializeObject<TextAnalyticResponse<DocumentSentiment>>(blobContent.Value);
                     if (responseObj?.Documents?.Length == 1)
                         blobContent.Output.Add(new JProperty("XSentiment", responseObj.Documents[0].Score));
                 },
@@ -89,20 +98,23 @@ namespace Microsoft.DecisionService.Crawl
         }
 
 
-        public class TextAnalyticResponse
+        public class TextAnalyticResponse<TDocumentResult> where TDocumentResult : TextAnalyticDocumentResultBase
         {
             [JsonProperty("documents")]
-            public TextAnalyticResponseDocument[] Documents { get; set; }
+            public TDocumentResult[] Documents { get; set; }
 
             [JsonProperty("errors")]
             public TextAnalyticResponseError[] Errors { get; set; }
         }
 
-        public class TextAnalyticResponseDocument
+        public class TextAnalyticDocumentResultBase
         {
             [JsonProperty("id")]
             public string Id { get; set; }
+        }
 
+        public class DocumentSentiment : TextAnalyticDocumentResultBase
+        {
             [JsonProperty("score")]
             public float Score { get; set; }
         }
