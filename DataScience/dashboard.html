@@ -89,8 +89,8 @@
     <option value=".05">p95</option>
 </select>&emsp;Interpolation Type:
 <select id="interpolation" style="font-size:18px">
-    <option value="0">Linear</option>
-    <option value="1" selected>Cardinal</option>
+    <option value="0" selected>Linear</option>
+    <option value="1">Cardinal</option>
 </select>
 </div>
 <script type="text/javascript" charset="utf-8">
@@ -98,7 +98,7 @@
     var windowSize = 1440;
     var confIntervalValue = -1.0;
     var interpolateTypes = [d3.curveLinear, d3.curveCardinal, d3.curveNatural];
-    var interpolation = interpolateTypes[1];
+    var interpolation = interpolateTypes[0];
 
     function getQueryStringValue (key) {
         return decodeURIComponent(window.location.search.replace(new RegExp("^(?:.*[&\\?]" + encodeURIComponent(key).replace(/[\.\+\*]/g, "\\$&") + "(?:\\=([^&]*))?)?.*$", "i"), "$1"));
@@ -138,8 +138,9 @@
     var policyTypes = [];
     var tot = null;
 
-    var width = 1000,
+    var width = 1200,
         height = 600,
+        marginForAxisLabel = 40,
         padding = 60,
         barWidth = 565,
         marginBetweenGraphAndBarChart = 20;
@@ -237,7 +238,7 @@ function renderData(data) {
 
     // setting up the main plot
     x.domain(d3.extent(all, function (d) { return d.ts; }));
-    y.domain([0, d3.max(all, function (d) { return d.v })]);
+    y.domain([.9*d3.min(all, function (d) { return d.v }), 1.1*d3.max(all, function (d) { return d.v })]);
     z.domain(dataSeries.map(function (p) { return p.type; }));
 
     // setting up the slider
@@ -304,9 +305,9 @@ function renderData(data) {
 
     g.append("text")
         .attr("class", "x label")
-        .attr("text-anchor", "end")
-        .attr("x", 510)
-        .attr("y", 640)
+        .attr("text-anchor", "middle")
+        .attr("x", width/2)
+        .attr("y", height + marginForAxisLabel)
         .text("Timestamp (UTC)");
 
     svg.append("rect")
@@ -414,9 +415,9 @@ function renderData(data) {
 
     g.append("text")
         .attr("class", "y label")
-        .attr("text-anchor", "end")
-        .attr("x", -270)
-        .attr("y", -80)
+        .attr("text-anchor", "middle")
+        .attr("x", -height/2)
+        .attr("y", -2*marginForAxisLabel)
         .attr("dy", ".75em")
         .attr("transform", "rotate(-90)")
         .text("Ave. Reward");
@@ -439,31 +440,27 @@ function render() {
                     }
 
                 //parse the date and copy to each data point
+                var policyTypesSet = new Set([]);
                 data.forEach(function (d) {
                     d.ts = parseTime(d.ts);
                     d.d.forEach(function (v) {
                         v.ts = d.ts;
                         v.v = v.n / (v.d + Number.EPSILON);
+                        if(v.w === 1440 && !policyTypesSet.has(v.t))
+                        {
+                            policyTypes.push({type : v.t})
+                            policyTypesSet.add(v.t)
+                        }
                     });
                 });
+                console.log(policyTypes);
 
                 // create a single big array
                 data_all = [].concat.apply([], data.map(function (d) { return d.d; }))
                     .sort(function (a, b) { return a.ts - b.ts; });
-                
-                var values1440 = data_all.filter(function (d) { return d.w === 1440; });
-                
-                var policyTypesSet = new Set([]);
-                values1440.forEach(function(d){
-                    if(!policyTypesSet.has(d.t))
-                    {
-                        policyTypes.push({type : d.t})
-                        policyTypesSet.add(d.t)
-                    }
-                });
-                console.log(policyTypes);
-                
+                                
                 // compute total aggregates
+                var values1440 = data_all.filter(function (d) { return d.w === 1440; });
                 tot = {};
                 policyTypes.map(function (p) {
                     var values = values1440.filter(function (d) { return d.t === p.type; });
