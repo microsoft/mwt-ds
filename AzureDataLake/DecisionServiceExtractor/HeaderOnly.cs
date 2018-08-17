@@ -72,6 +72,7 @@ namespace DecisionServiceExtractor
             private readonly bool hasProbability;
             private readonly bool hasAction;
             private readonly bool hasNumActions;
+            private readonly bool hasHasObservations;
             private readonly bool hasData;
             private readonly bool hasJsonObject;
 
@@ -81,6 +82,7 @@ namespace DecisionServiceExtractor
             private readonly int idxProbability;
             private readonly int idxAction;
             private readonly int idxNumActions;
+            private readonly int idxHasObservations;
             private readonly int idxData;
             private FieldExpression[] expressions;
 
@@ -94,6 +96,7 @@ namespace DecisionServiceExtractor
                 this.hasProbability = HasColumnOfType(schema, "Prob", typeof(float), out this.idxProbability);
                 this.hasAction = HasColumnOfType(schema, "Action", typeof(int), out this.idxAction);
                 this.hasNumActions = HasColumnOfType(schema, "NumActions", typeof(int), out this.idxNumActions);
+                this.hasHasObservations = HasColumnOfType(schema, "HasObservations", typeof(int), out this.idxHasObservations);
                 this.hasData = HasColumnOfType(schema, "Data", typeof(string), out this.idxData);
 
                 this.hasJsonObject = false;
@@ -189,6 +192,12 @@ namespace DecisionServiceExtractor
                             output.Set(this.idxNumActions, arr.Count);
                     }
 
+                    if (this.hasHasObservations)
+                    {
+                        if (jobj["o"] is JArray arr)
+                            output.Set(this.idxHasObservations, 1);
+                    }
+
                     // return early
                     return output.AsReadOnly();
                 }
@@ -232,6 +241,12 @@ namespace DecisionServiceExtractor
                                                 jsonReader.Skip();
                                             else
                                                 output.Set(this.idxNumActions, CountArrayElements(jsonReader));
+                                            break;
+                                        case "o":
+                                            if (!this.hasHasObservations)
+                                                jsonReader.Skip();
+                                            else
+                                                output.Set(this.idxHasObservations, 1);
                                             break;
                                         default:
                                             jsonReader.Skip();

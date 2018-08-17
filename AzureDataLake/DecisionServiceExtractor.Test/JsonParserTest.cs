@@ -22,6 +22,7 @@ namespace DecisionServiceExtractor.Test
                 new USqlColumn<float>("Prob"),
                 new USqlColumn<int>("Action"),
                 new USqlColumn<int>("NumActions"),
+                new USqlColumn<int>("HasObservations"),
                 new USqlColumn<string>("Data")
                 );
         }
@@ -53,6 +54,7 @@ namespace DecisionServiceExtractor.Test
                     Assert.AreEqual(0.911111116, output.Get<float>("Prob"), 1e-6);
                     Assert.AreEqual(11, output.Get<int>("NumActions"));
                     Assert.AreEqual(8, output.Get<int>("Action"));
+                    Assert.AreEqual(1, output.Get<int>("HasObservations"));
                 }
             }
         }
