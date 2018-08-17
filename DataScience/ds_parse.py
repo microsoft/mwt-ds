@@ -231,12 +231,13 @@ def get_e_from_eh_obs(fp):
             ind5 = x.find(b'","', ind4+11)
 
             ts = x[5:ind1]
-            part = x[ind2+10:ind3]
+            partition = x[ind2+10:ind3]
             ei = x[ind4+11:ind5]
-            e.setdefault(ei, []).append((ts, part))
+            value = x[ind5+6:].strip()[:-1]
+            e.setdefault(ei, []).append((partition, value, ts))
     return e
 
-def create_time_hist(d,e, normed=True, cumulative=True, scale_sec=1, n_bins=100, td_day_start=None, ei=None):
+def create_time_hist(d,e, normed=True, cumulative=True, scale_sec=1, n_bins=100, td_day_start=None, ei=None, xlabel=None, ylabel=None):
     import matplotlib.pyplot as plt
     import datetime
     t_vec = []
@@ -253,14 +254,18 @@ def create_time_hist(d,e, normed=True, cumulative=True, scale_sec=1, n_bins=100,
         td = datetime.datetime.strptime(str(d[x][0][-1],'utf-8').split('.')[0].replace('Z',''), "%Y-%m-%dT%H:%M:%S")
         if td_day_start and td < datetime.datetime.strptime(td_day_start, "%Y-%m-%d"):
             continue
-        if type(e[x][0]) in [list, tuple]:
-            te = datetime.datetime.strptime(str(e[x][0][-1],'utf-8').split('.')[0].replace('Z',''), "%Y-%m-%dT%H:%M:%S")
+        if b' ' in e[x][0][-1]:     # Timestamp is assumed to be the last field of tuple
+            te = datetime.datetime.strptime(str(e[x][0][-1],'utf-8'), '%m/%d/%Y %I:%M:%S %p')
         else:
-            te = datetime.datetime.strptime(str(e[x][0],'utf-8').split('.')[0].replace('Z',''), '%m/%d/%Y %I:%M:%S %p')
+            te = datetime.datetime.strptime(str(e[x][0][-1],'utf-8').split('.', 1)[0].replace('Z',''), "%Y-%m-%dT%H:%M:%S")
         t_vec.append((x,(te-td).total_seconds()/scale_sec))
     
     print('len(t_vec): {}'.format(len(t_vec)))
     plt.hist([x[1] for x in t_vec], n_bins, normed=normed, cumulative=cumulative, histtype='step')
+    if xlabel:
+        plt.xlabel(xlabel)
+    if ylabel:
+        plt.ylabel(ylabel)
     plt.show()
     
     return t_vec
