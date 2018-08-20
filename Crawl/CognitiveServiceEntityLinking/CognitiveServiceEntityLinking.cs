@@ -39,7 +39,7 @@ namespace Microsoft.DecisionService.Crawl
                     if (textBuilder.Length == 0)
                         return null;
 
-                    string text = Services.Limit(textBuilder.ToString(), 10240);
+                    string text = Services.Limit(textBuilder.ToString(), Constants.MaxRequestSizeAnsi);
 
                     // EntityLinking has moved under the TextAnalytics Cognitive Service, so the request body is now shaped
                     // like the TextAnalytics request

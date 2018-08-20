@@ -27,8 +27,8 @@ namespace Microsoft.DecisionService.Crawl
         internal static TextAnalyticRequest CreateRequestFromText(string text)
         {
             // Based on email thread with Arvind Krishnaa Jagannathan <arjagann@microsoft.com>
-            if (text.Length >= 10240 / 2)
-            text = text.Substring(0, 10240 / 2);
+            if (text.Length >= Constants.MaxRequestSizeUtf16)
+            text = text.Substring(0, Constants.MaxRequestSizeUtf16);
 
             return new TextAnalyticRequest
             {
@@ -62,8 +62,8 @@ namespace Microsoft.DecisionService.Crawl
                     var text = textBuilder.ToString();
 
                     // Based on email thread with Arvind Krishnaa Jagannathan <arjagann@microsoft.com>
-                    if (text.Length >= 10240 / 2)
-                        text = text.Substring(0, 10240 / 2);
+                    if (text.Length >= Constants.MaxRequestSizeUtf16)
+                        text = text.Substring(0, Constants.MaxRequestSizeUtf16);
 
                     return CreateRequestFromText(text);
                 },
