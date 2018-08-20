@@ -48,7 +48,7 @@ namespace Microsoft.DecisionService.Crawl
                 (reqBody, blobContent) =>
                 {
                     blobContent.Output = new JObject();
-                    var responseObj = JsonConvert.DeserializeObject<TextAnalyticResponse<DocumentSentiment>>(blobContent.Value);
+                    var responseObj = JsonConvert.DeserializeObject<CognitiveServiceTextAnalytics.TextAnalyticResponse<DocumentEntities>>(blobContent.Value);
                     if (responseObj?.Documents?.Length == 1)
                     {
                         var entityResponse = responseObj.Documents[0];
