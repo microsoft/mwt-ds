@@ -67,7 +67,7 @@ namespace Microsoft.DecisionService.Crawl
                 cancellationToken: cancellationToken);
         }
 
-        public class DocumentEntities : TextAnalyticDocumentResultBase
+        public class DocumentEntities : CognitiveServiceTextAnalytics.TextAnalyticDocumentResultBase
         {
             [JsonProperty("entities")]
             public Entity[] Entities { get; set; }
