@@ -28,7 +28,9 @@ namespace Microsoft.DecisionService.Crawl
         {
             // Based on email thread with Arvind Krishnaa Jagannathan <arjagann@microsoft.com>
             if (text.Length >= Constants.MaxRequestSizeUtf16)
-            text = text.Substring(0, Constants.MaxRequestSizeUtf16);
+            {
+                text = text.Substring(0, Constants.MaxRequestSizeUtf16);
+            }
 
             return new TextAnalyticRequest
             {
@@ -60,10 +62,6 @@ namespace Microsoft.DecisionService.Crawl
                         return null;
 
                     var text = textBuilder.ToString();
-
-                    // Based on email thread with Arvind Krishnaa Jagannathan <arjagann@microsoft.com>
-                    if (text.Length >= Constants.MaxRequestSizeUtf16)
-                        text = text.Substring(0, Constants.MaxRequestSizeUtf16);
 
                     return CreateRequestFromText(text);
                 },
