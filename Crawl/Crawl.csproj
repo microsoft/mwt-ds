@@ -138,6 +138,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Constants.cs" />
     <Compile Include="VideoIndexer\Breakdown\VideoBreakdown.cs" />
     <Compile Include="VideoIndexer\Breakdown\VideoBreakdownAudioEffects.cs" />
     <Compile Include="VideoIndexer\Breakdown\VideoBreakdownBreakdown.cs" />
