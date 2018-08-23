@@ -5,6 +5,8 @@ import configparser
 import LogDownloader
 import ds_parse
 
+legend_loc = 'upper left'
+smoothing_hours = 3
 
 # Create dictionary with filename as keys
 def parse_logs(raw_stats, files, delta_mod_t=3600):
@@ -133,14 +135,13 @@ if __name__ == '__main__':
         else:
             days = [(i,x[0]) for i,x in enumerate(pStats) if 'T12' in x[0]] # Time is in UTC: T12 is 8am EST
             
-            smoothing_hours = 3
             # Visualize running average data of Reward/Request over the last 7 days
             plt.figure(1)
             data2 = [[(x[0],sum(y[2] for y in x[1].values())/sum(y[1] for y in x[1].values())) for x in pStats if d[1][:10] in x[0]] for d in days[-7:]]
             for i,y in enumerate(data2):
                 z = [np.mean([x[1] for x in y[i:i+smoothing_hours]]) for i in range(len(y))]
                 plt.plot(z, linewidth=3) if i+1 == len(data2) else plt.plot(z, linestyle="--")
-            legend = plt.legend([y[0][0][:10] for y in data2], loc='best')
+            legend = plt.legend([y[0][0][:10] for y in data2], loc=legend_loc)
             plt.xticks(range(25), list(range(20,24))+list(range(20)))
             plt.title('Reward/Request Ratio over last 7 days (Smoothing '+str(smoothing_hours)+' hours)')
             plt.xlabel('Time of day - EST')
@@ -151,7 +152,7 @@ if __name__ == '__main__':
             for i,y in enumerate(data2):
                 z = [np.mean([x[1] for x in y[i:i+smoothing_hours]]) for i in range(len(y))]
                 plt.plot(z, linewidth=3) if i+1 == len(data2) else plt.plot(z, linestyle="--")
-            legend = plt.legend([y[0][0][:10] for y in data2], loc='best')
+            legend = plt.legend([y[0][0][:10] for y in data2], loc=legend_loc)
             plt.xticks(range(25), list(range(20,24))+list(range(20)))
             plt.title('Reward/Request Ratio over same day of the week (Smoothing '+str(smoothing_hours)+' hours)')
             plt.xlabel('Time of day - EST')
@@ -162,7 +163,7 @@ if __name__ == '__main__':
             for i,y in enumerate(data2):
                 z = [x[1] for x in y]
                 plt.plot(z, linewidth=3) if i+1 == len(data2) else plt.plot(z, linestyle="--")
-            legend = plt.legend([y[0][0][:10] for y in data2], loc='best')
+            legend = plt.legend([y[0][0][:10] for y in data2], loc=legend_loc)
             plt.xticks(range(25), list(range(20,24))+list(range(20)))
             plt.title('Request over last 7 days')
             plt.xlabel('Time of day - EST')
@@ -173,14 +174,12 @@ if __name__ == '__main__':
             for i,y in enumerate(data2):
                 z = [x[1] for x in y]
                 plt.plot(z, linewidth=3) if i+1 == len(data2) else plt.plot(z, linestyle="--")
-            legend = plt.legend([y[0][0][:10] for y in data2], loc='best')
+            legend = plt.legend([y[0][0][:10] for y in data2], loc=legend_loc)
             plt.xticks(range(25), list(range(20,24))+list(range(20)))
             plt.title('Request over same day of the week')
             plt.xlabel('Time of day - EST')
 
         # All days and all hours plots
-        plt.rcParams.update({'font.size': 16})  # General font size
-
         f, axarr = plt.subplots(3, sharex=True)
         f.suptitle('App Id: '+app_id, fontsize=30)
 
@@ -206,7 +205,7 @@ if __name__ == '__main__':
         # Baseline estimate
         if do_by_day:
             # IPS traffic plot
-            p = [(y[0], y[1][0]/y[1][1]) for y in pStats_ips]
+            p = [(y[0], y[1][0]/max(y[1][1],1)) for y in pStats_ips]
             axarr[2].plot(range(len(p)),[x[1] for x in p], label='Baseline1')
             baseline1_est = np.average([x[1] for x in p])
             p = [(y[0], y[1][2]/y[1][3]) for y in pStats_ips]
@@ -224,9 +223,9 @@ if __name__ == '__main__':
         axarr[1].set(ylabel='Rewards')
         axarr[2].set(ylabel='Ratio')
         plt.xticks([x[0] for x in days], [x[1] for x in days],rotation='vertical')
-        legend = axarr[0].legend(loc='best')
-        legend = axarr[1].legend(loc='best')
-        legend = axarr[2].legend(loc='best')
+        legend = axarr[0].legend(loc=legend_loc)
+        legend = axarr[1].legend(loc=legend_loc)
+        legend = axarr[2].legend(loc=legend_loc)
         f.subplots_adjust(hspace=0.02, top=0.95, bottom=0.1)            
     
     plt.show()
