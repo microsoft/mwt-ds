@@ -30,11 +30,11 @@ def parse_logs(raw_stats, files, delta_mod_t=3600):
             if not line.startswith(b'{"_label_cost'):
                 continue
             
-            ei,r,o,ts,p,a,num_a,dev = ds_parse.json_cooked(line, do_devType=True)
+            data = ds_parse.json_cooked(line, do_devType=True)
             
             # extract date from ts
-            d = str(ts[:13], 'utf-8')
-            dev = str(dev, 'utf-8')
+            d = str(data['ts'][:13], 'utf-8')
+            dev = str(data['devType'], 'utf-8')
             
             if d not in c2:
                 c2[d] = {}
@@ -46,17 +46,17 @@ def parse_logs(raw_stats, files, delta_mod_t=3600):
                 c2['ips'][d[:10]] = [0,0,0,0]
                 
             c2[d][dev][1] += 1
-            if a == 1:
-                c2['ips'][d[:10]][1] += 1/p
-            c2['ips'][d[:10]][3] += 1/p/num_a
-            if o == 1:
+            if data['a'] == 1:
+                c2['ips'][d[:10]][1] += 1/data['p']
+            c2['ips'][d[:10]][3] += 1/data['p']/data['num_a']
+            if data['o'] == 1:
                 c2[d][dev][0] += 1
-            if r != b'0':
-                r = float(r)
-                c2[d][dev][2] -= r
-                if a == 1:
-                    c2['ips'][d[:10]][0] -= r/p
-                c2['ips'][d[:10]][2] -= r/p/num_a
+            if data['cost'] != b'0':
+                r = -float(data['cost'])
+                c2[d][dev][2] += r
+                if data['a'] == 1:
+                    c2['ips'][d[:10]][0] += r/data['p']
+                c2['ips'][d[:10]][2] += r/data['p']/data['num_a']
 
         raw_stats[os.path.basename(fp)] = c2
 

@@ -52,40 +52,40 @@ def process_dsjson_file(fp, d=None, e=None):
                 continue
             
             if x.startswith(b'{"_label_cost":'):
-                ei,r,o,ts,p,a,num_a = json_cooked(x)
+                data = json_cooked(x)
 
-                slot_len_c.update([num_a])
+                slot_len_c.update([data['num_a']])
                 if d is not None:
-                    d.setdefault(ei, []).append((fp,i,p,a,r,o,num_a,ts))
+                    d.setdefault(data['ei'], []).append((data, fp, i))
                 d_c += 1
-                d_s.add(ei)
-                if a not in stats:
-                    stats[a] = [0,0,0,0,0]
+                d_s.add(data['ei'])
+                if data['a'] not in stats:
+                    stats[data['a']] = [0,0,0,0,0]
 
-                stats[a][4] += 1
-                if p <= 0:
+                stats[data['a']][4] += 1
+                if data['p'] <= 0:
                     continue
 
-                stats[a][3] += 1/p
-                baselineRandom[1] += 1/p/num_a
-                if o == 1:
-                    stats[a][0] += 1
-                    if num_a > 1:
+                stats[data['a']][3] += 1/data['p']
+                baselineRandom[1] += 1/data['p']/data['num_a']
+                if data['o'] == 1:
+                    stats[data['a']][0] += 1
+                    if data['num_a'] > 1:
                         rew_multi_a[0] += 1
-                if r != b'0':
-                    r = float(r)
-                    stats[a][1] -= r
-                    stats[a][2] -= r/p
-                    baselineRandom[0] -= r/p/num_a
-                    if num_a > 1:
-                        rew_multi_a[1] -= r
+                if data['cost'] != b'0':
+                    r = -float(data['cost'])
+                    stats[data['a']][1] += r
+                    stats[data['a']][2] += r/data['p']
+                    baselineRandom[0] += r/data['p']/data['num_a']
+                    if data['num_a'] > 1:
+                        rew_multi_a[1] += r
             else:
-                ei,r,et = json_dangling(x)
+                data = json_dangling(x)
 
                 if e is not None:
-                    e.setdefault(ei, []).append((fp,i,r,et))
+                    e.setdefault(data['ei'], []).append((data,fp,i))
                 e_c += 1
-                e_s.add(ei)
+                e_s.add(data['ei'])
 
         len_text = update_progress(bytes_count,tot_bytes, fp+' - ')
         sys.stdout.write("\r" + " "*len_text + "\r")
@@ -106,7 +106,7 @@ def input_files_to_fp_list(files):
     
 ###############################################################################################################################################################################
 
-def json_cooked(x, do_devType=False):
+def json_cooked(x, do_devType=False, do_VWState=False, do_p_vec=False):
     #################################
     # Optimized version based on expected structure:
     # {"_label_cost":0,"_label_probability":0.01818182,"_label_Action":9,"_labelIndex":8,"Timestamp":"2017-10-24T00:00:15.5160000Z","Version":"1","EventId":"fa68cd9a71764118a635fd3d7a908634","a":[9,11,3,1,6,4,10,5,7,8,2],"c":{"_synthetic":false,"User":{"_age":0},"Geo":{"country":"United States","_countrycf":"8","state":"New York","city":"Springfield Gardens","_citycf":"8","dma":"501"},"MRefer":{"referer":"http://www.complex.com/"},"OUserAgent":{"_ua":"Mozilla/5.0 (iPad; CPU OS 10_3_2 like Mac OS X) AppleWebKit/603.2.4 (KHTML, like Gecko) Version/10.0 Mobile/14F89 Safari/602.1","_DeviceBrand":"Apple","_DeviceFamily":"iPad","_DeviceIsSpider":false,"_DeviceModel":"iPad","_OSFamily":"iOS","_OSMajor":"10","_OSPatch":"2","DeviceType":"Tablet"},"_multi":[{"
@@ -121,23 +121,32 @@ def json_cooked(x, do_devType=False):
     ind7 = x.find(b'"',ind5+28)         # equal to: x.find('","a',ind5+28)
     ind8 = x.find(b']',ind7+8)          # equal to: x.find('],"c',ind7+8)
 
-    o = 1 if b',"o":' in x[ind2+30:ind2+50] else 0
-    r = x[15:ind1]                      # len('{"_label_cost":') = 15
-    p = float(x[ind1+22:ind2])          # len(',"_label_probability":') = 22
-    ts = x[ind4+14:ind5]                # len(',"Timestamp":"') = 14
-    ei = x[ind5+27:ind7]                # len('","Version":"1","EventId":"') = 27
-    a_vec = x[ind7+7:ind8].split(b',')  # len('","a":[') = 7
-    num_a = len(a_vec)
+    data = {}
+    data['o'] = 1 if b',"o":' in x[ind2+30:ind2+50] else 0
+    data['cost'] = x[15:ind1]                   # len('{"_label_cost":') = 15
+    data['p'] = float(x[ind1+22:ind2])          # len(',"_label_probability":') = 22
+    data['ts'] = x[ind4+14:ind5]                # len(',"Timestamp":"') = 14
+    data['ei'] = x[ind5+27:ind7]                # len('","Version":"1","EventId":"') = 27
+    data['a_vec'] = x[ind7+7:ind8].split(b',')  # len('","a":[') = 7
+    data['a'] = int(data['a_vec'][0])
+    data['num_a'] = len(data['a_vec'])
+    
+    if do_VWState:
+        ind11 = x[-120:].find(b'VWState')
+        data['model_id'] = x[-120+ind11+15:-4] if ind11 > -1 else b'N/A'
+
+    if do_p_vec:
+        data['p_vec'] = [float(p) for p in extract_field(x[-120-15*data['num_a']:], b'"p":[', b']').split(b',')]
+        
     if do_devType:
         ind9 = x.find(b'"DeviceType',ind8)
         if ind9 > -1:
             ind10 = x.find(b'"},"_mul', ind9+15)
-            devType = x[ind9+14:ind10]   # len('"DeviceType":"') = 14
+            data['devType'] = x[ind9+14:ind10]   # len('"DeviceType":"') = 14
         else:
-            devType = b'N/A'
-        return ei,r,o,ts,p,int(a_vec[0]),num_a,devType
-    else:
-        return ei,r,o,ts,p,int(a_vec[0]),num_a
+            data['devType'] = b'N/A'
+            
+    return data
 
 def json_dangling(x):
     #################################
@@ -147,19 +156,20 @@ def json_dangling(x):
     #
     # Performance: 3x faster than Python JSON parser js = json.loads(x.strip())
     #################################
+    data = {}
     if x.startswith(b'{"Timestamp"'):
         ind1 = x.find(b'"',36)              # equal to: x.find('","RewardValue',36)
         ind2 = x.find(b',',ind1+16)         # equal to: x.find(',"EnqueuedTimeUtc',ind1+16)
-        r = x[ind1+16:ind2]                 # len('","RewardValue":') = 16
+        data['r'] = x[ind1+16:ind2]         # len('","RewardValue":') = 16
     else:
         ind2 = x.find(b',',15)              # equal to: x.find(',"EnqueuedTimeUtc',15)
-        r = x[15:ind2]                      # len('{"RewardValue":') = 15
+        data['r'] = x[15:ind2]              # len('{"RewardValue":') = 15
     ind3 = x.find(b'"',ind2+39)             # equal to: x.find('","EventId',ind2+39)
     ind4 = x.find(b'"',ind3+40)             # equal to: x.find('"}',ind3+30)
 
-    et = x[ind2+20:ind3]                    # len(',"EnqueuedTimeUtc":"') = 20
-    ei = x[ind3+13:ind4]                    # len('","EventId":"') = 13
-    return ei,r,et
+    data['et'] = x[ind2+20:ind3]                    # len(',"EnqueuedTimeUtc":"') = 20
+    data['ei'] = x[ind3+13:ind4]                    # len('","EventId":"') = 13
+    return data
 
 def extract_field(x,sep1,sep2,space=1):
     ind1 = x.find(sep1)+len(sep1)
@@ -230,11 +240,12 @@ def get_e_from_eh_obs(fp):
             ind4 = x.find(b'"EventId":"', ind3+1)
             ind5 = x.find(b'","', ind4+11)
 
-            ts = x[5:ind1]
-            partition = x[ind2+10:ind3]
+            data = {}
+            data['ts'] = x[5:ind1]
+            data['partition'] = x[ind2+10:ind3]
             ei = x[ind4+11:ind5]
-            value = x[ind5+6:].strip()[:-1]
-            e.setdefault(ei, []).append((partition, value, ts))
+            data['value'] = x[ind5+6:].strip()[:-1]
+            e.setdefault(ei, []).append((data,))
     return e
 
 def create_time_hist(d,e, normed=True, cumulative=True, scale_sec=1, n_bins=100, td_day_start=None, ei=None, xlabel=None, ylabel=None):
@@ -251,13 +262,14 @@ def create_time_hist(d,e, normed=True, cumulative=True, scale_sec=1, n_bins=100,
         print('len(ei_): {}'.format(len(ei_)))
     
     for x in ei_:
-        td = datetime.datetime.strptime(str(d[x][0][-1],'utf-8').split('.')[0].replace('Z',''), "%Y-%m-%dT%H:%M:%S")
+        td = datetime.datetime.strptime(str(d[x][0][0]['ts'],'utf-8').split('.')[0].replace('Z',''), "%Y-%m-%dT%H:%M:%S")
         if td_day_start and td < datetime.datetime.strptime(td_day_start, "%Y-%m-%d"):
             continue
-        if b' ' in e[x][0][-1]:     # Timestamp is assumed to be the last field of tuple
-            te = datetime.datetime.strptime(str(e[x][0][-1],'utf-8'), '%m/%d/%Y %I:%M:%S %p')
+        ts = e[x][0][0]['ts']
+        if b' ' in ts:
+            te = datetime.datetime.strptime(str(ts,'utf-8'), '%m/%d/%Y %I:%M:%S %p')
         else:
-            te = datetime.datetime.strptime(str(e[x][0][-1],'utf-8').split('.', 1)[0].replace('Z',''), "%Y-%m-%dT%H:%M:%S")
+            te = datetime.datetime.strptime(str(ts,'utf-8').split('.', 1)[0].replace('Z',''), "%Y-%m-%dT%H:%M:%S")
         t_vec.append((x,(te-td).total_seconds()/scale_sec))
     
     print('len(t_vec): {}'.format(len(t_vec)))

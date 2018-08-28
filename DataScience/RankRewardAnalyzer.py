@@ -89,7 +89,13 @@ def print_stats(local_fp, azure_path, verbose=False, plot_hist=False):
         files = [azure_fp.path for azure_fp in scantree(azure_path) if azure_fp.name.endswith('.json')]
     else:
         files = [azure_path]
-    azure_data = [ds_parse.json_cooked(x)[:2] for azure_fp in files for x in open(azure_fp, 'rb') if x.startswith(b'{"_label_cost":')]
+
+    azure_data = []
+    for azure_fp in files:
+        for x in open(azure_fp, 'rb'):
+            if x.startswith(b'{"_label_cost":'):
+                data = ds_parse.json_cooked(x)
+                azure_data.append([data['ei'], data['cost']])
     
     local_rank_set = set(local_rank)
     rew_dict = {y[0] : y[1] for y in local_rew}
