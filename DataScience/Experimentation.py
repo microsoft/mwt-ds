@@ -297,7 +297,7 @@ if __name__ == '__main__':
     
     # CB type
     print('\nTesting cb types...')
-    cb_types = ['dr']       # ips is default (avoid to recheck it)
+    cb_types = ['mtr']       # ips is default (avoid to recheck it)
     command_list = []
     for cb_type in cb_types:
         command = Command(base_command, clone_from=best_command, cb_type=cb_type)
