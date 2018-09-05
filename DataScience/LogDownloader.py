@@ -137,7 +137,7 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
         except Exception as e:
             if e.args[0] == 'dictionary update sequence element #0 has length 1; 2 is required':
                 print("Error: Invalid Azure Storage ConnectionString.")
-            elif e.args[0].startswith('The specified container does not exist.'):
+            elif type(e.args[0]) == str and e.args[0].startswith('The specified container does not exist.'):
                 print("Error: The specified container ({}) does not exist.".format(app_id))
             else:
                 print("Error:\nType: {}\nArgs: {}".format(type(e).__name__, e.args))
