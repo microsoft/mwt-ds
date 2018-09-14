@@ -3,7 +3,7 @@ if sys.maxsize < 2**32:     # check for 32-bit python version
     if input("32-bit python interpreter detected. There may be problems downloading large files. Do you want to continue anyway [Y/n]? ") not in {'Y', 'y'}:
         sys.exit()
 
-import os, time, datetime, argparse, gzip, configparser, shutil
+import os, time, datetime, argparse, gzip, configparser, shutil, ds_parse
 try:
     from azure.storage.blob import BlockBlobService
 except ImportError as e:
@@ -48,7 +48,10 @@ def parse_argv(argv):
     3: never overwrite; append if the size is larger, without asking; download currently used blobs
     4: never overwrite; append if the size is larger, without asking; skip currently used blobs''', default=0)
     parser.add_argument('--dry_run', help="print which blobs would have been downloaded, without downloading", action='store_true')
-    parser.add_argument('--create_gzip', help="create gzip file for Vowpal Wabbit", action='store_true')
+    parser.add_argument('--create_gzip_mode', type=int, help='''Mode to create gzip file(s) for Vowpal Wabbit:
+    0: create one gzip file for each LastConfigurationEditDate prefix
+    1: create a unique gzip file by merging over file dates
+    2: create a unique gzip file by uniquing over EventId and sorting by Timestamp''', default=-1)
     parser.add_argument('--delta_mod_t', type=int, default=3600, help='time window in sec to detect if a file is currently in use (default=3600 - 1 hour)')
     parser.add_argument('--max_connections', type=int, default=4, help='number of max_connections (default=4)')
     parser.add_argument('--verbose', help="print more details", action='store_true')
@@ -75,7 +78,7 @@ def update_progress(current, total):
     sys.stdout.write(text)
     sys.stdout.flush()
 
-def download_container(app_id, log_dir, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, verbose=False, create_gzip=False, delta_mod_t=3600, max_connections=4, confirm=False):
+def download_container(app_id, log_dir, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, verbose=False, create_gzip_mode=-1, delta_mod_t=3600, max_connections=4, confirm=False):
     
     t_start = time.time()
     print('-----'*10)
@@ -85,7 +88,7 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
     print('Overwrite mode: {}'.format(overwrite_mode))
     print('dry_run: {}'.format(dry_run))
     print('version: {}'.format(version))
-    print('create_gzip: {}'.format(create_gzip))
+    print('create_gzip_mode: {}'.format(create_gzip_mode))
     
     if not dry_run:
         os.makedirs(os.path.join(log_dir, app_id), exist_ok=True)
@@ -234,32 +237,87 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
             except Exception as e:
                 print('Error: {}'.format(e))
 
-        if create_gzip:
+        if create_gzip_mode > -1:
             if selected_fps:
-                models = {}
-                for fp in selected_fps:
-                    models.setdefault(os.path.basename(fp).split('_data_',1)[0], []).append(fp)
-                for model in models:
-                    models[model].sort(key=lambda x : list(map(int,x.split('_data_')[1].split('_')[:3])))
-                    start_date = '-'.join(models[model][0].split('_data_')[1].split('_')[:3])
-                    end_date = '-'.join(models[model][-1].split('_data_')[1].split('_')[:3])
-                    output_fp = os.path.join(log_dir, app_id, app_id+'_'+model+'_data_'+start_date+'_'+end_date+'.json.gz')
-                    print('Concat and zip files of LastConfigurationEditDate={} to: {}'.format(model, output_fp))
-                    if os.path.isfile(output_fp):
-                        if overwrite_mode in {0, 3, 4}:
-                            print('Output file already exits. Skipping creating gzip file'.format(output_fp))
+                selected_fps = [x for x in selected_fps if os.path.isfile(x)]
+                if create_gzip_mode == 0:
+                    models = {}
+                    for fp in selected_fps:
+                        models.setdefault(os.path.basename(fp).split('_data_',1)[0], []).append(fp)
+                    for model in models:
+                        models[model].sort(key=lambda x : list(map(int,x.split('_data_')[1].split('_')[:3])))
+                        start_date = '-'.join(models[model][0].split('_data_')[1].split('_')[:3])
+                        end_date = '-'.join(models[model][-1].split('_data_')[1].split('_')[:3])
+                        output_fp = os.path.join(log_dir, app_id, app_id+'_'+model+'_data_'+start_date+'_'+end_date+'.json.gz')
+                        print('Concat and zip files of LastConfigurationEditDate={} to: {}'.format(model, output_fp))
+                        if os.path.isfile(output_fp) and input('Output file already exits. Do you want to overwrite [Y/n]? '.format(output_fp)) not in {'Y', 'y'}:
                             continue
-                        elif overwrite_mode == 1 and input('Output file already exits. Do you want to overwrite [Y/n]? '.format(output_fp)) != 'Y':
-                            continue
-                    if dry_run:
-                        print('--dry_run - Not downloading!')
-                    else:
-                        with gzip.open(output_fp, 'wb') as f_out:
-                            for fp in models[model]:
-                                if os.path.isfile(fp):
+                        if dry_run:
+                            print('--dry_run - Not downloading!')
+                        else:
+                            with gzip.open(output_fp, 'wb') as f_out:
+                                for fp in models[model]:
                                     print('Adding: {}'.format(fp))
                                     with open(fp, 'rb') as f_in:
-                                        f_out.write(f_in.read())
+                                        shutil.copyfileobj(f_in, f_out, length=100*1024**2)   # writing chunks of 100MB to avoid consuming memory
+                elif create_gzip_mode == 1:
+                    selected_fps.sort(key=lambda x : (list(map(int,x.split('_data_')[1].split('_')[:3])), -os.path.getsize(x), x))
+                    selected_fps_merged = []
+                    last_fp_date = None
+                    for fp in selected_fps:
+                        fp_date = datetime.datetime.strptime('_'.join(fp.split('_data_')[1].split('_')[:3]), "%Y_%m_%d")
+                        if fp_date != last_fp_date:
+                            selected_fps_merged.append(fp)
+                            last_fp_date = fp_date
+
+                    start_date = '-'.join(selected_fps_merged[0].split('_data_')[1].split('_')[:3])
+                    end_date = '-'.join(selected_fps_merged[-1].split('_data_')[1].split('_')[:3])
+                    output_fp = os.path.join(log_dir, app_id, app_id+'_merged_data_'+start_date+'_'+end_date+'.json.gz')
+                    print('Merge and zip files of all LastConfigurationEditDate to: {}'.format(output_fp))
+                    if not os.path.isfile(output_fp) or input('Output file already exits. Do you want to overwrite [Y/n]? '.format(output_fp)) in {'Y', 'y'}:
+                        if dry_run:
+                            for fp in selected_fps_merged:
+                                print('Adding: {}'.format(fp))
+                            print('--dry_run - Not downloading!')
+                        else:
+                            with gzip.open(output_fp, 'wb') as f_out:
+                                for fp in selected_fps_merged:
+                                    print('Adding: {}'.format(fp))
+                                    with open(fp, 'rb') as f_in:
+                                        shutil.copyfileobj(f_in, f_out, length=100*1024**2)   # writing chunks of 100MB to avoid consuming memory
+                elif create_gzip_mode == 2:
+                    selected_fps.sort(key=lambda x : (list(map(int,x.split('_data_')[1].split('_')[:3])), -os.path.getsize(x), x))
+                    start_date = '-'.join(selected_fps[0].split('_data_')[1].split('_')[:3])
+                    end_date = '-'.join(selected_fps[-1].split('_data_')[1].split('_')[:3])
+                    output_fp = os.path.join(log_dir, app_id, app_id+'_deepmerged_data_'+start_date+'_'+end_date+'.json.gz')
+                    print('Merge, unique, sort, and zip files of all LastConfigurationEditDate to: {}'.format(output_fp))
+                    if not os.path.isfile(output_fp) or input('Output file already exits. Do you want to overwrite [Y/n]? '.format(output_fp)) in {'Y', 'y'}:
+                        d = {}
+                        for fn in selected_fps:
+                            print('Parsing: {}'.format(fn), end='', flush=True)
+                            if not dry_run:
+                                for x in open(fn, 'rb'):
+                                    if x.startswith(b'{"_label_cost') and x.strip().endswith(b'}'):     # reading only cooked lined
+                                        data = ds_parse.json_cooked(x)
+                                        if data['ei'] not in d or float(data['cost']) < d[data['ei']][1]: # taking line with best reward
+                                            d[data['ei']] = (data['ts'], float(data['cost']), x)
+                            print(' - len(d): {}'.format(len(d)))
+
+                        print('Writing to output .gz file...')
+                        if dry_run:
+                            print('--dry_run - Not downloading!')
+                        else:
+                            with gzip.open(output_fp, 'wb') as f:
+                                i = 0
+                                for x in sorted(d.values(), key=lambda x : x[0]):                       # events are sorted by timestamp
+                                    f.write(x[2])
+                                    i += 1
+                                    if i % 5000 == 0:
+                                        update_progress(i, len(d))
+                                update_progress(i, len(d))
+                                print()
+                else:
+                    print('Unrecognized --create_gzip_mode: {}, skipping creating gzip files.'.format(create_gzip_mode))
             else:
                 print('No file downloaded, skipping creating gzip files.')
                     
