@@ -275,7 +275,7 @@ def get_e_from_eh_obs(fp):
             ind5 = x.find(b'","', ind4+11)
 
             data = {}
-            data['ts'] = x[5:ind1]
+            data['ts'] = datetime.datetime.strftime(datetime.datetime.strptime(str(x[5:ind1],'utf-8'), '%m/%d/%Y %I:%M:%S %p'), "%Y-%m-%dT%H:%M:%S")
             data['partition'] = x[ind2+10:ind3]
             ei = x[ind4+11:ind5]
             data['value'] = x[ind5+6:].strip()[:-1]
