@@ -125,7 +125,7 @@ def input_files_to_fp_list(files):
     
 ###############################################################################################################################################################################
 
-def json_cooked(x, do_devType=False, do_VWState=False, do_p_vec=False):
+def json_cooked(x, do_devType=False, do_VWState=False, do_p_vec=False, do_pDrop=False):
     #################################
     # Optimized version based on expected structure:
     # {"_label_cost":0,"_label_probability":0.01818182,"_label_Action":9,"_labelIndex":8,"Timestamp":"2017-10-24T00:00:15.5160000Z","Version":"1","EventId":"fa68cd9a71764118a635fd3d7a908634","a":[9,11,3,1,6,4,10,5,7,8,2],"c":{"_synthetic":false,"User":{"_age":0},"Geo":{"country":"United States","_countrycf":"8","state":"New York","city":"Springfield Gardens","_citycf":"8","dma":"501"},"MRefer":{"referer":"http://www.complex.com/"},"OUserAgent":{"_ua":"Mozilla/5.0 (iPad; CPU OS 10_3_2 like Mac OS X) AppleWebKit/603.2.4 (KHTML, like Gecko) Version/10.0 Mobile/14F89 Safari/602.1","_DeviceBrand":"Apple","_DeviceFamily":"iPad","_DeviceIsSpider":false,"_DeviceModel":"iPad","_OSFamily":"iOS","_OSMajor":"10","_OSPatch":"2","DeviceType":"Tablet"},"_multi":[{"
@@ -157,6 +157,10 @@ def json_cooked(x, do_devType=False, do_VWState=False, do_p_vec=False):
     data['a'] = int(data['a_vec'][0])
     data['num_a'] = len(data['a_vec'])
     data['skipLearn'] = b'"_skipLearn":true' in x[ind2+34:ind3] # len('"_label_Action":1,"_labelIndex":0,') = 34
+    
+    if do_pDrop:
+        ind12 = x[-120:].find(b'pdrop')
+        data['pDrop'] = float(x[-120+ind12+7:-2]) if ind12 > -1 else 1.
     
     if do_VWState:
         ind11 = x[-120:].find(b'VWState')
