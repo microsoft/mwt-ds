@@ -187,7 +187,7 @@ if __name__ == '__main__':
         p = [(y[0],[sum(y[1][dev][0] for dev in y[1]),sum(y[1][dev][1] for dev in y[1]),sum(y[1][dev][2] for dev in y[1])]) for y in pStats]
         axarr[0].plot(range(len(p)),[x[1][1] for x in p], label='Total')
         axarr[1].plot(range(len(p)),[x[1][2] for x in p], label='Total Rew')
-        axarr[1].plot(range(len(p)),[x[1][0] for x in p], label='Total Obs', linestyle="--")
+        axarr[1].plot(range(len(p)),[x[1][0] for x in p], label='Total Obs', linestyle="--", color='c')
         axarr[2].plot(range(len(p)),[x[1][2]/max(x[1][1],1) for x in p], label='Online performance')
         if do_by_day:
             online_perf = np.average([x[1][2]/max(x[1][1],1) for x in p])
