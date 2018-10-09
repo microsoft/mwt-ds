@@ -46,6 +46,9 @@ def process_dsjson_file(fp, d=None, e=None):
             bytes_count += len(x)
             if (i+1) % 1000 == 0 and not fp.endswith('.gz'):
                 update_progress(bytes_count,tot_bytes, fp+' - ')
+                
+            if x.startswith(b'[{"Partition'):   # Ignore checkpoint info line
+                continue
 
             if not (x.startswith(b'{"') or x.strip().endswith(b'}')):
                 print('Corrupted line: {}'.format(x))

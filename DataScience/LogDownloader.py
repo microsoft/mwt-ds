@@ -21,8 +21,8 @@ def valid_date(s):
     except ValueError:
         raise argparse.ArgumentTypeError("Not a valid date: '{0}'. Expected format: YYYY-MM-DD".format(s))
         
-def cmp_files(f1, f2, start_range_f1=0, start_range_f2=0, bufsize=8*1024):
-    with open(f1, 'rb') as fp1, open(f2, 'rb') as fp2:
+def cmp_files(f1, f2, start_range_f1=0, start_range_f2=0, bufsize=8*1024, erase_checkpoint_line=True):
+    with open(f1, 'rb+' if erase_checkpoint_line else 'rb') as fp1, open(f2, 'rb') as fp2:
         if start_range_f1 != 0:
             fp1.seek(start_range_f1, os.SEEK_SET if start_range_f1 > 0 else os.SEEK_END)
         if start_range_f2 != 0:
@@ -31,6 +31,13 @@ def cmp_files(f1, f2, start_range_f1=0, start_range_f2=0, bufsize=8*1024):
             b1 = fp1.read(bufsize)
             b2 = fp2.read(bufsize)
             if b1 != b2:
+                if erase_checkpoint_line:
+                    ind = b1.find(b'\n[{"Partition')
+                    if ind > -1:
+                        if b1[:ind] == b2[:ind]:
+                            fp1.seek(-bufsize+ind, os.SEEK_END)
+                            fp1.truncate()
+                            return True
                 return False
             if not b1:
                 return True
@@ -215,7 +222,7 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                         if cmp_files(fp, temp_fp, -cmpsize):
                             print('Valid!')
                             print('Resume downloading to temp file with max_connections = {}...'.format(max_connections))
-                            bbs.get_blob_to_path(app_id, blob.name, temp_fp, progress_callback=update_progress, max_connections=max_connections, start_range=file_size)
+                            bbs.get_blob_to_path(app_id, blob.name, temp_fp, progress_callback=update_progress, max_connections=max_connections, start_range=os.path.getsize(fp))
                             download_time = time.time()-t0
                             download_size_MB = os.path.getsize(temp_fp)/(1024**2) # file size in MB
                             print('\nAppending to local file...')
