@@ -24,9 +24,9 @@ def valid_date(s):
 def cmp_files(f1, f2, start_range_f1=0, start_range_f2=0, bufsize=8*1024):
     with open(f1, 'rb') as fp1, open(f2, 'rb') as fp2:
         if start_range_f1 != 0:
-            fp1.seek(start_range_f1, 0 if start_range_f1 > 0 else 2)
+            fp1.seek(start_range_f1, os.SEEK_SET if start_range_f1 > 0 else os.SEEK_END)
         if start_range_f2 != 0:
-            fp2.seek(start_range_f2, 0 if start_range_f2 > 0 else 2)
+            fp2.seek(start_range_f2, os.SEEK_SET if start_range_f2 > 0 else os.SEEK_END)
         while True:
             b1 = fp1.read(bufsize)
             b2 = fp2.read(bufsize)
