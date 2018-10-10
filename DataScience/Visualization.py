@@ -79,7 +79,15 @@ def convert_pStats_from_hours_to_days(pStats):
                 for i in range(3):
                     pStats_temp[day][dev][i] += x[1][dev][i]
         
-    return [(x,pStats_temp[x]) for x in pStats_temp] 
+    return [(x,pStats_temp[x]) for x in pStats_temp]
+
+def plot_based_on_day(z, day, total_days):
+    if day == total_days: # Current day
+        plt.plot(z, linewidth=3)
+    elif day == total_days-1: # Previous day
+        plt.plot(z, linestyle="--", linewidth=3)
+    else:
+        plt.plot(z, linestyle="--")
 
 if __name__ == '__main__':
     
@@ -143,7 +151,7 @@ if __name__ == '__main__':
             data2 = [[(x[0],sum(y[2] for y in x[1].values())/sum(y[1] for y in x[1].values())) for x in pStats if d[1][:10] in x[0]] for d in days[-7:]]
             for i,y in enumerate(data2):
                 z = [np.mean([x[1] for x in y[i:i+smoothing_hours]]) for i in range(len(y))]
-                plt.plot(z, linewidth=3) if i+1 == len(data2) else plt.plot(z, linestyle="--")
+                plot_based_on_day(z, i+1, len(data2))
             legend = plt.legend([y[0][0][:10] for y in data2], loc=legend_loc)
             plt.xticks(range(25), list(range(20,24))+list(range(20)))
             plt.title('Reward/Request Ratio over last 7 days (Smoothing '+str(smoothing_hours)+' hours)')
@@ -154,7 +162,7 @@ if __name__ == '__main__':
             data2 = [[(x[0],sum(y[2] for y in x[1].values())/sum(y[1] for y in x[1].values())) for x in pStats if d[1][:10] in x[0]] for d in reversed(days[::-7])]
             for i,y in enumerate(data2):
                 z = [np.mean([x[1] for x in y[i:i+smoothing_hours]]) for i in range(len(y))]
-                plt.plot(z, linewidth=3) if i+1 == len(data2) else plt.plot(z, linestyle="--")
+                plot_based_on_day(z, i+1, len(data2))
             legend = plt.legend([y[0][0][:10] for y in data2], loc=legend_loc)
             plt.xticks(range(25), list(range(20,24))+list(range(20)))
             plt.title('Reward/Request Ratio over same day of the week (Smoothing '+str(smoothing_hours)+' hours)')
@@ -165,7 +173,7 @@ if __name__ == '__main__':
             data2 = [[(x[0],sum(y[1] for y in x[1].values())) for x in pStats if d[1][:10] in x[0]] for d in days[-7:]]
             for i,y in enumerate(data2):
                 z = [x[1] for x in y]
-                plt.plot(z, linewidth=3) if i+1 == len(data2) else plt.plot(z, linestyle="--")
+                plot_based_on_day(z, i+1, len(data2))
             legend = plt.legend([y[0][0][:10] for y in data2], loc=legend_loc)
             plt.xticks(range(25), list(range(20,24))+list(range(20)))
             plt.title('Request over last 7 days')
@@ -176,7 +184,7 @@ if __name__ == '__main__':
             data2 = [[(x[0],sum(y[1] for y in x[1].values())) for x in pStats if d[1][:10] in x[0]] for d in reversed(days[::-7])]
             for i,y in enumerate(data2):
                 z = [x[1] for x in y]
-                plt.plot(z, linewidth=3) if i+1 == len(data2) else plt.plot(z, linestyle="--")
+                plot_based_on_day(z, i+1, len(data2))
             legend = plt.legend([y[0][0][:10] for y in data2], loc=legend_loc)
             plt.xticks(range(25), list(range(20,24))+list(range(20)))
             plt.title('Request over same day of the week')
