@@ -11,7 +11,7 @@ def update_progress(current, total, prefix=''):
 
 #########################################################################  CREATE DSJSON FILES STATS #########################################################################
 
-header_str = 'version,date,# rews,sum rews,# rews multi a,sum rews multi a,# rews1,sum rews1,rews1 ips,tot ips slot1,tot slot1,rews rand ips,tot rand ips,tot unique,tot,not joined unique,not joined,1,2,>2,max(a),time'
+header_str = 'version,date,# obs,# rews,sum rews,# obs multi,# rews multi a,sum rews multi a,# obs1,# rews1,sum rews1,rews1 ips,tot ips slot1,tot slot1,rews rand ips,tot rand ips,tot unique,tot,not joined unique,not joined,not activated,1,2,>2,max(a),time'
 
 def process_files(files, output_file=None, d=None, e=None):
     t0 = time.time()
@@ -21,8 +21,8 @@ def process_files(files, output_file=None, d=None, e=None):
     print(header_str)
     for fp in fp_list:
         t1 = time.time()
-        stats, d_s, e_s, d_c, e_c, slot_len_c, rew_multi_a, baselineRandom = process_dsjson_file(fp, d, e)
-        res_list = os.path.basename(fp).replace('_0.json','').split('_data_',1)+[sum(stats[x][i] for x in stats) for i in range(2)]+rew_multi_a+stats.get(1,[0,0,0,0,0])+baselineRandom+[len(d_s),d_c,len(e_s),e_c,slot_len_c[1],slot_len_c[2],sum(slot_len_c[i] for i in slot_len_c if i > 2),max(i for i in slot_len_c if slot_len_c[i] > 0),'{:.1f}'.format(time.time()-t1)]
+        stats, d_s, e_s, d_c, e_c, slot_len_c, rew_multi_a, baselineRandom, not_activated = process_dsjson_file(fp, d, e)
+        res_list = os.path.basename(fp).replace('_0.json','').split('_data_',1)+[sum(stats[x][i] for x in stats) for i in range(3)]+rew_multi_a+stats.get(1,[0,0,0,0,0,0])+baselineRandom+[len(d_s),d_c,len(e_s),e_c,not_activated,slot_len_c[1],slot_len_c[2],sum(slot_len_c[i] for i in slot_len_c if i > 2),max(i for i in slot_len_c if slot_len_c[i] > 0),'{:.1f}'.format(time.time()-t1)]
         print(','.join(map(str,res_list)))
         if output_file:
             f.write('\t'.join(map(str,res_list))+'\n')
@@ -37,7 +37,8 @@ def process_dsjson_file(fp, d=None, e=None):
     d_s = set()
     e_c = 0
     d_c = 0
-    rew_multi_a = [0,0]
+    not_activated = 0
+    rew_multi_a = [0,0,0]
     baselineRandom = [0,0]
     bytes_count = 0
     tot_bytes = os.path.getsize(fp)
@@ -57,19 +58,23 @@ def process_dsjson_file(fp, d=None, e=None):
             if x.startswith(b'{"_label_cost":'):
                 data = json_cooked(x)
 
+                if data['skipLearn']:    # Ignore not activated lines
+                    not_activated += 1
+                    continue
+
                 slot_len_c.update([data['num_a']])
                 if d is not None:
                     d.setdefault(data['ei'], []).append((data, fp, i))
                 d_c += 1
                 d_s.add(data['ei'])
                 if data['a'] not in stats:
-                    stats[data['a']] = [0,0,0,0,0]
+                    stats[data['a']] = [0,0,0,0,0,0]
 
-                stats[data['a']][4] += 1
+                stats[data['a']][5] += 1
                 if data['p'] <= 0:
                     continue
 
-                stats[data['a']][3] += 1/data['p']
+                stats[data['a']][4] += 1/data['p']
                 baselineRandom[1] += 1/data['p']/data['num_a']
                 if data['o'] == 1:
                     stats[data['a']][0] += 1
@@ -77,11 +82,13 @@ def process_dsjson_file(fp, d=None, e=None):
                         rew_multi_a[0] += 1
                 if data['cost'] != b'0':
                     r = -float(data['cost'])
-                    stats[data['a']][1] += r
-                    stats[data['a']][2] += r/data['p']
+                    stats[data['a']][1] += 1
+                    stats[data['a']][2] += r
+                    stats[data['a']][3] += r/data['p']
                     baselineRandom[0] += r/data['p']/data['num_a']
                     if data['num_a'] > 1:
-                        rew_multi_a[1] += r
+                        rew_multi_a[1] += 1
+                        rew_multi_a[2] += r
             else:
                 data = json_dangling(x)
 
@@ -93,7 +100,7 @@ def process_dsjson_file(fp, d=None, e=None):
         len_text = update_progress(bytes_count,tot_bytes, fp+' - ')
         sys.stdout.write("\r" + " "*len_text + "\r")
         sys.stdout.flush()
-    return stats, d_s, e_s, d_c, e_c, slot_len_c, rew_multi_a, baselineRandom
+    return stats, d_s, e_s, d_c, e_c, slot_len_c, rew_multi_a, baselineRandom, not_activated
 
 def input_files_to_fp_list(files):
     if not (isinstance(files, types.GeneratorType) or isinstance(files, list)):
@@ -113,6 +120,8 @@ def json_cooked(x, do_devType=False, do_VWState=False, do_p_vec=False):
     #################################
     # Optimized version based on expected structure:
     # {"_label_cost":0,"_label_probability":0.01818182,"_label_Action":9,"_labelIndex":8,"Timestamp":"2017-10-24T00:00:15.5160000Z","Version":"1","EventId":"fa68cd9a71764118a635fd3d7a908634","a":[9,11,3,1,6,4,10,5,7,8,2],"c":{"_synthetic":false,"User":{"_age":0},"Geo":{"country":"United States","_countrycf":"8","state":"New York","city":"Springfield Gardens","_citycf":"8","dma":"501"},"MRefer":{"referer":"http://www.complex.com/"},"OUserAgent":{"_ua":"Mozilla/5.0 (iPad; CPU OS 10_3_2 like Mac OS X) AppleWebKit/603.2.4 (KHTML, like Gecko) Version/10.0 Mobile/14F89 Safari/602.1","_DeviceBrand":"Apple","_DeviceFamily":"iPad","_DeviceIsSpider":false,"_DeviceModel":"iPad","_OSFamily":"iOS","_OSMajor":"10","_OSPatch":"2","DeviceType":"Tablet"},"_multi":[{"
+    # {"_label_cost":0,"_label_probability":1,"_label_Action":1,"_labelIndex":0,"_deferred":true,"Timestamp":"2018-10-25T00:01:31.1780000Z","Version":"1","EventId":"28EF7EE0B9CF4E319696CB812973F0B3","DeferredAction":true,"a":[1],"c":{"Global":{"SLOT":"1"},"Request":{"DISPLOC":"BR"},"Profile":{"_REQASID":"F2A3670E24F94646983BEB3EB35CB0C9","COUNTRY":"BR","FPIGM":"FALSE","FPNIGM":"FALSE","FB":"FALSE"},"_multi":[{"Action":{"constant":1,"PayloadID":"425039838"}}]},"p":[1.000000],"VWState":{"m":"DF30E6A3648947E69EE6B0816BF42640/1A5CD300DFE546B7B29A11EB70980809"}}
+    # {"_label_cost":0,"_label_probability":0.833333015,"_label_Action":6,"_labelIndex":5,"o":[{"EventId":"A3E5ADF82D3A4BD5A5161FFC19C95DBB","DeferredAction":false}],"Timestamp":"2018-10-25T00:00:00.3960000Z","Version":"1","EventId":"A3E5ADF82D3A4BD5A5161FFC19C95DBB","DeferredAction":true,"a":[6,2,4,5,1,3],"c":{"Global":{"SLOT":"2"},"Request":{"DISPLOC":"US"},"Profile":{"_REQASID":"70A03B1FD0CA4B5A89669637DD448161","COUNTRY":"US","FPIGM":"FALSE","FPNIGM":"FALSE","FB":"FALSE","F1":0.0,"F2":0.0,"F3":0.00157480315,"F4":0.00182481752,"F5":0.0,"F6":0.00136892539,"F7":0.0,"F8":-1.0,"F9":0.0434782609,"F11":0.0,"F12":0.0,"F13":0.0,"F14":1.0,"F15":1.0,"F16":0.0,"F17":2.0,"F18":0.0,"F19":0.0,"F20":1.0
     # Assumption: "Version" value is 1 digit
     #
     # Performance: 4x faster than Python JSON parser js = json.loads(x.strip())
@@ -121,18 +130,20 @@ def json_cooked(x, do_devType=False, do_VWState=False, do_p_vec=False):
     ind2 = x.find(b',',ind1+23)         # equal to: x.find(',"_label_Action',ind1+23)
     ind4 = x.find(b',"T',ind2+34)       # equal to: x.find(',"Timestamp',ind2+34)
     ind5 = x.find(b'"',ind4+36)         # equal to: x.find('","Version',ind4+36)
-    ind7 = x.find(b'"',ind5+28)         # equal to: x.find('","a',ind5+28)
-    ind8 = x.find(b']',ind7+8)          # equal to: x.find('],"c',ind7+8)
+    ind6 = x.find(b'"',ind5+27)
+    ind7 = x.find(b',"a"',ind5+28)
+    ind8 = x.find(b']',ind7+7)          # equal to: x.find('],"c',ind7+8)
 
     data = {}
     data['o'] = 1 if b',"o":' in x[ind2+30:ind2+50] else 0
     data['cost'] = x[15:ind1]                   # len('{"_label_cost":') = 15
     data['p'] = float(x[ind1+22:ind2])          # len(',"_label_probability":') = 22
     data['ts'] = x[ind4+14:ind5]                # len(',"Timestamp":"') = 14
-    data['ei'] = x[ind5+27:ind7]                # len('","Version":"1","EventId":"') = 27
-    data['a_vec'] = x[ind7+7:ind8].split(b',')  # len('","a":[') = 7
+    data['ei'] = x[ind5+27:ind6]                # len('","Version":"1","EventId":"') = 27
+    data['a_vec'] = x[ind7+6:ind8].split(b',')  # len('","a":[') = 7
     data['a'] = int(data['a_vec'][0])
     data['num_a'] = len(data['a_vec'])
+    data['skipLearn'] = b'"_deferred":true' in x[ind2+30:ind2+55]
     
     if do_VWState:
         ind11 = x[-120:].find(b'VWState')
@@ -156,6 +167,7 @@ def json_dangling(x):
     # Optimized version based on expected structure:
     # {"Timestamp":"2017-11-27T01:19:13.4610000Z","RewardValue":1.0,"EnqueuedTimeUtc":"2017-08-23T03:31:06.85Z","EventId":"d8a0391be9244d6cb124115ba33251f6"}
     # {"RewardValue":1.0,"EnqueuedTimeUtc":"2018-01-03T20:12:20.028Z","EventId":"tr-tr_8580.Hero.HyxjxHF8/0WMGsuP","Observations":[{"v":1.0,"EventId":"tr-tr_8580.Hero.HyxjxHF8/0WMGsuP","ActionId":null}]}
+    # {"RewardValue":1.0,"DeferredAction":false,"EnqueuedTimeUtc":"2018-10-26T01:23:00.825Z","EventId":"6F61036134274192BE3537D3E4E84ECF","Observations":[{"v":null,"EventId":"6F61036134274192BE3537D3E4E84ECF","ActionId":null,"DeferredAction":false},{"v":null,"EventId":"6F61036134274192BE3537D3E4E84ECF","ActionId":null,"DeferredAction":false},{"v":null,"EventId":"6F61036134274192BE3537D3E4E84ECF","ActionId":null,"DeferredAction":false},{"v":null,"EventId":"6F61036134274192BE3537D3E4E84ECF","ActionId":null,"DeferredAction":false},{"v":null,"EventId":"6F61036134274192BE3537D3E4E84ECF","ActionId":null,"DeferredAction":false},{"v":1.0,"EventId":"6F61036134274192BE3537D3E4E84ECF","ActionId":null,"DeferredAction":true}]}
     #
     # Performance: 3x faster than Python JSON parser js = json.loads(x.strip())
     #################################
@@ -163,15 +175,23 @@ def json_dangling(x):
     if x.startswith(b'{"Timestamp"'):
         ind1 = x.find(b'"',36)              # equal to: x.find('","RewardValue',36)
         ind2 = x.find(b',',ind1+16)         # equal to: x.find(',"EnqueuedTimeUtc',ind1+16)
+        ind3 = x.find(b'"',ind2+39)             # equal to: x.find('","EventId',ind2+39)
+        ind4 = x.find(b'"',ind3+40)
+        
         data['r'] = x[ind1+16:ind2]         # len('","RewardValue":') = 16
+        data['et'] = x[ind2+20:ind3]                    # len(',"EnqueuedTimeUtc":"') = 20
+        data['ei'] = x[ind3+13:ind4]                    # len('","EventId":"') = 13
     else:
-        ind2 = x.find(b',',15)              # equal to: x.find(',"EnqueuedTimeUtc',15)
-        data['r'] = x[15:ind2]              # len('{"RewardValue":') = 15
-    ind3 = x.find(b'"',ind2+39)             # equal to: x.find('","EventId',ind2+39)
-    ind4 = x.find(b'"',ind3+40)             # equal to: x.find('"}',ind3+30)
+        ind2 = x.find(b',',15)
+        ind3 = x.find(b',"Enq',ind2)
+        ind4 = x.find(b'"',ind3+39)           # equal to: x.find('","EventId',ind2+39)
+        ind5 = x.find(b'"',ind4+40)
 
-    data['et'] = x[ind2+20:ind3]                    # len(',"EnqueuedTimeUtc":"') = 20
-    data['ei'] = x[ind3+13:ind4]                    # len('","EventId":"') = 13
+        data['r'] = x[15:ind2]                # len('{"RewardValue":') = 15
+        data['et'] = x[ind3+19:ind4]                    # len(',"EnqueuedTimeUtc":"') = 20
+        data['ei'] = x[ind4+13:ind5]                    # len('","EventId":"') = 13
+        
+    data['ActionTaken'] = b'"DeferredAction":false' in x[:70]
     return data
 
 def extract_field(x,sep1,sep2,space=1):
