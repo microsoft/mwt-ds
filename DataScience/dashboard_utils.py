@@ -5,12 +5,12 @@ import time
 
 
 def get_ts_5min_bin(ts):
-    temp = str(ts[:14],'utf-8')
+    str_5min = str(ts[:14],'utf-8')
     x = int(float(ts[14:16])/5)*5
     if x < 10:
-        temp += '0'
-    temp += str(x)+':00Z'
-    return(temp)
+        str_5min += '0'
+    str_5min += str(x)+':00Z'
+    return str_5min
     
 def get_prediction_prob(a0, pred_line):
     # parse probability of predicted action
@@ -59,6 +59,16 @@ def output_dashboard_data(d, dashboard_file):
                     temp["t"] = type
                     d.append(temp)
                 f.write(json.dumps({"ts":index.strftime("%Y-%m-%dT%H:%M:%SZ"),"d":d})+'\n')
+
+        # total aggregates
+        tot = df.agg({type+'_'+field : max if field == 'c' else sum for type in df_col for field in df_col[type]}).replace(np.nan, 0.0)
+        d = []
+        for type in df_col:
+            temp = collections.OrderedDict({field : tot[type+'_'+field] for field in df_col[type]})
+            temp["w"] = "tot"
+            temp["t"] = type
+            d.append(temp)
+        f.write(json.dumps({"ts":"Total","d":d})+'\n')
 
 def merge_and_unique_stats(stats_files, dashboard_file):
     d = {}
@@ -136,44 +146,62 @@ def create_stats(log_fp, dashboard_file, predictions_files=None):
             data = ds_parse.json_cooked(x)
             r = 0 if data['cost'] == b'0' else -float(data['cost'])
 
-            # binning time stamp every 5 min
+            ############################### Aggregates for each bin ######################################
+            #
+            # 'n':   IPS of numerator
+            # 'N':   total number of samples in bin from log (IPS = n/N)
+            # 'd':   IPS of denominator (SNIPS = n/d)
+            # 'Ne':  number of samples in bin when off-policy agrees with log policy
+            # 'c':   max abs. value of numerator's items (needed for Clopper-Pearson confidence intervals)
+            # 'SoS': sum of squares of numerator's items (needed for Gaussian confidence intervals)
+            #
+            #################################################################################################
+
+            # binning timestamp every 5 min
             ts_bin = get_ts_5min_bin(data['ts'])
 
-            # initialize aggregate for ts_bin
+            # initialize aggregates for ts_bin
             if ts_bin not in d:
-                d[ts_bin] = collections.OrderedDict({'online' : {'n':0,'d':0},
-                                                     'baseline1' : {'n':0.,'d':0.,'c':0.,'N':0},
-                                                     'baselineRand' : {'n':0.,'d':0.,'c':0.,'N':0}})
+                d[ts_bin] = collections.OrderedDict({'online' : {'n':0,'N':0,'d':0},
+                                                     'baseline1' : {'n':0.,'N':0,'d':0.,'Ne':0,'c':0.,'SoS':0},
+                                                     'baselineRand' : {'n':0.,'N':0,'d':0.,'Ne':0,'c':0.,'SoS':0}})
                 for name in pred:
-                    d[ts_bin][name] = {'n':0.,'d':0.,'c':0.,'N':0}
+                    d[ts_bin][name] = {'n':0.,'N':0,'d':0.,'Ne':0,'c':0.,'SoS':0}
 
-            # online and baseline policies
+            # update aggregates for online and baseline policies
             d[ts_bin]['online']['d'] += 1
+            d[ts_bin]['online']['N'] += 1
             d[ts_bin]['baselineRand']['N'] += 1
+            d[ts_bin]['baseline1']['N'] += 1
+
+            d[ts_bin]['baselineRand']['Ne'] += 1
             d[ts_bin]['baselineRand']['d'] += 1/data['p']/data['num_a']
             if data['a'] == 1:
-                d[ts_bin]['baseline1']['N'] += 1
+                d[ts_bin]['baseline1']['Ne'] += 1
                 d[ts_bin]['baseline1']['d'] += 1/data['p']
 
             if r != 0:
                 d[ts_bin]['online']['n'] += r
                 d[ts_bin]['baselineRand']['n'] += r/data['p']/data['num_a']
                 d[ts_bin]['baselineRand']['c'] = max(d[ts_bin]['baselineRand']['c'], r/data['p']/data['num_a'])
+                d[ts_bin]['baselineRand']['SoS'] += (r/data['p']/data['num_a'])**2
                 if data['a'] == 1:
                     d[ts_bin]['baseline1']['n'] += r/data['p']
                     d[ts_bin]['baseline1']['c'] = max(d[ts_bin]['baseline1']['c'], r/data['p'])
+                    d[ts_bin]['baseline1']['SoS'] += (r/data['p'])**2                   
 
-            # additional policies from predictions
+            # update aggregates for additional policies from predictions
             for name in pred:
                 pred_prob = get_prediction_prob(data['a']-1, pred[name][evts])     # a-1: 0-index action
-                
+                d[ts_bin][name]['N'] += 1
                 if pred_prob > 0:
                     p_over_p = pred_prob/data['p']
                     d[ts_bin][name]['d'] += p_over_p
-                    d[ts_bin][name]['N'] += 1
+                    d[ts_bin][name]['Ne'] += 1
                     if r != 0:
                         d[ts_bin][name]['n'] += r*p_over_p
                         d[ts_bin][name]['c'] = max(d[ts_bin][name]['c'], r*p_over_p)
+                        d[ts_bin][name]['SoS'] += (r*p_over_p)**2
             evts += 1
     if not log_fp.endswith('.gz'):
         len_text = ds_parse.update_progress(bytes_count,tot_bytes)
