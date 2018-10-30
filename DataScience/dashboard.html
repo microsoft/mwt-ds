@@ -87,18 +87,18 @@
     <option value=".25">p75</option>
     <option value=".1">p90</option>
     <option value=".05">p95</option>
-</select>&emsp;Interpolation Type:
-<select id="interpolation" style="font-size:18px">
-    <option value="0" selected>Linear</option>
-    <option value="1">Cardinal</option>
+</select>&emsp;Confidence Interval Type:
+<select id="ci_type" style="font-size:18px">
+    <option value="Clopper-Pearson" selected>Clopper-Pearson</option>
+    <option value="Gaussian">Gaussian</option>
 </select>
 </div>
 <script type="text/javascript" charset="utf-8">
 
     var windowSize = 1440;
     var confIntervalValue = -1.0;
-    var interpolateTypes = [d3.curveLinear, d3.curveCardinal, d3.curveNatural];
-    var interpolation = interpolateTypes[0];
+    var interpolation = d3.curveLinear;
+    var ci_type = "Clopper-Pearson";
 
     function getQueryStringValue (key) {
         return decodeURIComponent(window.location.search.replace(new RegExp("^(?:.*[&\\?]" + encodeURIComponent(key).replace(/[\.\+\*]/g, "\\$&") + "(?:\\=([^&]*))?)?.*$", "i"), "$1"));
@@ -115,22 +115,27 @@
     
     var show_ci = getQueryStringValue("show_ci");
     console.log("Show CI: " + show_ci);
-
-    var betaInv = function(successes, n, alpha = 0.1) {
-        return {
-            lower: jStat.beta.inv(alpha/2, successes, n - successes + 1),
-            upper: jStat.beta.inv(1 - alpha/2, successes + 1, n - successes)
-        };
-    }
     
-    var confidenceBounds = function(num, den, maxWeightedCost, alpha){
-        if (typeof(maxWeightedCost) === "number") {
-            if (!(num == 0 || num == den))
+    var Z_gaussian_cdf = {.25 : 1.15, .1: 1.645, .05: 1.96}
+    var confidenceBounds = function(alpha, type="Clopper-Pearson", num, den, maxWeightedCost, SoS){
+        if (type === "Gaussian")
+        {
+            if (SoS > 0.0)
             {
-                var successes = num / (maxWeightedCost + Number.EPSILON);
-                var n = den / (maxWeightedCost + Number.EPSILON);
-                var b = betaInv(successes, n, alpha);
-                return { l: b.lower, u: b.upper};
+                variance = (SoS - num*num/den)/(den-1);
+                gauss_delta = Z_gaussian_cdf[alpha]*Math.sqrt(variance/den);
+                return {l: num/den - gauss_delta,
+                        u: num/den + gauss_delta};
+            }
+        }
+        else if (type === "Clopper-Pearson")
+        {
+            if (maxWeightedCost > 0.0)
+            {
+                var successes = num / maxWeightedCost;
+                var n = den / maxWeightedCost;
+                return {l: jStat.beta.inv(alpha/2, successes, n - successes + 1),
+                        u: jStat.beta.inv(1 - alpha/2, successes + 1, n - successes)};
             }
         }
         return {l: 0, u: 0};
@@ -146,7 +151,7 @@
         marginForAxisLabel = 40,
         padding = 60,
         heightSlider = 300,
-        barWidth = 565,
+        barWidth = 865,
         marginBetweenGraphAndSlider = 100,
         marginBetweenGraphAndBarChart = 20;
     var margin = {
@@ -235,7 +240,7 @@ function renderData(data) {
 
     // compute confidence bounds
     all.forEach(function (v){
-        var ci = confidenceBounds(v.n, v.d, v.c, confIntervalValue);
+        var ci = confidenceBounds(confIntervalValue, ci_type, v.n, v.N, v.c, v.SoS);
         v.l = ci.l;
         v.u = ci.u;
     });
@@ -248,8 +253,10 @@ function renderData(data) {
             return {
                 values: values,
                 average: tot[p.type]['v'],
-                lower: tot[p.type]['l'],
-                upper: tot[p.type]['u'],
+                lower: tot[p.type]['cp_l'],
+                upper: tot[p.type]['cp_u'],
+                gl: tot[p.type]['gauss_l'],
+                gu: tot[p.type]['gauss_u'],
                 type: p.type,
                 visible: capitalizeFirstLetter(p.type) === "Online" ? true : false,     // show only online policy by default
                 visibleConfidence: false
@@ -430,12 +437,41 @@ function renderData(data) {
                     })
         
         svg.append("text")
-            .attr("x", width + margin.hor + 425)
+            .attr("x", width + margin.hor + 365)
             .attr("y", margin.top)  // spacing
             .attr("font-family", "sans-serif")
             .attr("font-size", "20px")
             .attr("font-weight", "bold")
-            .text("CI (p95)")
+            .text("Clopper-Pearson (p95)")
+            
+        legend.selectAll()
+            .data(dataSeries)
+            .enter()
+            .append("text")
+            .attr("x", width + margin.hor + 600)
+            .attr("y", function (d, i) { return margin.top + (i+1)*28; })  // spacing
+            .attr("font-family", "sans-serif")
+            .attr("font-size", "20px")
+            .style('fill', function(d){
+                    if(d.upper < tot['online']['v'])
+                        {return 'red';}
+                    else if(d.lower > tot['online']['v'])
+                        {return 'green';}
+                    })
+            .text(function(d) {
+                    if (capitalizeFirstLetter(d.type) === "Online")
+                        {return ''}
+                    else
+                        {return '[' + d3.format(".3%")(d.gl) + ' - ' + d3.format(".3%")(d.gu) + ']'}
+                    })
+        
+        svg.append("text")
+            .attr("x", width + margin.hor + 610)
+            .attr("y", margin.top)  // spacing
+            .attr("font-family", "sans-serif")
+            .attr("font-size", "20px")
+            .attr("font-weight", "bold")
+            .text("Gaussian (p95)")
     }
 
     // show/hide policy
@@ -537,44 +573,42 @@ function render() {
                     throw error;
                     }
 
-                //parse the date and copy to each data point
-                var policyTypesSet = new Set([]);
+                //parse the date, copy to each data point, and create total aggregates
+                tot = {};
                 data.forEach(function (d) {
                     d.ts = parseTime(d.ts);
                     d.d.forEach(function (v) {
                         v.ts = d.ts;
-                        v.v = v.n / (v.d + Number.EPSILON);
-                        if(v.w === 1440 && !policyTypesSet.has(v.t))
-                        {
+                        v.v = v.n / (v.N + Number.EPSILON);
+                        if(v.w === 'tot'){
                             policyTypes.push({type : v.t})
-                            policyTypesSet.add(v.t)
-                        }
+                            tot[v.t] = {
+                                'n' : v.n,     // IPS of numerator
+                                'N' : v.N,     // total number of samples from log (IPS = n/N)
+                                'd' : v.d,     // IPS of denominator (SNIPS = n/d)
+                                'c' : v.c,     // max abs. value of numerator's items (needed for Clopper-Pearson confidence intervals)
+                                'SoS' : v.SoS  // sum of squares of numerator's items (needed for Gaussian confidence intervals)
+                            };
+                            
+                            tot[v.t]['v'] = tot[v.t]['n'] / (tot[v.t]['N'] + Number.EPSILON);
+                            
+                            // Confidence intervals
+                            var ci = confidenceBounds(0.05, type="Clopper-Pearson", tot[v.t].n, tot[v.t].N, tot[v.t].c, tot[v.t].SoS);
+                            tot[v.t]['cp_l'] = ci.l;
+                            tot[v.t]['cp_u'] = ci.u;
+                            var ci = confidenceBounds(0.05, type="Gaussian", tot[v.t].n, tot[v.t].N, tot[v.t].c, tot[v.t].SoS);
+                            tot[v.t]['gauss_l'] = ci.l;
+                            tot[v.t]['gauss_u'] = ci.u;
+                        };
                     });
                 });
+                console.log('policyTypes:');
                 console.log(policyTypes);
+                console.log(tot);
 
                 // create a single big array
                 data_all = [].concat.apply([], data.map(function (d) { return d.d; }))
                     .sort(function (a, b) { return a.ts - b.ts; });
-                                
-                // compute total aggregates
-                var values1440 = data_all.filter(function (d) { return d.w === 1440; });
-                tot = {};
-                policyTypes.map(function (p) {
-                    var values = values1440.filter(function (d) { return d.t === p.type; });
-                    tot[p.type] = {
-                        'n' : d3.sum(values, function(d) { return d.n; }),
-                        'd' : d3.sum(values, function(d) { return d.d; }),
-                        'c' : d3.max(values, function(d) { return d.c; }),
-                        'N' : d3.sum(values, function(d) { return d.N; })
-                    };
-                    
-                    var ci = confidenceBounds(tot[p.type].n, tot[p.type].d, tot[p.type].c, 0.05);
-                    tot[p.type]['l'] = ci.l;
-                    tot[p.type]['u'] = ci.u;
-                    tot[p.type]['v'] = tot[p.type]['n'] / (tot[p.type]['d'] + Number.EPSILON);
-                });
-                console.log(tot);
 
                 renderData(data_all);
             });
@@ -598,10 +632,10 @@ d3.select('#pConfInt')
 
         render();
     });
-d3.select('#interpolation')
+d3.select('#ci_type')
     .on("change", function () {
-        var sect = document.getElementById("interpolation");
-        interpolation = interpolateTypes[Number.parseInt(sect.options[sect.selectedIndex].value)];
+        var sect = document.getElementById("ci_type");
+        ci_type = sect.options[sect.selectedIndex].value;
 
         render();
     });
