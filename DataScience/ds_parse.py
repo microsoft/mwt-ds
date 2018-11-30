@@ -143,7 +143,7 @@ def json_cooked(x, do_devType=False, do_VWState=False, do_p_vec=False):
     data['a_vec'] = x[ind7+6:ind8].split(b',')  # len('","a":[') = 7
     data['a'] = int(data['a_vec'][0])
     data['num_a'] = len(data['a_vec'])
-    data['skipLearn'] = b'"_deferred":true' in x[ind2+30:ind2+55]
+    data['skipLearn'] = b'"_skipLearn":true' in x[ind2+30:ind2+55]
     
     if do_VWState:
         ind11 = x[-120:].find(b'VWState')
