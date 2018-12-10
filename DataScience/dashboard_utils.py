@@ -144,6 +144,10 @@ def create_stats(log_fp, dashboard_file, predictions_files=None):
 
         if x.startswith(b'{"_label_cost":'):
             data = ds_parse.json_cooked(x)
+
+            if data['skipLearn']:
+                continue
+
             r = 0 if data['cost'] == b'0' else -float(data['cost'])
 
             ############################### Aggregates for each bin ######################################

@@ -32,6 +32,9 @@ def parse_logs(raw_stats, files, delta_mod_t=3600):
             
             data = ds_parse.json_cooked(line, do_devType=True)
             
+            if data['skipLearn']:
+                continue
+            
             # extract date from ts
             d = str(data['ts'][:13], 'utf-8')
             dev = str(data['devType'], 'utf-8')
