@@ -31,11 +31,16 @@ def cmp_files(f1, f2, start_range_f1=0, start_range_f2=0, bufsize=8*1024, erase_
             b1 = fp1.read(bufsize)
             b2 = fp2.read(bufsize)
             if b1 != b2:
+                # if b1 != b2 only due to checkpoint info line, data is still valid and checkpoint info line must be removed before appending
                 if erase_checkpoint_line:
-                    ind = b1.find(b'\n[{"Partition')
-                    if ind > -1:
-                        if b1[:ind] == b2[:ind]:
-                            fp1.seek(-bufsize+ind, os.SEEK_END)
+                    if b1.startswith(b'[{"PartitionId":'):
+                        fp1.seek(-len(b1)-1, os.SEEK_CUR)
+                        fp1.truncate()
+                        return True
+                    else:
+                        ind = b1.find(b'\n[')
+                        if ind > -1 and b1[:ind] == b2[:ind]:
+                            fp1.seek(-len(b1)+ind, os.SEEK_CUR)
                             fp1.truncate()
                             return True
                 return False
