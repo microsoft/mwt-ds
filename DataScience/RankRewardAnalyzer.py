@@ -27,16 +27,21 @@ def dup_analysis(log_list):
     for x in data:
         print(x, data[x])
 
-def send_rank_and_rewards(base_url, app, local_fp, feed, iter_num=1000, time_sleep=0.05, verbose=False):
-
-    print('Sending rank/reward requests...')
+def send_rank_and_rewards(base_url, app, local_fp, feed=None, iter_num=1000, time_sleep=0.05, verbose=False):
 
     if not base_url.endswith('/'):
         base_url += '/'
     
     url = base_url+app
-    rank_url = url+'/rank/'+feed
+    rank_url = url+'/rank/'
     
+    if feed:
+        rank_url += feed
+    else:
+        context_list = ["""{"decisions":[{"shared":{"features":[{"user":{"name":"Doug"},"object":{"color":"brown","weigth":"light","temp":70}}]},"actions":[{"ids":[{"id":"bread"}]},{"ids":[{"id":"dog"}]},{"ids":[{"id":"box"}]},{"ids":[{"id":"envelope"}]}]}]}""", """{"decisions": [{"shared": {"features": [{"a": {"Gender": "female"},"b": {"Location": "New York"}}]},"actions": [{"ids": [{"id": "action3"}]},{"ids": [{"id": 1,"this creates":"'constant:1' feature for marginal"}],"this": {"doesn't get logged": "because is outside of 'features'"},"features": [{"missing namespace": "works anyway, since ns 'j' is added by rest API","float":{"duration":160.6},"int":{"parts":5}}]},{"ids": [{"id": 2}],"features": [{"ns": {"name": "action2"}}]}]}]}""","""{"decisions":[{"shared":{"features":[{"user":{"name":"Doug"},"object":{"color":"brown","weigth":"light","temp":70,"jack":[5,4,6],"jack2":{},"jack3":{"j":5,"g":4,"p":3}}}]},"actions":[{"ids":[{"id":"bread"}]},{"ids":[{"id":"dog"}]},{"ids":[{"id":"box"}]},{"ids":[{"id":"envelope"}]}]}]}"""]
+
+    print('Sending rank/reward requests to url: {}'.format(rank_url))
+
     site_str = 'site://'+app
     s = requests.Session()
     s.headers.update({'Content-Type': 'application/json', 'Accept':'application/json'})
@@ -46,7 +51,10 @@ def send_rank_and_rewards(base_url, app, local_fp, feed, iter_num=1000, time_sle
         eventIds = []
         err = [0,0]
         for i in range(1,iter_num+1):
-            r = s.get(rank_url)
+            if feed:
+                r = s.get(rank_url)
+            else:
+                r = s.post(rank_url, context_list[i%len(context_list)])
             f.write('url:{}\tstatus_code:{}\theaders:{}\tcontent:{}\n'.format(rank_url,r.status_code,r.headers,r.content))
             if r.status_code != 200 or r.headers.get('x-msdecision-src', None) != site_str or b'rewardAction' not in r.content:
                 err[0] += 1
@@ -66,7 +74,7 @@ def send_rank_and_rewards(base_url, app, local_fp, feed, iter_num=1000, time_sle
             
     return eventIds
 
-def print_stats(local_fp, azure_path, verbose=False, plot_hist=False):
+def print_stats(local_fp, azure_path, verbose=False, plot_hist=False, hist_bin=100):
 
     print('Computing statistics...')
 
@@ -97,14 +105,15 @@ def print_stats(local_fp, azure_path, verbose=False, plot_hist=False):
                 data = ds_parse.json_cooked(x)
                 azure_data.append([data['ei'], data['cost']])
     
-    local_rank_set = set(local_rank)
-    rew_dict = {y[0] : y[1] for y in local_rew}
-    azure_dict = {str(y[0], 'utf-8') : str(y[1], 'utf-8') for y in azure_data}
+    rew_dict = {y[0]: y[1] for y in local_rew}
+    azure_dict = {str(y[0], 'utf-8'): str(y[1], 'utf-8') for y in azure_data}
     
+    local_rank_set = set()
     err_rewards_idx = []
     no_events_idx = []
     no_rewards_idx = []
     for i,x in enumerate(local_rank):
+        local_rank_set.add(x)
         if x in rew_dict:
             if x in azure_dict:
                 if abs(1. + float(azure_dict[x])/float(rew_dict[x])) > 1e-7:
@@ -135,7 +144,7 @@ def print_stats(local_fp, azure_path, verbose=False, plot_hist=False):
             dup_analysis(local_rew)    
         if dup_azure > 0:
             print('-----'*10)
-            print('Duplicates in Azure Storage')
+            print('Duplicates EventId in Azure Storage')
             dup_analysis(azure_data)
     print('-----'*10)
     print('Events in local_rank: {} (Duplicates: {})'.format(len(local_rank), len(local_rank)-len(local_rank_set)))
@@ -159,15 +168,15 @@ def print_stats(local_fp, azure_path, verbose=False, plot_hist=False):
         if err_rewards_idx or no_events_idx or no_rewards_idx:
             plt.rcParams.update({'font.size': 16})  # General font size
             if err_rewards_idx:
-                a = plt.hist(err_rewards_idx, 50, label='Wrong reward', color='xkcd:orange')
+                a = plt.hist(err_rewards_idx, hist_bin, label='Wrong reward', color='xkcd:orange')
                 if verbose:
                     print('err_rewards_idx',a)
             if no_events_idx:
-                b = plt.hist(no_events_idx, 50, label='No rank', color='xkcd:blue')
+                b = plt.hist(no_events_idx, hist_bin, label='No rank', color='xkcd:blue')
                 if verbose:
                     print('no_events_idx',b)
             if no_rewards_idx:
-                c = plt.hist(no_rewards_idx, 50, label='No local reward', color='xkcd:red')
+                c = plt.hist(no_rewards_idx, hist_bin, label='No local reward', color='xkcd:red')
                 if verbose:
                     print('no_rewards_idx',c)
             plt.title('Missing/Wrong rank and reward requests', fontsize=20)
@@ -186,7 +195,7 @@ if __name__ == '__main__':
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--azure_path', help="file or directory with azure storage data in .json format (when flag is present, statistics with --local_fp will be computed")
     group.add_argument('-a','--app', help="app name")
-    parser.add_argument('-f','--feed', help="feed name")
+    parser.add_argument('-f','--feed', help="feed name", default=None)
     parser.add_argument('-u','--base_url', default="https://ds.microsoft.com/api/v2/", help="base url (default: https://ds.microsoft.com/api/v2/)")
     parser.add_argument('-i','--iter_num', type=int, default=1000, help="number of requests/rewards (default: 1000)")
     parser.add_argument('-t','--time_sleep', type=float, default=0.05, help="time_sleep between interations (default: 0.05)")
@@ -201,11 +210,8 @@ if __name__ == '__main__':
     else:
         if not kwargs['app']:
             print('When sending rank/reward requests, --app is required')
-        
-        if not kwargs['feed']:
-            print('When sending rank/reward requests, --feed is required')
 
-        if kwargs['feed'] and kwargs['app']:
+        if kwargs['app']:
             kwargs.pop('azure_path')
             kwargs.pop('plot_hist')
             send_rank_and_rewards(**kwargs)
