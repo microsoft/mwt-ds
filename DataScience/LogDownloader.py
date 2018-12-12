@@ -21,31 +21,26 @@ def valid_date(s):
     except ValueError:
         raise argparse.ArgumentTypeError("Not a valid date: '{0}'. Expected format: YYYY-MM-DD".format(s))
         
-def cmp_files(f1, f2, start_range_f1=0, start_range_f2=0, bufsize=8*1024, erase_checkpoint_line=True):
+def cmp_files(f1, f2, start_range_f1=0, start_range_f2=0, erase_checkpoint_line=True):
     with open(f1, 'rb+' if erase_checkpoint_line else 'rb') as fp1, open(f2, 'rb') as fp2:
         if start_range_f1 != 0:
             fp1.seek(start_range_f1, os.SEEK_SET if start_range_f1 > 0 else os.SEEK_END)
         if start_range_f2 != 0:
             fp2.seek(start_range_f2, os.SEEK_SET if start_range_f2 > 0 else os.SEEK_END)
+            
+        prev_b1 = b''
         while True:
-            b1 = fp1.read(bufsize)
-            b2 = fp2.read(bufsize)
-            if b1 != b2:
-                # if b1 != b2 only due to checkpoint info line, data is still valid and checkpoint info line must be removed before appending
-                if erase_checkpoint_line:
-                    if b1.startswith(b'[{"PartitionId":'):
-                        fp1.seek(-len(b1)-1, os.SEEK_CUR)
-                        fp1.truncate()
-                        return True
-                    else:
-                        ind = b1.find(b'\n[')
-                        if ind > -1 and b1[:ind] == b2[:ind]:
-                            fp1.seek(-len(b1)+ind, os.SEEK_CUR)
-                            fp1.truncate()
-                            return True
+            b1 = fp1.read(1)
+            if b1 != fp2.read(1):
+                # if erase_checkpoint_line=True and b1 != b2 only due to checkpoint info line, then data is still valid. Checkpoint info line is removed
+                if erase_checkpoint_line and prev_b1+b1 == b'\n[':
+                    fp1.seek(-2, os.SEEK_CUR)
+                    fp1.truncate()
+                    return True
                 return False
             if not b1:
                 return True
+            prev_b1 = b1
 
 def parse_argv(argv):
 
