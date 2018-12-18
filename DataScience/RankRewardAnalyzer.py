@@ -17,15 +17,6 @@ def update_progress(current, total, display=''):
     text = "\rProgress: [{}] {:.1f}% - Iter: {}/{} - {}".format( "#"*block + "-"*(barLength-block), progress*100,current,total,display)
     sys.stdout.write(text)
     sys.stdout.flush()
-    
-def dup_analysis(log_list):
-    c = collections.Counter(y[0] for y in log_list)
-    data = {}
-    for i,x in enumerate(log_list):
-        if c[x[0]] > 1:
-            data.setdefault(x[0], []).append((i,x[1]))
-    for x in data:
-        print(x, data[x])
 
 def send_rank_and_rewards(base_url, app, local_fp, feed=None, iter_num=1000, time_sleep=0.05, verbose=False):
 
@@ -76,18 +67,28 @@ def send_rank_and_rewards(base_url, app, local_fp, feed=None, iter_num=1000, tim
 
 def print_stats(local_fp, azure_path, verbose=False, plot_hist=False, hist_bin=100):
 
+    t = time.time()
     print('Computing statistics...')
 
-    local_rank = []
+    gt = {}
+    len_local_rank = 0
+    dup_rank = 0
     local_rew = []
     lines_errs = 0
     err_codes = collections.Counter()
     for x in open(local_fp, encoding='utf-8'):
         if 'status_code:200' in x:
             if '/rank/' in x and '"eventId":"' in x:
-                local_rank.append(ds_parse.local_rank(x))
+                ei = ds_parse.local_rank(x)
+                len_local_rank += 1
+                if ei in gt:
+                    dup_rank += 1
+                else:
+                    gt[ei] = {'i': len_local_rank}
             elif '/reward/' in x and 'content:' in x:
-                local_rew.append(ds_parse.local_reward(x))
+                ei,r = ds_parse.local_reward(x)
+                local_rew.append((ei,r))
+                gt[ei].setdefault('local_rew',[]).append(r)
             else:
                 lines_errs += 1
         else:
@@ -98,39 +99,57 @@ def print_stats(local_fp, azure_path, verbose=False, plot_hist=False, hist_bin=1
     else:
         files = [azure_path]
 
+    ei_miss_local = 0
     azure_data = []
     for azure_fp in files:
         for x in open(azure_fp, 'rb'):
             if x.startswith(b'{"_label_cost":'):
                 data = ds_parse.json_cooked(x)
-                azure_data.append([data['ei'], data['cost']])
-    
-    rew_dict = {y[0]: y[1] for y in local_rew}
-    azure_dict = {str(y[0], 'utf-8'): str(y[1], 'utf-8') for y in azure_data}
-    
-    local_rank_set = set()
+                ei = str(data['ei'], 'utf-8')
+                c = str(data['cost'], 'utf-8')
+                azure_data.append((ei, c))
+                if ei not in gt:
+                    ei_miss_local += 1
+                    if verbose:
+                        print('Idx: {} - EventId: {} - Ranking missing from Local'.format(len(azure_data),ei))
+                else:
+                    gt[ei].setdefault('azure_data',[]).append((c, data['ts']))
+
+    dup_azure_counter = collections.Counter()
+    dup_rew_counter = collections.Counter()
     err_rewards_idx = []
     no_events_idx = []
     no_rewards_idx = []
-    for i,x in enumerate(local_rank):
-        local_rank_set.add(x)
-        if x in rew_dict:
-            if x in azure_dict:
-                if abs(1. + float(azure_dict[x])/float(rew_dict[x])) > 1e-7:
-                    if verbose:
-                        print('Idx: {} - Error in reward: Local: {} Azure: {} - EventId: {}'.format(i+1,rew_dict[x], azure_dict[x],x))
-                    err_rewards_idx.append(i+1)
-            else:
-                no_events_idx.append(i+1)
+    for ei in gt:
+        if 'local_rew' in gt[ei]:
+            if len(gt[ei]['local_rew']) > 1:
+                dup_rew_counter.update([len(gt[ei]['local_rew'])])
                 if verbose:
-                    print('Idx: {} - Ranking missing from Azure - EventId: {}'.format(i+1,x))
+                    print('Idx: {} - EventId: {} - Duplicate in Reward: {}'.format(gt[ei]['i'],ei,gt[ei]['local_rew']))
+            else:
+                if 'azure_data' in gt[ei]:
+                    if len(gt[ei]['azure_data']) > 1:
+                        dup_azure_counter.update([len(gt[ei]['azure_data'])])
+                        if verbose:
+                            print('Idx: {} - EventId: {} - Duplicate in Azure: {}'.format(gt[ei]['i'],ei,gt[ei]['azure_data']))
+                    elif abs(1. + float(gt[ei]['azure_data'][0][0])/float(gt[ei]['local_rew'][0])) > 1e-7:
+                        err_rewards_idx.append(gt[ei]['i'])
+                        if verbose:
+                            print('Idx: {} - EventId: {} - Error in reward: Local: {} Azure: {}'.format(gt[ei]['i'],ei,gt[ei]['local_rew'][0],gt[ei]['azure_data'][0]))
+                else:
+                    no_events_idx.append(gt[ei]['i'])
+                    if verbose:
+                        print('Idx: {} - EventId: {} - Ranking missing from Azure'.format(gt[ei]['i'],ei))
         else:
-            no_rewards_idx.append(i+1)
+            no_rewards_idx.append(gt[ei]['i'])
             if verbose:
-                print('Idx: {} - Reward missing from local - EventId: {}'.format(i+1,x))
+                print('Idx: {} - EventId: {} - Reward missing from local'.format(gt[ei]['i'],ei))
 
-    dup_local = len(local_rew)-len(rew_dict)
-    dup_azure = len(azure_data)-len(azure_dict)
+    rew_dict = {y[0]: y[1] for y in local_rew}
+    azure_dict = {y[0]: y[1] for y in azure_data}
+
+    dup_azure = sum((x-1)*dup_azure_counter[x] for x in dup_azure_counter)
+    dup_rew = sum((x-1)*dup_rew_counter[x] for x in dup_rew_counter)
     if verbose:
         print('-----'*10)
         print('Missing events indexes (1-based indexing)\n{}'.format(no_events_idx))
@@ -138,32 +157,26 @@ def print_stats(local_fp, azure_path, verbose=False, plot_hist=False, hist_bin=1
         print('Missing local rewards indexes (1-based indexing)\n{}'.format(no_rewards_idx))
         print('-----'*10)
         print('Wrong rewards indexes (1-based indexing)\n{}'.format(err_rewards_idx))
-        if dup_local > 0:
-            print('-----'*10)
-            print('Duplicates in Local rewards')
-            dup_analysis(local_rew)    
-        if dup_azure > 0:
-            print('-----'*10)
-            print('Duplicates EventId in Azure Storage')
-            dup_analysis(azure_data)
     print('-----'*10)
-    print('Events in local_rank: {} (Duplicates: {})'.format(len(local_rank), len(local_rank)-len(local_rank_set)))
-    print('Events in local_rew: {} (Duplicates: {})'.format(len(local_rew), dup_local))
-    print('Events in azure_data: {} (Duplicates: {})'.format(len(azure_data), dup_azure))
+    print('Events in local_rank: {} (Duplicates: {})'.format(len_local_rank, dup_rank))
+    print('Events in local_rew: {} (Duplicates: {} - {})'.format(len(local_rew), dup_rew, dup_rew_counter))
+    print('Events in azure_data: {} (Duplicates: {} - {})'.format(len(azure_data), dup_azure, dup_azure_counter))
     print('-----'*10)
-    print('Intersection local_rank/local_rew:',len(local_rank_set.intersection(rew_dict.keys())))
-    print('Intersection local_rank/azure_data:',len(local_rank_set.intersection(azure_dict.keys())))
-    print('Missing EventIds: {}'.format(len(no_events_idx)), end='')
+    print('Intersection local_rank/local_rew:',sum(1 for x in rew_dict if x in gt))
+    print('Intersection local_rank/azure_data:',sum(1 for x in azure_dict if x in gt))
+    print('Missing EventIds from local: {}'.format(ei_miss_local))
+    print('Missing EventIds from azure: {}'.format(len(no_events_idx)), end='')
     if no_events_idx:
-        print(' (oldest 1-base index: {}/{})'.format(min(no_events_idx),len(local_rank)), end='')
+        print(' (oldest 1-base index: {}/{})'.format(min(no_events_idx),len_local_rank), end='')
     print('\nMissing Local Rewards: {}'.format(len(no_rewards_idx)), end='')
     if no_rewards_idx:
-        print(' (oldest 1-base index: {}/{})'.format(min(no_rewards_idx),len(local_rank)), end='')
+        print(' (oldest 1-base index: {}/{})'.format(min(no_rewards_idx),len_local_rank), end='')
     print('\nWrong rewards: {}'.format(len(err_rewards_idx)))
     print('-----'*10)
     print('status_codes errors: {}'.format(err_codes.most_common()))
     print('Lines skipped in Local file: {}'.format(lines_errs))
     print('-----'*10)
+    print('Elapsed time: ',time.time()-t)
     if plot_hist:
         if err_rewards_idx or no_events_idx or no_rewards_idx:
             plt.rcParams.update({'font.size': 16})  # General font size
