@@ -128,17 +128,12 @@ def create_stats(log_fp, dashboard_file, predictions_files=None):
     bytes_count = 0
     tot_bytes = os.path.getsize(log_fp)
     evts = 0
-    i = 0
-    for x in (gzip.open(log_fp, 'rb') if log_fp.endswith('.gz') else open(log_fp, 'rb')):
+    for i,x in enumerate(gzip.open(log_fp, 'rb') if log_fp.endswith('.gz') else open(log_fp, 'rb')):
         # display progress
         bytes_count += len(x)
-        i += 1
-        if i % 5000 == 0:
+        if (i+1) % 1000 == 0:
             if log_fp.endswith('.gz'):
-                if i % 20000 == 0:
-                    print('.', end='', flush=True)
-                    if i % 1000000 == 0:
-                        print(' - Iter:',i)
+                ds_parse.update_progress(i+1)
             else:
                 ds_parse.update_progress(bytes_count,tot_bytes)
 
@@ -207,12 +202,14 @@ def create_stats(log_fp, dashboard_file, predictions_files=None):
                         d[ts_bin][name]['c'] = max(d[ts_bin][name]['c'], r*p_over_p)
                         d[ts_bin][name]['SoS'] += (r*p_over_p)**2
             evts += 1
-    if not log_fp.endswith('.gz'):
+    if log_fp.endswith('.gz'):
+        len_text = ds_parse.update_progress(i+1)
+    else:
         len_text = ds_parse.update_progress(bytes_count,tot_bytes)
-        sys.stdout.write("\r" + " "*len_text + "\r")
-        sys.stdout.flush()
+    sys.stdout.write("\r" + " "*len_text + "\r")
+    sys.stdout.flush()
 
-    print('Processed {} events'.format(evts))
+    print('Read {} lines - Processed {} events'.format(i+1,evts))
     if any(len(pred[name]) != evts for name in pred):
         print('Error: Prediction file length ({}) is different from number of events in log file ({})'.format([len(pred[name]) for name in pred],evts))
         sys.exit()
