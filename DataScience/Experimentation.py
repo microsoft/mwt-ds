@@ -115,7 +115,7 @@ class PropType(Enum):
     NONE = 1
     BASIC = 2
     MARGINAL = 3
-def detect_namespaces(j_obj, ns_set, marginal_set=None):
+def detect_namespaces(j_obj, ns_set, marginal_set):
     prop_type = PropType.NONE
     if (j_obj is None) or type(j_obj) is not dict:
         return prop_type
@@ -134,23 +134,23 @@ def detect_namespaces(j_obj, ns_set, marginal_set=None):
             # Unwrap lists so we retain knowledge of the enclosing key name
             for item in value:
                 ret_val = detect_namespaces(item, ns_set, marginal_set)
-                if ret_val is PropType.BASIC:
+                if ret_val in [PropType.BASIC, PropType.MARGINAL]:
                     ns_set.update([key])
-                elif (marginal_set != None) and (ret_val is PropType.MARGINAL):
-                    marginal_set.update([key])
+                    if ret_val is PropType.MARGINAL:
+                        marginal_set.update([key])
         elif type(value) is dict:
             # Recurse on the value
             ret_val = detect_namespaces(value, ns_set, marginal_set)
-            if ret_val is PropType.BASIC:
+            if ret_val in [PropType.BASIC, PropType.MARGINAL]:
                 ns_set.update([key])
-            elif (marginal_set != None) and (ret_val is PropType.MARGINAL):
-                marginal_set.update([key])
+                if ret_val is PropType.MARGINAL:
+                    marginal_set.update([key])
         elif value is not None:
             prop_type = PropType.BASIC
 
     # If basic properties were found, check if they are actually marginal properties
     if prop_type is PropType.BASIC:
-        if (j_obj.get('constant', 0) == 1) and ('id' in j_obj):
+        if j_obj.get('constant', 0) == 1:
             prop_type = PropType.MARGINAL
 
     return prop_type
