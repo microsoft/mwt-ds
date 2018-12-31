@@ -1,4 +1,4 @@
-import requests, time, json, os, argparse, sys, collections, ds_parse
+import requests, time, json, os, argparse, sys, collections, ds_parse, gzip
 import matplotlib.pyplot as plt
 
 
@@ -68,7 +68,6 @@ def send_rank_and_rewards(base_url, app, local_fp, feed=None, iter_num=1000, tim
 def print_stats(local_fp, azure_path, verbose=False, plot_hist=False, hist_bin=100):
 
     t = time.time()
-    print('Computing statistics...')
 
     gt = {}
     len_local_rank = 0
@@ -76,7 +75,12 @@ def print_stats(local_fp, azure_path, verbose=False, plot_hist=False, hist_bin=1
     local_rew = []
     lines_errs = 0
     err_codes = collections.Counter()
-    for x in open(local_fp, encoding='utf-8'):
+    bytes_count = 0
+    tot_bytes = os.path.getsize(local_fp)
+    for i,x in enumerate(open(local_fp, encoding='utf-8')):
+        bytes_count += len(x)
+        if (i+1) % 10000 == 0:
+            ds_parse.update_progress(bytes_count,tot_bytes,'Loading Local file: {} - '.format(local_fp))
         if 'status_code:200' in x:
             if '/rank/' in x and '"eventId":"' in x:
                 ei = ds_parse.local_rank(x)
@@ -93,16 +97,29 @@ def print_stats(local_fp, azure_path, verbose=False, plot_hist=False, hist_bin=1
                 lines_errs += 1
         else:
             err_codes.update([ds_parse.extract_field(x,'status_code:','\t')])
+    ds_parse.update_progress(tot_bytes,tot_bytes,'Loading Local file: {} - '.format(local_fp))
 
+    print('\n\nLoading Azure files...')
     if os.path.isdir(azure_path):
         files = [azure_fp.path for azure_fp in scantree(azure_path) if azure_fp.name.endswith('.json')]
     else:
         files = [azure_path]
 
+    verbose_output = []
+
     ei_miss_local = 0
     azure_data = []
-    for azure_fp in files:
-        for x in open(azure_fp, 'rb'):
+    for ii,azure_fp in enumerate(files):
+        bytes_count = 0
+        tot_bytes = os.path.getsize(azure_fp)
+        for i,x in enumerate(gzip.open(azure_fp, 'rb') if azure_fp.endswith('.gz') else open(azure_fp, 'rb')):
+            bytes_count += len(x)
+            if (i+1) % 10000 == 0:
+                if azure_fp.endswith('.gz'):
+                    ds_parse.update_progress(i+1,prefix='File {}/{}: {} - '.format(ii+1,len(files),azure_fp))
+                else:
+                    ds_parse.update_progress(bytes_count,tot_bytes,'File {}/{}: {} - '.format(ii+1,len(files),azure_fp))
+
             if x.startswith(b'{"_label_cost":'):
                 data = ds_parse.json_cooked(x)
                 ei = str(data['ei'], 'utf-8')
@@ -111,43 +128,57 @@ def print_stats(local_fp, azure_path, verbose=False, plot_hist=False, hist_bin=1
                 if ei not in gt:
                     ei_miss_local += 1
                     if verbose:
-                        print('Idx: {} - EventId: {} - Ranking missing from Local'.format(len(azure_data),ei))
+                        verbose_output.append('Idx: {} - EventId: {} - Ranking missing from Local'.format(len(azure_data),ei))
                 else:
                     gt[ei].setdefault('azure_data',[]).append((c, data['ts']))
+        if azure_fp.endswith('.gz'):
+            ds_parse.update_progress(i+1,prefix='File {}/{}: {} - '.format(ii+1,len(files),azure_fp))
+        else:
+            ds_parse.update_progress(bytes_count,tot_bytes,'File {}/{}: {} - '.format(ii+1,len(files),azure_fp))
+        print()
+    print()
 
     dup_azure_counter = collections.Counter()
     dup_rew_counter = collections.Counter()
     err_rewards_idx = []
     no_events_idx = []
     no_rewards_idx = []
-    for ei in gt:
+    for i,ei in enumerate(gt):
+        if (i+1) % 10000 == 0:
+            ds_parse.update_progress(i+1,len(gt),'Evaluating differences - ')
         if 'local_rew' in gt[ei]:
             if len(gt[ei]['local_rew']) > 1:
                 dup_rew_counter.update([len(gt[ei]['local_rew'])])
                 if verbose:
-                    print('Idx: {} - EventId: {} - Duplicate in Reward: {}'.format(gt[ei]['i'],ei,gt[ei]['local_rew']))
+                    verbose_output.append('Idx: {} - EventId: {} - Duplicate in Reward: {}'.format(gt[ei]['i'],ei,gt[ei]['local_rew']))
             else:
                 if 'azure_data' in gt[ei]:
                     if len(gt[ei]['azure_data']) > 1:
                         dup_azure_counter.update([len(gt[ei]['azure_data'])])
                         if verbose:
-                            print('Idx: {} - EventId: {} - Duplicate in Azure: {}'.format(gt[ei]['i'],ei,gt[ei]['azure_data']))
+                            verbose_output.append('Idx: {} - EventId: {} - Duplicate in Azure: {}'.format(gt[ei]['i'],ei,gt[ei]['azure_data']))
                     else:
                         a = float(gt[ei]['local_rew'][0])
                         b = float(gt[ei]['azure_data'][0][0])
                         if abs(a+b) > max(1e-7 * max(abs(a), abs(b)), 1e-6):
                             err_rewards_idx.append(gt[ei]['i'])
                             if verbose:
-                                print('Idx: {} - EventId: {} - Error in reward: Local: {} Azure: {}'.format(gt[ei]['i'],ei,gt[ei]['local_rew'][0],gt[ei]['azure_data'][0]))
+                                verbose_output.append('Idx: {} - EventId: {} - Error in reward: Local: {} Azure: {}'.format(gt[ei]['i'],ei,gt[ei]['local_rew'][0],gt[ei]['azure_data'][0]))
                 else:
                     no_events_idx.append(gt[ei]['i'])
                     if verbose:
-                        print('Idx: {} - EventId: {} - Ranking missing from Azure'.format(gt[ei]['i'],ei))
+                        verbose_output.append('Idx: {} - EventId: {} - Ranking missing from Azure'.format(gt[ei]['i'],ei))
         else:
             no_rewards_idx.append(gt[ei]['i'])
             if verbose:
-                print('Idx: {} - EventId: {} - Reward missing from local'.format(gt[ei]['i'],ei))
+                verbose_output.append('Idx: {} - EventId: {} - Reward missing from local'.format(gt[ei]['i'],ei))
+    ds_parse.update_progress(i+1,len(gt),'Evaluating differences - ')
+    print()
 
+    for x in verbose_output:
+        print(x)
+
+    print('\nComputing summary stats...')
     rew_dict = {y[0]: y[1] for y in local_rew}
     azure_dict = {y[0]: y[1] for y in azure_data}
 
