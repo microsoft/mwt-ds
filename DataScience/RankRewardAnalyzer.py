@@ -132,10 +132,13 @@ def print_stats(local_fp, azure_path, verbose=False, plot_hist=False, hist_bin=1
                         dup_azure_counter.update([len(gt[ei]['azure_data'])])
                         if verbose:
                             print('Idx: {} - EventId: {} - Duplicate in Azure: {}'.format(gt[ei]['i'],ei,gt[ei]['azure_data']))
-                    elif abs(1. + float(gt[ei]['azure_data'][0][0])/float(gt[ei]['local_rew'][0])) > 1e-7:
-                        err_rewards_idx.append(gt[ei]['i'])
-                        if verbose:
-                            print('Idx: {} - EventId: {} - Error in reward: Local: {} Azure: {}'.format(gt[ei]['i'],ei,gt[ei]['local_rew'][0],gt[ei]['azure_data'][0]))
+                    else:
+                        a = float(gt[ei]['local_rew'][0])
+                        b = float(gt[ei]['azure_data'][0][0])
+                        if abs(a+b) > max(1e-7 * max(abs(a), abs(b)), 1e-6):
+                            err_rewards_idx.append(gt[ei]['i'])
+                            if verbose:
+                                print('Idx: {} - EventId: {} - Error in reward: Local: {} Azure: {}'.format(gt[ei]['i'],ei,gt[ei]['local_rew'][0],gt[ei]['azure_data'][0]))
                 else:
                     no_events_idx.append(gt[ei]['i'])
                     if verbose:
