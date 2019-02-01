@@ -357,9 +357,9 @@ def main(args):
         
         # Test all combinations up to q_bruteforce_terms
         possible_interactions = set()
-        for features in shared_features:
+        for shared_feature in shared_features:
             for action_feature in action_features:
-                interaction = '{0}{1}'.format(features, action_feature)
+                interaction = '{0}{1}'.format(shared_feature, action_feature)
                 possible_interactions.add(interaction)
         
         command_list = []    
@@ -380,9 +380,9 @@ def main(args):
         rounds_without_improvements = 0
         while rounds_without_improvements < args.q_greedy_stop:
             command_list = []
-            for features in shared_features:
+            for shared_feature in shared_features:
                 for action_feature in action_features:
-                    interaction = '{0}{1}'.format(features, action_feature)
+                    interaction = '{0}{1}'.format(shared_feature, action_feature)
                     if interaction in temp_interaction_list:
                         continue
                     command = Command(base_command, clone_from=best_command, interaction_list=temp_interaction_list.union({interaction}))   # union() keeps temp_interaction_list unchanged
