@@ -3,7 +3,7 @@ if sys.maxsize < 2**32:     # check for 32-bit python version
     if input("32-bit python interpreter detected. There may be problems downloading large files. Do you want to continue anyway [Y/n]? ") not in {'Y', 'y'}:
         sys.exit()
 
-import os, time, datetime, argparse, gzip, configparser, shutil, ds_parse
+import os, time, datetime, argparse, gzip, configparser, shutil, ds_parse, random
 try:
     from azure.storage.blob import BlockBlobService
 except ImportError as e:
@@ -290,8 +290,22 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                             with gzip.open(output_fp, 'wb') as f_out:
                                 for fp in selected_fps_merged:
                                     print('Adding: {}'.format(fp))
-                                    with open(fp, 'rb') as f_in:
-                                        shutil.copyfileobj(f_in, f_out, length=100*1024**2)   # writing chunks of 100MB to avoid consuming memory
+                                    bytes_count = 0
+                                    tot_bytes = os.path.getsize(fp)
+                                    cnt = [0,0]
+                                    for i,x in enumerate(open(fp, 'rb')):
+                                        # display progress
+                                        bytes_count += len(x)
+                                        if (i+1) % 10000 == 0:
+                                            ds_parse.update_progress(bytes_count,tot_bytes)
+                                    
+                                        if x.startswith(b'{"_label'):
+                                            cnt[1] += 1
+                                            if random.random() < 0.02:     # reading only cooked lined
+                                                f_out.write(x)
+                                                cnt[0] += 1
+                                        # shutil.copyfileobj(f_in, f_out, length=100*1024**2)   # writing chunks of 100MB to avoid consuming memory
+                                    print('\nLines:',cnt)
                 elif create_gzip_mode == 2:
                     selected_fps.sort(key=lambda x : (list(map(int,x.split('_data_')[1].split('_')[:3])), -os.path.getsize(x), x))
                     start_date = '-'.join(selected_fps[0].split('_data_')[1].split('_')[:3])
