@@ -144,7 +144,7 @@ def json_cooked(x, do_devType=False, do_VWState=False, do_p_vec=False):
     else:
         ind5 = ind4+13                  # len('","EventId":"') = 13
     ind6 = x.find(b'"',ind5)
-    ind7 = x.find(b',"a"',ind5+16)
+    ind7 = x.find(b',"a"',ind5)
     ind8 = x.find(b']',ind7+7)          # equal to: x.find('],"c',ind7+8)
 
     data = {}
