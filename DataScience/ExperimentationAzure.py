@@ -35,11 +35,13 @@ if __name__ == '__main__':
     LogDownloader.add_parser_args(logdownloader_parser)
     ld_args, unknown = logdownloader_parser.parse_known_args(unknown)
     output_dir = ld_args.log_dir +"\\" + ld_args.app_id
-    if os.path.isdir(output_dir):
-        shutil.rmtree(output_dir) # Clean out logs directory
+    if os.path.isdir(ld_args.log_dir):
+        print('Deleting ' + ld_args.log_dir)
+        shutil.rmtree(ld_args.log_dir) # Clean out logs directory
     output_gz_fp = LogDownloader.download_container(**vars(ld_args))
     for f in os.listdir(output_dir):
         if f.endswith('json'):
+            print('Deleting ' + f)
             os.remove(os.path.join(output_dir, f))
 
     # Run Experimentation.py using output_gz_fp as input
