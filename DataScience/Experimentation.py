@@ -3,7 +3,7 @@ import multiprocessing, psutil
 import sys, os
 import json
 from datetime import datetime, timedelta
-import configparser, argparse
+import argparse
 import gzip
 import itertools
 from enum import Enum
@@ -190,21 +190,12 @@ def generate_predictions_files(log_fp, policies):
         
     return predictions_files
 
-
-if __name__ == '__main__':
-
-    try:
-        check_output(['vw','-h'], stderr=DEVNULL)
-    except:
-        print("Error: Vowpal Wabbit executable not found. Please install and add it to your path")
-        sys.exit()
-
-    parser = argparse.ArgumentParser()
+def add_parser_args(parser):
     parser.add_argument('-f','--file_path', help="data file path (.json or .json.gz format - each line is a dsjson)", required=True)
     parser.add_argument('-b','--base_command', help="base Vowpal Wabbit command (default: vw --cb_adf --dsjson -c )", default='vw --cb_adf --dsjson -c ')
     parser.add_argument('-p','--n_proc', type=int, help="number of parallel processes to use (default: physical processors)", default=psutil.cpu_count(logical=False))
-    parser.add_argument('-s','--shared_namespaces', type=str, help="shared feature namespaces; e.g., 'abc' means namespaces a, b, and c (default: auto-detect from data file)", default='')
-    parser.add_argument('-a','--action_namespaces', type=str, help="action feature namespaces (default: auto-detect from data file)", default='')
+    parser.add_argument('-sn','--shared_namespaces', type=str, help="shared feature namespaces; e.g., 'abc' means namespaces a, b, and c (default: auto-detect from data file)", default='')
+    parser.add_argument('-an','--action_namespaces', type=str, help="action feature namespaces (default: auto-detect from data file)", default='')
     parser.add_argument('-m','--marginal_namespaces', type=str, help="marginal feature namespaces (default: auto-detect from data file)", default='')
     parser.add_argument('--auto_lines', type=int, help="number of data file lines to scan to auto-detect features namespaces (default: 100)", default=100)
     parser.add_argument('--only_hp', help="sweep only over hyper-parameters (`learning rate`, `L1 regularization`, and `power_t`)", action='store_true')
@@ -215,23 +206,26 @@ if __name__ == '__main__':
     parser.add_argument('--q_greedy_stop', type=int, help="rounds without improvements after which quadratic greedy search phase is halted (default: 3)", default=3)
     parser.add_argument('--generate_predictions', help="generate prediction files for best policies", action='store_true')
 
-    # Parse input and create variables
-    args_dict = vars(parser.parse_args())   # this creates a dictionary with all input CLI
-    for x in args_dict:
-        locals()[x] = args_dict[x]  # this is equivalent to foo = args.foo
-
+def main(args):
+    try:
+        check_output(['vw','-h'], stderr=DEVNULL)
+    except:
+        print("Error: Vowpal Wabbit executable not found. Please install and add it to your path")
+        sys.exit()
+    print('File name: ' + args.file_path)
+    print('File size: {:.3f} MB'.format(os.path.getsize(args.file_path)/(1024**2)))
     # Additional processing of inputs not covered by above
-    base_command += ('' if base_command[-1] == ' ' else ' ') + '-d ' + file_path
-    shared_features = set(shared_namespaces)
-    action_features = set(action_namespaces)
-    marginal_features = set(marginal_namespaces)
+    base_command = args.base_command + ('' if args.base_command[-1] == ' ' else ' ') + '-d ' + args.file_path
+    shared_features = set(args.shared_namespaces)
+    action_features = set(args.action_namespaces)
+    marginal_features = set(args.marginal_namespaces)
 
     # Identify namespaces and detect marginal features (unless already specified)
     if not (shared_features and action_features and marginal_features):
         shared_tmp = collections.Counter()
         action_tmp = collections.Counter()
         marginal_tmp = collections.Counter()
-        with gzip.open(file_path, 'rt', encoding='utf8') if file_path.endswith('.gz') else open(file_path, 'r', encoding="utf8") as data:
+        with gzip.open(args.file_path, 'rt', encoding='utf8') if args.file_path.endswith('.gz') else open(args.file_path, 'r', encoding="utf8") as data:
             counter = 0
             for line in data:
                 if not line.startswith('{"_label_cost"'):
@@ -254,7 +248,7 @@ if __name__ == '__main__':
 
                 # We assume the schema is consistent throughout the file, but since some
                 # namespaces may not appear in every datapoint, check enough points.
-                if counter >= auto_lines:
+                if counter >= args.auto_lines:
                     break
         # Only overwrite the namespaces that were not specified by the user
         if not shared_features:
@@ -265,19 +259,19 @@ if __name__ == '__main__':
             marginal_features = marginal_tmp
 
     print("\n*********** SETTINGS ******************")
-    print("Parallel processes: {}".format(n_proc))
+    print("Parallel processes: {}".format(args.n_proc))
     print()
     print("Base command + log file: {}".format(base_command))
     print()
-    print('Learning rates: ['+', '.join(map(str,learning_rates))+']')
-    print('L1 regularization: ['+', '.join(map(str,regularizations))+']')
-    print('Power_t rates: ['+', '.join(map(str,power_t_rates))+']')
+    print('Learning rates: ['+', '.join(map(str,args.learning_rates))+']')
+    print('L1 regularization: ['+', '.join(map(str,args.regularizations))+']')
+    print('Power_t rates: ['+', '.join(map(str,args.power_t_rates))+']')
     print()
     print("Shared feature namespaces: " + str(shared_features))
     print("Action feature namespaces: " + str(action_features))
     print("Marginal feature namespaces: " + str(marginal_features))
     print("***************************************")
-    if input('Press ENTER to start (any other key to exit)...' ) != '':
+    if __name__ == '__main__' and input('Press ENTER to start (any other key to exit)...' ) != '':
         sys.exit()
 
     shared_features = {x[0] for x in shared_features}
@@ -290,30 +284,30 @@ if __name__ == '__main__':
     t0 = datetime.now()
     
     if ' -c ' in base_command:    
-        if not os.path.exists(file_path+'.cache'):
+        if not os.path.exists(args.file_path+'.cache'):
             print('\nCreating the cache file...')
             result = run_experiment(best_command)
             if result.loss < best_command.loss:
                 best_command = result
     else:
-        if os.path.exists(file_path+'.cache'):
+        if os.path.exists(args.file_path+'.cache'):
             input('Warning: Cache file found, but not used (-c not in CLI). Press to continue anyway...')
 
     # Regularization, Learning rates, and Power_t rates grid search
     command_list = []
-    for learning_rate in learning_rates:
-        for regularization in regularizations:
-            for power_t in power_t_rates:
+    for learning_rate in args.learning_rates:
+        for regularization in args.regularizations:
+            for power_t in args.power_t_rates:
                 command = Command(base_command, clone_from=best_command, regularization=regularization, learning_rate=learning_rate, power_t=power_t)
                 command_list.append(command)
 
     print('\nTesting {} different hyperparameters...'.format(len(command_list)))
-    results = run_experiment_set(command_list, n_proc)
+    results = run_experiment_set(command_list, args.n_proc)
     if results[0].loss < best_command.loss:
         best_command = results[0]
         best_commands.append(['Hyper1', results[0]])
     
-    if not only_hp:        
+    if not args.only_hp:
         # CB type
         print('\nTesting cb types...')
         cb_types = ['mtr']       # ips is default (avoid to recheck it)
@@ -322,7 +316,7 @@ if __name__ == '__main__':
             command = Command(base_command, clone_from=best_command, cb_type=cb_type)
             command_list.append(command)
             
-        results = run_experiment_set(command_list, n_proc)
+        results = run_experiment_set(command_list, args.n_proc)
         if results[0].loss < best_command.loss:
             best_command = results[0]
             best_commands.append(['cbType', results[0]])
@@ -340,7 +334,7 @@ if __name__ == '__main__':
             if len(command_list) == 0:
                 break
 
-            results = run_experiment_set(command_list, n_proc)
+            results = run_experiment_set(command_list, args.n_proc)
             if results[0].loss < best_command.loss:
                 best_command = results[0]
                 best_commands.append(['Marginals', results[0]])
@@ -357,13 +351,13 @@ if __name__ == '__main__':
                 possible_interactions.add(interaction)
         
         command_list = []    
-        for i in range(q_bruteforce_terms+1):    
+        for i in range(args.q_bruteforce_terms+1):
             for interaction_list in itertools.combinations(possible_interactions, i):
                 command = Command(base_command, clone_from=best_command, interaction_list=interaction_list)
                 command_list.append(command)
         
         print('\nTesting {} different interactions (brute-force phase)...'.format(len(command_list)))
-        results = run_experiment_set(command_list, n_proc)
+        results = run_experiment_set(command_list, args.n_proc)
         if results[0].loss < best_command.loss:
             best_command = results[0]
             best_commands.append(['Inter-len'+str(len(results[0].interaction_list)),results[0]])
@@ -372,7 +366,7 @@ if __name__ == '__main__':
         print('\nTesting interactions (greedy phase)...')
         temp_interaction_list = set(best_command.interaction_list)
         rounds_without_improvements = 0
-        while rounds_without_improvements < q_greedy_stop:
+        while rounds_without_improvements < args.q_greedy_stop:
             command_list = []
             for features in shared_features:
                 for action_feature in action_features:
@@ -385,7 +379,7 @@ if __name__ == '__main__':
             if len(command_list) == 0:
                 break
 
-            results = run_experiment_set(command_list, n_proc)
+            results = run_experiment_set(command_list, args.n_proc)
             if results[0].loss < best_command.loss:
                 best_command = results[0]
                 best_commands.append(['Inter-len'+str(len(results[0].interaction_list)),results[0]])
@@ -396,14 +390,14 @@ if __name__ == '__main__':
 
         # Regularization, Learning rates, and Power_t rates grid search
         command_list = []
-        for learning_rate in learning_rates:
-            for regularization in regularizations:
-                for power_t in power_t_rates:
+        for learning_rate in args.learning_rates:
+            for regularization in args.regularizations:
+                for power_t in args.power_t_rates:
                     command = Command(base_command, clone_from=best_command, regularization=regularization, learning_rate=learning_rate, power_t=power_t)
                     command_list.append(command)
 
         print('\nTesting {} different hyperparameters...'.format(len(command_list)))
-        results = run_experiment_set(command_list, n_proc)
+        results = run_experiment_set(command_list, args.n_proc)
         if results[0].loss < best_command.loss:
             best_command = results[0]
             best_commands.append(['Hyper2', results[0]])
@@ -416,8 +410,13 @@ if __name__ == '__main__':
     best_command.prints()
     print("*************************")
 
-    if generate_predictions:
-        _ = generate_predictions_files(file_path, best_commands)
+    if args.generate_predictions:
+        _ = generate_predictions_files(args.file_path, best_commands)
         t2 = datetime.now()
         print('Predictions Generation Time:',(t2-t1)-timedelta(microseconds=(t2-t1).microseconds))
         print('Total Elapsed Time:',(t2-t0)-timedelta(microseconds=(t2-t0).microseconds))
+        
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    add_parser_args(parser)
+    main(parser.parse_args())
