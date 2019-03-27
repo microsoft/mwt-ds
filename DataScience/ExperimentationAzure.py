@@ -1,10 +1,24 @@
-import argparse, os, sys, shutil
+import argparse, os, psutil, sys, shutil
 from datetime import datetime, timedelta
 from AzureUtil import AzureUtil
 import Experimentation
 import LogDownloader
 
+def check_system():
+    try:
+        print('Cpu count : {}'.format(psutil.cpu_count()))
+        print('Cpu count : {}'.format(psutil.cpu_count(logical=False)))
+        for disk in psutil.disk_partitions():
+            print(disk.device)
+            bytes_in_gb = 1024**3
+            print('Total size: {:.3f} GB'.format(psutil.disk_usage(disk.device).total / bytes_in_gb))
+            print('Used size: {:.3f} GB'.format(psutil.disk_usage(disk.device).used / bytes_in_gb))
+            print('Free size: {:.3f} GB'.format(psutil.disk_usage(disk.device).free / bytes_in_gb))
+    except Exception as e:
+            print(e)
+
 if __name__ == '__main__':
+    check_system()
     # Change directory to working directory to have vw.exe in path
     os.chdir(os.path.dirname(os.path.realpath(__file__)))
     t1 = datetime.now()
@@ -21,9 +35,13 @@ if __name__ == '__main__':
     LogDownloader.add_parser_args(logdownloader_parser)
     ld_args, unknown = logdownloader_parser.parse_known_args(unknown)
     output_dir = ld_args.log_dir +"\\" + ld_args.app_id
-    shutil.rmtree(output_dir) # Clean out logs directory
+    if os.path.isdir(output_dir):
+        shutil.rmtree(output_dir) # Clean out logs directory
     output_gz_fp = LogDownloader.download_container(**vars(ld_args))
-    
+    for f in os.listdir(output_dir):
+        if f.endswith('json'):
+            os.remove(os.path.join(output_dir, f))
+
     # Run Experimentation.py using output_gz_fp as input
     experimentation_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     Experimentation.add_parser_args(experimentation_parser)
