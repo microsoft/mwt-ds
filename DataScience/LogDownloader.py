@@ -3,7 +3,7 @@ if sys.maxsize < 2**32:     # check for 32-bit python version
     if input("32-bit python interpreter detected. There may be problems downloading large files. Do you want to continue anyway [Y/n]? ") not in {'Y', 'y'}:
         sys.exit()
 
-import os, time, datetime, argparse, gzip, configparser, shutil, ds_parse, re
+import os, time, datetime, argparse, gzip, shutil, ds_parse
 try:
     from azure.storage.blob import BlockBlobService
 except ImportError as e:
@@ -88,10 +88,6 @@ def download_container(app_id, log_dir, conn_string, start_date=None, end_date=N
     if not dry_run:
         os.makedirs(os.path.join(log_dir, app_id), exist_ok=True)
     
-    # Get Azure Storage Authentication
-    config = configparser.ConfigParser()
-    config.read('ds.config')
-    connection_string = conn_string
     output_fp = None
     print('-----'*10)
     
@@ -114,11 +110,11 @@ def download_container(app_id, log_dir, conn_string, start_date=None, end_date=N
                 try:
                     import requests
                     LogDownloaderURL = "https://cps-staging-exp-experimentation.azurewebsites.net/api/Log?account={ACCOUNT_NAME}&key={ACCOUNT_KEY}&start={START_DATE}&end={END_DATE}&container={CONTAINER}"
-                    connection_string_dict = dict(x.split('=',1) for x in connection_string.split(';'))
-                    if not connection_string_dict['AccountName'] or len(connection_string_dict['AccountKey']) != 88:
+                    conn_string_dict = dict(x.split('=',1) for x in conn_string.split(';'))
+                    if not conn_string_dict['AccountName'] or len(conn_string_dict['AccountKey']) != 88:
                         print("Error: Invalid Azure Storage ConnectionString.")
                         sys.exit()
-                    url = LogDownloaderURL.format(ACCOUNT_NAME=connection_string_dict['AccountName'], ACCOUNT_KEY=connection_string_dict['AccountKey'].replace('+','%2b'), CONTAINER=app_id, START_DATE=start_date.strftime("%Y-%m-%d"), END_DATE=(end_date+datetime.timedelta(days=1)).strftime("%Y-%m-%d"))
+                    url = LogDownloaderURL.format(ACCOUNT_NAME=conn_string_dict['AccountName'], ACCOUNT_KEY=conn_string_dict['AccountKey'].replace('+','%2b'), CONTAINER=app_id, START_DATE=start_date.strftime("%Y-%m-%d"), END_DATE=(end_date+datetime.timedelta(days=1)).strftime("%Y-%m-%d"))
                     r = requests.post(url)
                     open(output_fp, 'wb').write(r.content)
                     print(' Done!\n')
@@ -128,7 +124,7 @@ def download_container(app_id, log_dir, conn_string, start_date=None, end_date=N
     else:  # using BlockBlobService python api for cooked logs
         try:
             print('Establishing Azure Storage BlockBlobService connection...')
-            bbs = BlockBlobService(connection_string=connection_string)
+            bbs = BlockBlobService(connection_string=conn_string)
             # List all blobs and download them one by one
             print('Getting blobs list...')
             blobs = bbs.list_blobs(app_id)
@@ -330,8 +326,5 @@ if __name__ == '__main__':
         if kwargs.get('end_date', None) is None:
             kwargs['end_date'] = datetime.datetime.utcnow() 
     print('app_id: {0}'.format(kwargs['app_id']))
-    print('log_dir: {0}'.format(kwargs['log_dir']))
-    
-    ################################# PARSE INPUT CMD #########################################################
-    
+    print('log_dir: {0}'.format(kwargs['log_dir']))    
     download_container(**kwargs)
