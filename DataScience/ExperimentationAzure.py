@@ -81,4 +81,4 @@ if __name__ == '__main__':
             
     t2 = datetime.now()
     print("Done executing job")
-    print('Upload Time:',(t2-t1)-timedelta(microseconds=(t2-t1).microseconds))
+    print('Total Job time:',(t2-t1)-timedelta(microseconds=(t2-t1).microseconds))
