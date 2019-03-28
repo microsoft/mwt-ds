@@ -2,6 +2,7 @@ import argparse, os, psutil, sys, shutil
 from datetime import datetime, timedelta
 from AzureUtil import AzureUtil
 import Experimentation
+import dashboard_utils
 import LogDownloader
 
 def check_system():
@@ -28,38 +29,55 @@ if __name__ == '__main__':
     main_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     main_parser.add_argument('--system_conn_string', help="storage account connection string where source/output files are stored", required=True)
     main_parser.add_argument('--system_output_container', help="storage account container where output files are stored", required=True)
+    main_parser.add_argument('--delete_logs_dir', help="delete logs directory before starting to download new logs", action='store_true')
+    main_parser.add_argument('--cleanup', help="delete created files after use", action='store_true')
     main_args, unknown = main_parser.parse_known_args(sys.argv[1:])
     
-    # Download cooked logs
+    # Parse LogDownloader args
     logdownloader_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     LogDownloader.add_parser_args(logdownloader_parser)
     ld_args, unknown = logdownloader_parser.parse_known_args(unknown)
     output_dir = ld_args.log_dir +"\\" + ld_args.app_id
-    if os.path.isdir(ld_args.log_dir):
-        print('Deleting ' + ld_args.log_dir)
-        shutil.rmtree(ld_args.log_dir) # Clean out logs directory
-    output_gz_fp = LogDownloader.download_container(**vars(ld_args))
-    for f in os.listdir(output_dir):
-        if f.endswith('json'):
-            print('Deleting ' + f)
-            os.remove(os.path.join(output_dir, f))
 
-    # Run Experimentation.py using output_gz_fp as input
+     # Clean out logs directory
+    if main_args.delete_logs_dir and os.path.isdir(ld_args.log_dir):
+        print('Deleting ' + ld_args.log_dir)
+        shutil.rmtree(ld_args.log_dir, ignore_errors=True)
+
+    # Download cooked logs
+    output_gz_fp = LogDownloader.download_container(**vars(ld_args))
+
+    # Remove json files
+    if main_args.cleanup:
+        for f in os.listdir(output_dir):
+            if f.endswith('json'):
+                print('Deleting ' + f)
+                os.remove(os.path.join(output_dir, f))
+
+    # Parse Experimentation args
     experimentation_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     Experimentation.add_parser_args(experimentation_parser)
     unknown.append('-f')
     unknown.append(output_gz_fp)
     exp_args, exp_unknown = experimentation_parser.parse_known_args(unknown)
+
+    # Run Experimentation.py using output_gz_fp as input
     Experimentation.main(exp_args)
     
-    # Upload prediction files and experiments.csv, cleanup
+    # Generate dashboard files
+    dashboard_utils.create_stats(output_gz_fp, output_gz_fp + '.dash.txt')
+
     azure_util = AzureUtil(main_args.system_conn_string)
-    azure_util.upload_to_blob(main_args.system_output_container,  ld_args.app_id + "\\"+ timestamp + "\\experiments.csv", os.path.join(os.getcwd(), "experiments.csv"))
+
+    # Upload output files and cleanup
+    experimentsfile = os.path.join(os.getcwd(), "experiments.csv")
+    azure_util.upload_to_blob(main_args.system_output_container,  ld_args.app_id + "\\"+ timestamp + "\\experiments.csv", experimentsfile)
+    if main_args.cleanup: os.remove(experimentsfile)
     for f in os.listdir(output_dir):
         file_path = os.path.join(output_dir, f)
-        if f.startswith(os.path.basename(output_gz_fp)) and f.endswith('pred'):
+        if f.startswith(os.path.basename(output_gz_fp)) and f.endswith('dash.txt'):
             azure_util.upload_to_blob(main_args.system_output_container,  ld_args.app_id + "\\" + timestamp + "\\" + f, file_path)
-        os.remove(file_path)
+        if main_args.cleanup: os.remove(file_path)
             
     t2 = datetime.now()
     print("Done executing job")

@@ -69,10 +69,11 @@ def add_parser_args(parser):
 def update_progress(current, total):
     barLength = 50 # Length of the progress bar
     progress = current/total
-    block = int(barLength*progress)
-    text = "\rProgress: [{0}] {1:.1f}%".format( "#"*block + "-"*(barLength-block), progress*100)
-    sys.stdout.write(text)
-    sys.stdout.flush()
+    if int(progress*1000)%10 == 0: 
+        block = int(barLength*progress)
+        text = "\rProgress: [{0}] {1:.1f}%".format( "#"*block + "-"*(barLength-block), progress*100)
+        sys.stdout.write(text)
+        sys.stdout.flush()
 
 def download_container(app_id, log_dir, conn_string, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, verbose=False, create_gzip_mode=-1, delta_mod_t=3600, max_connections=4, confirm=False):
     t_start = time.time()
@@ -275,7 +276,7 @@ def download_container(app_id, log_dir, conn_string, start_date=None, end_date=N
                                 for fp in selected_fps_merged:
                                     print('Adding: {}'.format(fp))
                                     with open(fp, 'rb') as f_in:
-                                        shutil.copyfileobj(f_in, f_out, length=100*1024**2)   # writing chunks of 100MB to avoid consuming memory
+                                        shutil.copyfileobj(f_in, f_out, length=1024**3)   # writing chunks of 1GB to avoid consuming memory
                 elif create_gzip_mode == 2:
                     selected_fps.sort(key=lambda x : (list(map(int,x.split('_data_')[1].split('_')[:3])), -os.path.getsize(x), x))
                     start_date = '-'.join(selected_fps[0].split('_data_')[1].split('_')[:3])
