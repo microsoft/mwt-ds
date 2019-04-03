@@ -87,7 +87,7 @@ def result_writer(command_list):
 def run_experiment(command):
     try:
         results = check_output(command.full_command.split(' '), stderr=STDOUT).decode("utf-8")
-        loss_lines = [x for x in str(results).split('\n') if x.startswith('average loss = ')]
+        loss_lines = [x for x in str(results).splitlines() if x.startswith('average loss = ')]
         if len(loss_lines) == 1:
             command.loss = float(loss_lines[0].split()[3])
             print("Ave. Loss: {:12}Policy: {}".format(str(command.loss),command.full_command))

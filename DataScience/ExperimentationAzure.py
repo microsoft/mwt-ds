@@ -1,6 +1,7 @@
 import argparse, os, psutil, sys, shutil
 from datetime import datetime, timedelta
 from AzureUtil import AzureUtil
+from Experimentation import Command
 import Experimentation
 import dashboard_utils
 import LogDownloader
@@ -29,6 +30,8 @@ if __name__ == '__main__':
     main_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     main_parser.add_argument('--system_conn_string', help="storage account connection string where source/output files are stored", required=True)
     main_parser.add_argument('--system_output_container', help="storage account container where output files are stored", required=True)
+    main_parser.add_argument('--run_experimentation', help="run Experimentation.py", action='store_true')
+    main_parser.add_argument('--custom_policy_command', help="custom policy command to run", default='')
     main_parser.add_argument('--delete_logs_dir', help="delete logs directory before starting to download new logs", action='store_true')
     main_parser.add_argument('--cleanup', help="delete created files after use", action='store_true')
     main_args, unknown = main_parser.parse_known_args(sys.argv[1:])
@@ -53,16 +56,20 @@ if __name__ == '__main__':
             if f.endswith('json'):
                 print('Deleting ' + f)
                 os.remove(os.path.join(output_dir, f))
+    if main_args.custom_policy_command:
+        custom_command = Command("vw " + main_args.custom_policy_command + " -d " + output_gz_fp + " -p " + output_gz_fp + ".custom.pred")
+        Experimentation.run_experiment(custom_command)
 
-    # Parse Experimentation args
-    experimentation_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-    Experimentation.add_parser_args(experimentation_parser)
-    unknown.append('-f')
-    unknown.append(output_gz_fp)
-    exp_args, exp_unknown = experimentation_parser.parse_known_args(unknown)
-
-    # Run Experimentation.py using output_gz_fp as input
-    Experimentation.main(exp_args)
+    if main_args.run_experimentation:
+        # Parse Experimentation args
+        experimentation_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+        Experimentation.add_parser_args(experimentation_parser)
+        unknown.append('-f')
+        unknown.append(output_gz_fp)
+        exp_args, exp_unknown = experimentation_parser.parse_known_args(unknown)
+    
+        # Run Experimentation.py using output_gz_fp as input
+        Experimentation.main(exp_args)
     
     # Generate dashboard files
     dashboard_utils.create_stats(output_gz_fp, output_gz_fp + '.dash.txt')
@@ -70,9 +77,10 @@ if __name__ == '__main__':
     azure_util = AzureUtil(main_args.system_conn_string)
 
     # Upload output files and cleanup
-    experimentsfile = os.path.join(os.getcwd(), "experiments.csv")
-    azure_util.upload_to_blob(main_args.system_output_container,  ld_args.app_id + "\\"+ timestamp + "\\experiments.csv", experimentsfile)
-    if main_args.cleanup: os.remove(experimentsfile)
+    if main_args.run_experimentation:
+        experimentsfile = os.path.join(os.getcwd(), "experiments.csv")
+        azure_util.upload_to_blob(main_args.system_output_container,  ld_args.app_id + "\\"+ timestamp + "\\experiments.csv", experimentsfile)
+        if main_args.cleanup: os.remove(experimentsfile)
     for f in os.listdir(output_dir):
         file_path = os.path.join(output_dir, f)
         if f.startswith(os.path.basename(output_gz_fp)) and f.endswith('dash.txt'):
