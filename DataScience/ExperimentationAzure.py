@@ -1,4 +1,4 @@
-import argparse, os, psutil, sys, shutil
+import argparse, os, psutil, sys, shutil, json
 from datetime import datetime, timedelta
 from AzureUtil import AzureUtil
 from Experimentation import Command
@@ -28,10 +28,9 @@ if __name__ == '__main__':
     
     # Parse system parameters
     main_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-    main_parser.add_argument('--system_conn_string', help="storage account connection string where source/output files are stored", required=True)
-    main_parser.add_argument('--system_output_container', help="storage account container where output files are stored", required=True)
+    main_parser.add_argument('--output_folder', help="storage account container's job folder where output files are stored", required=True)
+    main_parser.add_argument('--summary_json', help="json file containing custom policy commands to run", default='')
     main_parser.add_argument('--run_experimentation', help="run Experimentation.py", action='store_true')
-    main_parser.add_argument('--custom_policy_command', help="custom policy command to run", default='')
     main_parser.add_argument('--delete_logs_dir', help="delete logs directory before starting to download new logs", action='store_true')
     main_parser.add_argument('--cleanup', help="delete created files after use", action='store_true')
     main_args, unknown = main_parser.parse_known_args(sys.argv[1:])
@@ -50,17 +49,34 @@ if __name__ == '__main__':
     # Download cooked logs
     output_gz_fp = LogDownloader.download_container(**vars(ld_args))
 
+    #Init Azure Util
+    azure_util = AzureUtil(ld_args.conn_string)
+
     # Remove json files
     if main_args.cleanup:
         for f in os.listdir(output_dir):
             if f.endswith('json'):
                 print('Deleting ' + f)
                 os.remove(os.path.join(output_dir, f))
-    if main_args.custom_policy_command:
-        custom_command = Command("vw " + main_args.custom_policy_command + " -d " + output_gz_fp + " -p " + output_gz_fp + ".custom.pred")
-        Experimentation.run_experiment(custom_command)
+
+    # Evaluate custom policies
+    if main_args.summary_json:
+        print('Evaluating custom policies')
+        summary_file_path = os.path.join(output_dir, "summary.json")
+        azure_util.download_from_blob(ld_args.app_id,  main_args.output_folder + "\\"+ main_args.summary_json, summary_file_path)
+        try:
+            with open(summary_file_path) as summary_file:
+                data = json.load(summary_file)
+                for p in data['PolicyResults']:
+                    print('Name: ' + p['Name'])
+                    print('Command: ' + p['Arguments'])
+                    custom_command = Command("vw " + p['Arguments'] + " -d " + output_gz_fp + " -p " + output_gz_fp + "." + p['Name'] + ".pred")
+                    Experimentation.run_experiment(custom_command)
+        except Exception as e:
+            print(e)
 
     if main_args.run_experimentation:
+        print('Running Experimentation')
         # Parse Experimentation args
         experimentation_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
         Experimentation.add_parser_args(experimentation_parser)
@@ -74,17 +90,15 @@ if __name__ == '__main__':
     # Generate dashboard files
     dashboard_utils.create_stats(output_gz_fp, output_gz_fp + '.dash.txt')
 
-    azure_util = AzureUtil(main_args.system_conn_string)
-
     # Upload output files and cleanup
     if main_args.run_experimentation:
         experimentsfile = os.path.join(os.getcwd(), "experiments.csv")
-        azure_util.upload_to_blob(main_args.system_output_container,  ld_args.app_id + "\\"+ timestamp + "\\experiments.csv", experimentsfile)
+        azure_util.upload_to_blob(ld_args.app_id,  main_args.output_folder + "\\"+ "experiments.csv", experimentsfile)
         if main_args.cleanup: os.remove(experimentsfile)
     for f in os.listdir(output_dir):
         file_path = os.path.join(output_dir, f)
         if f.startswith(os.path.basename(output_gz_fp)) and f.endswith('dash.txt'):
-            azure_util.upload_to_blob(main_args.system_output_container,  ld_args.app_id + "\\" + timestamp + "\\" + f, file_path)
+            azure_util.upload_to_blob(ld_args.app_id,  main_args.output_folder + "\\"+ f, file_path)
         if main_args.cleanup: os.remove(file_path)
             
     t2 = datetime.now()
