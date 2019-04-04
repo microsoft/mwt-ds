@@ -64,7 +64,7 @@ if __name__ == '__main__':
     if main_args.summary_json:
         print('Evaluating custom policies')
         summary_file_path = os.path.join(output_dir, main_args.summary_json)
-        azure_util.download_from_blob(ld_args.app_id,  main_args.output_folder + "\\"+ main_args.summary_json, summary_file_path)
+        azure_util.download_from_blob(ld_args.app_id,  main_args.output_folder + "\\"+ main_args.summary_json, summary_file_path, True)
         try:
             with open(summary_file_path) as summary_file:
                 data = json.load(summary_file)
@@ -94,7 +94,7 @@ if __name__ == '__main__':
     # Generate dashboard files
     dashboard_file_path = os.path.join(output_dir, main_args.dashboard_filename)
     dashboard_utils.create_stats(output_gz_fp, dashboard_file_path)
-    azure_util.upload_to_blob(ld_args.app_id,  main_args.output_folder + "\\"+ main_args.dashboard_filename, dashboard_file_path)
+    azure_util.upload_to_blob(ld_args.app_id,  main_args.output_folder + "\\"+ main_args.dashboard_filename, dashboard_file_path, True)
 
     # Merge calculated policies into summary file path, upload summary file
     if main_args.summary_json:
@@ -117,7 +117,7 @@ if __name__ == '__main__':
                     print(e)
             with open(summary_file_path, 'w') as outfile:
                 json.dump(summary_data, outfile)
-            azure_util.upload_to_blob(ld_args.app_id,  main_args.output_folder + "\\"+ main_args.summary_json, summary_file_path)
+            azure_util.upload_to_blob(ld_args.app_id,  main_args.output_folder + "\\"+ main_args.summary_json, summary_file_path, True)
 
     if main_args.cleanup:
         for f in os.listdir(output_dir):
