@@ -87,9 +87,14 @@ if __name__ == '__main__':
     
         # Run Experimentation.py using output_gz_fp as input
         Experimentation.main(exp_args)
+        experiments_file_path = os.path.join(os.getcwd(), "experiments.csv")
+        azure_util.upload_to_blob(ld_args.app_id,  main_args.output_folder + "\\"+ "experiments.csv", experiments_file_path)
+        if main_args.cleanup: os.remove(experiments_file_path)
 
     # Generate dashboard files
-    dashboard_utils.create_stats(output_gz_fp, os.path.join(output_dir,main_args.dashboard_filename))
+    dashboard_file_path = os.path.join(output_dir, main_args.dashboard_filename)
+    dashboard_utils.create_stats(output_gz_fp, dashboard_file_path)
+    azure_util.upload_to_blob(ld_args.app_id,  main_args.output_folder + "\\"+ main_args.dashboard_filename, dashboard_file_path)
 
     # Merge calculated policies into summary file path, upload summary file
     if main_args.summary_json:
@@ -105,22 +110,16 @@ if __name__ == '__main__':
                             'Name':p['Name'],
                             'Arguments':p['Arguments']
                         })
+                    p['Status'] = 0
                 with open(summary_file_path, 'w') as outfile:
                     json.dump(summary_data, outfile)
                 azure_util.upload_to_blob(ld_args.app_id,  main_args.output_folder + "\\"+ main_args.summary_json, summary_file_path)
             except Exception as e:
                 print(e)
 
-    # Upload output files and cleanup
-    if main_args.run_experimentation:
-        experimentsfile = os.path.join(os.getcwd(), "experiments.csv")
-        azure_util.upload_to_blob(ld_args.app_id,  main_args.output_folder + "\\"+ "experiments.csv", experimentsfile)
-        if main_args.cleanup: os.remove(experimentsfile)
-    for f in os.listdir(output_dir):
-        file_path = os.path.join(output_dir, f)
-        if f.endswith(main_args.dashboard_filename):
-            azure_util.upload_to_blob(ld_args.app_id,  main_args.output_folder + "\\"+ f, file_path)
-        if main_args.cleanup: os.remove(file_path)
+    if main_args.cleanup:
+        for f in os.listdir(output_dir):
+            os.remove(os.path.join(output_dir, f))
             
     t2 = datetime.now()
     print("Done executing job")
