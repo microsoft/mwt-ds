@@ -99,23 +99,25 @@ if __name__ == '__main__':
     # Merge calculated policies into summary file path, upload summary file
     if main_args.summary_json:
         summary_file_path = os.path.join(output_dir, main_args.summary_json)
-        policy_file_path = os.path.join(output_dir, "policy.json")
-        if os.path.isfile(summary_file_path) and os.path.isfile(policy_file_path):
-            try:
-                with open(summary_file_path) as summary_file, open(policy_file_path) as policy_file:
-                    summary_data = json.load(summary_file)
-                    policy_data = json.load(policy_file)
-                    for p in policy_data['Policies']:
-                        summary_data['PolicyResults'].append({
-                            'Name':p['Name'],
-                            'Arguments':p['Arguments']
-                        })
-                    p['Status'] = 0
-                with open(summary_file_path, 'w') as outfile:
-                    json.dump(summary_data, outfile)
-                azure_util.upload_to_blob(ld_args.app_id,  main_args.output_folder + "\\"+ main_args.summary_json, summary_file_path)
-            except Exception as e:
-                print(e)
+        if os.path.isfile(summary_file_path):
+            with open(summary_file_path) as summary_file:
+                summary_data = json.load(summary_file)
+                summary_data['Status'] = 0 # Success status
+                try:
+                    policy_file_path = os.path.join(output_dir, "policy.json")
+                    if os.path.isfile(policy_file_path):
+                        with open(policy_file_path) as policy_file:
+                            policy_data = json.load(policy_file)
+                            for p in policy_data['Policies']:
+                                summary_data['PolicyResults'].append({
+                                    'Name':p['Name'],
+                                    'Arguments':p['Arguments']
+                                })
+                except Exception as e:
+                    print(e)
+            with open(summary_file_path, 'w') as outfile:
+                json.dump(summary_data, outfile)
+            azure_util.upload_to_blob(ld_args.app_id,  main_args.output_folder + "\\"+ main_args.summary_json, summary_file_path)
 
     if main_args.cleanup:
         for f in os.listdir(output_dir):
