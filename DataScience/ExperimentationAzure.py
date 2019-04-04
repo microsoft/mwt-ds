@@ -63,7 +63,7 @@ if __name__ == '__main__':
     # Evaluate custom policies
     if main_args.summary_json:
         print('Evaluating custom policies')
-        summary_file_path = os.path.join(output_dir, "summary.json")
+        summary_file_path = os.path.join(output_dir, main_args.summary_json)
         azure_util.download_from_blob(ld_args.app_id,  main_args.output_folder + "\\"+ main_args.summary_json, summary_file_path)
         try:
             with open(summary_file_path) as summary_file:
@@ -87,9 +87,29 @@ if __name__ == '__main__':
     
         # Run Experimentation.py using output_gz_fp as input
         Experimentation.main(exp_args)
-    
+
     # Generate dashboard files
     dashboard_utils.create_stats(output_gz_fp, os.path.join(output_dir,main_args.dashboard_filename))
+
+    # Merge calculated policies into summary file path, upload summary file
+    if main_args.summary_json:
+        summary_file_path = os.path.join(output_dir, main_args.summary_json)
+        policy_file_path = os.path.join(output_dir, "policy.json")
+        if os.path.isfile(summary_file_path) and os.path.isfile(policy_file_path):
+            try:
+                with open(summary_file_path) as summary_file, open(policy_file_path) as policy_file:
+                    summary_data = json.load(summary_file)
+                    policy_data = json.load(policy_file)
+                    for p in policy_data['Policies']:
+                        summary_data['PolicyResults'].append({
+                            'Name':p['Name'],
+                            'Arguments':p['Arguments']
+                        })
+                with open(summary_file_path, 'w') as outfile:
+                    json.dump(summary_data, outfile)
+                azure_util.upload_to_blob(ld_args.app_id,  main_args.output_folder + "\\"+ main_args.summary_json, summary_file_path)
+            except Exception as e:
+                print(e)
 
     # Upload output files and cleanup
     if main_args.run_experimentation:

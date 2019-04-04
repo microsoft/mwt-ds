@@ -172,10 +172,22 @@ def parse_min_max_steps(val):
 def generate_predictions_files(log_fp, policies):
 
     predictions_files = []
+    data = {}
+    data['Policies'] = []
     print('Generating predictions files (using --cb_explore_adf) for {} policies:'.format(len(policies)))
     for name,policy in policies:
-        print('Name: {} Ave. Loss: {} cmd: {}'.format(name, policy.loss, policy.full_command.replace('--cb_adf', '--cb_explore_adf --epsilon 0.2')))
+        policy_command =  policy.full_command.replace('--cb_adf', '--cb_explore_adf --epsilon 0.2')
+        data['Policies'].append({
+            'Name':name,
+            'Arguments':policy_command,
+            'Loss': policy.loss
+            })
+        print('Name: {} Ave. Loss: {} cmd: {}'.format(name, policy.loss, policy_command))
     print("*************************")
+
+    policy_path = os.path.join(os.path.dirname(log_fp), 'policy.json')
+    with open(policy_path, 'w') as outfile:
+        json.dump(data, outfile)
 
     processes = []
     for name,policy in policies:
