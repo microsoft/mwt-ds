@@ -29,6 +29,7 @@ if __name__ == '__main__':
     # Parse system parameters
     main_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     main_parser.add_argument('--output_folder', help="storage account container's job folder where output files are stored", required=True)
+    main_parser.add_argument('--dashboard_filename', help="name of the output dashboard file", default='aggregates5m.txt')
     main_parser.add_argument('--summary_json', help="json file containing custom policy commands to run", default='')
     main_parser.add_argument('--run_experimentation', help="run Experimentation.py", action='store_true')
     main_parser.add_argument('--delete_logs_dir', help="delete logs directory before starting to download new logs", action='store_true')
@@ -88,7 +89,7 @@ if __name__ == '__main__':
         Experimentation.main(exp_args)
     
     # Generate dashboard files
-    dashboard_utils.create_stats(output_gz_fp, output_gz_fp + '.dash.txt')
+    dashboard_utils.create_stats(output_gz_fp, os.path.join(output_dir,main_args.dashboard_filename))
 
     # Upload output files and cleanup
     if main_args.run_experimentation:
@@ -97,7 +98,7 @@ if __name__ == '__main__':
         if main_args.cleanup: os.remove(experimentsfile)
     for f in os.listdir(output_dir):
         file_path = os.path.join(output_dir, f)
-        if f.startswith(os.path.basename(output_gz_fp)) and f.endswith('dash.txt'):
+        if f.endswith(main_args.dashboard_filename):
             azure_util.upload_to_blob(ld_args.app_id,  main_args.output_folder + "\\"+ f, file_path)
         if main_args.cleanup: os.remove(file_path)
             
