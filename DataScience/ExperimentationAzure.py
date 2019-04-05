@@ -69,9 +69,11 @@ if __name__ == '__main__':
             with open(summary_file_path) as summary_file:
                 data = json.load(summary_file)
                 for p in data['policyResults']:
-                    print('Name: ' + p['policyName'])
-                    print('Command: ' + p['arguments'])
-                    custom_command = Command("vw " + p['Arguments'] + " -d " + output_gz_fp + " -p " + output_gz_fp + "." + p['Name'] + ".pred")
+                    policyName = p['policyName']
+                    policyArgs = p['arguments']
+                    print('Name: ' + policyName)
+                    print('Command: ' + policyArgs)
+                    custom_command = Command("vw " + policyArgs + " -d " + output_gz_fp + " -p " + output_gz_fp + "." + policyName + ".pred")
                     Experimentation.run_experiment(custom_command)
         except Exception as e:
             print(e)
