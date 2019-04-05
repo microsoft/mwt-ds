@@ -173,14 +173,14 @@ def generate_predictions_files(log_fp, policies):
 
     predictions_files = []
     data = {}
-    data['Policies'] = []
+    data['policies'] = []
     print('Generating predictions files (using --cb_explore_adf) for {} policies:'.format(len(policies)))
     for name,policy in policies:
         policy_command =  policy.full_command.replace('--cb_adf', '--cb_explore_adf --epsilon 0.2')
-        data['Policies'].append({
-            'Name':name,
-            'Arguments':policy_command,
-            'Loss': policy.loss
+        data['policies'].append({
+            'name':name,
+            'arguments':policy_command,
+            'loss': policy.loss
             })
         print('Name: {} Ave. Loss: {} cmd: {}'.format(name, policy.loss, policy_command))
     print("*************************")

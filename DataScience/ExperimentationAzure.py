@@ -68,9 +68,9 @@ if __name__ == '__main__':
         try:
             with open(summary_file_path) as summary_file:
                 data = json.load(summary_file)
-                for p in data['PolicyResults']:
-                    print('Name: ' + p['Name'])
-                    print('Command: ' + p['Arguments'])
+                for p in data['policyResults']:
+                    print('Name: ' + p['policyName'])
+                    print('Command: ' + p['arguments'])
                     custom_command = Command("vw " + p['Arguments'] + " -d " + output_gz_fp + " -p " + output_gz_fp + "." + p['Name'] + ".pred")
                     Experimentation.run_experiment(custom_command)
         except Exception as e:
@@ -102,16 +102,16 @@ if __name__ == '__main__':
         if os.path.isfile(summary_file_path):
             with open(summary_file_path) as summary_file:
                 summary_data = json.load(summary_file)
-                summary_data['Status'] = 0 # Success status
+                summary_data['status'] = 0 # Success status
                 try:
                     policy_file_path = os.path.join(output_dir, "policy.json")
                     if os.path.isfile(policy_file_path):
                         with open(policy_file_path) as policy_file:
                             policy_data = json.load(policy_file)
-                            for p in policy_data['Policies']:
-                                summary_data['PolicyResults'].append({
-                                    'Name':p['Name'],
-                                    'Arguments':p['Arguments']
+                            for p in policy_data['policies']:
+                                summary_data['policyResults'].append({
+                                    'policyName':p['name'],
+                                    'arguments':p['arguments']
                                 })
                 except Exception as e:
                     print(e)
