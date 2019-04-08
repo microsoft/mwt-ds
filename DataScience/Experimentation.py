@@ -1,4 +1,4 @@
-from subprocess import check_output, STDOUT, TimeoutExpired, DEVNULL, Popen
+from subprocess import check_output, STDOUT, DEVNULL, Popen
 import multiprocessing, psutil
 import sys, os
 import json

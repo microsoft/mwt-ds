@@ -1,7 +1,7 @@
-import argparse, os, psutil, sys, shutil, json
+import argparse, json, os, psutil, sys, shutil
 from datetime import datetime, timedelta
+from subprocess import check_output, STDOUT
 from AzureUtil import AzureUtil
-from Experimentation import Command
 import Experimentation
 import dashboard_utils
 import LogDownloader
@@ -73,8 +73,12 @@ if __name__ == '__main__':
                     policyArgs = p['arguments']
                     print('Name: ' + policyName)
                     print('Command: ' + policyArgs)
-                    custom_command = Command("vw " + policyArgs + " -d " + output_gz_fp + " -p " + output_gz_fp + "." + policyName + ".pred")
-                    Experimentation.run_experiment(custom_command)
+                    custom_command = "vw " + policyArgs + " -d " + output_gz_fp + " -p " + output_gz_fp + "." + policyName + ".pred"
+                    try:
+                        check_output(custom_command.split(' '), stderr=STDOUT)
+                    except Exception as e:
+                        print("Custom policy run failed")
+                        print(e)
         except Exception as e:
             print(e)
 
