@@ -29,7 +29,7 @@ if __name__ == '__main__':
     # Parse system parameters
     main_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     main_parser.add_argument('--output_folder', help="storage account container's job folder where output files are stored", required=True)
-    main_parser.add_argument('--dashboard_filename', help="name of the output dashboard file", default='aggregates5m.txt')
+    main_parser.add_argument('--dashboard_filename', help="name of the output dashboard file", default='aggregates.txt')
     main_parser.add_argument('--summary_json', help="json file containing custom policy commands to run", default='')
     main_parser.add_argument('--run_experimentation', help="run Experimentation.py", action='store_true')
     main_parser.add_argument('--delete_logs_dir', help="delete logs directory before starting to download new logs", action='store_true')
@@ -70,7 +70,7 @@ if __name__ == '__main__':
                 data = json.load(summary_file)
                 for p in data['policyResults']:
                     policyName = p['policyName']
-                    policyArgs = p['arguments']
+                    policyArgs = p['policyArguments']['value']
                     print('Name: ' + policyName)
                     print('Command: ' + policyArgs)
                     custom_command = "vw " + policyArgs + " -d " + output_gz_fp + " -p " + output_gz_fp + "." + policyName + ".pred"
@@ -117,7 +117,9 @@ if __name__ == '__main__':
                             for p in policy_data['policies']:
                                 summary_data['policyResults'].append({
                                     'policyName':p['name'],
-                                    'arguments':p['arguments']
+                                    'policyArguments':{
+                                        'value':p['arguments']
+                                    }
                                 })
                 except Exception as e:
                     print(e)

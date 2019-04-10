@@ -1,7 +1,7 @@
 from subprocess import check_output, STDOUT, DEVNULL, Popen
 import multiprocessing, psutil
 import sys, os
-import json
+import json, re
 from datetime import datetime, timedelta
 import argparse
 import gzip
@@ -179,7 +179,7 @@ def generate_predictions_files(log_fp, policies):
         policy_command =  policy.full_command.replace('--cb_adf', '--cb_explore_adf --epsilon 0.2')
         data['policies'].append({
             'name':name,
-            'arguments':policy_command,
+            'arguments': re.sub(r'-c\s', '', re.sub(r'-d\s[\S]*\s', '', policy_command))
             'loss': policy.loss
             })
         print('Name: {} Ave. Loss: {} cmd: {}'.format(name, policy.loss, policy_command))
