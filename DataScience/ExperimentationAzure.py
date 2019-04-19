@@ -69,8 +69,8 @@ if __name__ == '__main__':
             with open(summary_file_path) as summary_file:
                 data = json.load(summary_file)
                 for p in data['policyResults']:
-                    policyName = p['policyName']
-                    policyArgs = p['policyArguments']['value']
+                    policyName = p['name']
+                    policyArgs = p['arguments']
                     print('Name: ' + policyName)
                     print('Command: ' + policyArgs)
                     custom_command = "vw " + policyArgs + " -d " + output_gz_fp + " -p " + output_gz_fp + "." + policyName + ".pred"
@@ -116,10 +116,8 @@ if __name__ == '__main__':
                             policy_data = json.load(policy_file)
                             for p in policy_data['policies']:
                                 summary_data['policyResults'].append({
-                                    'policyName':p['name'],
-                                    'policyArguments':{
-                                        'value':p['arguments']
-                                    }
+                                    'name': p['name'],
+                                    'arguments' :p['arguments']
                                 })
                 except Exception as e:
                     print(e)
