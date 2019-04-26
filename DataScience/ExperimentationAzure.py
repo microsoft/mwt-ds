@@ -33,12 +33,14 @@ if __name__ == '__main__':
     main_parser.add_argument('--summary_json', help="json file containing custom policy commands to run", default='')
     main_parser.add_argument('--run_experimentation', help="run Experimentation.py", action='store_true')
     main_parser.add_argument('--delete_logs_dir', help="delete logs directory before starting to download new logs", action='store_true')
-    main_parser.add_argument('--cleanup', help="delete created files after use", action='store_true')
+    main_parser.add_argument('--cleanup', help="delete logs and created files after use", action='store_true')
     main_args, unknown = main_parser.parse_known_args(sys.argv[1:])
     
     # Parse LogDownloader args
     logdownloader_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     LogDownloader.add_parser_args(logdownloader_parser)
+    unknown.append('-o')
+    unknown.append('2')
     ld_args, unknown = logdownloader_parser.parse_known_args(unknown)
     output_dir = ld_args.log_dir +"\\" + ld_args.app_id
 
@@ -126,8 +128,8 @@ if __name__ == '__main__':
             azure_util.upload_to_blob(ld_args.app_id,  main_args.output_folder + "\\"+ main_args.summary_json, summary_file_path, True)
 
     if main_args.cleanup:
-        for f in os.listdir(output_dir):
-            os.remove(os.path.join(output_dir, f))
+        print('Deleting folder as part of cleanup: ' + ld_args.log_dir)
+        shutil.rmtree(ld_args.log_dir, ignore_errors=True)
             
     t2 = datetime.now()
     print("Done executing job")
