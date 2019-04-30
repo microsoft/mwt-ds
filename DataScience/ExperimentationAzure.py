@@ -3,8 +3,10 @@ from datetime import datetime, timedelta
 from subprocess import check_output, STDOUT
 from AzureUtil import AzureUtil
 import Experimentation
+import ImportantFeatures
 import dashboard_utils
 import LogDownloader
+from azure.storage.blob import BlockBlobService
 
 def check_system():
     try:
@@ -34,6 +36,9 @@ if __name__ == '__main__':
     main_parser.add_argument('--run_experimentation', help="run Experimentation.py", action='store_true')
     main_parser.add_argument('--delete_logs_dir', help="delete logs directory before starting to download new logs", action='store_true')
     main_parser.add_argument('--cleanup', help="delete logs and created files after use", action='store_true')
+    main_parser.add_argument('--get_important_features', help="run ImportantFeatures.py", action='store_true')
+    main_parser.add_argument('--importantfeatures_filename', help="name of the output feature importance file", default='importantfeatures.json')
+    main_parser.add_argument('--ml_args', help="the online policy that we need for calculating the feature importances", required=True)
     main_args, unknown = main_parser.parse_known_args(sys.argv[1:])
     
     # Parse LogDownloader args
@@ -43,7 +48,7 @@ if __name__ == '__main__':
     unknown.append('2')
     ld_args, unknown = logdownloader_parser.parse_known_args(unknown)
     output_dir = ld_args.log_dir +"\\" + ld_args.app_id
-
+    
      # Clean out logs directory
     if main_args.delete_logs_dir and os.path.isdir(ld_args.log_dir):
         print('Deleting ' + ld_args.log_dir)
@@ -51,6 +56,10 @@ if __name__ == '__main__':
 
     # Download cooked logs
     output_gz_fp = LogDownloader.download_container(**vars(ld_args))
+
+    if (output_gz_fp == None):
+        print('No logs found between start date: {0} and end date:{1}. Exiting ... '.format(ld_args.start_date, ld_args.end_date))
+        sys.exit()
 
     #Init Azure Util
     azure_util = AzureUtil(ld_args.conn_string)
@@ -91,7 +100,7 @@ if __name__ == '__main__':
         Experimentation.add_parser_args(experimentation_parser)
         unknown.append('-f')
         unknown.append(output_gz_fp)
-        exp_args, exp_unknown = experimentation_parser.parse_known_args(unknown)
+        exp_args, unknown = experimentation_parser.parse_known_args(unknown)
     
         # Run Experimentation.py using output_gz_fp as input
         Experimentation.main(exp_args)
@@ -103,6 +112,40 @@ if __name__ == '__main__':
     dashboard_file_path = os.path.join(output_dir, main_args.dashboard_filename)
     dashboard_utils.create_stats(output_gz_fp, dashboard_file_path)
     azure_util.upload_to_blob(ld_args.app_id,  main_args.output_folder + "\\"+ main_args.dashboard_filename, dashboard_file_path, True)
+
+    if main_args.get_important_features:
+        print('Download model file')
+        model_fp = None
+        bbs = BlockBlobService(connection_string=ld_args.conn_string)
+        blobs = bbs.list_blobs(ld_args.app_id)
+        for blob in blobs:
+            if '/model/' not in blob.name:
+                continue
+            # blob.name looks like this: '20180416094500/model/2019/01/14.json'
+            blob_day = datetime.strptime(blob.name.split('/model/', 1)[1].split('_', 1)[0].split('.', 1)[0], '%Y/%m/%d')
+            if (blob_day == ld_args.start_date):
+                bp = bbs.get_blob_properties(ld_args.app_id, blob.name)
+                model_fp = os.path.join(output_dir, 'model.vw')
+                bbs.get_blob_to_path(ld_args.app_id, blob.name, model_fp, progress_callback=None, max_connections=1)
+
+        print('Generate Important features')
+        # Parse vw-important-features args
+        importance_features_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+        ImportantFeatures.add_parser_args(importance_features_parser)
+        unknown.append('--data')
+        unknown.append(output_gz_fp)
+        unknown.append('--model')
+        unknown.append(model_fp)
+        unknown.append('--min_num_features')
+        unknown.append('3')
+        fi_args, unknown = importance_features_parser.parse_known_args(unknown)
+
+        # Run ImportantFeatures.py using output_gz_fp as input
+        feature_buckets = ImportantFeatures.main(fi_args)
+        important_features_file_path = os.path.join(output_dir, main_args.importantfeatures_filename)
+        with open(important_features_file_path, 'w') as important_feature_file:
+            json.dump(feature_buckets, important_feature_file)
+        azure_util.upload_to_blob(ld_args.app_id,  main_args.output_folder + "\\"+ main_args.importantfeatures_filename, important_features_file_path, True)
 
     # Merge calculated policies into summary file path, upload summary file
     if main_args.summary_json:
