@@ -19,7 +19,7 @@ def check_system():
             print('Used size: {:.3f} GB'.format(psutil.disk_usage(disk.device).used / bytes_in_gb))
             print('Free size: {:.3f} GB'.format(psutil.disk_usage(disk.device).free / bytes_in_gb))
     except Exception as e:
-            print(e)
+        print(e)
 
 if __name__ == '__main__':
     check_system()
@@ -27,7 +27,7 @@ if __name__ == '__main__':
     os.chdir(os.path.dirname(os.path.realpath(__file__)))
     t1 = datetime.now()
     timestamp = t1.strftime("%Y-%m-%d-%H_%M_%S")
-    
+
     # Parse system parameters
     main_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     main_parser.add_argument('--output_folder', help="storage account container's job folder where output files are stored", required=True)
@@ -40,7 +40,7 @@ if __name__ == '__main__':
     main_parser.add_argument('--importantfeatures_filename', help="name of the output feature importance file", default='importantfeatures.json')
     main_parser.add_argument('--ml_args', help="the online policy that we need for calculating the feature importances", required=True)
     main_args, unknown = main_parser.parse_known_args(sys.argv[1:])
-    
+
     # Parse LogDownloader args
     logdownloader_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     LogDownloader.add_parser_args(logdownloader_parser)
@@ -48,7 +48,7 @@ if __name__ == '__main__':
     unknown.append('2')
     ld_args, unknown = logdownloader_parser.parse_known_args(unknown)
     output_dir = ld_args.log_dir +"\\" + ld_args.app_id
-    
+
      # Clean out logs directory
     if main_args.delete_logs_dir and os.path.isdir(ld_args.log_dir):
         print('Deleting ' + ld_args.log_dir)
@@ -57,7 +57,7 @@ if __name__ == '__main__':
     # Download cooked logs
     output_gz_fp = LogDownloader.download_container(**vars(ld_args))
 
-    if (output_gz_fp == None):
+    if output_gz_fp == None:
         print('No logs found between start date: {0} and end date:{1}. Exiting ... '.format(ld_args.start_date, ld_args.end_date))
         sys.exit()
 
@@ -101,7 +101,7 @@ if __name__ == '__main__':
         unknown.append('-f')
         unknown.append(output_gz_fp)
         exp_args, unknown = experimentation_parser.parse_known_args(unknown)
-    
+
         # Run Experimentation.py using output_gz_fp as input
         Experimentation.main(exp_args)
         experiments_file_path = os.path.join(os.getcwd(), "experiments.csv")
@@ -123,7 +123,7 @@ if __name__ == '__main__':
                 continue
             # blob.name looks like this: '20180416094500/model/2019/01/14.json'
             blob_day = datetime.strptime(blob.name.split('/model/', 1)[1].split('_', 1)[0].split('.', 1)[0], '%Y/%m/%d')
-            if (blob_day == ld_args.start_date):
+            if blob_day == ld_args.start_date:
                 bp = bbs.get_blob_properties(ld_args.app_id, blob.name)
                 model_fp = os.path.join(output_dir, 'model.vw')
                 bbs.get_blob_to_path(ld_args.app_id, blob.name, model_fp, progress_callback=None, max_connections=1)
@@ -137,7 +137,7 @@ if __name__ == '__main__':
         unknown.append('--model')
         unknown.append(model_fp)
         unknown.append('--min_num_features')
-        unknown.append('3')
+        unknown.append('1')
         fi_args, unknown = importance_features_parser.parse_known_args(unknown)
 
         # Run ImportantFeatures.py using output_gz_fp as input
@@ -173,7 +173,7 @@ if __name__ == '__main__':
     if main_args.cleanup:
         print('Deleting folder as part of cleanup: ' + ld_args.log_dir)
         shutil.rmtree(ld_args.log_dir, ignore_errors=True)
-            
+
     t2 = datetime.now()
     print("Done executing job")
     print('Total Job time:',(t2-t1)-timedelta(microseconds=(t2-t1).microseconds))

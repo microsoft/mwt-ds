@@ -3,7 +3,7 @@ if sys.maxsize < 2**32:     # check for 32-bit python version
     if input("32-bit python interpreter detected. There may be problems downloading large files. Do you want to continue anyway [Y/n]? ") not in {'Y', 'y'}:
         sys.exit()
 
-import os, time, datetime, argparse, gzip, shutil, ds_parse
+import os, time, datetime, argparse, gzip, configparser, shutil, ds_parse
 try:
     from azure.storage.blob import BlockBlobService
 except ImportError as e:
@@ -45,7 +45,7 @@ def cmp_files(f1, f2, start_range_f1=0, start_range_f2=0, erase_checkpoint_line=
 def add_parser_args(parser):
     parser.add_argument('-a','--app_id', help="app id (i.e., Azure storage blob container name)", required=True)
     parser.add_argument('-l','--log_dir', help="base dir to download data (a subfolder will be created)", required=True)
-    parser.add_argument('-cs','--conn_string', help="storage account connection string", required=True)
+    parser.add_argument('-cs','--conn_string', help="storage account connection string", required=False)
     parser.add_argument('-s','--start_date', help="downloading start date (included) - format YYYY-MM-DD", type=valid_date)
     parser.add_argument('-e','--end_date', help="downloading end date (included) - format YYYY-MM-DD", type=valid_date)
     parser.add_argument('-o','--overwrite_mode', type=int, help='''    0: never overwrite; ask the user whether blobs are currently used [default]
@@ -53,15 +53,15 @@ def add_parser_args(parser):
     2: always overwrite; download currently used blobs
     3: never overwrite; append if the size is larger, without asking; download currently used blobs
     4: never overwrite; append if the size is larger, without asking; skip currently used blobs''', default=0)
-    parser.add_argument('--dry_run', help="print which blobs would have been downloaded, without downloading", action='store_true', default=False)
+    parser.add_argument('--dry_run', help="print which blobs would have been downloaded, without downloading", action='store_true')
     parser.add_argument('--create_gzip_mode', type=int, help='''Mode to create gzip file(s) for Vowpal Wabbit:
     0: create one gzip file for each LastConfigurationEditDate prefix
     1: create a unique gzip file by merging over file dates
     2: create a unique gzip file by uniquing over EventId and sorting by Timestamp''', default=-1)
     parser.add_argument('--delta_mod_t', type=int, default=3600, help='time window in sec to detect if a file is currently in use (default=3600 - 1 hour)')
     parser.add_argument('--max_connections', type=int, default=4, help='number of max_connections (default=4)')
-    parser.add_argument('--verbose', help="print more details", action='store_true', default=False)
-    parser.add_argument('--confirm', help="confirm before downloading", action='store_true', default=False)
+    parser.add_argument('--verbose', help="print more details", action='store_true')
+    parser.add_argument('--confirm', help="confirm before downloading", action='store_true')
     parser.add_argument('-v','--version', type=int, default=2, help='''version of log downloader to use:
     1: for uncooked logs (only for backward compatibility) [deprecated]
     2: for cooked logs [default]''')
@@ -75,7 +75,7 @@ def update_progress(current, total):
         sys.stdout.write(text)
         sys.stdout.flush()
 
-def download_container(app_id, log_dir, conn_string, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, verbose=False, create_gzip_mode=-1, delta_mod_t=3600, max_connections=4, confirm=False):
+def download_container(app_id, log_dir, conn_string=None, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, verbose=False, create_gzip_mode=-1, delta_mod_t=3600, max_connections=4, confirm=False):
     t_start = time.time()
     print('-----'*10)
     print('Current UTC time: {}'.format(datetime.datetime.now(datetime.timezone.utc)))
@@ -89,6 +89,12 @@ def download_container(app_id, log_dir, conn_string, start_date=None, end_date=N
     if not dry_run:
         os.makedirs(os.path.join(log_dir, app_id), exist_ok=True)
     
+    if conn_string == None:
+        # The default option is to get Azure Storage Authentication
+        config = configparser.ConfigParser()
+        config.read('ds.config')
+        conn_string = config['AzureStorageAuthentication'].get(app_id, config['AzureStorageAuthentication']['$Default'])
+
     output_fp = None
     print('-----'*10)
     
@@ -122,7 +128,7 @@ def download_container(app_id, log_dir, conn_string, start_date=None, end_date=N
                 except Exception as e:
                     print('Error: {}'.format(e))
         
-    else:  # using BlockBlobService python api for cooked logs
+    else: # using BlockBlobService python api for cooked logs
         try:
             print('Establishing Azure Storage BlockBlobService connection...')
             bbs = BlockBlobService(connection_string=conn_string)

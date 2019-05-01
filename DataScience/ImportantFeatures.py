@@ -99,8 +99,7 @@ def get_important_features(log_file, ml_args, warmstart_model=None, min_num_feat
     print('\n=====================================')
     print('Generating invert hash file to map the hash to feature names')
 
-    # Use a low l1 value to capture all features
-    vw_inv_hash_cmd = vw_base + ' --invert_hash {0} --l1 {1}'.format(invHash_fp, 1e-23)
+    vw_inv_hash_cmd = vw_base + ' --invert_hash {0}'.format(invHash_fp)
     print('command to get invert hash file: ' + vw_inv_hash_cmd)
     os.system(vw_inv_hash_cmd)
     inv_hash = get_feature_inv_hash(invHash_fp)
@@ -113,7 +112,7 @@ def get_important_features(log_file, ml_args, warmstart_model=None, min_num_feat
     while True:
         readModel_fp = readModel_fp_base.format(index)
         vw_readable_model_cmd_base = vw_base + ' --readable_model {0}'.format(readModel_fp)
-        vw_readable_model_cmd = vw_readable_model_cmd_base + ' -c --l1 {0}'.format(index)
+        vw_readable_model_cmd = vw_readable_model_cmd_base + ' -c --l1 {0}'.format(l1)
         index += 1
         os.system(vw_readable_model_cmd)
         features = extract_features(readModel_fp, inv_hash)
