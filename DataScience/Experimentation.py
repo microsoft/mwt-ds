@@ -208,7 +208,7 @@ def add_parser_args(parser):
     parser.add_argument('-p','--n_proc', type=int, help="number of parallel processes to use (default: physical processors)", default=psutil.cpu_count(logical=False))
     parser.add_argument('--shared_namespaces', type=str, help="shared feature namespaces; e.g., 'abc' means namespaces a, b, and c (default: auto-detect from data file)", default='')
     parser.add_argument('--action_namespaces', type=str, help="action feature namespaces (default: auto-detect from data file)", default='')
-    parser.add_argument('-m','--marginal_namespaces', type=str, help="marginal feature namespaces (default: auto-detect from data file)", default='')
+    parser.add_argument('--marginal_namespaces', type=str, help="marginal feature namespaces (default: auto-detect from data file)", default='')
     parser.add_argument('--auto_lines', type=int, help="number of data file lines to scan to auto-detect features namespaces (default: 100)", default=100)
     parser.add_argument('--only_hp', help="sweep only over hyper-parameters (`learning rate`, `L1 regularization`, and `power_t`)", action='store_true')
     parser.add_argument('-l','--learning_rates', type=parse_min_max_steps, help="learning rate range as positive values 'min,max,steps' (default: 1e-5,0.5,4)", default='1e-5,0.5,4')

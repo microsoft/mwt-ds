@@ -78,8 +78,7 @@ def get_feature_buckets(features_funnel):
 
 def get_important_features(log_file, ml_args, warmstart_model=None, min_num_features=5):
     invHash_fp = log_file+'.invHash.txt'
-    readModel_fp_base = log_file+'.readModel.{0}.txt'
- 
+
     if ' --l1 ' in ml_args: 
         temp = ml_args.split(' --l1 ',1)
         ml_args = temp[0]
@@ -110,7 +109,7 @@ def get_important_features(log_file, ml_args, warmstart_model=None, min_num_feat
     index = 0
     max_run_count = 20
     while True:
-        readModel_fp = readModel_fp_base.format(index)
+        readModel_fp = log_file+'.readModel.{0}.txt'.format(index)
         vw_readable_model_cmd_base = vw_base + ' --readable_model {0}'.format(readModel_fp)
         vw_readable_model_cmd = vw_readable_model_cmd_base + ' -c --l1 {0}'.format(l1)
         index += 1
