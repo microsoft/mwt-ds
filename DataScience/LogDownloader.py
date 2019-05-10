@@ -69,7 +69,7 @@ def add_parser_args(parser):
 def update_progress(current, total):
     barLength = 50 # Length of the progress bar
     progress = current/total
-    if int(progress*1000)%10 == 0: 
+    if int(progress*1000)%10 == 0 or '__name__' == '__main__': 
         block = int(barLength*progress)
         text = "\rProgress: [{0}] {1:.1f}%".format( "#"*block + "-"*(barLength-block), progress*100)
         sys.stdout.write(text)

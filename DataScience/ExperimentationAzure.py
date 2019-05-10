@@ -39,14 +39,14 @@ if __name__ == '__main__':
     main_parser.add_argument('--get_important_features', help="run ImportantFeatures.py", action='store_true')
     main_parser.add_argument('--importantfeatures_filename', help="name of the output feature importance file", default='importantfeatures.json')
     main_parser.add_argument('--ml_args', help="the online policy that we need for calculating the feature importances", required=True)
-    main_args, unknown = main_parser.parse_known_args(sys.argv[1:])
+    main_args, other_args = main_parser.parse_known_args(sys.argv[1:])
 
     # Parse LogDownloader args
     logdownloader_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     LogDownloader.add_parser_args(logdownloader_parser)
-    unknown.append('-o')
-    unknown.append('2')
-    ld_args, unknown = logdownloader_parser.parse_known_args(unknown)
+    other_args.append('-o')
+    other_args.append('2')
+    ld_args, other_args = logdownloader_parser.parse_known_args(other_args)
     output_dir = ld_args.log_dir +"\\" + ld_args.app_id
 
      # Clean out logs directory
@@ -98,9 +98,9 @@ if __name__ == '__main__':
         # Parse Experimentation args
         experimentation_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
         Experimentation.add_parser_args(experimentation_parser)
-        unknown.append('-f')
-        unknown.append(output_gz_fp)
-        exp_args, unknown = experimentation_parser.parse_known_args(unknown)
+        other_args.append('-f')
+        other_args.append(output_gz_fp)
+        exp_args, other_args = experimentation_parser.parse_known_args(other_args)
 
         # Run Experimentation.py using output_gz_fp as input
         Experimentation.main(exp_args)
@@ -132,13 +132,13 @@ if __name__ == '__main__':
         # Parse vw-important-features args
         importance_features_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
         ImportantFeatures.add_parser_args(importance_features_parser)
-        unknown.append('--data')
-        unknown.append(output_gz_fp)
-        unknown.append('--model')
-        unknown.append(model_fp)
-        unknown.append('--min_num_features')
-        unknown.append('1')
-        fi_args, unknown = importance_features_parser.parse_known_args(unknown)
+        other_args.append('--data')
+        other_args.append(output_gz_fp)
+        other_args.append('--model')
+        other_args.append(model_fp)
+        other_args.append('--min_num_features')
+        other_args.append('1')
+        fi_args, other_args = importance_features_parser.parse_known_args(other_args)
 
         # Run ImportantFeatures.py using output_gz_fp as input
         feature_buckets = ImportantFeatures.main(fi_args)
