@@ -46,6 +46,8 @@ if __name__ == '__main__':
     LogDownloader.add_parser_args(logdownloader_parser)
     other_args.append('-o')
     other_args.append('2')
+    other_args.append('--report_progress')
+    other_args.append('false')
     ld_args, other_args = logdownloader_parser.parse_known_args(other_args)
     output_dir = ld_args.log_dir +"\\" + ld_args.app_id
 

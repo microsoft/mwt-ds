@@ -62,6 +62,7 @@ def add_parser_args(parser):
     parser.add_argument('--max_connections', type=int, default=4, help='number of max_connections (default=4)')
     parser.add_argument('--verbose', help="print more details", action='store_true')
     parser.add_argument('--confirm', help="confirm before downloading", action='store_true')
+    parser.add_argument('--report_progress', help="report progress while downloading", action='store_false')
     parser.add_argument('-v','--version', type=int, default=2, help='''version of log downloader to use:
     1: for uncooked logs (only for backward compatibility) [deprecated]
     2: for cooked logs [default]''')
@@ -69,13 +70,12 @@ def add_parser_args(parser):
 def update_progress(current, total):
     barLength = 50 # Length of the progress bar
     progress = current/total
-    if int(progress*1000)%10 == 0 or '__name__' == '__main__': 
-        block = int(barLength*progress)
-        text = "\rProgress: [{0}] {1:.1f}%".format( "#"*block + "-"*(barLength-block), progress*100)
-        sys.stdout.write(text)
-        sys.stdout.flush()
+    block = int(barLength*progress)
+    text = "\rProgress: [{0}] {1:.1f}%".format( "#"*block + "-"*(barLength-block), progress*100)
+    sys.stdout.write(text)
+    sys.stdout.flush()
 
-def download_container(app_id, log_dir, conn_string=None, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, verbose=False, create_gzip_mode=-1, delta_mod_t=3600, max_connections=4, confirm=False):
+def download_container(app_id, log_dir, conn_string=None, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, verbose=False, create_gzip_mode=-1, delta_mod_t=3600, max_connections=4, confirm=False, report_progress=True):
     t_start = time.time()
     print('-----'*10)
     print('Current UTC time: {}'.format(datetime.datetime.now(datetime.timezone.utc)))
@@ -205,6 +205,7 @@ def download_container(app_id, log_dir, conn_string=None, start_date=None, end_d
                     print('--dry_run - Not downloading!')
                 else:
                     t0 = time.time()
+                    process_checker = update_progress if report_progress == True else None
                     if overwrite_mode in {3, 4} and file_size:
                         print('Check validity of remote file... ', end='')
                         temp_fp = fp + '.temp'
@@ -213,7 +214,7 @@ def download_container(app_id, log_dir, conn_string=None, start_date=None, end_d
                         if cmp_files(fp, temp_fp, -cmpsize):
                             print('Valid!')
                             print('Resume downloading to temp file with max_connections = {}...'.format(max_connections))
-                            bbs.get_blob_to_path(app_id, blob.name, temp_fp, progress_callback=update_progress, max_connections=max_connections, start_range=os.path.getsize(fp))
+                            bbs.get_blob_to_path(app_id, blob.name, temp_fp, progress_callback=process_checker, max_connections=max_connections, start_range=os.path.getsize(fp))
                             download_time = time.time()-t0
                             download_size_MB = os.path.getsize(temp_fp)/(1024**2) # file size in MB
                             print('\nAppending to local file...')
@@ -228,7 +229,7 @@ def download_container(app_id, log_dir, conn_string=None, start_date=None, end_d
                         print('Downloaded {:.3f} MB in {:.1f} sec. ({:.3f} MB/sec) - Total elapsed time: {:.1f} sec.\n'.format(download_size_MB, download_time, download_size_MB/download_time, time.time()-t0))
                     else:
                         print('Downloading with max_connections = {}...'.format(max_connections))
-                        bbs.get_blob_to_path(app_id, blob.name, fp, progress_callback=update_progress, max_connections=max_connections)
+                        bbs.get_blob_to_path(app_id, blob.name, fp, progress_callback=process_checker, max_connections=max_connections)
                         download_time = time.time()-t0
                         download_size_MB = os.path.getsize(fp)/(1024**2) # file size in MB
                         print('\nDownloaded {:.3f} MB in {:.1f} sec. ({:.3f} MB/sec)\n'.format(download_size_MB, download_time, download_size_MB/download_time))
