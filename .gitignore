@@ -21,6 +21,7 @@
 **/ipch
 **/packages
 **/bin
+**/__pycache__
 
 # VS test results
 **/TestResults
