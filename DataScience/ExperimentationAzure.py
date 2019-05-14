@@ -37,7 +37,7 @@ if __name__ == '__main__':
     main_parser.add_argument('--delete_logs_dir', help="delete logs directory before starting to download new logs", action='store_true')
     main_parser.add_argument('--cleanup', help="delete logs and created files after use", action='store_true')
     main_parser.add_argument('--get_important_features', help="run ImportantFeatures.py", action='store_true')
-    main_parser.add_argument('--importantfeatures_filename', help="name of the output feature importance file", default='importantfeatures.json')
+    main_parser.add_argument('--importantfeatures_filename', help="name of the output feature importance file", default='featureimportance.json')
     main_parser.add_argument('--ml_args', help="the online policy that we need for calculating the feature importances", required=True)
     main_args, other_args = main_parser.parse_known_args(sys.argv[1:])
 
@@ -136,8 +136,10 @@ if __name__ == '__main__':
         ImportantFeatures.add_parser_args(importance_features_parser)
         other_args.append('--data')
         other_args.append(output_gz_fp)
-        other_args.append('--model')
-        other_args.append(model_fp)
+        
+        if model_fp:
+            other_args.append('--model')
+            other_args.append(model_fp)
         other_args.append('--min_num_features')
         other_args.append('1')
         fi_args, other_args = importance_features_parser.parse_known_args(other_args)
