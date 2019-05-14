@@ -42,11 +42,10 @@ def cmp_files(f1, f2, start_range_f1=0, start_range_f2=0, erase_checkpoint_line=
                 return True
             prev_b1 = b1
 
-def parse_argv(argv):
-
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+def add_parser_args(parser):
     parser.add_argument('-a','--app_id', help="app id (i.e., Azure storage blob container name)", required=True)
     parser.add_argument('-l','--log_dir', help="base dir to download data (a subfolder will be created)", required=True)
+    parser.add_argument('-cs','--conn_string', help="storage account connection string", required=False)
     parser.add_argument('-s','--start_date', help="downloading start date (included) - format YYYY-MM-DD", type=valid_date)
     parser.add_argument('-e','--end_date', help="downloading end date (included) - format YYYY-MM-DD", type=valid_date)
     parser.add_argument('-o','--overwrite_mode', type=int, help='''    0: never overwrite; ask the user whether blobs are currently used [default]
@@ -63,19 +62,10 @@ def parse_argv(argv):
     parser.add_argument('--max_connections', type=int, default=4, help='number of max_connections (default=4)')
     parser.add_argument('--verbose', help="print more details", action='store_true')
     parser.add_argument('--confirm', help="confirm before downloading", action='store_true')
+    parser.add_argument('--report_progress', help="report progress while downloading", action='store_false')
     parser.add_argument('-v','--version', type=int, default=2, help='''version of log downloader to use:
     1: for uncooked logs (only for backward compatibility) [deprecated]
     2: for cooked logs [default]''')
-    
-    kwargs = vars(parser.parse_args(argv[1:]))
-    if kwargs['version'] == 1:
-        if kwargs.get('start_date', None) is None:
-            parser.error('When downloading using version=1, the following argument is required: --start_date')
-        
-        if kwargs.get('end_date', None) is None:
-            kwargs['end_date'] = datetime.datetime.utcnow() # filling end_date with UTC now
-        
-    return kwargs
 
 def update_progress(current, total):
     barLength = 50 # Length of the progress bar
@@ -85,8 +75,7 @@ def update_progress(current, total):
     sys.stdout.write(text)
     sys.stdout.flush()
 
-def download_container(app_id, log_dir, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, verbose=False, create_gzip_mode=-1, delta_mod_t=3600, max_connections=4, confirm=False):
-    
+def download_container(app_id, log_dir, conn_string=None, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, verbose=False, create_gzip_mode=-1, delta_mod_t=3600, max_connections=4, confirm=False, report_progress=True):
     t_start = time.time()
     print('-----'*10)
     print('Current UTC time: {}'.format(datetime.datetime.now(datetime.timezone.utc)))
@@ -100,11 +89,13 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
     if not dry_run:
         os.makedirs(os.path.join(log_dir, app_id), exist_ok=True)
     
-    # Get Azure Storage Authentication
-    config = configparser.ConfigParser()
-    config.read('ds.config')
-    connection_string = config['AzureStorageAuthentication'].get(app_id, config['AzureStorageAuthentication']['$Default'])
-    
+    if conn_string == None:
+        # The default option is to get Azure Storage Authentication
+        config = configparser.ConfigParser()
+        config.read('ds.config')
+        conn_string = config['AzureStorageAuthentication'].get(app_id, config['AzureStorageAuthentication']['$Default'])
+
+    output_fp = None
     print('-----'*10)
     
     if version == 1: # using C# api for uncooked logs
@@ -126,11 +117,11 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                 try:
                     import requests
                     LogDownloaderURL = "https://cps-staging-exp-experimentation.azurewebsites.net/api/Log?account={ACCOUNT_NAME}&key={ACCOUNT_KEY}&start={START_DATE}&end={END_DATE}&container={CONTAINER}"
-                    connection_string_dict = dict(x.split('=',1) for x in connection_string.split(';'))
-                    if not connection_string_dict['AccountName'] or len(connection_string_dict['AccountKey']) != 88:
+                    conn_string_dict = dict(x.split('=',1) for x in conn_string.split(';'))
+                    if not conn_string_dict['AccountName'] or len(conn_string_dict['AccountKey']) != 88:
                         print("Error: Invalid Azure Storage ConnectionString.")
                         sys.exit()
-                    url = LogDownloaderURL.format(ACCOUNT_NAME=connection_string_dict['AccountName'], ACCOUNT_KEY=connection_string_dict['AccountKey'].replace('+','%2b'), CONTAINER=app_id, START_DATE=start_date.strftime("%Y-%m-%d"), END_DATE=(end_date+datetime.timedelta(days=1)).strftime("%Y-%m-%d"))
+                    url = LogDownloaderURL.format(ACCOUNT_NAME=conn_string_dict['AccountName'], ACCOUNT_KEY=conn_string_dict['AccountKey'].replace('+','%2b'), CONTAINER=app_id, START_DATE=start_date.strftime("%Y-%m-%d"), END_DATE=(end_date+datetime.timedelta(days=1)).strftime("%Y-%m-%d"))
                     r = requests.post(url)
                     open(output_fp, 'wb').write(r.content)
                     print(' Done!\n')
@@ -140,7 +131,7 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
     else: # using BlockBlobService python api for cooked logs
         try:
             print('Establishing Azure Storage BlockBlobService connection...')
-            bbs = BlockBlobService(connection_string=connection_string)
+            bbs = BlockBlobService(connection_string=conn_string)
             # List all blobs and download them one by one
             print('Getting blobs list...')
             blobs = bbs.list_blobs(app_id)
@@ -214,6 +205,7 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                     print('--dry_run - Not downloading!')
                 else:
                     t0 = time.time()
+                    process_checker = update_progress if report_progress == True else None
                     if overwrite_mode in {3, 4} and file_size:
                         print('Check validity of remote file... ', end='')
                         temp_fp = fp + '.temp'
@@ -222,7 +214,7 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                         if cmp_files(fp, temp_fp, -cmpsize):
                             print('Valid!')
                             print('Resume downloading to temp file with max_connections = {}...'.format(max_connections))
-                            bbs.get_blob_to_path(app_id, blob.name, temp_fp, progress_callback=update_progress, max_connections=max_connections, start_range=os.path.getsize(fp))
+                            bbs.get_blob_to_path(app_id, blob.name, temp_fp, progress_callback=process_checker, max_connections=max_connections, start_range=os.path.getsize(fp))
                             download_time = time.time()-t0
                             download_size_MB = os.path.getsize(temp_fp)/(1024**2) # file size in MB
                             print('\nAppending to local file...')
@@ -237,7 +229,7 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                         print('Downloaded {:.3f} MB in {:.1f} sec. ({:.3f} MB/sec) - Total elapsed time: {:.1f} sec.\n'.format(download_size_MB, download_time, download_size_MB/download_time, time.time()-t0))
                     else:
                         print('Downloading with max_connections = {}...'.format(max_connections))
-                        bbs.get_blob_to_path(app_id, blob.name, fp, progress_callback=update_progress, max_connections=max_connections)
+                        bbs.get_blob_to_path(app_id, blob.name, fp, progress_callback=process_checker, max_connections=max_connections)
                         download_time = time.time()-t0
                         download_size_MB = os.path.getsize(fp)/(1024**2) # file size in MB
                         print('\nDownloaded {:.3f} MB in {:.1f} sec. ({:.3f} MB/sec)\n'.format(download_size_MB, download_time, download_size_MB/download_time))
@@ -257,7 +249,7 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                         end_date = '-'.join(models[model][-1].split('_data_')[1].split('_')[:3])
                         output_fp = os.path.join(log_dir, app_id, app_id+'_'+model+'_data_'+start_date+'_'+end_date+'.json.gz')
                         print('Concat and zip files of LastConfigurationEditDate={} to: {}'.format(model, output_fp))
-                        if os.path.isfile(output_fp) and input('Output file already exits. Do you want to overwrite [Y/n]? '.format(output_fp)) not in {'Y', 'y'}:
+                        if os.path.isfile(output_fp) and __name__ == '__main__' and input('Output file already exits. Do you want to overwrite [Y/n]? '.format(output_fp)) not in {'Y', 'y'}:
                             continue
                         if dry_run:
                             print('--dry_run - Not downloading!')
@@ -281,7 +273,7 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                     end_date = '-'.join(selected_fps_merged[-1].split('_data_')[1].split('_')[:3])
                     output_fp = os.path.join(log_dir, app_id, app_id+'_merged_data_'+start_date+'_'+end_date+'.json.gz')
                     print('Merge and zip files of all LastConfigurationEditDate to: {}'.format(output_fp))
-                    if not os.path.isfile(output_fp) or input('Output file already exits. Do you want to overwrite [Y/n]? '.format(output_fp)) in {'Y', 'y'}:
+                    if not os.path.isfile(output_fp) or __name__ == '__main__' and input('Output file already exits. Do you want to overwrite [Y/n]? '.format(output_fp)) in {'Y', 'y'}:
                         if dry_run:
                             for fp in selected_fps_merged:
                                 print('Adding: {}'.format(fp))
@@ -291,14 +283,14 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                                 for fp in selected_fps_merged:
                                     print('Adding: {}'.format(fp))
                                     with open(fp, 'rb') as f_in:
-                                        shutil.copyfileobj(f_in, f_out, length=100*1024**2)   # writing chunks of 100MB to avoid consuming memory
+                                        shutil.copyfileobj(f_in, f_out, length=1024**3)   # writing chunks of 1GB to avoid consuming memory
                 elif create_gzip_mode == 2:
                     selected_fps.sort(key=lambda x : (list(map(int,x.split('_data_')[1].split('_')[:3])), -os.path.getsize(x), x))
                     start_date = '-'.join(selected_fps[0].split('_data_')[1].split('_')[:3])
                     end_date = '-'.join(selected_fps[-1].split('_data_')[1].split('_')[:3])
                     output_fp = os.path.join(log_dir, app_id, app_id+'_deepmerged_data_'+start_date+'_'+end_date+'.json.gz')
                     print('Merge, unique, sort, and zip files of all LastConfigurationEditDate to: {}'.format(output_fp))
-                    if not os.path.isfile(output_fp) or input('Output file already exits. Do you want to overwrite [Y/n]? '.format(output_fp)) in {'Y', 'y'}:
+                    if not os.path.isfile(output_fp) or __name__ == '__main__' and input('Output file already exits. Do you want to overwrite [Y/n]? '.format(output_fp)) in {'Y', 'y'}:
                         d = {}
                         for fn in selected_fps:
                             print('Parsing: {}'.format(fn), end='', flush=True)
@@ -329,14 +321,18 @@ def download_container(app_id, log_dir, start_date=None, end_date=None, overwrit
                 print('No file downloaded, skipping creating gzip files.')
                     
     print('Total elapsed time: {:.1f} sec.\n'.format(time.time()-t_start))
-
+    return output_fp
 
 if __name__ == '__main__':
-    
-    kwargs = parse_argv(sys.argv)
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+    add_parser_args(parser)
+    kwargs = vars(parser.parse_args(sys.argv[1:]))
+    if kwargs['version'] == 1:
+        if kwargs.get('start_date', None) is None:
+            parser.error('When downloading using version=1, the following argument is required: --start_date')
+        
+        if kwargs.get('end_date', None) is None:
+            kwargs['end_date'] = datetime.datetime.utcnow() 
     print('app_id: {0}'.format(kwargs['app_id']))
-    print('log_dir: {0}'.format(kwargs['log_dir']))
-    
-    ################################# PARSE INPUT CMD #########################################################
-    
+    print('log_dir: {0}'.format(kwargs['log_dir']))    
     download_container(**kwargs)

@@ -218,15 +218,14 @@ def create_stats(log_fp, dashboard_file, predictions_files=None):
     
     print('Total Elapsed Time: {:.1f} sec.'.format(time.time()-t0))
 
-
-if __name__ == '__main__':
-
-    parser = argparse.ArgumentParser()
+def add_parser_args(parser):
     parser.add_argument('-l','--log_fp', help="data file path (.json or .json.gz format - each line is a dsjson)", required=True)
     parser.add_argument('-o','--output_fp', help="output file", required=True)
 
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    add_parser_args(parser)
     args_dict = vars(parser.parse_args())   # this creates a dictionary with all input CLI
     for x in args_dict:
         locals()[x] = args_dict[x]  # this is equivalent to foo = args.foo
-
     create_stats(log_fp, output_fp)
