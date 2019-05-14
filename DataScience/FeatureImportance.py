@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # ==========================================================================================
-# Find important features
+# Find feature importance
 # ==========================================================================================
 
 '''
 Usage example:
->python ImportantFeatures.py -d data.json --ml_args "--cb_adf -l 0.01 --cb_type mtr" -m model.vw -n 5
+>python FeatureImportance.py -d data.json --ml_args "--cb_adf -l 0.01 --cb_type mtr" -m model.vw -n 5
 
 Sample output:
 =====================================
@@ -16,7 +16,7 @@ L1: 1e-04 - Num of Features: 46
 L1: 1e-03 - Num of Features: 13
 =====================================
 
-Inverting hashes of important features (l1 = 1e-03)
+Inverting hashes of feature importance (l1 = 1e-03)
 =====================================
 Emotion0^contempt:194265:-0.0236295
 Emotion0^disgust:251874:-0.0327635
@@ -76,7 +76,7 @@ def get_feature_buckets(features_funnel):
         union_features.extend(unique_features)
     return feature_buckets
 
-def get_important_features(log_file, ml_args, warmstart_model=None, min_num_features=5):
+def get_feature_importance(log_file, ml_args, warmstart_model=None, min_num_features=5):
     invHash_fp = log_file+'.invHash.txt'
 
     if ' --l1 ' in ml_args: 
@@ -146,10 +146,10 @@ def main(args):
     except:
         print("Error: Vowpal Wabbit executable not found. Please install and add it to your path")
         sys.exit()
-    return get_important_features(args.data, args.ml_args, args.model, int(args.min_num_features))
+    return get_feature_importance(args.data, args.ml_args, args.model, int(args.min_num_features))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     add_parser_args(parser)
-    important_features = main(parser.parse_args())
-    print("important feature sizes: {0}".format([len(features) for features in important_features]))
+    feature_importance = main(parser.parse_args())
+    print("feature importance sizes: {0}".format([len(features) for features in feature_importance]))

@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from subprocess import check_output, STDOUT
 from AzureUtil import AzureUtil
 import Experimentation
-import ImportantFeatures
+import FeatureImportance
 import dashboard_utils
 import LogDownloader
 from azure.storage.blob import BlockBlobService
@@ -36,8 +36,8 @@ if __name__ == '__main__':
     main_parser.add_argument('--run_experimentation', help="run Experimentation.py", action='store_true')
     main_parser.add_argument('--delete_logs_dir', help="delete logs directory before starting to download new logs", action='store_true')
     main_parser.add_argument('--cleanup', help="delete logs and created files after use", action='store_true')
-    main_parser.add_argument('--get_important_features', help="run ImportantFeatures.py", action='store_true')
-    main_parser.add_argument('--importantfeatures_filename', help="name of the output feature importance file", default='featureimportance.json')
+    main_parser.add_argument('--get_feature_importance', help="run FeatureImportance.py", action='store_true')
+    main_parser.add_argument('--feature_importance_filename', help="name of the output feature importance file", default='featureimportance.json')
     main_parser.add_argument('--ml_args', help="the online policy that we need for calculating the feature importances", required=True)
     main_args, other_args = main_parser.parse_known_args(sys.argv[1:])
 
@@ -115,7 +115,7 @@ if __name__ == '__main__':
     dashboard_utils.create_stats(output_gz_fp, dashboard_file_path)
     azure_util.upload_to_blob(ld_args.app_id,  main_args.output_folder + "\\"+ main_args.dashboard_filename, dashboard_file_path, True)
 
-    if main_args.get_important_features:
+    if main_args.get_feature_importance:
         print('Download model file')
         model_fp = None
         bbs = BlockBlobService(connection_string=ld_args.conn_string)
@@ -130,10 +130,9 @@ if __name__ == '__main__':
                 model_fp = os.path.join(output_dir, 'model.vw')
                 bbs.get_blob_to_path(ld_args.app_id, blob.name, model_fp, progress_callback=None, max_connections=1)
 
-        print('Generate Important features')
-        # Parse vw-important-features args
-        importance_features_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-        ImportantFeatures.add_parser_args(importance_features_parser)
+        print('Generate Feature Importance')
+        feature_importance_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+        FeatureImportance.add_parser_args(feature_importance_parser)
         other_args.append('--data')
         other_args.append(output_gz_fp)
         
@@ -142,14 +141,14 @@ if __name__ == '__main__':
             other_args.append(model_fp)
         other_args.append('--min_num_features')
         other_args.append('1')
-        fi_args, other_args = importance_features_parser.parse_known_args(other_args)
+        fi_args, other_args = feature_importance_parser.parse_known_args(other_args)
 
-        # Run ImportantFeatures.py using output_gz_fp as input
-        feature_buckets = ImportantFeatures.main(fi_args)
-        important_features_file_path = os.path.join(output_dir, main_args.importantfeatures_filename)
-        with open(important_features_file_path, 'w') as important_feature_file:
-            json.dump(feature_buckets, important_feature_file)
-        azure_util.upload_to_blob(ld_args.app_id,  main_args.output_folder + "\\"+ main_args.importantfeatures_filename, important_features_file_path, True)
+        # Run FeatureImportance.py using output_gz_fp as input
+        feature_buckets = FeatureImportance.main(fi_args)
+        feature_importance_file_path = os.path.join(output_dir, main_args.feature_importance_filename)
+        with open(feature_importance_file_path, 'w') as feature_importance_file:
+            json.dump(feature_buckets, feature_importance_file)
+        azure_util.upload_to_blob(ld_args.app_id,  main_args.output_folder + "\\"+ main_args.feature_importance_filename, feature_importance_file_path, True)
 
     # Merge calculated policies into summary file path, upload summary file
     if main_args.summary_json:
