@@ -11,11 +11,11 @@ def get_ts_5min_bin(ts):
         str_5min += '0'
     str_5min += str(x)+':00Z'
     return str_5min
-
+    
 def get_prediction_prob(a0, pred_line):
     # parse probability of predicted action
     # this function assume that a0 is 0-index
-
+    
     if ':' in pred_line:                           # prediction file has pdf of all actions (as in --cb_explore_adf -p)
         if ',' in pred_line:
             if pred_line.startswith(str(a0)+':'):
@@ -189,7 +189,7 @@ def create_stats(log_fp, d={}, predictions_files=None):
                 if data['a'] == 1:
                     d[ts_bin]['baseline1']['n'] += r/data['p']
                     d[ts_bin]['baseline1']['c'] = max(d[ts_bin]['baseline1']['c'], r/data['p'])
-                    d[ts_bin]['baseline1']['SoS'] += (r/data['p'])**2
+                    d[ts_bin]['baseline1']['SoS'] += (r/data['p'])**2                   
 
             # update aggregates for additional policies from predictions
             for name in pred:
