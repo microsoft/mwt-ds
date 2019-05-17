@@ -62,7 +62,8 @@ def _predict_func(input):
 def _predict_multi(labeled_opts, env):
     cache_files = env.cache_provider.get()
     for c in cache_files:
-        inputs = list(map(lambda lo: (c, lo[0], lo[1], env), labeled_opts.items()))
+        inputs = list(map(
+            lambda lo: (c, lo[0], lo[1], env), labeled_opts.items()))
         labeled_opts = dict(env.job_pool.map(_predict_func, inputs))
         for k, v in labeled_opts.items():
             labeled_opts[k]['-i'] = v['-f']
@@ -107,7 +108,8 @@ def train(opts, env):
     result = _train_multi(opts, env)
     for r in result:
         command.generalize(r[0])
-    return list(map(lambda r: (r[0], _safe_to_float(r[1]['average loss'], sys.float_info.max)), result))
+    return list(map(lambda r: (r[0], _safe_to_float(r[1]['average loss'],
+                sys.float_info.max)), result))
 
 
 def predict(labeled_commands, env):

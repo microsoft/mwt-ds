@@ -13,16 +13,19 @@ def _promote(candidates, grid_config, env, promoted):
     step_name = '[' + grid_config.name + '] '
     result = _top(candidates, grid_config.promote)
     for c in result:
-        env.logger.info(step_name + 'Promoted: ' + command.to_commandline(c[0]) + ': ' + str(c[1]))
+        env.logger.info(step_name + 'Promoted: ' +
+                        command.to_commandline(c[0]) + ': ' + str(c[1]))
     return result
 
 
 def _output(candidates, grid_config, env):
-    step_name = '[' + grid_config.name + '] '
-    result = dict(map(lambda item: (grid_config.name + str(item[0]), item[1][0]),
-                      enumerate(_top(candidates, grid_config.output))))
+    step_name = '[' + grid_config.name + ']'
+    result = dict(map(
+        lambda item: (grid_config.name + str(item[0]), item[1][0]),
+        enumerate(_top(candidates, grid_config.output))))
     for k, v in result.items():
-        env.logger.info(step_name + 'Output: [' + k + '] ' + command.to_commandline(v))
+        env.logger.info(step_name + ' Output: [' + k + '] ' +
+                        command.to_commandline(v))
     return result
 
 
@@ -32,7 +35,8 @@ def _iteration(grid, env, promoted):
     env.logger.info(step_name + 'Local job is finished. Reducing...')
     candidates = env.runtime.reduce(candidates)
     for c in candidates:
-        env.logger.info(step_name + str(command.to_commandline(c[0])) + ': ' + str(c[1]))
+        env.logger.info(step_name + str(command.to_commandline(c[0])) +
+                        ': ' + str(c[1]))
     env.logger.info(step_name + 'All candidates are reduced.')
     return _promote(candidates, grid.config, env, promoted), _output(candidates, grid.config, env)
 

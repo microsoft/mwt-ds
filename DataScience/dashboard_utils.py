@@ -11,11 +11,11 @@ def get_ts_5min_bin(ts):
         str_5min += '0'
     str_5min += str(x)+':00Z'
     return str_5min
-    
+
 def get_prediction_prob(a0, pred_line):
     # parse probability of predicted action
     # this function assume that a0 is 0-index
-    
+
     if ':' in pred_line:                           # prediction file has pdf of all actions (as in --cb_explore_adf -p)
         if ',' in pred_line:
             if pred_line.startswith(str(a0)+':'):
@@ -49,7 +49,7 @@ def output_dashboard_data(d, dashboard_file, commands={}):
         df_col.setdefault(temp[0],[]).append(temp[1])
 
     agg_windows = [('5T',5),('H',60),('6H',360),('D',1440)]
-    with open(dashboard_file, 'w') as f:
+    with open(dashboard_file, 'a') as f:
         for ag in agg_windows:
             for index, row in df.resample(ag[0]).agg({type+'_'+field : max if field == 'c' else sum for type in df_col for field in df_col[type]}).replace(np.nan, 0.0).iterrows():
                 d = []
@@ -189,7 +189,7 @@ def create_stats(log_fp, d={}, predictions_files=None):
                 if data['a'] == 1:
                     d[ts_bin]['baseline1']['n'] += r/data['p']
                     d[ts_bin]['baseline1']['c'] = max(d[ts_bin]['baseline1']['c'], r/data['p'])
-                    d[ts_bin]['baseline1']['SoS'] += (r/data['p'])**2                   
+                    d[ts_bin]['baseline1']['SoS'] += (r/data['p'])**2
 
             # update aggregates for additional policies from predictions
             for name in pred:

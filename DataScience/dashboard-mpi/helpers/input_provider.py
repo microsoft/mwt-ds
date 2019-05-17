@@ -63,12 +63,7 @@ class ps_logs_provider:
 
 class azure_logs_provider(ps_logs_provider):
     @staticmethod
-    def _copy(container,
-              connection_string,
-              folder,
-              start,
-              end,
-              local_folder,
+    def _copy(container, connection_string, folder, start, end, local_folder,
               logger):
         bbs = BlockBlobService(connection_string=connection_string)
         for blob in LogsExtractor.iterate_blobs(bbs, container, folder, start, end):
@@ -90,23 +85,10 @@ class azure_logs_provider(ps_logs_provider):
             )
             logger.info(blob.name + ': Done.')
 
-    def __init__(self,
-                 container,
-                 connection_string,
-                 folder,
-                 start,
-                 end,
-                 local_folder,
-                 logger):
-        azure_logs_provider._copy(
-            container,
-            connection_string,
-            folder,
-            start,
-            end,
-            local_folder,
-            logger
-        )
+    def __init__(self, container, connection_string, folder, start, end,
+                 local_folder, logger):
+        azure_logs_provider._copy(container, connection_string, folder, start,
+                                  end, local_folder, logger)
         super().__init__(local_folder, start, end)
 
     def get(self):

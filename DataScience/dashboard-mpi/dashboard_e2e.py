@@ -5,21 +5,9 @@ from azure.storage.blob import BlockBlobService
 from helpers import vw, logger, environment, runtime, path_generator, input_provider, pool, preprocessing, grid, sweep, command, dashboard
 
 
-def dashboard_e2e(
-    app_container,
-    connection_string,
-    app_folder,
-    vw_path,
-    start,
-    end,
-    tmp_folder,
-    env,
-    procs,
-    log_level,
-    output_connection_string,
-    output_container,
-    output_path
-):
+def dashboard_e2e(app_container, connection_string, app_folder, vw_path,
+                  start, end, tmp_folder, env, procs, log_level,
+                  output_connection_string, output_container, output_path):
     cache_folder = os.path.join(tmp_folder, 'cache')
     model_folder = os.path.join(tmp_folder, 'model')
     pred_folder = os.path.join(tmp_folder, 'pred')
@@ -107,21 +95,10 @@ def main():
     start = datetime.datetime.strptime(args.start_date, date_format)
     end = datetime.datetime.strptime(args.end_date, date_format)
 
-    dashboard_e2e(
-        args.app_container,
-        args.connection_string,
-        args.app_folder,
-        args.vw,
-        start,
-        end,
-        args.tmp_folder,
-        args.env,
-        args.procs,
-        args.log_level,
-        args.output_connection_string,
-        args.output_container,
-        args.output_path
-    )
+    dashboard_e2e(args.app_container, args.connection_string, args.app_folder,
+                  args.vw, start, end, args.tmp_folder, args.env, args.procs,
+                  args.log_level, args.output_connection_string,
+                  args.output_container, args.output_path)
 
 
 if __name__ == '__main__':
