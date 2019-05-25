@@ -20,11 +20,10 @@ class AzureUtil:
             
     def download_from_blob(self, storage_container_name, storage_file_name, local_file_path, throw_ex = False):
         try:
-            print("\nDownloading from Blob storage to file")
+            print("\nDownloading from Blob container: {0} path: {1} to local path: {2}".format(storage_container_name, storage_file_name, local_file_path))
             t1 = datetime.now()
             self.block_blob_service.get_blob_to_path(storage_container_name, storage_file_name, local_file_path)
             t2 = datetime.now()
-            print(storage_file_name)
             print("Done downloading blob")
             print('Download Time:',(t2-t1)-timedelta(microseconds=(t2-t1).microseconds))
         except Exception as e:
