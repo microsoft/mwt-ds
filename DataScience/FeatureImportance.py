@@ -71,9 +71,10 @@ def get_feature_buckets(features_funnel):
     feature_buckets = []
     for features in reversed(features_funnel):
         unique_features = list(set(features) - set(union_features))
-        unique_features.sort()
-        feature_buckets.append(unique_features)
-        union_features.extend(unique_features)
+        if len(unique_features) > 0:
+            unique_features.sort()
+            feature_buckets.append(unique_features)
+            union_features.extend(unique_features)
     return feature_buckets
 
 def get_feature_importance(log_file, ml_args, warmstart_model=None, min_num_features=5):
