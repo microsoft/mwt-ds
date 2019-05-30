@@ -19,11 +19,10 @@ import uuid
 from azure.storage.blob import BlockBlobService
 from applicationinsights import TelemetryClient
 
-def get_telemetry_client():
-    appInsightsKey = os.environ.get('appInsightsInstrumentationKey')
-    print(appInsightsKey)
-    if appInsightsKey:
-        client = TelemetryClient(appInsightsKey)
+def get_telemetry_client(appInsightsInstrumentationKey):
+    print(appInsightsInstrumentationKey)
+    if appInsightsInstrumentationKey:
+        client = TelemetryClient(appInsightsInstrumentationKey)
         client.context.operation.id = str(uuid.uuid4())
         return client
     else:
@@ -48,7 +47,6 @@ if __name__ == '__main__':
     os.chdir(os.path.dirname(os.path.realpath(__file__)))
     start_time = datetime.now()
     timestamp = start_time.strftime("%Y-%m-%d-%H_%M_%S")
-    telemetry_client = get_telemetry_client()
 
     # Parse system parameters
     main_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
@@ -62,7 +60,10 @@ if __name__ == '__main__':
     main_parser.add_argument('--get_feature_importance', help="run FeatureImportance.py", action='store_true')
     main_parser.add_argument('--feature_importance_filename', help="name of the output feature importance file", default='featureimportance.json')
     main_parser.add_argument('--ml_args', help="the online policy that we need for calculating the feature importances", required=True)
+    main_parser.add_argument('--appInsightsInstrumentationKey', help="App Insights key for logging metrics")
     main_args, other_args = main_parser.parse_known_args(sys.argv[1:])
+
+    telemetry_client = get_telemetry_client(main_args.appInsightsInstrumentationKey)
 
     # Parse LogDownloader args
     log_download_start_time = datetime.now()
