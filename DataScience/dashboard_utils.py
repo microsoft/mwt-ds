@@ -140,7 +140,8 @@ def create_stats(log_fp, dashboard_file, predictions_files=None):
         if x.startswith(b'{"_label_cost":'):
             data = ds_parse.json_cooked(x)
 
-            if data['skipLearn']:
+            # Skip not activated lines or wrongly formated lines
+            if data['skipLearn'] or data['p'] < 1e-10 or data['num_a'] < 1 or data['a'] < 1:
                 continue
 
             r = 0 if data['cost'] == b'0' else -float(data['cost'])
