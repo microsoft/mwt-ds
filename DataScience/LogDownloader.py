@@ -63,6 +63,7 @@ def add_parser_args(parser):
     parser.add_argument('--verbose', help="print more details", action='store_true')
     parser.add_argument('--confirm', help="confirm before downloading", action='store_true')
     parser.add_argument('--report_progress', help="report progress while downloading", action='store_false')
+    parser.add_argument('--dash_merge_fp')
     parser.add_argument('-v','--version', type=int, default=2, help='''version of log downloader to use:
     1: for uncooked logs (only for backward compatibility) [deprecated]
     2: for cooked logs [default]''')
@@ -75,7 +76,7 @@ def update_progress(current, total):
     sys.stdout.write(text)
     sys.stdout.flush()
 
-def download_container(app_id, log_dir, conn_string=None, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, verbose=False, create_gzip_mode=-1, delta_mod_t=3600, max_connections=4, confirm=False, report_progress=True):
+def download_container(app_id, log_dir, conn_string=None, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, verbose=False, create_gzip_mode=-1, delta_mod_t=3600, max_connections=4, confirm=False, report_progress=True, dash_merge_fp=None):
     t_start = time.time()
     print('-----'*10)
     print('Current UTC time: {}'.format(datetime.datetime.now(datetime.timezone.utc)))
@@ -235,6 +236,7 @@ def download_container(app_id, log_dir, conn_string=None, start_date=None, end_d
                         print('\nDownloaded {:.3f} MB in {:.1f} sec. ({:.3f} MB/sec)\n'.format(download_size_MB, download_time, download_size_MB/download_time))
             except Exception as e:
                 print('Error: {}'.format(e))
+           
 
         if create_gzip_mode > -1:
             if selected_fps:
@@ -269,21 +271,29 @@ def download_container(app_id, log_dir, conn_string=None, start_date=None, end_d
                             selected_fps_merged.append(fp)
                             last_fp_date = fp_date
 
-                    start_date = '-'.join(selected_fps_merged[0].split('_data_')[1].split('_')[:3])
-                    end_date = '-'.join(selected_fps_merged[-1].split('_data_')[1].split('_')[:3])
-                    output_fp = os.path.join(log_dir, app_id, app_id+'_merged_data_'+start_date+'_'+end_date+'.json.gz')
-                    print('Merge and zip files of all LastConfigurationEditDate to: {}'.format(output_fp))
-                    if not os.path.isfile(output_fp) or __name__ == '__main__' and input('Output file already exits. Do you want to overwrite [Y/n]? '.format(output_fp)) in {'Y', 'y'}:
-                        if dry_run:
-                            for fp in selected_fps_merged:
-                                print('Adding: {}'.format(fp))
-                            print('--dry_run - Not downloading!')
-                        else:
-                            with gzip.open(output_fp, 'wb') as f_out:
+                    if dash_merge_fp and len(selected_fps_merged) == 1:
+                        output_fp = selected_fps_merged[0]
+                        print('Only one file. Skip generating .gz file. Generating .dash file to: {}'.format(output_fp+'.dash'))
+                    else:
+                        start_date = '-'.join(selected_fps_merged[0].split('_data_')[1].split('_')[:3])
+                        end_date = '-'.join(selected_fps_merged[-1].split('_data_')[1].split('_')[:3])
+                        output_fp = os.path.join(log_dir, app_id, app_id+'_merged_data_'+start_date+'_'+end_date+'.json.gz')
+                        print('Merge and zip files of all LastConfigurationEditDate to: {}'.format(output_fp))
+                        if not os.path.isfile(output_fp) or __name__ == '__main__' and input('Output file already exits. Do you want to overwrite [Y/n]? '.format(output_fp)) in {'Y', 'y'}:
+                            if dry_run:
                                 for fp in selected_fps_merged:
                                     print('Adding: {}'.format(fp))
-                                    with open(fp, 'rb') as f_in:
-                                        shutil.copyfileobj(f_in, f_out, length=1024**3)   # writing chunks of 1GB to avoid consuming memory
+                                print('--dry_run - Not gz file not created!')
+                            else:
+                                with gzip.open(output_fp, 'wb') as f_out:
+                                    for fp in selected_fps_merged:
+                                        print('Adding: {}'.format(fp))
+                                        with open(fp, 'rb') as f_in:
+                                            shutil.copyfileobj(f_in, f_out, length=1024**3)   # writing chunks of 1GB to avoid consuming memory
+                    if dash_merge_fp:
+                        import dashboard_utils as du
+                        du.create_stats(output_fp, output_fp+'.dash')
+                        du.merge_and_unique_stats([dash_merge_fp, output_fp+'.dash'],dash_merge_fp)
                 elif create_gzip_mode == 2:
                     selected_fps.sort(key=lambda x : (list(map(int,x.split('_data_')[1].split('_')[:3])), -os.path.getsize(x), x))
                     start_date = '-'.join(selected_fps[0].split('_data_')[1].split('_')[:3])
@@ -315,12 +325,17 @@ def download_container(app_id, log_dir, conn_string=None, start_date=None, end_d
                                         update_progress(i, len(d))
                                 update_progress(i, len(d))
                                 print()
+                            import dashboard_utils as du
+                            du.create_stats(output_fp, output_fp+'.dash')
+                            if dash_merge_fp:
+                                du.merge_and_unique_stats([dash_merge_fp, output_fp+'.dash'],dash_merge_fp)
                 else:
-                    print('Unrecognized --create_gzip_mode: {}, skipping creating gzip files.'.format(create_gzip_mode))
+                    print('Unrecognized --create_gzip_mode: {}, skipping creating gzip files.'.format(create_gzip_mode))            
             else:
                 print('No file downloaded, skipping creating gzip files.')
                     
     print('Total elapsed time: {:.1f} sec.\n'.format(time.time()-t_start))
+    print('Current UTC time: {}'.format(datetime.datetime.now(datetime.timezone.utc)))
     return output_fp
 
 if __name__ == '__main__':
