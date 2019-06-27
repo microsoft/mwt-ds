@@ -7,7 +7,8 @@ from helpers import vw, logger, environment, runtime, path_generator, input_prov
 
 def dashboard_e2e(app_container, connection_string, app_folder, vw_path,
                   start, end, tmp_folder, env, procs, log_level,
-                  output_connection_string, output_container, output_path):
+                  output_connection_string, output_container, output_path,
+                  enable_sweep):
     cache_folder = os.path.join(tmp_folder, 'cache')
     model_folder = os.path.join(tmp_folder, 'model')
     pred_folder = os.path.join(tmp_folder, 'pred')
@@ -35,33 +36,35 @@ def dashboard_e2e(app_container, connection_string, app_folder, vw_path,
         logger=lg
     )
 
-    base_command = {'#base': '--cb_adf --dsjson --save_resume --preserve_performance_counters'}
-    vw.cache(base_command, env)
+    commands = {}
 
-    namespaces = preprocessing.extract_namespaces(
-        open(env.txt_provider.get()[0], 'r', encoding='utf-8')
-    )
+    if enable_sweep:
+        base_command = {'#base': '--cb_adf --dsjson --save_resume --preserve_performance_counters'}
+        vw.cache(base_command, env)
+        namespaces = preprocessing.extract_namespaces(
+            open(env.txt_provider.get()[0], 'r', encoding='utf-8')
+        )
 
-    marginals_grid = preprocessing.get_marginals_grid(
-        '#marginals', namespaces[2]
-    )
+        marginals_grid = preprocessing.get_marginals_grid(
+            '#marginals', namespaces[2]
+        )
 
-    interactions_grid = preprocessing.get_interactions_grid(
-        '#interactions', namespaces[0], namespaces[1]
-    )
+        interactions_grid = preprocessing.get_interactions_grid(
+            '#interactions', namespaces[0], namespaces[1]
+        )
 
-    multi_grid = grid.generate(interactions_grid, marginals_grid)
+        multi_grid = grid.generate(interactions_grid, marginals_grid)
 
-    best = sweep.sweep(multi_grid, env, base_command)
+        best = sweep.sweep(multi_grid, env, base_command)
 
-    predict_opts = {'#base': '--cb_explore_adf --epsilon 0.2 --dsjson --save_resume --preserve_performance_counters'}
-    commands = dict(map(
-        lambda lo: (lo[0], command.apply(lo[1], predict_opts)), best.items()
-    ))
-    vw.predict(commands, env)
+        predict_opts = {'#base': '--cb_explore_adf --epsilon 0.2 --dsjson --save_resume --preserve_performance_counters'}
+        commands = dict(map(
+            lambda lo: (lo[0], command.apply(lo[1], predict_opts)), best.items()
+        ))
+        vw.predict(commands, env)
 
     local_dashboard_path = os.path.join(tmp_folder, 'dashboard.json')
-    dashboard.create(commands, local_dashboard_path, env)
+    dashboard.create(local_dashboard_path, env, commands, enable_sweep)
     if env.runtime.is_master() and output_connection_string:
         bbs = BlockBlobService(connection_string=output_connection_string)
         lg.info(output_container + ':' + output_path + ': Uploading from ' + local_dashboard_path)
@@ -75,6 +78,7 @@ def main():
     parser.add_argument("--vw", type=str, help="vw path")
     parser.add_argument("--start_date", type=str, help="start date")
     parser.add_argument("--end_date", type=str, help="end date")
+    parser.add_argument("--enable_sweep", action='store_true')
     parser.add_argument("--tmp_folder", type=str, help="temporary folder")
     parser.add_argument("--app_container", type=str, help="app_container")
     parser.add_argument("--connection_string", type=str, help="connection_string")
@@ -98,7 +102,7 @@ def main():
     dashboard_e2e(args.app_container, args.connection_string, args.app_folder,
                   args.vw, start, end, args.tmp_folder, args.env, args.procs,
                   args.log_level, args.output_connection_string,
-                  args.output_container, args.output_path)
+                  args.output_container, args.output_path, args.enable_sweep)
 
 
 if __name__ == '__main__':

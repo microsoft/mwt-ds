@@ -64,7 +64,7 @@ class ps_logs_provider:
 class azure_logs_provider(ps_logs_provider):
     @staticmethod
     def _copy(container, connection_string, folder, start, end, local_folder,
-              logger):
+              logger, delta_mod_t=3600, max_connections=4):
         bbs = BlockBlobService(connection_string=connection_string)
         for blob in LogsExtractor.iterate_blobs(bbs, container, folder, start, end):
             tmp1 = os.path.split(blob.name)
@@ -77,11 +77,17 @@ class azure_logs_provider(ps_logs_provider):
             full_path = os.path.join(local_folder, relative_path)
             os.makedirs(os.path.dirname(full_path), exist_ok=True)
             logger.info(blob.name + ': Downloading to ' + full_path)
+            blob_properties = bbs.get_blob_properties(container, blob.name)
+
+            current_time = datetime.datetime.now(datetime.timezone.utc)
+            if  current_time - blob_properties.properties.last_modified < datetime.timedelta(0, delta_mod_t):
+                max_connections = 1
+
             bbs.get_blob_to_path(
                 container,
                 blob.name,
                 full_path,
-                max_connections=4
+                max_connections=max_connections
             )
             logger.info(blob.name + ': Done.')
 
