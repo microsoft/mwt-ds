@@ -148,7 +148,8 @@ if __name__ == '__main__':
 
     # Generate dashboard files
     dashboard_file_path = os.path.join(output_dir, main_args.dashboard_filename)
-    dashboard_utils.create_stats(output_gz_fp, dashboard_file_path)
+    d = dashboard_utils.create_stats(output_gz_fp)
+    dashboard_utils.output_dashboard_data(d, dashboard_file_path)
     azure_util.upload_to_blob(ld_args.app_id,  main_args.output_folder + "\\"+ main_args.dashboard_filename, dashboard_file_path, True)
 
     if main_args.get_feature_importance:
@@ -172,7 +173,7 @@ if __name__ == '__main__':
         FeatureImportance.add_parser_args(feature_importance_parser)
         other_args.append('--data')
         other_args.append(output_gz_fp)
-        
+
         if model_fp:
             other_args.append('--model')
             other_args.append(model_fp)
@@ -220,4 +221,3 @@ if __name__ == '__main__':
     print('Total Job time in seconds:', (end_time - start_time).seconds)
     telemetry_client != None and telemetry_client.track_event('ExperimentationAzure.CompleteEvaluation', properties, { 'TimeTaken' : (end_time - start_time).seconds })
     telemetry_client != None and telemetry_client.flush()
-    

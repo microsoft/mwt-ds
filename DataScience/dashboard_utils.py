@@ -11,11 +11,11 @@ def get_ts_5min_bin(ts):
         str_5min += '0'
     str_5min += str(x)+':00Z'
     return str_5min
-    
+
 def get_prediction_prob(a0, pred_line):
     # parse probability of predicted action
     # this function assume that a0 is 0-index
-    
+
     if ':' in pred_line:                           # prediction file has pdf of all actions (as in --cb_explore_adf -p)
         if ',' in pred_line:
             if pred_line.startswith(str(a0)+':'):
@@ -34,7 +34,7 @@ def get_prediction_prob(a0, pred_line):
 
     return pred_prob
 
-def output_dashboard_data(d, dashboard_file):
+def output_dashboard_data(d, dashboard_file, commands={}):
     data_dict = collections.OrderedDict()
     for x in d:
         for type in d[x]:
@@ -49,7 +49,7 @@ def output_dashboard_data(d, dashboard_file):
         df_col.setdefault(temp[0],[]).append(temp[1])
 
     agg_windows = [('5T',5),('H',60),('6H',360),('D',1440)]
-    with open(dashboard_file, 'w') as f:
+    with open(dashboard_file, 'a') as f:
         for ag in agg_windows:
             for index, row in df.resample(ag[0]).agg({type+'_'+field : max if field == 'c' else sum for type in df_col for field in df_col[type]}).replace(np.nan, 0.0).iterrows():
                 d = []
@@ -67,6 +67,8 @@ def output_dashboard_data(d, dashboard_file):
             temp = collections.OrderedDict({field : tot[type+'_'+field] for field in df_col[type]})
             temp["w"] = "tot"
             temp["t"] = type
+            if type in commands.keys():
+                temp["command"] = command.to_commandline(commands[type])
             d.append(temp)
         f.write(json.dumps({"ts":"Total","d":d})+'\n')
 
@@ -94,7 +96,7 @@ def merge_and_unique_stats(stats_files, dashboard_file):
     print('Output dashboard data...')
     output_dashboard_data(d, dashboard_file)
 
-def create_stats(log_fp, dashboard_file, predictions_files=None):
+def create_stats(log_fp, d={}, predictions_files=None):
 
     t0 = time.time()
 
@@ -123,7 +125,6 @@ def create_stats(log_fp, dashboard_file, predictions_files=None):
         print('Error: Prediction file length ({}) must be equal for all files'.format([len(pred[name]) for name in pred]))
         sys.exit()
 
-    d = {}
     print('Processing: {}'.format(log_fp))
     bytes_count = 0
     tot_bytes = os.path.getsize(log_fp)
@@ -188,7 +189,7 @@ def create_stats(log_fp, dashboard_file, predictions_files=None):
                 if data['a'] == 1:
                     d[ts_bin]['baseline1']['n'] += r/data['p']
                     d[ts_bin]['baseline1']['c'] = max(d[ts_bin]['baseline1']['c'], r/data['p'])
-                    d[ts_bin]['baseline1']['SoS'] += (r/data['p'])**2                   
+                    d[ts_bin]['baseline1']['SoS'] += (r/data['p'])**2
 
             # update aggregates for additional policies from predictions
             for name in pred:
@@ -215,9 +216,8 @@ def create_stats(log_fp, dashboard_file, predictions_files=None):
         print('Error: Prediction file length ({}) is different from number of events in log file ({})'.format([len(pred[name]) for name in pred],evts))
         sys.exit()
 
-    output_dashboard_data(d, dashboard_file)
-    
     print('Total Elapsed Time: {:.1f} sec.'.format(time.time()-t0))
+    return d
 
 def add_parser_args(parser):
     parser.add_argument('-l','--log_fp', help="data file path (.json or .json.gz format - each line is a dsjson)", required=True)
@@ -229,4 +229,6 @@ if __name__ == '__main__':
     args_dict = vars(parser.parse_args())   # this creates a dictionary with all input CLI
     for x in args_dict:
         locals()[x] = args_dict[x]  # this is equivalent to foo = args.foo
-    create_stats(log_fp, output_fp)
+
+    d = create_stats(log_fp)
+    output_dashboard_data(d, output_fp)
