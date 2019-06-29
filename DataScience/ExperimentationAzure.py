@@ -1,12 +1,3 @@
-import subprocess
-
-def import_or_install(package):
-    try:
-        __import__(package)
-    except ImportError:
-        subprocess.check_call(["python", '-m', 'pip', 'install', 'applicationinsights'])
-
-import_or_install('applicationinsights')
 import argparse, json, os, psutil, sys, shutil
 from datetime import datetime
 from subprocess import check_output, STDOUT
@@ -74,7 +65,7 @@ if __name__ == '__main__':
     other_args.append('--report_progress')
     other_args.append('false')
     ld_args, other_args = logdownloader_parser.parse_known_args(other_args)
-    output_dir = ld_args.log_dir +"\\" + ld_args.app_id
+    output_dir = os.path.join(ld_args.log_dir, ld_args.app_id)
 
     properties = {'app_id' : ld_args.app_id, 'evaluation_id' : main_args.evaluation_id }
     telemetry_client != None and telemetry_client.track_event('ExperimentationAzure.StartEvaluation', properties)
@@ -110,7 +101,7 @@ if __name__ == '__main__':
     if main_args.summary_json:
         print('Evaluating custom policies')
         summary_file_path = os.path.join(output_dir, main_args.summary_json)
-        azure_util.download_from_blob(ld_args.app_id,  main_args.output_folder + "\\"+ main_args.summary_json, summary_file_path, True)
+        azure_util.download_from_blob(ld_args.app_id, os.path.join(main_args.output_folder, main_args.summary_json), summary_file_path, True)
         try:
             with open(summary_file_path) as summary_file:
                 data = json.load(summary_file)
@@ -142,7 +133,7 @@ if __name__ == '__main__':
         # Run Experimentation.py using output_gz_fp as input
         Experimentation.main(exp_args)
         experiments_file_path = os.path.join(os.getcwd(), "experiments.csv")
-        azure_util.upload_to_blob(ld_args.app_id,  main_args.output_folder + "\\"+ "experiments.csv", experiments_file_path)
+        azure_util.upload_to_blob(ld_args.app_id,  os.path.join(main_args.output_folder, "experiments.csv"), experiments_file_path)
         if main_args.cleanup: os.remove(experiments_file_path)
         telemetry_client != None and telemetry_client.track_event('ExperimentationAzure.OfflineExperimentation', properties, { 'TimeTaken' : (datetime.now() - experimentation_start_time).seconds })
 
@@ -150,7 +141,7 @@ if __name__ == '__main__':
     dashboard_file_path = os.path.join(output_dir, main_args.dashboard_filename)
     d = dashboard_utils.create_stats(output_gz_fp)
     dashboard_utils.output_dashboard_data(d, dashboard_file_path)
-    azure_util.upload_to_blob(ld_args.app_id,  main_args.output_folder + "\\"+ main_args.dashboard_filename, dashboard_file_path, True)
+    azure_util.upload_to_blob(ld_args.app_id,  os.path.join(main_args.output_folder, main_args.dashboard_filename), dashboard_file_path, True)
 
     if main_args.get_feature_importance:
         feature_importance_start_time = datetime.now()
@@ -186,7 +177,7 @@ if __name__ == '__main__':
         feature_importance_file_path = os.path.join(output_dir, main_args.feature_importance_filename)
         with open(feature_importance_file_path, 'w') as feature_importance_file:
             json.dump(feature_buckets, feature_importance_file)
-        azure_util.upload_to_blob(ld_args.app_id,  main_args.output_folder + "\\"+ main_args.feature_importance_filename, feature_importance_file_path, True)
+        azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, main_args.feature_importance_filename), feature_importance_file_path, True)
         telemetry_client != None and telemetry_client.track_event('ExperimentationAzure.FeatureImportance', properties, { 'TimeTaken' : (datetime.now() - feature_importance_start_time).seconds })
 
     # Merge calculated policies into summary file path, upload summary file
@@ -210,7 +201,7 @@ if __name__ == '__main__':
                     print(e)
             with open(summary_file_path, 'w') as outfile:
                 json.dump(summary_data, outfile)
-            azure_util.upload_to_blob(ld_args.app_id,  main_args.output_folder + "\\"+ main_args.summary_json, summary_file_path, True)
+            azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, main_args.summary_json), summary_file_path, True)
 
     if main_args.cleanup:
         print('Deleting folder as part of cleanup: ' + ld_args.log_dir)
