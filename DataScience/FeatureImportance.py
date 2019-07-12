@@ -38,15 +38,12 @@ import os, argparse, sys
 from subprocess import check_output, DEVNULL
 
 def get_pretty_feature(feature):
-    retval = ''
     tokens = feature.split('^')
     if tokens[0] == 'FromUrl':
-        retval = 'Context '
-        tokens.pop(0)
+        tokens[0] = 'Context'
     elif tokens[0] == 'i' or tokens[0] == 'j':
-        retval = 'Action '
-        tokens.pop(0)
-    return retval + '.'.join(tokens)
+        tokens[0] = 'Action'
+    return '.'.join(tokens)
 
 def get_pretty_features(features):
     featurelist = features.split('*')
@@ -150,7 +147,9 @@ def get_feature_importance(log_file, ml_args, warmstart_model=None, min_num_feat
             l1 *= 10
     print("feature funnel sizes: {0}".format([len(features) for features in all_features_funnel]))
     feature_buckets = get_feature_buckets(all_features_funnel)
+    not_required_features = ['constant', 'action.constant']
     pretty_feature_buckets = [[get_pretty_features(feature) for feature in feature_bucket] for feature_bucket in feature_buckets]
+    pretty_feature_buckets = [[f for f in bucket if f.lower() not in not_required_features] for bucket in pretty_feature_buckets]
     return [feature_buckets, pretty_feature_buckets]
     
 def add_parser_args(parser):
