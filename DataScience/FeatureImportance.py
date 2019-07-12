@@ -37,6 +37,22 @@ Emotion2^sadness:157471:-1.35735
 import os, argparse, sys
 from subprocess import check_output, DEVNULL
 
+def get_pretty_feature(feature):
+    retval = ''
+    tokens = feature.split('^')
+    if tokens[0] == 'FromUrl':
+        retval = 'Context '
+        tokens.pop(0)
+    elif tokens[0] == 'i' or tokens[0] == 'j':
+        retval = 'Action '
+        tokens.pop(0)
+    return retval + '.'.join(tokens)
+
+def get_pretty_features(features):
+    featurelist = features.split('*')
+    pretty_feature_list = list(map(get_pretty_feature, featurelist))
+    return " with ".join(pretty_feature_list)
+
 def extract_features(fp, inv_hash):
     features = []
     text = open(fp).read().split('\n:0\n',1)[1].strip()
@@ -133,8 +149,10 @@ def get_feature_importance(log_file, ml_args, warmstart_model=None, min_num_feat
         else:
             l1 *= 10
     print("feature funnel sizes: {0}".format([len(features) for features in all_features_funnel]))
-    return get_feature_buckets(all_features_funnel)
-
+    feature_buckets = get_feature_buckets(all_features_funnel)
+    pretty_feature_buckets = [[get_pretty_features(feature) for feature in feature_bucket] for feature_bucket in feature_buckets]
+    return [feature_buckets, pretty_feature_buckets]
+    
 def add_parser_args(parser):
     parser.add_argument('-d', '--data', type=str, help="input log file.", required=True)
     parser.add_argument('--ml_args', help="ML arguments (default: --cb_adf -l 0.01)", default='--cb_adf -l 0.01')
