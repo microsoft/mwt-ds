@@ -34,37 +34,37 @@ def get_prediction_prob(a0, pred_line):
 
     return pred_prob
 
-def output_dashboard_data(d, dashboard_file, commands={}):
+def output_dashboard_data(d, dashboard_file, commands={}, sep=':'):
     data_dict = collections.OrderedDict()
     for x in d:
         for type in d[x]:
             for field in d[x][type]:
-                data_dict.setdefault(type+'_'+field, []).append(d[x][type][field])
+                data_dict.setdefault(type+sep+field, []).append(d[x][type][field])
 
     df = pandas.DataFrame(data_dict, index=pandas.to_datetime([x for x in d]), dtype=float)
 
     df_col = collections.OrderedDict()
     for x in df.columns:
-        temp = x.split('_')
+        temp = x.split(sep)
         df_col.setdefault(temp[0],[]).append(temp[1])
 
     agg_windows = [('5T',5),('H',60),('6H',360),('D',1440)]
     with open(dashboard_file, 'a') as f:
         for ag in agg_windows:
-            for index, row in df.resample(ag[0]).agg({type+'_'+field : max if field == 'c' else sum for type in df_col for field in df_col[type]}).replace(np.nan, 0.0).iterrows():
+            for index, row in df.resample(ag[0]).agg({type+sep+field : max if field == 'c' else sum for type in df_col for field in df_col[type]}).replace(np.nan, 0.0).iterrows():
                 d = []
                 for type in df_col:
-                    temp = collections.OrderedDict({field : row[type+'_'+field] for field in df_col[type]})
+                    temp = collections.OrderedDict({field : row[type+sep+field] for field in df_col[type]})
                     temp["w"] = ag[1]
                     temp["t"] = type
                     d.append(temp)
                 f.write(json.dumps({"ts":index.strftime("%Y-%m-%dT%H:%M:%SZ"),"d":d})+'\n')
 
         # total aggregates
-        tot = df.agg({type+'_'+field : max if field == 'c' else sum for type in df_col for field in df_col[type]}).replace(np.nan, 0.0)
+        tot = df.agg({type+sep+field : max if field == 'c' else sum for type in df_col for field in df_col[type]}).replace(np.nan, 0.0)
         d = []
         for type in df_col:
-            temp = collections.OrderedDict({field : tot[type+'_'+field] for field in df_col[type]})
+            temp = collections.OrderedDict({field : tot[type+sep+field] for field in df_col[type]})
             temp["w"] = "tot"
             temp["t"] = type
             if type in commands.keys():
