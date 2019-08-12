@@ -50,6 +50,7 @@ if __name__ == '__main__':
     main_parser.add_argument('--cleanup', help="delete logs and created files after use", action='store_true')
     main_parser.add_argument('--get_feature_importance', help="run FeatureImportance.py", action='store_true')
     main_parser.add_argument('--feature_importance_filename', help="name of the output feature importance file", default='featureimportance.json')
+    main_parser.add_argument('--feature_importance_raw_filename', help="name of the output feature importance file with raw (unparsed) features", default='featureimportanceraw.json')
     main_parser.add_argument('--ml_args', help="the online policy that we need for calculating the feature importances", required=True)
     main_parser.add_argument('--appInsightsInstrumentationKey', help="App Insights key for logging metrics")
     main_args, other_args = main_parser.parse_known_args(sys.argv[1:])
@@ -173,11 +174,20 @@ if __name__ == '__main__':
         fi_args, other_args = feature_importance_parser.parse_known_args(other_args)
 
         # Run FeatureImportance.py using output_gz_fp as input
-        feature_buckets = FeatureImportance.main(fi_args)
+        feature_buckets, pretty_feature_buckets = FeatureImportance.main(fi_args)
+
+        # Feature importance values that are user-friendly strings
         feature_importance_file_path = os.path.join(output_dir, main_args.feature_importance_filename)
         with open(feature_importance_file_path, 'w') as feature_importance_file:
-            json.dump(feature_buckets, feature_importance_file)
+            json.dump(pretty_feature_buckets, feature_importance_file)
         azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, main_args.feature_importance_filename), feature_importance_file_path, True)
+
+        # Feature importance values that are hashes returned by vw
+        feature_importance_raw_file_path = os.path.join(output_dir, main_args.feature_importance_raw_filename)
+        with open(feature_importance_raw_file_path, 'w') as feature_importance_raw_file:
+            json.dump(feature_buckets, feature_importance_raw_file)
+        azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, main_args.feature_importance_raw_filename), feature_importance_raw_file_path, True)
+
         telemetry_client != None and telemetry_client.track_event('ExperimentationAzure.FeatureImportance', properties, { 'TimeTaken' : (datetime.now() - feature_importance_start_time).seconds })
 
     # Merge calculated policies into summary file path, upload summary file
