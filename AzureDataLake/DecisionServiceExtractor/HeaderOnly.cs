@@ -23,6 +23,13 @@ namespace DecisionServiceExtractor
                     output.Set(fieldIdx, (string)jsonReader.Value);
             }
 
+            private static void ExtractPropertyBool(JsonTextReader jsonReader, IUpdatableRow output, int fieldIdx, bool hasField)
+            {
+                jsonReader.Read();
+                if (hasField)
+                    output.Set(fieldIdx, (bool)jsonReader.Value);
+            }
+
             private static void ExtractPropertyInteger(JsonTextReader jsonReader, IUpdatableRow output, int fieldIdx, bool hasField)
             {
                 jsonReader.Read();
@@ -78,6 +85,7 @@ namespace DecisionServiceExtractor
             private readonly bool hasJsonObject;
             private readonly bool hasPdrop;
             private readonly bool hasIsDangling;
+            private readonly bool hasSkipLearn;
 
             private readonly int idxEventId;
             private readonly int idxTimestamp;
@@ -90,6 +98,7 @@ namespace DecisionServiceExtractor
             private readonly int idxData;
             private readonly int idxPdrop;
             private readonly int idxIsDangling;
+            private readonly int idxSkipLearn;
 
             private FieldExpression[] expressions;
 
@@ -108,6 +117,7 @@ namespace DecisionServiceExtractor
                 this.hasData = HasColumnOfType(schema, "Data", typeof(string), out this.idxData);
                 this.hasPdrop = HasColumnOfType(schema, "pdrop", typeof(float), out this.idxPdrop);
                 this.hasIsDangling = HasColumnOfType(schema, "IsDangling", typeof(bool), out this.idxIsDangling);
+                this.hasSkipLearn = HasColumnOfType(schema, "SkipLearn", typeof(bool), out this.idxSkipLearn);
 
                 this.hasJsonObject = false;
                 foreach (var fe in expressions)
@@ -140,7 +150,10 @@ namespace DecisionServiceExtractor
             public IRow ParseEvent(IUpdatableRow output, Stream input)
             {
                 TextReader inputReader;
-
+                if (this.hasSkipLearn)
+                {
+                    output.Set(this.idxSkipLearn, false);
+                }
                 if (!this.hasData)
                     inputReader = new StreamReader(input, Encoding.UTF8);
                 else
@@ -189,6 +202,12 @@ namespace DecisionServiceExtractor
 
                     if (this.hasEnqueuedTimeUtc)
                         output.Set(this.idxEnqueuedTimeUtc, jobj.Value<DateTime>("EnqueuedTimeUtc"));
+
+                    if (this.hasSkipLearn)
+                    {
+                        var optional = jobj.Value<bool?>("_skipLearn"); ;
+                        output.Set(this.idxSkipLearn, (bool)(optional.HasValue?optional:false));
+                    }
 
                     if (this.hasCost)
                         output.Set(this.idxCost, (float)jobj.Value<double>("_label_cost"));
@@ -272,7 +291,9 @@ namespace DecisionServiceExtractor
                                         case "pdrop":
                                             ExtractPropertyDouble(jsonReader, output, this.idxPdrop, this.hasPdrop);
                                             break;
-
+                                        case "_skipLearn":
+                                            ExtractPropertyBool(jsonReader, output, this.idxSkipLearn, this.hasSkipLearn);
+                                            break;
                                         case "EnqueuedTimeUtc":
                                             if (this.hasEnqueuedTimeUtc)
                                                 output.Set(this.idxEnqueuedTimeUtc, (DateTime)jsonReader.ReadAsDateTime());

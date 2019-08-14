@@ -61,6 +61,13 @@ namespace DecisionServiceExtractor.Test
                 );
         }
 
+        private ISchema CreateSkipLearnSchema()
+        {
+            return new USqlSchema(
+                new USqlColumn<bool>("SkipLearn")
+                );
+        }
+
 
         private IRow CreateDefaultRow(ISchema schema)
         {
@@ -197,6 +204,37 @@ namespace DecisionServiceExtractor.Test
                         Assert.AreEqual("id", output.Get<string>("EventId"));
                         Assert.IsTrue(string.IsNullOrWhiteSpace(output.Get<string>("ParseError")));
                     }
+                }
+            }
+        }
+
+        [TestMethod]
+        public void SkipLearnTest()
+        {
+            var skipLearnFalse = @"{""_label_cost"":-1,""_label_probability"":0.866666973,""_label_Action"":3,""_labelIndex"":2,""_skipLearn"":false,""o"":[{""EventId"":""924da681-ea4f-4434-bc52-e9879393a052"",""v"":1.000000}],""Timestamp"":""2018-10-19T15:09:15.1100000Z"",""Version"":""1"",""EventId"":""924da681-ea4f-4434-bc52-e9879393a052"",""DeferredAction"":true,""a"":[3,2,1],""c"":{""User"":{""id"":""mk"",""major"":""psychology"",""hobby"":""kids"",""favorite_character"":""7of9""},""_multi"":[{""a"":{""topic"":""HerbGarden""}},{""a"":{""topic"":""MachineLearning""}},{""a"":{""topic"":""Football""}}]},""p"":[0.866667,0.066667,0.066667],""VWState"":{""m"":""model_id""}}";
+            var skipLearnTrue = @"{""_label_cost"":-1,""_label_probability"":0.866666973,""_label_Action"":3,""_labelIndex"":2,""_skipLearn"":true,""o"":[{""EventId"":""924da681-ea4f-4434-bc52-e9879393a052"",""v"":1.000000}],""Timestamp"":""2018-10-19T15:09:15.1100000Z"",""Version"":""1"",""EventId"":""924da681-ea4f-4434-bc52-e9879393a052"",""DeferredAction"":true,""a"":[3,2,1],""c"":{""User"":{""id"":""mk"",""major"":""psychology"",""hobby"":""kids"",""favorite_character"":""7of9""},""_multi"":[{""a"":{""topic"":""HerbGarden""}},{""a"":{""topic"":""MachineLearning""}},{""a"":{""topic"":""Football""}}]},""p"":[0.866667,0.066667,0.066667],""VWState"":{""m"":""model_id""}}";
+            var noSkipLearn = @"{""_label_cost"":-1,""_label_probability"":0.866666973,""_label_Action"":3,""_labelIndex"":2,""o"":[{""EventId"":""924da681-ea4f-4434-bc52-e9879393a052"",""v"":1.000000}],""Timestamp"":""2018-10-19T15:09:15.1100000Z"",""Version"":""1"",""EventId"":""924da681-ea4f-4434-bc52-e9879393a052"",""DeferredAction"":true,""a"":[3,2,1],""c"":{""User"":{""id"":""mk"",""major"":""psychology"",""hobby"":""kids"",""favorite_character"":""7of9""},""_multi"":[{""a"":{""topic"":""HerbGarden""}},{""a"":{""topic"":""MachineLearning""}},{""a"":{""topic"":""Football""}}]},""p"":[0.866667,0.066667,0.066667],""VWState"":{""m"":""model_id""}}";
+            var extractor = new HeaderOnly();
+            var output = new USqlUpdatableRow(CreateDefaultRow(CreateSkipLearnSchema()));
+            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes($"{skipLearnFalse}\n{skipLearnTrue}\n{noSkipLearn}")))
+            {
+                var input = new USqlStreamReader(stream);
+                int counter = 0;
+                foreach (var outputRow in extractor.Extract(input, output))
+                {
+                    if (counter == 0)
+                    {
+                        Assert.IsFalse(output.Get<bool>("SkipLearn"));
+                    }
+                    else if (counter == 1)
+                    {
+                        Assert.IsTrue(output.Get<bool>("SkipLearn"));
+                    }
+                    else
+                    {
+                        Assert.IsFalse(output.Get<bool>("SkipLearn"));
+                    }
+                    counter++;
                 }
             }
         }
