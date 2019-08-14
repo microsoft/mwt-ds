@@ -1,0 +1,79 @@
+﻿USE DATABASE [DecisionServiceDB];
+
+REFERENCE ASSEMBLY DecisionServiceDB.[DecisionServiceExtractor];
+
+DECLARE @_appId string = "";    //your appId
+DECLARE @_account string = "";    // your account name
+
+DECLARE @_year string = "2019";  //your date: year
+DECLARE @_month string = "08";     //your date: month
+DECLARE @_day string = "05";       //your date: day
+
+DECLARE @OutputFolder string = "/daily/test1/";      //your output folder
+DECLARE @OutputSlimLogs bool = false;     //true if you want to have slime version of logs (all metadata without features)
+     
+DECLARE @InputFile string = "wasb://"+ @_appId +"@" + @_account + ".blob.core.windows.net/{model}/data/{year}/{month}/{day}_{filename}.json";
+
+DECLARE @OutputFileInteractions string = @OutputFolder + "interactions-" + @_year + "-" + @_month + "-" + @_day + ".csv";
+DECLARE @OutputFileDangling string = @OutputFolder + "dangling-" + @_year + "-" + @_month + "-" + @_day + ".csv";
+DECLARE @OutputFileStatistics string = @OutputFolder + "statistics.csv";
+
+@Events =  
+    EXTRACT EventId string, 
+            Timestamp DateTime, 
+            EnqueuedTimeUtc DateTime,
+            Prob float,
+            Cost float,
+            [Action] int,
+            NumActions int,
+            HasObservations int,
+            model string, //virtual column
+            day string, //virtual column
+            month string, //virtual column
+            year string, //virtual column
+            filename string, //virtual column
+            pdrop float,
+            IsDangling bool,
+            SkipLearn bool
+    FROM @InputFile
+    USING new DecisionServiceExtractor.HeaderOnly();
+
+@Events = SELECT * FROM @Events WHERE year == @_year AND month == @_month AND day == @_day;
+
+@Interactions = SELECT EventId, Timestamp, HasObservations, Prob, Cost, Action, NumActions, pdrop, SkipLearn, model FROM @Events WHERE IsDangling == false;
+
+@Statistics =
+    SELECT Timestamp.ToString("yyyy/MM/dd HH:00") AS hour,
+           SUM(HasObservations != 0? (1.0 / 1.0 - pdrop) : 0) AS obser,
+           SUM(Cost != 0? (1.0 / 1.0 - pdrop) : 0) AS clicks,
+           SUM(1.0 / (1.0 - pdrop)) AS impressions,
+           SUM(Cost != 0 AND Action == 1? (1.0 / 1.0 - pdrop) : 0) AS clicks1,
+           SUM(Action == 1? (1.0 / 1.0 - pdrop) : 0) AS impressions1,
+           SUM(Cost != 0 AND Action == 1? (1.0 / 1.0 - pdrop) / Prob : 0) AS clicksIps1,
+           SUM(Action == 1? (1.0 / 1.0 - pdrop) / Prob : 0) AS impressionsIps1,
+           SUM(Cost != 0? (1.0 / 1.0 - pdrop) / Prob / NumActions : 0) AS clicksIpsR,
+           SUM((1.0 / 1.0 - pdrop) / Prob / NumActions) AS impressionsIpsR
+    FROM @Interactions
+    GROUP BY Timestamp.ToString("yyyy/MM/dd HH:00"), model;
+
+OUTPUT @Statistics
+TO @OutputFileStatistics
+USING Outputters.Csv(outputHeader:true);
+
+IF @OutputSlimLogs == true THEN
+    @Dangling =
+        SELECT EventId,
+            EnqueuedTimeUtc
+        FROM @Events
+        WHERE IsDangling == true;
+
+    OUTPUT @Interactions
+    TO @OutputFileInteractions
+    USING Outputters.Csv(outputHeader:true);
+
+    OUTPUT @Dangling
+    TO @OutputFileDangling
+    USING Outputters.Csv(outputHeader:true);
+END;
+
+
