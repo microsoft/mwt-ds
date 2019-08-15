@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DecisionServiceExtractor.Te
 EndProject
 Project("{0C603C2C-620A-423B-A800-4F3E2F6281F1}") = "DecisionServiceDB", "..\DecisionServiceDB\DecisionServiceDB.usqldbproj", "{48461B47-CA2B-4FD1-B2C8-E0C1F0871FC6}"
 EndProject
-Project("{182E2583-ECAD-465B-BB50-91101D7C24CE}") = "Scripts", "Scripts\Scripts.usqlproj", "{0FEB042F-9B4D-4149-8152-20EFEACA85EE}"
+Project("{182E2583-ECAD-465B-BB50-91101D7C24CE}") = "Scripts", "..\Scripts\Scripts.usqlproj", "{0FEB042F-9B4D-4149-8152-20EFEACA85EE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
