@@ -7,7 +7,7 @@ DECLARE @_account string = "";    // your account name
 
 DECLARE @_year string = "2019";  //your date: year
 DECLARE @_month string = "08";     //your date: month
-DECLARE @_day string = "05";       //your date: day
+DECLARE @_day string = "12";       //your date: day
 
 DECLARE @OutputFolder string = "/daily/";      //your output folder
 DECLARE @OutputSlimLogs bool = false;     //true if you want to have slime version of logs (all metadata without features)
@@ -16,7 +16,7 @@ DECLARE @InputFile string = "wasb://"+ @_appId +"@" + @_account + ".blob.core.wi
 
 DECLARE @OutputFileInteractions string = @OutputFolder + "interactions-" + @_year + "-" + @_month + "-" + @_day + ".csv";
 DECLARE @OutputFileDangling string = @OutputFolder + "dangling-" + @_year + "-" + @_month + "-" + @_day + ".csv";
-DECLARE @OutputFileStatistics string = @OutputFolder + "statistics.csv";
+DECLARE @OutputFileStatistics string = @OutputFolder + "statistics-" + @_year + "-" + @_month + "-" + @_day + ".csv";
 
 @Events =  
     EXTRACT EventId string, 
