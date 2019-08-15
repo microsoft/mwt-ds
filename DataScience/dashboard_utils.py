@@ -71,6 +71,7 @@ def output_dashboard_data(d, dashboard_file, commands={}, sep=':'):
                 temp["command"] = command.to_commandline(commands[type])
             d.append(temp)
         f.write(json.dumps({"ts":"Total","d":d})+'\n')
+    print('Dashboard file:',dashboard_file)
 
 def merge_and_unique_stats(stats_files, dashboard_file):
     d = {}
@@ -80,14 +81,14 @@ def merge_and_unique_stats(stats_files, dashboard_file):
             js = json.loads(x)
             if js['d'][0]['w'] != 5:
                 continue
-            num = -1
-            den = -1
+            num = None
+            den = None
             for y in js['d']:
                 if y['t'] == 'online':
                     num = y['n']
                     den = y['d']
                     break
-            if min(num, den) < 0:
+            if num is None or den is None:
                 print('Error: "online" policy stats not found in input:',x)
                 continue
             if js['ts'] not in d or d[js['ts']]['online']['d'] < den or (d[js['ts']]['online']['d'] == den and d[js['ts']]['online']['n'] < num):
@@ -147,7 +148,12 @@ def create_stats(log_fp, d=None, predictions_files=None):
             if data['skipLearn'] or data['p'] < 1e-10 or data['num_a'] < 1 or data['a'] < 1:
                 continue
 
-            r = 0 if data['cost'] == b'0' else -float(data['cost'])
+            if data['cost'] == b'0':
+                r = 0
+                abs_r = 0
+            else:
+                r = -float(data['cost'])
+                abs_r = abs(r)
 
             ############################### Aggregates for each bin ######################################
             #
@@ -186,11 +192,11 @@ def create_stats(log_fp, d=None, predictions_files=None):
             if r != 0:
                 d[ts_bin]['online']['n'] += r
                 d[ts_bin]['baselineRand']['n'] += r/data['p']/data['num_a']
-                d[ts_bin]['baselineRand']['c'] = max(d[ts_bin]['baselineRand']['c'], r/data['p']/data['num_a'])
+                d[ts_bin]['baselineRand']['c'] = max(d[ts_bin]['baselineRand']['c'], abs_r/data['p']/data['num_a'])
                 d[ts_bin]['baselineRand']['SoS'] += (r/data['p']/data['num_a'])**2
                 if data['a'] == 1:
                     d[ts_bin]['baseline1']['n'] += r/data['p']
-                    d[ts_bin]['baseline1']['c'] = max(d[ts_bin]['baseline1']['c'], r/data['p'])
+                    d[ts_bin]['baseline1']['c'] = max(d[ts_bin]['baseline1']['c'], abs_r/data['p'])
                     d[ts_bin]['baseline1']['SoS'] += (r/data['p'])**2
 
             # update aggregates for additional policies from predictions
@@ -203,7 +209,7 @@ def create_stats(log_fp, d=None, predictions_files=None):
                     d[ts_bin][name]['Ne'] += 1
                     if r != 0:
                         d[ts_bin][name]['n'] += r*p_over_p
-                        d[ts_bin][name]['c'] = max(d[ts_bin][name]['c'], r*p_over_p)
+                        d[ts_bin][name]['c'] = max(d[ts_bin][name]['c'], abs_r*p_over_p)
                         d[ts_bin][name]['SoS'] += (r*p_over_p)**2
             evts += 1
     if log_fp.endswith('.gz'):
@@ -223,7 +229,7 @@ def create_stats(log_fp, d=None, predictions_files=None):
 
 def add_parser_args(parser):
     parser.add_argument('-l','--log_fp', help="data file path (.json or .json.gz format - each line is a dsjson)", required=True)
-    parser.add_argument('-o','--output_fp', help="output file", required=True)
+    parser.add_argument('-o','--output_fp', help="output file (default: log_fp+'.dash'")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -231,6 +237,9 @@ if __name__ == '__main__':
     args_dict = vars(parser.parse_args())   # this creates a dictionary with all input CLI
     for x in args_dict:
         locals()[x] = args_dict[x]  # this is equivalent to foo = args.foo
+
+    if not output_fp:
+        output_fp = log_fp+'.dash'
 
     d = create_stats(log_fp)
     output_dashboard_data(d, output_fp)
