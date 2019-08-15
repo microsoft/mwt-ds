@@ -9,7 +9,7 @@ DECLARE @_year string = "2019";  //your date: year
 DECLARE @_month string = "08";     //your date: month
 DECLARE @_day string = "05";       //your date: day
 
-DECLARE @OutputFolder string = "/daily/test1/";      //your output folder
+DECLARE @OutputFolder string = "/daily/";      //your output folder
 DECLARE @OutputSlimLogs bool = false;     //true if you want to have slime version of logs (all metadata without features)
      
 DECLARE @InputFile string = "wasb://"+ @_appId +"@" + @_account + ".blob.core.windows.net/{model}/data/{year}/{month}/{day}_{filename}.json";
@@ -44,15 +44,16 @@ DECLARE @OutputFileStatistics string = @OutputFolder + "statistics.csv";
 
 @Statistics =
     SELECT Timestamp.ToString("yyyy/MM/dd HH:00") AS hour,
-           SUM(HasObservations != 0? (1.0 / 1.0 - pdrop) : 0) AS obser,
-           SUM(Cost != 0? (1.0 / 1.0 - pdrop) : 0) AS clicks,
+           model,
+           SUM(HasObservations != 0? (1.0 / (1.0 - pdrop)) : 0) AS obser,
+           SUM(Cost != 0? (1.0 / (1.0 - pdrop)) : 0) AS clicks,
            SUM(1.0 / (1.0 - pdrop)) AS impressions,
-           SUM(Cost != 0 AND Action == 1? (1.0 / 1.0 - pdrop) : 0) AS clicks1,
-           SUM(Action == 1? (1.0 / 1.0 - pdrop) : 0) AS impressions1,
-           SUM(Cost != 0 AND Action == 1? (1.0 / 1.0 - pdrop) / Prob : 0) AS clicksIps1,
-           SUM(Action == 1? (1.0 / 1.0 - pdrop) / Prob : 0) AS impressionsIps1,
-           SUM(Cost != 0? (1.0 / 1.0 - pdrop) / Prob / NumActions : 0) AS clicksIpsR,
-           SUM((1.0 / 1.0 - pdrop) / Prob / NumActions) AS impressionsIpsR
+           SUM(Cost != 0 AND Action == 1? (1.0 / (1.0 - pdrop)) : 0) AS clicks1,
+           SUM(Action == 1? (1.0 / (1.0 - pdrop)) : 0) AS impressions1,
+           SUM(Cost != 0 AND Action == 1? (1.0 / (1.0 - pdrop)) / Prob : 0) AS clicksIps1,
+           SUM(Action == 1? (1.0 / (1.0 - pdrop)) / Prob : 0) AS impressionsIps1,
+           SUM(Cost != 0? (1.0 / (1.0 - pdrop)) / Prob / NumActions : 0) AS clicksIpsR,
+           SUM((1.0 / (1.0 - pdrop)) / Prob / NumActions) AS impressionsIpsR
     FROM @Interactions
     GROUP BY Timestamp.ToString("yyyy/MM/dd HH:00"), model;
 
