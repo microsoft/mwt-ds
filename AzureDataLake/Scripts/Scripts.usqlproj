@@ -6,7 +6,7 @@
     <ProjectGuid>627b7a60-f6b0-4528-af21-2b48f6bc2f60</ProjectGuid>
     <OutputType>File</OutputType>
     <AssemblyName>Scripts.usqlpack</AssemblyName>
-    <StartFile>Script.usql</StartFile>
+    <StartFile>Process.usql</StartFile>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <USQLProjectVersion>2</USQLProjectVersion>
     <Name>Scripts</Name>
@@ -21,9 +21,9 @@
     <OutputPath>bin\Release\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <Script Include="Script.usql" />
-    <ScriptCode Include="Script.usql.cs">
-      <DependentUpon>Script.usql</DependentUpon>
+    <Script Include="Process.usql" />
+    <ScriptCode Include="Process.usql.cs">
+      <DependentUpon>Process.usql</DependentUpon>
     </ScriptCode>
   </ItemGroup>
   <!-- check for SDK Build target in current path then in USQLSDKPath-->
