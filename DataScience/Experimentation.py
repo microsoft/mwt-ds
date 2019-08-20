@@ -60,9 +60,10 @@ class Command:
             self.full_command += " --ignore {}".format(ignored_namespace)
         for interaction in self.interaction_list:
             self.full_command += " -q {}".format(interaction)
-        self.full_command += " -l {}".format(self.learning_rate)
-        self.full_command += " --l1 {}".format(self.regularization)
-        self.full_command += " --power_t {}".format(self.power_t)
+        self.full_command += " -l {:g}".format(self.learning_rate)
+        if self.regularization > 0:
+            self.full_command += " --l1 {:g}".format(self.regularization)
+        self.full_command += " --power_t {:g}".format(self.power_t)
 
     def prints(self):
         print("cb type: {0}".format(self.cb_type))
@@ -155,6 +156,21 @@ def detect_namespaces(j_obj, ns_set, marginal_set):
 
     return prop_type
 
+def get_hp_command_list(base_command, best_command, cb_types, marginal_features, learning_rates, regularizations, power_t_rates):
+    marginal_lists = [set()]
+    for marginal_feature in marginal_features:
+        marginal_lists.append({marginal_feature})
+
+    command_list = []
+    for marginal_list in marginal_lists:
+        for cb_type in cb_types:
+            for learning_rate in learning_rates:
+                for regularization in regularizations:
+                    for power_t in power_t_rates:
+                        command = Command(base_command, clone_from=best_command, regularization=regularization, learning_rate=learning_rate, power_t=power_t, cb_type=cb_type, marginal_list=marginal_list)
+                        command_list.append(command)
+    return command_list
+
 # Ensures validity and parse min_max_steps input
 def parse_min_max_steps(val):
     try:
@@ -165,9 +181,24 @@ def parse_min_max_steps(val):
         steps = int(temp[2])
         if steps < 1 or (not (val_max >= val_min >= 0)) or (steps > 1 and val_min == 0):
             raise
+        step_list = np.logspace(np.log10(val_min), np.log10(val_max), steps) if steps > 1 else [val_min]
+        if step_list[0] < 1e-8:
+            if any(0 < x < 1e-8 for x in step_list):
+                print('Warning: Parsing: {}. Values below 1e-8 are interpreted as 0\n'.format(val))
+            step_list = [0] + [x for x in step_list if x >= 1e-8]
     except:
         raise argparse.ArgumentTypeError('Input "{}" is an invalid range (make sure that steps > 0, max >= min >= 0, and min > 0 if steps > 1)'.format(val))
-    return np.logspace(np.log10(val_min), np.log10(val_max), steps) if steps > 1 else [val_min]
+    return step_list
+
+def parse_cb_types(val):
+    try:
+        cb_types = val.split(',')
+        for x in cb_types:
+            if x not in {'ips', 'dr', 'mtr'}:
+                raise
+    except:
+        raise argparse.ArgumentTypeError('Input "{}" is an invalid cb_types input string - Valid cb_types are mtr, dr, ips'.format(val))
+    return cb_types
 
 def generate_predictions_files(log_fp, policies):
 
@@ -211,9 +242,10 @@ def add_parser_args(parser):
     parser.add_argument('--marginal_namespaces', type=str, help="marginal feature namespaces (default: auto-detect from data file)", default='')
     parser.add_argument('--auto_lines', type=int, help="number of data file lines to scan to auto-detect features namespaces (default: 100)", default=100)
     parser.add_argument('--only_hp', help="sweep only over hyper-parameters (`learning rate`, `L1 regularization`, and `power_t`)", action='store_true')
-    parser.add_argument('-l','--learning_rates', type=parse_min_max_steps, help="learning rate range as positive values 'min,max,steps' (default: 1e-5,0.5,4)", default='1e-5,0.5,4')
-    parser.add_argument('-r','--regularizations', type=parse_min_max_steps, help="L1 regularization range as positive values 'min,max,steps' (default: 1e-9,0.1,5)", default='1e-9,0.1,5')
-    parser.add_argument('-t','--power_t_rates', type=parse_min_max_steps, help="Power_t range as positive values 'min,max,steps' (default: 1e-9,0.5,5)", default='1e-9,0.5,5')
+    parser.add_argument('-l','--learning_rates', type=parse_min_max_steps, help="learning rate range as positive values 'min,max,steps' (default: 1e-6,10,8)", default='1e-6,10,8')
+    parser.add_argument('-r','--regularizations', type=parse_min_max_steps, help="L1 regularization range as positive values 'min,max,steps' (default: 1e-9,1e-3,3)", default='1e-9,1e-3,3')
+    parser.add_argument('-t','--power_t_rates', type=parse_min_max_steps, help="Power_t range as positive values 'min,max,steps' (default: 0,0,1)", default='0,0,1')
+    parser.add_argument('--cb_types', type=parse_cb_types, help="Comma-separated list of cb_types for hyper-parameters search 'type1,type2,...,typeN' (default: ips,mtr)", default='ips,mtr')
     parser.add_argument('--q_bruteforce_terms', type=int, help="number of quadratic pairs to test in brute-force phase (default: 2)", default=2)
     parser.add_argument('--q_greedy_stop', type=int, help="rounds without improvements after which quadratic greedy search phase is halted (default: 3)", default=3)
     parser.add_argument('--generate_predictions', help="generate prediction files for best policies", action='store_true')
@@ -271,17 +303,20 @@ def main(args):
             marginal_features = marginal_tmp
 
     print("\n*********** SETTINGS ******************")
-    print("Parallel processes: {}".format(args.n_proc))
-    print()
     print("Base command + log file: {}".format(base_command))
-    print()
-    print('Learning rates: ['+', '.join(map(str,args.learning_rates))+']')
-    print('L1 regularization: ['+', '.join(map(str,args.regularizations))+']')
-    print('Power_t rates: ['+', '.join(map(str,args.power_t_rates))+']')
     print()
     print("Shared feature namespaces: " + str(shared_features))
     print("Action feature namespaces: " + str(action_features))
     print("Marginal feature namespaces: " + str(marginal_features))
+    print()
+    print('cb_types: ['+', '.join(args.cb_types)+']')
+    print('learning rates: ['+', '.join(map(str,args.learning_rates))+']')
+    print('l1 regularization rates: ['+', '.join(map(str,args.regularizations))+']')
+    print('power_t rates: ['+', '.join(map(str,args.power_t_rates))+']')
+    print()
+    print('Hyper-parameters grid size: ',(len(marginal_features)+1)*len(args.cb_types)*len(args.learning_rates)*len(args.regularizations)*len(args.power_t_rates))
+    print()
+    print("Parallel processes: {}".format(args.n_proc))
     print("***************************************")
     if __name__ == '__main__' and input('Press ENTER to start (any other key to exit)...' ) != '':
         sys.exit()
@@ -305,13 +340,8 @@ def main(args):
         if os.path.exists(args.file_path+'.cache'):
             input('Warning: Cache file found, but not used (-c not in CLI). Press to continue anyway...')
 
-    # Regularization, Learning rates, and Power_t rates grid search
-    command_list = []
-    for learning_rate in args.learning_rates:
-        for regularization in args.regularizations:
-            for power_t in args.power_t_rates:
-                command = Command(base_command, clone_from=best_command, regularization=regularization, learning_rate=learning_rate, power_t=power_t)
-                command_list.append(command)
+    # cb_types, marginal, regularization, learning rates, and power_t rates grid search
+    command_list = get_hp_command_list(base_command, best_command, args.cb_types, marginal_features, args.learning_rates, args.regularizations, args.power_t_rates)
 
     print('\nTesting {} different hyperparameters...'.format(len(command_list)))
     results = run_experiment_set(command_list, args.n_proc)
@@ -320,39 +350,6 @@ def main(args):
         best_commands.append(['Hyper1', results[0]])
     
     if not args.only_hp:
-        # CB type
-        print('\nTesting cb types...')
-        cb_types = ['mtr']       # ips is default (avoid to recheck it)
-        command_list = []
-        for cb_type in cb_types:
-            command = Command(base_command, clone_from=best_command, cb_type=cb_type)
-            command_list.append(command)
-            
-        results = run_experiment_set(command_list, args.n_proc)
-        if results[0].loss < best_command.loss:
-            best_command = results[0]
-            best_commands.append(['cbType', results[0]])
-
-        # Add Marginals
-        print('\nTesting marginals...')
-        while True:
-            command_list = []
-            for feature in marginal_features:
-                if feature in best_command.marginal_list:
-                    continue
-                command = Command(base_command, clone_from=best_command, marginal_list={feature})
-                command_list.append(command)
-            
-            if len(command_list) == 0:
-                break
-
-            results = run_experiment_set(command_list, args.n_proc)
-            if results[0].loss < best_command.loss:
-                best_command = results[0]
-                best_commands.append(['Marginals', results[0]])
-            else:
-                break
-            
         # TODO: Which namespaces to ignore
         
         # Test all combinations up to q_bruteforce_terms
@@ -400,13 +397,8 @@ def main(args):
                 rounds_without_improvements += 1
             temp_interaction_list = set(results[0].interaction_list)
 
-        # Regularization, Learning rates, and Power_t rates grid search
-        command_list = []
-        for learning_rate in args.learning_rates:
-            for regularization in args.regularizations:
-                for power_t in args.power_t_rates:
-                    command = Command(base_command, clone_from=best_command, regularization=regularization, learning_rate=learning_rate, power_t=power_t)
-                    command_list.append(command)
+        # cb_types, marginal, regularization, learning rates, and power_t rates grid search
+        command_list = get_hp_command_list(base_command, best_command, args.cb_types, marginal_features, args.learning_rates, args.regularizations, args.power_t_rates)
 
         print('\nTesting {} different hyperparameters...'.format(len(command_list)))
         results = run_experiment_set(command_list, args.n_proc)
