@@ -23,6 +23,13 @@ namespace DecisionServiceExtractor
                     output.Set(fieldIdx, (string)jsonReader.Value);
             }
 
+            private static void ExtractPropertyBool(JsonTextReader jsonReader, IUpdatableRow output, int fieldIdx, bool hasField)
+            {
+                jsonReader.Read();
+                if (hasField)
+                    output.Set(fieldIdx, (bool)jsonReader.Value);
+            }
+
             private static void ExtractPropertyInteger(JsonTextReader jsonReader, IUpdatableRow output, int fieldIdx, bool hasField)
             {
                 jsonReader.Read();
@@ -68,6 +75,7 @@ namespace DecisionServiceExtractor
 
             private readonly bool hasEventId;
             private readonly bool hasTimestamp;
+            private readonly bool hasEnqueuedTimeUtc;
             private readonly bool hasCost;
             private readonly bool hasProbability;
             private readonly bool hasAction;
@@ -75,15 +83,23 @@ namespace DecisionServiceExtractor
             private readonly bool hasHasObservations;
             private readonly bool hasData;
             private readonly bool hasJsonObject;
+            private readonly bool hasPdrop;
+            private readonly bool hasIsDangling;
+            private readonly bool hasSkipLearn;
 
             private readonly int idxEventId;
             private readonly int idxTimestamp;
+            private readonly int idxEnqueuedTimeUtc;
             private readonly int idxCost;
             private readonly int idxProbability;
             private readonly int idxAction;
             private readonly int idxNumActions;
             private readonly int idxHasObservations;
             private readonly int idxData;
+            private readonly int idxPdrop;
+            private readonly int idxIsDangling;
+            private readonly int idxSkipLearn;
+
             private FieldExpression[] expressions;
 
             internal InternalParser(ISchema schema, FieldExpression[] expressions)
@@ -92,12 +108,16 @@ namespace DecisionServiceExtractor
 
                 this.hasEventId = HasColumnOfType(schema, "EventId", typeof(string), out this.idxEventId);
                 this.hasTimestamp = HasColumnOfType(schema, "Timestamp", typeof(DateTime), out this.idxTimestamp);
+                this.hasEnqueuedTimeUtc = HasColumnOfType(schema, "EnqueuedTimeUtc", typeof(DateTime), out this.idxEnqueuedTimeUtc);
                 this.hasCost = HasColumnOfType(schema, "Cost", typeof(float), out this.idxCost);
                 this.hasProbability = HasColumnOfType(schema, "Prob", typeof(float), out this.idxProbability);
                 this.hasAction = HasColumnOfType(schema, "Action", typeof(int), out this.idxAction);
                 this.hasNumActions = HasColumnOfType(schema, "NumActions", typeof(int), out this.idxNumActions);
                 this.hasHasObservations = HasColumnOfType(schema, "HasObservations", typeof(int), out this.idxHasObservations);
                 this.hasData = HasColumnOfType(schema, "Data", typeof(string), out this.idxData);
+                this.hasPdrop = HasColumnOfType(schema, "pdrop", typeof(float), out this.idxPdrop);
+                this.hasIsDangling = HasColumnOfType(schema, "IsDangling", typeof(bool), out this.idxIsDangling);
+                this.hasSkipLearn = HasColumnOfType(schema, "SkipLearn", typeof(bool), out this.idxSkipLearn);
 
                 this.hasJsonObject = false;
                 foreach (var fe in expressions)
@@ -130,7 +150,10 @@ namespace DecisionServiceExtractor
             public IRow ParseEvent(IUpdatableRow output, Stream input)
             {
                 TextReader inputReader;
-
+                if (this.hasSkipLearn)
+                {
+                    output.Set(this.idxSkipLearn, false);
+                }
                 if (!this.hasData)
                     inputReader = new StreamReader(input, Encoding.UTF8);
                 else
@@ -177,6 +200,15 @@ namespace DecisionServiceExtractor
                     if (this.hasTimestamp)
                         output.Set(this.idxTimestamp, jobj.Value<DateTime>("Timestamp"));
 
+                    if (this.hasEnqueuedTimeUtc)
+                        output.Set(this.idxEnqueuedTimeUtc, jobj.Value<DateTime>("EnqueuedTimeUtc"));
+
+                    if (this.hasSkipLearn)
+                    {
+                        var optional = jobj.Value<bool?>("_skipLearn"); ;
+                        output.Set(this.idxSkipLearn, (bool)(optional.HasValue?optional:false));
+                    }
+
                     if (this.hasCost)
                         output.Set(this.idxCost, (float)jobj.Value<double>("_label_cost"));
 
@@ -185,6 +217,12 @@ namespace DecisionServiceExtractor
 
                     if (this.hasAction)
                         output.Set(this.idxAction, (int)jobj.Value<long>("_label_Action"));
+
+                    if (this.hasPdrop)
+                    {
+                        var optional = jobj.Value<double?>("pdrop");
+                        output.Set(this.idxPdrop, (float)(optional.HasValue?optional.Value:0.0f));
+                    }
 
                     if (this.hasNumActions)
                     {
@@ -229,6 +267,8 @@ namespace DecisionServiceExtractor
                                         case "_label_cost":
                                             foundLabelCost = true;
                                             ExtractPropertyDouble(jsonReader, output, this.idxCost, this.hasCost);
+                                            if (this.hasIsDangling)
+                                                output.Set(this.idxIsDangling, false);
                                             break;
                                         case "_label_probability":
                                             ExtractPropertyDouble(jsonReader, output, this.idxProbability, this.hasProbability);
@@ -248,6 +288,18 @@ namespace DecisionServiceExtractor
                                             else
                                                 output.Set(this.idxHasObservations, 1);
                                             break;
+                                        case "pdrop":
+                                            ExtractPropertyDouble(jsonReader, output, this.idxPdrop, this.hasPdrop);
+                                            break;
+                                        case "_skipLearn":
+                                            ExtractPropertyBool(jsonReader, output, this.idxSkipLearn, this.hasSkipLearn);
+                                            break;
+                                        case "EnqueuedTimeUtc":
+                                            if (this.hasEnqueuedTimeUtc)
+                                                output.Set(this.idxEnqueuedTimeUtc, (DateTime)jsonReader.ReadAsDateTime());
+                                            if (this.hasIsDangling)
+                                                output.Set(this.idxIsDangling, true);
+                                            break;
                                         default:
                                             jsonReader.Skip();
                                             break;
@@ -258,8 +310,7 @@ namespace DecisionServiceExtractor
                     }
                 }
 
-                // skip dangling events
-                return foundLabelCost ? output.AsReadOnly() : null;
+                return output.AsReadOnly();
             }
         }
 
@@ -290,13 +341,48 @@ namespace DecisionServiceExtractor
         public override IEnumerable<IRow> Extract(IUnstructuredReader input, IUpdatableRow output)
         {
             var parser = new InternalParser(output.Schema, this.expressions);
-
+            int idxParseError;
+            bool hasParseError = HasColumnOfType(output.Schema, "ParseError", typeof(string), out idxParseError);
             foreach (Stream current in input.Split((byte)'\n'))
             {
-                var row = parser.ParseEvent(output, current);
+                IRow row;
+                try
+                {
+                    if (hasParseError)
+                    {
+                        output.Set<string>(idxParseError, null);
+                    }
+
+                    row = parser.ParseEvent(output, current);
+                }
+                catch (Exception e)
+                {
+                    if (hasParseError)
+                    {
+                        output.Set<string>(idxParseError, $"ParseError: {e.Message}");
+                        row = output.AsReadOnly();
+                    }
+                    else { row = null; }
+                }
                 if (row != null)
                     yield return row;
             }
+        }
+
+        private static bool HasColumnOfType(ISchema schema, string name, Type t, out int idx)
+        {
+            idx = schema.IndexOf(name);
+            if (idx < 0)
+                return false;
+
+            var column = schema[idx];
+
+            // make sure we can write
+            if (column.IsReadOnly)
+                return false;
+
+            // make sure it's the proper type
+            return column.Type == t;
         }
     }
 }

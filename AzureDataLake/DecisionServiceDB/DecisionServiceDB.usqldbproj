@@ -1,0 +1,37 @@
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>48461b47-ca2b-4fd1-b2c8-e0c1f0871fc6</ProjectGuid>
+    <OutputType>File</OutputType>
+    <AssemblyName>DecisionServiceDB.usqldbpack</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <Name>DecisionServiceDB</Name>
+    <RootNamespace>DecisionServiceDB</RootNamespace>
+    <TargetDirectorySeparator>/</TargetDirectorySeparator>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugSymbols>false</DebugSymbols>
+    <OutputPath>bin\Release\</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DecisionServiceExtractor\DecisionServiceExtractor.csproj">
+      <Name>DecisionServiceExtractor</Name>
+      <Project>{0e10be56-eb3d-4ec9-bf31-a1b9f649a9f2}</Project>
+      <Private>True</Private>
+      <TargetDir>DecisionServiceExtractor</TargetDir>
+      <AdditionalFiles>..\DecisionServiceExtractor\bin\$(Configuration)\Newtonsoft.Json.dll</AdditionalFiles>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Script Include="DecisionServiceExtractor.usql">
+      <SubType>Assembly</SubType>
+    </Script>
+  </ItemGroup>
+  <Import Project="$(USQLSDKPath)\USqlDBProject.targets" Condition="'$(USQLSDKPath)' != '' And Exists('$(USQLSDKPath)\USqlDBProject.targets')" />
+</Project>

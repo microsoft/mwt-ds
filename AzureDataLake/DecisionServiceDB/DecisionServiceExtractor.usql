@@ -1,0 +1,5 @@
+﻿CREATE ASSEMBLY [DecisionServiceExtractor]
+FROM @_DeployTempDirectory + @"/DecisionServiceExtractor/DecisionServiceExtractor.dll"
+WITH ADDITIONAL FILES = (
+    @_DeployTempDirectory + @"/DecisionServiceExtractor/Newtonsoft.Json.dll"
+);
