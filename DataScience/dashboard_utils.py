@@ -96,9 +96,11 @@ def merge_and_unique_stats(stats_files, dashboard_file):
     print('Output dashboard data...')
     output_dashboard_data(d, dashboard_file)
 
-def create_stats(log_fp, d={}, predictions_files=None):
+def create_stats(log_fp, d=None, predictions_files=None):
 
     t0 = time.time()
+    if d is None:
+        d = {}
 
     if predictions_files is None:
         print('Searching prediction files for log file: {}'.format(log_fp))
