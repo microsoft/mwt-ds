@@ -3,7 +3,7 @@ if sys.maxsize < 2**32:     # check for 32-bit python version
     if input("32-bit python interpreter detected. There may be problems downloading large files. Do you want to continue anyway [Y/n]? ") not in {'Y', 'y'}:
         sys.exit()
 
-import os, time, datetime, argparse, gzip, configparser, shutil, ds_parse
+import os, time, datetime, argparse, gzip, shutil, ds_parse
 try:
     from azure.storage.blob import BlockBlobService
 except ImportError as e:
@@ -75,7 +75,7 @@ def update_progress(current, total):
     sys.stdout.write(text)
     sys.stdout.flush()
 
-def download_container(app_id, log_dir, conn_string=None, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, verbose=False, create_gzip_mode=-1, delta_mod_t=3600, max_connections=4, confirm=False, report_progress=True):
+def download_container(app_id, log_dir, container=None, conn_string=None, account_name=None, sas_token=None, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, verbose=False, create_gzip_mode=-1, delta_mod_t=3600, max_connections=4, confirm=False, report_progress=True):
     t_start = time.time()
     print('-----'*10)
     print('Current UTC time: {}'.format(datetime.datetime.now(datetime.timezone.utc)))
@@ -86,14 +86,11 @@ def download_container(app_id, log_dir, conn_string=None, start_date=None, end_d
     print('version: {}'.format(version))
     print('create_gzip_mode: {}'.format(create_gzip_mode))
     
+    if not container:
+        container=app_id
+
     if not dry_run:
         os.makedirs(os.path.join(log_dir, app_id), exist_ok=True)
-    
-    if conn_string == None:
-        # The default option is to get Azure Storage Authentication
-        config = configparser.ConfigParser()
-        config.read('ds.config')
-        conn_string = config['AzureStorageAuthentication'].get(app_id, config['AzureStorageAuthentication']['$Default'])
 
     output_fp = None
     print('-----'*10)
@@ -121,7 +118,7 @@ def download_container(app_id, log_dir, conn_string=None, start_date=None, end_d
                     if not conn_string_dict['AccountName'] or len(conn_string_dict['AccountKey']) != 88:
                         print("Error: Invalid Azure Storage ConnectionString.")
                         sys.exit()
-                    url = LogDownloaderURL.format(ACCOUNT_NAME=conn_string_dict['AccountName'], ACCOUNT_KEY=conn_string_dict['AccountKey'].replace('+','%2b'), CONTAINER=app_id, START_DATE=start_date.strftime("%Y-%m-%d"), END_DATE=(end_date+datetime.timedelta(days=1)).strftime("%Y-%m-%d"))
+                    url = LogDownloaderURL.format(ACCOUNT_NAME=conn_string_dict['AccountName'], ACCOUNT_KEY=conn_string_dict['AccountKey'].replace('+','%2b'), CONTAINER=container, START_DATE=start_date.strftime("%Y-%m-%d"), END_DATE=(end_date+datetime.timedelta(days=1)).strftime("%Y-%m-%d"))
                     r = requests.post(url)
                     open(output_fp, 'wb').write(r.content)
                     print(' Done!\n')
@@ -131,15 +128,18 @@ def download_container(app_id, log_dir, conn_string=None, start_date=None, end_d
     else: # using BlockBlobService python api for cooked logs
         try:
             print('Establishing Azure Storage BlockBlobService connection...')
-            bbs = BlockBlobService(connection_string=conn_string)
+            if sas_token:
+                bbs = BlockBlobService(account_name=account_name, sas_token=sas_token)
+            else:
+                bbs = BlockBlobService(connection_string=conn_string)
             # List all blobs and download them one by one
             print('Getting blobs list...')
-            blobs = bbs.list_blobs(app_id)
+            blobs = bbs.list_blobs(container)
         except Exception as e:
             if e.args[0] == 'dictionary update sequence element #0 has length 1; 2 is required':
                 print("Error: Invalid Azure Storage ConnectionString.")
             elif type(e.args[0]) == str and e.args[0].startswith('The specified container does not exist.'):
-                print("Error: The specified container ({}) does not exist.".format(app_id))
+                print("Error: The specified container ({}) does not exist.".format(container))
             else:
                 print("Error:\nType: {}\nArgs: {}".format(type(e).__name__, e.args))
             sys.exit()
@@ -159,7 +159,7 @@ def download_container(app_id, log_dir, conn_string=None, start_date=None, end_d
                 continue
 
             try:
-                bp = bbs.get_blob_properties(app_id, blob.name)
+                bp = bbs.get_blob_properties(container, blob.name)
 
                 if confirm:
                     if input("{} - Do you want to download [Y/n]? ".format(blob.name)) not in {'Y', 'y'}:
@@ -210,11 +210,11 @@ def download_container(app_id, log_dir, conn_string=None, start_date=None, end_d
                         print('Check validity of remote file... ', end='')
                         temp_fp = fp + '.temp'
                         cmpsize = min(file_size,8*1024**2)
-                        bbs.get_blob_to_path(app_id, blob.name, temp_fp, max_connections=max_connections, start_range=file_size-cmpsize, end_range=file_size-1)
+                        bbs.get_blob_to_path(container, blob.name, temp_fp, max_connections=max_connections, start_range=file_size-cmpsize, end_range=file_size-1)
                         if cmp_files(fp, temp_fp, -cmpsize):
                             print('Valid!')
                             print('Resume downloading to temp file with max_connections = {}...'.format(max_connections))
-                            bbs.get_blob_to_path(app_id, blob.name, temp_fp, progress_callback=process_checker, max_connections=max_connections, start_range=os.path.getsize(fp))
+                            bbs.get_blob_to_path(container, blob.name, temp_fp, progress_callback=process_checker, max_connections=max_connections, start_range=os.path.getsize(fp))
                             download_time = time.time()-t0
                             download_size_MB = os.path.getsize(temp_fp)/(1024**2) # file size in MB
                             print('\nAppending to local file...')
@@ -229,7 +229,7 @@ def download_container(app_id, log_dir, conn_string=None, start_date=None, end_d
                         print('Downloaded {:.3f} MB in {:.1f} sec. ({:.3f} MB/sec) - Total elapsed time: {:.1f} sec.\n'.format(download_size_MB, download_time, download_size_MB/download_time, time.time()-t0))
                     else:
                         print('Downloading with max_connections = {}...'.format(max_connections))
-                        bbs.get_blob_to_path(app_id, blob.name, fp, progress_callback=process_checker, max_connections=max_connections)
+                        bbs.get_blob_to_path(container, blob.name, fp, progress_callback=process_checker, max_connections=max_connections)
                         download_time = time.time()-t0
                         download_size_MB = os.path.getsize(fp)/(1024**2) # file size in MB
                         print('\nDownloaded {:.3f} MB in {:.1f} sec. ({:.3f} MB/sec)\n'.format(download_size_MB, download_time, download_size_MB/download_time))
@@ -333,6 +333,16 @@ if __name__ == '__main__':
         
         if kwargs.get('end_date', None) is None:
             kwargs['end_date'] = datetime.datetime.utcnow() 
+
+    # Parse ds.config
+    auth_dict = dict(x.split(': ',1) for x in open('ds.config').read().split('[AzureStorageAuthentication]',1)[1].split('\n') if ': ' in x)
+    auth_str = auth_dict.get(kwargs['app_id'], auth_dict['$Default'])
+    if ',' in auth_str:     # sas token
+        auth_str_dict = dict(x.split(':',1) for x in auth_str.split(','))
+        kwargs.update(auth_str_dict)
+    else:                   # auth_str is connection string
+        kwargs['conn_string'] = auth_str
+
     print('app_id: {0}'.format(kwargs['app_id']))
     print('log_dir: {0}'.format(kwargs['log_dir']))    
     download_container(**kwargs)
