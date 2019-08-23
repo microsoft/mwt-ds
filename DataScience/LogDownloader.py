@@ -63,6 +63,7 @@ def add_parser_args(parser):
     parser.add_argument('--verbose', help="print more details", action='store_true')
     parser.add_argument('--confirm', help="confirm before downloading", action='store_true')
     parser.add_argument('--report_progress', help="report progress while downloading", action='store_false')
+    parser.add_argument('--if_match', help="set get_blob_to_path() if_match field")
     parser.add_argument('-v','--version', type=int, default=2, help='''version of log downloader to use:
     1: for uncooked logs (only for backward compatibility) [deprecated]
     2: for cooked logs [default]''')
@@ -75,7 +76,7 @@ def update_progress(current, total):
     sys.stdout.write(text)
     sys.stdout.flush()
 
-def download_container(app_id, log_dir, container=None, conn_string=None, account_name=None, sas_token=None, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, verbose=False, create_gzip_mode=-1, delta_mod_t=3600, max_connections=4, confirm=False, report_progress=True):
+def download_container(app_id, log_dir, container=None, conn_string=None, account_name=None, sas_token=None, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, verbose=False, create_gzip_mode=-1, delta_mod_t=3600, max_connections=4, confirm=False, report_progress=True, if_match=None):
     t_start = time.time()
     if not container:
         container=app_id
@@ -202,8 +203,9 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                             continue
                     elif overwrite_mode == 4:
                         print('Azure blob currently in use (modified in the last delta_mod_t={} sec). Skipping!\n'.format(delta_mod_t))
-                        continue                        
-                    max_connections = 1 # set max_connections to 1 to prevent crash if azure blob is modified during download
+                        continue
+                    if if_match != '*':     # when if_match is not '*', reset max_connections to 1 to prevent crash if azure blob is modified during download
+                        max_connections = 1
 
                 if dry_run:
                     print('--dry_run - Not downloading!')
@@ -214,11 +216,11 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                         print('Check validity of remote file... ', end='')
                         temp_fp = fp + '.temp'
                         cmpsize = min(file_size,8*1024**2)
-                        bbs.get_blob_to_path(container, blob.name, temp_fp, max_connections=max_connections, start_range=file_size-cmpsize, end_range=file_size-1)
+                        bbs.get_blob_to_path(container, blob.name, temp_fp, max_connections=max_connections, start_range=file_size-cmpsize, end_range=file_size-1, if_match=if_match)
                         if cmp_files(fp, temp_fp, -cmpsize):
                             print('Valid!')
                             print('Resume downloading to temp file with max_connections = {}...'.format(max_connections))
-                            bbs.get_blob_to_path(container, blob.name, temp_fp, progress_callback=process_checker, max_connections=max_connections, start_range=os.path.getsize(fp))
+                            bbs.get_blob_to_path(container, blob.name, temp_fp, progress_callback=process_checker, max_connections=max_connections, start_range=os.path.getsize(fp), if_match=if_match)
                             download_time = time.time()-t0
                             download_size_MB = os.path.getsize(temp_fp)/(1024**2) # file size in MB
                             print('\nAppending to local file...')
@@ -233,7 +235,7 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                         print('Downloaded {:.3f} MB in {:.1f} sec. ({:.3f} MB/sec) - Total elapsed time: {:.1f} sec.\n'.format(download_size_MB, download_time, download_size_MB/download_time, time.time()-t0))
                     else:
                         print('Downloading with max_connections = {}...'.format(max_connections))
-                        bbs.get_blob_to_path(container, blob.name, fp, progress_callback=process_checker, max_connections=max_connections)
+                        bbs.get_blob_to_path(container, blob.name, fp, progress_callback=process_checker, max_connections=max_connections, if_match=if_match)
                         download_time = time.time()-t0
                         download_size_MB = os.path.getsize(fp)/(1024**2) # file size in MB
                         print('\nDownloaded {:.3f} MB in {:.1f} sec. ({:.3f} MB/sec)\n'.format(download_size_MB, download_time, download_size_MB/download_time))
