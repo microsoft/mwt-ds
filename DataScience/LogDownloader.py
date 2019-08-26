@@ -77,24 +77,26 @@ def update_progress(current, total):
 
 def download_container(app_id, log_dir, container=None, conn_string=None, account_name=None, sas_token=None, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, verbose=False, create_gzip_mode=-1, delta_mod_t=3600, max_connections=4, confirm=False, report_progress=True):
     t_start = time.time()
-    print('-----'*10)
+    if not container:
+        container=app_id
+
+    print('------'*10)
     print('Current UTC time: {}'.format(datetime.datetime.now(datetime.timezone.utc)))
+    print('app_id: {}'.format(app_id))
+    print('container: {}'.format(container))
+    print('log_dir: {}'.format(log_dir))
     print('Start Date: {}'.format(start_date))
     print('End Date: {}'.format(end_date))
     print('Overwrite mode: {}'.format(overwrite_mode))
     print('dry_run: {}'.format(dry_run))
     print('version: {}'.format(version))
     print('create_gzip_mode: {}'.format(create_gzip_mode))
-    
-    if not container:
-        container=app_id
+    print('------'*10)
 
     if not dry_run:
         os.makedirs(os.path.join(log_dir, app_id), exist_ok=True)
 
     output_fp = None
-    print('-----'*10)
-    
     if version == 1: # using C# api for uncooked logs
         output_fp = os.path.join(log_dir, app_id, app_id+'_'+start_date.strftime("%Y-%m-%d")+'_'+end_date.strftime("%Y-%m-%d")+'.json')
         print('Destination: {}'.format(output_fp))
@@ -127,10 +129,12 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
         
     else: # using BlockBlobService python api for cooked logs
         try:
-            print('Establishing Azure Storage BlockBlobService connection...')
+            print('Establishing Azure Storage BlockBlobService connection using ',end='')
             if sas_token:
+                print('sas token...')
                 bbs = BlockBlobService(account_name=account_name, sas_token=sas_token)
             else:
+                print('connection string...')
                 bbs = BlockBlobService(connection_string=conn_string)
             # List all blobs and download them one by one
             print('Getting blobs list...')
@@ -337,12 +341,6 @@ if __name__ == '__main__':
     # Parse ds.config
     auth_dict = dict(x.split(': ',1) for x in open('ds.config').read().split('[AzureStorageAuthentication]',1)[1].split('\n') if ': ' in x)
     auth_str = auth_dict.get(kwargs['app_id'], auth_dict['$Default'])
-    if ',' in auth_str:     # sas token
-        auth_str_dict = dict(x.split(':',1) for x in auth_str.split(','))
-        kwargs.update(auth_str_dict)
-    else:                   # auth_str is connection string
-        kwargs['conn_string'] = auth_str
+    kwargs.update(dict(x.split(':',1) for x in auth_str.split(',')))
 
-    print('app_id: {0}'.format(kwargs['app_id']))
-    print('log_dir: {0}'.format(kwargs['log_dir']))    
     download_container(**kwargs)
