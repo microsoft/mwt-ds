@@ -97,15 +97,11 @@ def iterate_subsets(s):
 
 
 def get_marginals_grid(name, marginals):
-    marginal_args = ['']
-    marginal_args = marginal_args + list(
-        map(lambda element: '--marginal ' + ''.join(element), iterate_subsets(marginals)))
+    marginal_args = [''] + list(map(lambda element: '--marginal ' + ''.join(element), iterate_subsets(marginals)))
     return command.dimension(name, marginal_args)
 
 
 def get_interactions_grid(name, shared, actions):
     interactions = {''.join(x) for x in itertools.product(shared, actions)}
-    interaction_args = ['']
-    interaction_args = interaction_args + list(
-        map(lambda element: '-q ' + ' -q '.join(element), iterate_subsets(interactions)))
+    interaction_args = [''] + list(map(lambda element: '-q ' + ' -q '.join(element), iterate_subsets(interactions)))
     return command.dimension(name, interaction_args)
