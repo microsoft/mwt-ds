@@ -148,7 +148,7 @@ if __name__ == '__main__':
         feature_importance_start_time = datetime.now()
         print('Download model file')
         model_fp = None
-        bbs = BlockBlobService(connection_string=ld_args.conn_string)
+        bbs = BlockBlobService(connection_string=ld_args.conn_string, account_name=ld_args.account_name, sas_token=ld_args.sas_token)
         blobs = bbs.list_blobs(ld_args.app_id)
         for blob in blobs:
             if '/model/' not in blob.name:
