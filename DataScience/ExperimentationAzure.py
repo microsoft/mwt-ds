@@ -7,7 +7,6 @@ import FeatureImportance
 import dashboard_utils
 import LogDownloader
 import uuid
-from azure.storage.blob import BlockBlobService
 from applicationinsights import TelemetryClient
 
 def get_telemetry_client(appInsightsInstrumentationKey):
@@ -148,17 +147,15 @@ if __name__ == '__main__':
         feature_importance_start_time = datetime.now()
         print('Download model file')
         model_fp = None
-        bbs = BlockBlobService(connection_string=ld_args.conn_string, account_name=ld_args.account_name, sas_token=ld_args.sas_token)
-        blobs = bbs.list_blobs(ld_args.app_id)
+        blobs = azure_util.list_blobs(ld_args.app_id)
         for blob in blobs:
             if '/model/' not in blob.name:
                 continue
             # blob.name looks like this: '20180416094500/model/2019/01/14.json'
             blob_day = datetime.strptime(blob.name.split('/model/', 1)[1].split('_', 1)[0].split('.', 1)[0], '%Y/%m/%d')
             if blob_day == ld_args.start_date:
-                bp = bbs.get_blob_properties(ld_args.app_id, blob.name)
                 model_fp = os.path.join(output_dir, 'model.vw')
-                bbs.get_blob_to_path(ld_args.app_id, blob.name, model_fp, progress_callback=None, max_connections=1)
+                azure_util.download_from_blob(ld_args.app_id, blob.name, model_fp, True)
 
         print('Generate Feature Importance')
         feature_importance_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)

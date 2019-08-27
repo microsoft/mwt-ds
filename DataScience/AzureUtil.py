@@ -37,6 +37,9 @@ class AzureUtil:
             if throw_ex: raise(e)
             
     def download_all_blobs(self, storage_container_name, local_dir, throw_ex = False):
-        generator = self.block_blob_service.list_blobs(storage_container_name)
+        generator = self.list_blobs(storage_container_name)
         for blob in generator:
             self.download_from_blob(storage_container_name, blob.name, os.path.join(local_dir, blob.name), throw_ex)
+            
+    def list_blobs(self, storage_container_name):
+        return self.block_blob_service.list_blobs(storage_container_name)
