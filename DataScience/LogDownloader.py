@@ -141,9 +141,7 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
             print('Getting blobs list...')
             blobs = bbs.list_blobs(container)
         except Exception as e:
-            if e.args[0] == 'dictionary update sequence element #0 has length 1; 2 is required':
-                print("Error: Invalid Azure Storage ConnectionString.")
-            elif type(e.args[0]) == str and e.args[0].startswith('The specified container does not exist.'):
+            if type(e.args[0]) == str and e.args[0].startswith('The specified container does not exist.'):
                 print("Error: The specified container ({}) does not exist.".format(container))
             else:
                 print("Error:\nType: {}\nArgs: {}".format(type(e).__name__, e.args))
@@ -341,8 +339,15 @@ if __name__ == '__main__':
             kwargs['end_date'] = datetime.datetime.utcnow() 
 
     # Parse ds.config
-    auth_dict = dict(x.split(': ',1) for x in open('ds.config').read().split('[AzureStorageAuthentication]',1)[1].split('\n') if ': ' in x)
-    auth_str = auth_dict.get(kwargs['app_id'], auth_dict['$Default'])
-    kwargs.update(dict(x.split(':',1) for x in auth_str.split(',')))
+    try:
+        auth_dict = dict(x.split(': ',1) for x in open('ds.config').read().split('[AzureStorageAuthentication]',1)[1].split('\n') if ': ' in x)
+        auth_str = auth_dict.get(kwargs['app_id'], auth_dict['$Default'])
+        kwargs.update(dict(x.split(':',1) for x in auth_str.split(',')))
+    except Exception as e:
+        if e.args[0] == 'dictionary update sequence element #0 has length 1; 2 is required':
+            print("Error: Invalid Azure Storage Authentication format: {}".format(auth_str))
+        else:
+            print("Error:\nType: {}\nArgs: {}".format(type(e).__name__, e.args))
+        sys.exit()
 
     download_container(**kwargs)
