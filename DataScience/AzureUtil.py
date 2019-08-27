@@ -3,8 +3,13 @@ from azure.storage.blob import BlockBlobService
 import os
 
 class AzureUtil:
-    def __init__(self, conn_string):
-        self.block_blob_service = BlockBlobService(connection_string=conn_string)
+    def __init__(self, conn_string=None, account_name=None, sas_token=None):
+        if sas_token and account_name:
+            self.block_blob_service = BlockBlobService(account_name=account_name, sas_token=sas_token)
+        elif conn_string:
+            self.block_blob_service = BlockBlobService(connection_string=conn_string)
+        else
+            raise Exception("No storage account credentials passed.")
 
     def upload_to_blob(self, storage_container_name, storage_file_name, local_file_path, throw_ex = False):
         try:

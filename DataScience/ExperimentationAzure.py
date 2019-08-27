@@ -89,7 +89,7 @@ if __name__ == '__main__':
         sys.exit()
 
     #Init Azure Util
-    azure_util = AzureUtil(ld_args.conn_string)
+    azure_util = AzureUtil(ld_args.conn_string, ld_args.account_name, ld_args.sas_token)
 
     # Remove json files
     if main_args.cleanup:

@@ -46,6 +46,9 @@ def add_parser_args(parser):
     parser.add_argument('-a','--app_id', help="app id (i.e., Azure storage blob container name)", required=True)
     parser.add_argument('-l','--log_dir', help="base dir to download data (a subfolder will be created)", required=True)
     parser.add_argument('-cs','--conn_string', help="storage account connection string", required=False)
+    parser.add_argument('-cn','--container', help="storage container name", required=False)
+    parser.add_argument('-an','--account_name', help="storage account name", required=False)
+    parser.add_argument('-sas','--sas_token', help="storage account sas token to a container", required=False)
     parser.add_argument('-s','--start_date', help="downloading start date (included) - format YYYY-MM-DD", type=valid_date)
     parser.add_argument('-e','--end_date', help="downloading end date (included) - format YYYY-MM-DD", type=valid_date)
     parser.add_argument('-o','--overwrite_mode', type=int, help='''    0: never overwrite; ask the user whether blobs are currently used [default]
@@ -131,7 +134,7 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
     else: # using BlockBlobService python api for cooked logs
         try:
             print('Establishing Azure Storage BlockBlobService connection using ',end='')
-            if sas_token:
+            if sas_token and account_name:
                 print('sas token...')
                 bbs = BlockBlobService(account_name=account_name, sas_token=sas_token)
             else:
