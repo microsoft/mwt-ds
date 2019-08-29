@@ -141,7 +141,7 @@ def create_stats(log_fp, d=None, predictions_files=None):
             else:
                 ds_parse.update_progress(bytes_count,tot_bytes)
 
-        if x.startswith(b'{"_label_cost":'):
+        if x.startswith(b'{"_label_cost":') and x.strip().endswith(b'}'):
             data = ds_parse.json_cooked(x)
 
             # Skip not activated lines or wrongly formated lines

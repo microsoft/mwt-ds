@@ -57,7 +57,7 @@ def process_dsjson_file(fp, d=None, e=None):
             if x.startswith(b'['):   # Ignore checkpoint info line
                 continue
 
-            if not (x.startswith(b'{"') or x.strip().endswith(b'}')):
+            if not (x.startswith(b'{"') and x.strip().endswith(b'}')):
                 print('Corrupted line: {}'.format(x))
                 continue
             
