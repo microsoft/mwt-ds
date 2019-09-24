@@ -53,7 +53,8 @@ DECLARE @OutputFileStatistics string = @OutputFolder + "statistics-" + @_year + 
            SUM(Cost != 0 AND Action == 1? (1.0 / (1.0 - pdrop)) / Prob : 0) AS clicksIps1,
            SUM(Action == 1? (1.0 / (1.0 - pdrop)) / Prob : 0) AS impressionsIps1,
            SUM(Cost != 0? (1.0 / (1.0 - pdrop)) / Prob / NumActions : 0) AS clicksIpsR,
-           SUM((1.0 / (1.0 - pdrop)) / Prob / NumActions) AS impressionsIpsR
+           SUM((1.0 / (1.0 - pdrop)) / Prob / NumActions) AS impressionsIpsR,
+           (SUM(1.0) / SUM(1.0 / (1.0 - pdrop))) AS PassRatio
     FROM @Interactions
     GROUP BY Timestamp.ToString("yyyy/MM/dd HH:00"), model;
 
