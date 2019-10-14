@@ -4,9 +4,8 @@ USE DATABASE [DecisionServiceDB];
 
 REFERENCE ASSEMBLY DecisionServiceDB.[DecisionServiceExtractor];
 
-DECLARE @_appId string = "xbetgameschannelorder";    //your appId
-//DECLARE @_appId string = "xbetgameshomespotlight";    //your appId
-DECLARE @_account string = "decisionengine";    // your account name
+DECLARE @_appId string = "";    //your appId
+DECLARE @_account string = "";    // your account name
 
 DECLARE @_start DateTime = new DateTime(2019, 10, 1);  //your inclusive start date
 DECLARE @_end DateTime = new DateTime(2019, 10, 12);    //your non-inclusive end date
