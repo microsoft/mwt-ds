@@ -11,6 +11,7 @@
     <USQLProjectVersion>2</USQLProjectVersion>
     <Name>Scripts</Name>
     <RootNamespace>Scripts</RootNamespace>
+    <RuntimeVersion>default</RuntimeVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -22,8 +23,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Script Include="Process.usql" />
+    <Script Include="ProcessCCB.usql" />
     <ScriptCode Include="Process.usql.cs">
       <DependentUpon>Process.usql</DependentUpon>
+    </ScriptCode>
+    <ScriptCode Include="ProcessCCB.usql.cs">
+      <DependentUpon>ProcessCCB.usql</DependentUpon>
     </ScriptCode>
   </ItemGroup>
   <!-- check for SDK Build target in current path then in USQLSDKPath-->
