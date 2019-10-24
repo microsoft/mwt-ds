@@ -25,7 +25,7 @@ def process_files(files, output_file=None, d=None, e=None):
     for fp in fp_list:
         t1 = time.time()
         stats, d_s, e_s, d_c, e_c, slot_len_c, rew_multi_a, baselineRandom, not_activated = process_dsjson_file(fp, d, e)
-        res_list = os.path.basename(fp).replace('_0.json','').split('_data_',1)+[sum(stats[x][i] for x in stats) for i in range(3)]+rew_multi_a+stats.get(1,[0,0,0,0,0,0])+baselineRandom+[len(d_s),d_c,len(e_s),e_c,not_activated,slot_len_c[1],slot_len_c[2],sum(slot_len_c[i] for i in slot_len_c if i > 2),max(i for i in slot_len_c if slot_len_c[i] > 0),'{:.1f}'.format(time.time()-t1)]
+        res_list = os.path.basename(fp).replace('_0.json','').split('_data_',1)+[sum(stats[x][i] for x in stats) for i in ['o','Nr','r']]+rew_multi_a+([stats[1][i] for i in ['o','Nr','r','n','d','N']] if 1 in stats else [0,0,0,0,0,0])+baselineRandom+[len(d_s),d_c,len(e_s),e_c,not_activated,slot_len_c[1],slot_len_c[2],sum(slot_len_c[i] for i in slot_len_c if i > 2),max(i for i in slot_len_c if slot_len_c[i] > 0),'{:.1f}'.format(time.time()-t1)]
         print(','.join(map(str,res_list)))
         if output_file:
             f.write('\t'.join(map(str,res_list))+'\n')
@@ -76,22 +76,33 @@ def process_dsjson_file(fp, d=None, e=None):
                     d.setdefault(data['ei'], []).append((data, fp, i))
                 d_c += 1
                 d_s.add(data['ei'])
+
+                ############################### Aggregates for each file ########################################
+                #
+                # 'o':   number of events with a joined observation
+                # 'Nr':  number of events with a non-zero reward
+                # 'r':   sum of rewards
+                # 'n':   IPS of numerator
+                # 'd':   IPS of denominator (SNIPS = n/d)
+                # 'N':   total number of events (IPS = n/N)
+                #
+                #################################################################################################
+
                 if data['a'] not in stats:
-                    stats[data['a']] = [0,0,0,0,0,0]
+                    stats[data['a']] = {'o':0,'Nr':0,'r':0.,'n':0.,'d':0.,'N':0}
 
-                stats[data['a']][5] += 1
-
-                stats[data['a']][4] += 1/data['p']
+                stats[data['a']]['N'] += 1
+                stats[data['a']]['d'] += 1/data['p']
                 baselineRandom[1] += 1/data['p']/data['num_a']
                 if data['o'] == 1:
-                    stats[data['a']][0] += 1
+                    stats[data['a']]['o'] += 1
                     if data['num_a'] > 1:
                         rew_multi_a[0] += 1
                 if data['cost'] != b'0':
                     r = -float(data['cost'])
-                    stats[data['a']][1] += 1
-                    stats[data['a']][2] += r
-                    stats[data['a']][3] += r/data['p']
+                    stats[data['a']]['Nr'] += 1
+                    stats[data['a']]['r'] += r
+                    stats[data['a']]['n'] += r/data['p']
                     baselineRandom[0] += r/data['p']/data['num_a']
                     if data['num_a'] > 1:
                         rew_multi_a[1] += 1
