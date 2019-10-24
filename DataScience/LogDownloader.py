@@ -362,7 +362,10 @@ if __name__ == '__main__':
     try:
         auth_dict = dict(x.split(': ',1) for x in open('ds.config').read().split('[AzureStorageAuthentication]',1)[1].split('\n') if ': ' in x)
         auth_str = auth_dict.get(kwargs['app_id'], auth_dict['$Default'])
-        kwargs.update(dict(x.split(':',1) for x in auth_str.split(',')))
+        if ':' in auth_str:
+            kwargs.update(dict(x.split(':',1) for x in auth_str.split(',')))
+        else:
+            kwargs.update({'conn_string': auth_str})
     except Exception as e:
         if e.args[0] == 'dictionary update sequence element #0 has length 1; 2 is required':
             print("Error: Invalid Azure Storage Authentication format: {}".format(auth_str))
