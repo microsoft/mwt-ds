@@ -1,22 +1,23 @@
-﻿USE DATABASE [DecisionServiceDB];
+﻿SET @@FeaturePreviews = "DataPartitionedOutput:on";
+
+USE DATABASE [DecisionServiceDB];
 
 REFERENCE ASSEMBLY DecisionServiceDB.[DecisionServiceExtractor];
 
 DECLARE @_appId string = "";    //your appId
 DECLARE @_account string = "";    // your account name
 
-DECLARE @_year string = "2019";  //your date: year
-DECLARE @_month string = "08";     //your date: month
-DECLARE @_day string = "12";       //your date: day
+DECLARE @_start DateTime = new DateTime(2019, 10, 1);  //your inclusive start date
+DECLARE @_end DateTime = new DateTime(2019, 10, 12);    //your non-inclusive end date
 
-DECLARE @OutputFolder string = "/daily/";      //your output folder
-DECLARE @OutputSlimLogs bool = false;     //true if you want to have slime version of logs (all metadata without features)
+DECLARE @OutputFolder string = "/daily/" + @_appId + "/";      //your output folder
+DECLARE @OutputSlimLogs bool = true;     //true if you want to have slime version of logs (all metadata without features)
      
-DECLARE @InputFile string = "wasb://"+ @_appId +"@" + @_account + ".blob.core.windows.net/{model}/data/{year}/{month}/{day}_{filename}.json";
+DECLARE @InputFile string = "wasb://"+ @_appId +"@" + @_account + ".blob.core.windows.net/{model}/data/{date:yyyy}/{date:MM}/{date:dd}_{filename}.json";
 
-DECLARE @OutputFileInteractions string = @OutputFolder + "interactions-" + @_year + "-" + @_month + "-" + @_day + ".csv";
-DECLARE @OutputFileDangling string = @OutputFolder + "dangling-" + @_year + "-" + @_month + "-" + @_day + ".csv";
-DECLARE @OutputFileStatistics string = @OutputFolder + "statistics-" + @_year + "-" + @_month + "-" + @_day + ".csv";
+DECLARE @OutputFileInteractions string = @OutputFolder + "interactions-{date:yyyy}-{date:MM}-{date:dd}.csv";
+DECLARE @OutputFileDangling string = @OutputFolder + "dangling-{date:yyyy}-{date:MM}-{date:dd}.csv";
+DECLARE @OutputFileStatistics string = @OutputFolder + "statistics-{date:yyyy}-{date:MM}-{date:dd}.csv";
 
 @Events =  
     EXTRACT EventId string, 
@@ -28,9 +29,7 @@ DECLARE @OutputFileStatistics string = @OutputFolder + "statistics-" + @_year + 
             NumActions int,
             HasObservations int,
             model string, //virtual column
-            day string, //virtual column
-            month string, //virtual column
-            year string, //virtual column
+            date DateTime,
             filename string, //virtual column
             pdrop float,
             IsDangling bool,
@@ -38,9 +37,9 @@ DECLARE @OutputFileStatistics string = @OutputFolder + "statistics-" + @_year + 
     FROM @InputFile
     USING new DecisionServiceExtractor.HeaderOnly();
 
-@Events = SELECT * FROM @Events WHERE year == @_year AND month == @_month AND day == @_day;
+@Events = SELECT * FROM @Events WHERE date >= @_start AND date < @_end;
 
-@Interactions = SELECT EventId, Timestamp, HasObservations, Prob, Cost, Action, NumActions, pdrop, SkipLearn, model FROM @Events WHERE IsDangling == false;
+@Interactions = SELECT EventId, Timestamp, HasObservations, Prob, Cost, Action, NumActions, pdrop, SkipLearn, model, date FROM @Events WHERE IsDangling == false;
 
 @Statistics =
     SELECT Timestamp.ToString("yyyy/MM/dd HH:00") AS hour,
@@ -54,9 +53,10 @@ DECLARE @OutputFileStatistics string = @OutputFolder + "statistics-" + @_year + 
            SUM(Action == 1? (1.0 / (1.0 - pdrop)) / Prob : 0) AS impressionsIps1,
            SUM(Cost != 0? (1.0 / (1.0 - pdrop)) / Prob / NumActions : 0) AS clicksIpsR,
            SUM((1.0 / (1.0 - pdrop)) / Prob / NumActions) AS impressionsIpsR,
-           (SUM(1.0) / SUM(1.0 / (1.0 - pdrop))) AS PassRatio
+           (SUM(1.0) / SUM(1.0 / (1.0 - pdrop))) AS PassRatio,
+           date
     FROM @Interactions
-    GROUP BY Timestamp.ToString("yyyy/MM/dd HH:00"), model;
+    GROUP BY Timestamp.ToString("yyyy/MM/dd HH:00"), model, date;
 
 OUTPUT @Statistics
 TO @OutputFileStatistics
@@ -65,7 +65,9 @@ USING Outputters.Csv(outputHeader:true);
 IF @OutputSlimLogs == true THEN
     @Dangling =
         SELECT EventId,
-            EnqueuedTimeUtc
+            EnqueuedTimeUtc,
+            model,
+            date
         FROM @Events
         WHERE IsDangling == true;
 

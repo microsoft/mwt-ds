@@ -322,7 +322,7 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                                 for x in open(fn, 'rb'):
                                     if x.startswith(b'{"_label_cost') and x.strip().endswith(b'}'):     # reading only cooked lined
                                         data = ds_parse.json_cooked(x)
-                                        if data['ei'] not in d or float(data['cost']) < d[data['ei']][1]: # taking line with best reward
+                                        if data is not None and (data['ei'] not in d or float(data['cost']) < d[data['ei']][1]): # taking line with best reward
                                             d[data['ei']] = (data['ts'], float(data['cost']), x)
                             print(' - len(d): {}'.format(len(d)))
 
@@ -362,7 +362,10 @@ if __name__ == '__main__':
     try:
         auth_dict = dict(x.split(': ',1) for x in open('ds.config').read().split('[AzureStorageAuthentication]',1)[1].split('\n') if ': ' in x)
         auth_str = auth_dict.get(kwargs['app_id'], auth_dict['$Default'])
-        kwargs.update(dict(x.split(':',1) for x in auth_str.split(',')))
+        if ':' in auth_str:
+            kwargs.update(dict(x.split(':',1) for x in auth_str.split(',')))
+        else:
+            kwargs.update({'conn_string': auth_str})
     except Exception as e:
         if e.args[0] == 'dictionary update sequence element #0 has length 1; 2 is required':
             print("Error: Invalid Azure Storage Authentication format: {}".format(auth_str))

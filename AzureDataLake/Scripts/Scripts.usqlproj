@@ -22,8 +22,16 @@
     <OutputPath>bin\Release\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
+    <Script Include="AggregateStatistics.usql" />
+    <Script Include="DanglingRewardsAnalysis.usql" />
     <Script Include="Process.usql" />
     <Script Include="ProcessCCB.usql" />
+    <ScriptCode Include="AggregateStatistics.usql.cs">
+      <DependentUpon>AggregateStatistics.usql</DependentUpon>
+    </ScriptCode>
+    <ScriptCode Include="DanglingRewardsAnalysis.usql.cs">
+      <DependentUpon>DanglingRewardsAnalysis.usql</DependentUpon>
+    </ScriptCode>
     <ScriptCode Include="Process.usql.cs">
       <DependentUpon>Process.usql</DependentUpon>
     </ScriptCode>

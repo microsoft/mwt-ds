@@ -144,8 +144,8 @@ def create_stats(log_fp, d=None, predictions_files=None):
         if x.startswith(b'{"_label_cost":') and x.strip().endswith(b'}'):
             data = ds_parse.json_cooked(x)
 
-            # Skip not activated lines or wrongly formated lines
-            if data['skipLearn'] or data['p'] < 1e-10 or data['num_a'] < 1 or data['a'] < 1:
+            # Skip wrongly formated lines or not activated lines
+            if data is None or data['skipLearn']:
                 continue
 
             if data['cost'] == b'0':
