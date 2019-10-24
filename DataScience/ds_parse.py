@@ -58,11 +58,14 @@ def process_dsjson_file(fp, d=None, e=None):
                 continue
 
             if not (x.startswith(b'{"') and x.strip().endswith(b'}')):
-                print('Corrupted line: {}'.format(x))
+                print('Skipping corrupted line {}: Missing brackets \{ \}'.format(i))
                 continue
             
             if x.startswith(b'{"_label_cost":'):
                 data = json_cooked(x)
+                if data is None:
+                    print('Skipping corrupted line {}: data is None'.format(i))
+                    continue
 
                 if data['skipLearn']:    # Ignore not activated lines
                     not_activated += 1
@@ -77,8 +80,6 @@ def process_dsjson_file(fp, d=None, e=None):
                     stats[data['a']] = [0,0,0,0,0,0]
 
                 stats[data['a']][5] += 1
-                if data['p'] <= 0:
-                    continue
 
                 stats[data['a']][4] += 1/data['p']
                 baselineRandom[1] += 1/data['p']/data['num_a']
@@ -145,7 +146,9 @@ def json_cooked(x, do_devType=False, do_VWState=False, do_p_vec=False):
         ind5 = ind4+13                  # len('","EventId":"') = 13
     ind6 = x.find(b'"',ind5)
     ind7 = x.find(b',"a"',ind5)
-    ind8 = x.find(b']',ind7+7)          # equal to: x.find('],"c',ind7+8)
+    ind8 = x.find(b'],"c"',ind7+7)
+    if ind8 == -1:
+        return None
 
     data = {}
     data['o'] = 1 if b',"o":' in x[ind2+30:ind2+50] else 0
@@ -157,7 +160,10 @@ def json_cooked(x, do_devType=False, do_VWState=False, do_p_vec=False):
     data['a'] = int(data['a_vec'][0])
     data['num_a'] = len(data['a_vec'])
     data['skipLearn'] = b'"_skipLearn":true' in x[ind2+34:ind3] # len('"_label_Action":1,"_labelIndex":0,') = 34
-    
+
+    if data['p'] < 1e-10 or data['a'] < 1 or data['num_a'] < 1:
+        return None
+
     if do_VWState:
         ind11 = x[-120:].find(b'VWState')
         data['model_id'] = x[-120+ind11+15:-4] if ind11 > -1 else b'N/A'

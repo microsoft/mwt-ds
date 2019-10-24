@@ -322,7 +322,7 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                                 for x in open(fn, 'rb'):
                                     if x.startswith(b'{"_label_cost') and x.strip().endswith(b'}'):     # reading only cooked lined
                                         data = ds_parse.json_cooked(x)
-                                        if data['ei'] not in d or float(data['cost']) < d[data['ei']][1]: # taking line with best reward
+                                        if data is not None and (data['ei'] not in d or float(data['cost']) < d[data['ei']][1]): # taking line with best reward
                                             d[data['ei']] = (data['ts'], float(data['cost']), x)
                             print(' - len(d): {}'.format(len(d)))
 

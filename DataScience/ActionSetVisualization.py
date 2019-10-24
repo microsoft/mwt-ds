@@ -21,7 +21,7 @@ def update(files, dt_str=13):
         
             if x.startswith(b'{"_label') and x.strip().endswith(b'}'):
                 data = ds_parse.json_cooked(x)
-                if data['a'] <= 0:
+                if data is None:
                     continue
                 
                 c_imp_all.update([data['ts'][:dt_str]])
