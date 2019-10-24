@@ -14,7 +14,7 @@ def update_progress(current, total=None, prefix=''):
 
 #########################################################################  CREATE DSJSON FILES STATS #########################################################################
 
-header_str = 'version,date,# obs,# rews,sum rews,# obs multi,# rews multi a,sum rews multi a,# obs1,# rews1,sum rews1,rews1 ips,tot ips slot1,tot slot1,rews rand ips,tot rand ips,tot unique,tot,not joined unique,not joined,not activated,1,2,>2,max(a),time'
+header_str = 'version,date,# obs,# rews,sum rews,# obs multi,# rews multi a,sum rews multi a,# obs1,# rews1,sum rews1,rews1 ips,tot ips slot1,tot slot1,rews rand ips,tot rand ips,tot unique,tot,not joined unique,not joined,not activated,corrupted,1,2,>2,max(a),time'
 
 def process_files(files, output_file=None, d=None, e=None):
     t0 = time.time()
@@ -24,8 +24,8 @@ def process_files(files, output_file=None, d=None, e=None):
     print(header_str)
     for fp in fp_list:
         t1 = time.time()
-        stats, d_s, e_s, d_c, e_c, slot_len_c, rew_multi_a, baselineRandom, not_activated = process_dsjson_file(fp, d, e)
-        res_list = os.path.basename(fp).replace('_0.json','').split('_data_',1)+[sum(stats[x][i] for x in stats) for i in ['o','Nr','r']]+rew_multi_a+([stats[1][i] for i in ['o','Nr','r','n','d','N']] if 1 in stats else [0,0,0,0,0,0])+baselineRandom+[len(d_s),d_c,len(e_s),e_c,not_activated,slot_len_c[1],slot_len_c[2],sum(slot_len_c[i] for i in slot_len_c if i > 2),max(i for i in slot_len_c if slot_len_c[i] > 0),'{:.1f}'.format(time.time()-t1)]
+        stats, d_s, e_s, d_c, e_c, slot_len_c, rew_multi_a, baselineRandom, not_activated, corrupted = process_dsjson_file(fp, d, e)
+        res_list = os.path.basename(fp).replace('_0.json','').split('_data_',1)+[sum(stats[x][i] for x in stats) for i in ['o','Nr','r']]+rew_multi_a+([stats[1][i] for i in ['o','Nr','r','n','d','N']] if 1 in stats else [0,0,0,0,0,0])+baselineRandom+[len(d_s),d_c,len(e_s),e_c,not_activated,corrupted,slot_len_c[1],slot_len_c[2],sum(slot_len_c[i] for i in slot_len_c if i > 2),max(i for i in slot_len_c if slot_len_c[i] > 0),'{:.1f}'.format(time.time()-t1)]
         print(','.join(map(str,res_list)))
         if output_file:
             f.write('\t'.join(map(str,res_list))+'\n')
@@ -41,6 +41,7 @@ def process_dsjson_file(fp, d=None, e=None):
     e_c = 0
     d_c = 0
     not_activated = 0
+    corrupted = 0
     rew_multi_a = [0,0,0]
     baselineRandom = [0,0]
     bytes_count = 0
@@ -58,13 +59,13 @@ def process_dsjson_file(fp, d=None, e=None):
                 continue
 
             if not (x.startswith(b'{"') and x.strip().endswith(b'}')):
-                print('Skipping corrupted line {}: Missing brackets \{ \}'.format(i))
+                corrupted += 1
                 continue
             
             if x.startswith(b'{"_label_cost":'):
                 data = json_cooked(x)
                 if data is None:
-                    print('Skipping corrupted line {}: data is None'.format(i))
+                    corrupted += 1
                     continue
 
                 if data['skipLearn']:    # Ignore not activated lines
@@ -121,7 +122,7 @@ def process_dsjson_file(fp, d=None, e=None):
             len_text = update_progress(bytes_count,tot_bytes, fp+' - ')
         sys.stdout.write("\r" + " "*len_text + "\r")
         sys.stdout.flush()
-    return stats, d_s, e_s, d_c, e_c, slot_len_c, rew_multi_a, baselineRandom, not_activated
+    return stats, d_s, e_s, d_c, e_c, slot_len_c, rew_multi_a, baselineRandom, not_activated, corrupted
 
 def input_files_to_fp_list(files):
     if not (isinstance(files, types.GeneratorType) or isinstance(files, list)):
