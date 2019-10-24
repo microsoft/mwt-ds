@@ -7,7 +7,7 @@ DECLARE @_experimentalUnitDuration TimeSpan = new TimeSpan(2, 0, 0, 0); //days, 
 DECLARE @_start DateTime = new DateTime(2019, 10, 05);  //your inclusive start date
 DECLARE @_end DateTime = new DateTime(2019, 10, 15);    //your non-inclusive end date
     
-DECLARE @AppDailyFolder string = "/" + @_appId + "_daily/";   //your app statistics folder
+DECLARE @AppDailyFolder string = "/daily/" + @_appId + "/";   //your app statistics folder
 DECLARE @OutputFolder string = @AppDailyFolder + "dangling_rewards-" + @_start.ToString("yyyy_MM_dd") + "-" + @_end.ToString("yyyy_MM_dd") + "/";
      
 DECLARE @InputFileInteractions string = @AppDailyFolder + "interactions-{date:yyyy}-{date:MM}-{date:dd}.csv";

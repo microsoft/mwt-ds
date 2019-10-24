@@ -3,7 +3,7 @@
 DECLARE @_start DateTime = new DateTime(2019, 10, 1);  //your inclusive start date
 DECLARE @_end DateTime = new DateTime(2019, 10, 12);    //your non-inclusive end date
 
-DECLARE @AppDailyFolder string = "/" + @_appId + "_daily/";   //your app statistics folder
+DECLARE @AppDailyFolder string = "/daily/" + @_appId + "/";   //your app statistics folder
 DECLARE @OutputFolder string = @AppDailyFolder + "statistics-" +  @_start.ToString("yyyy_MM_dd") + "-" +  @_end.ToString("yyyy_MM_dd") + "/";
      
 DECLARE @InputFiles string = @AppDailyFolder + "statistics-{date:yyyy}-{date:MM}-{date:dd}.csv";

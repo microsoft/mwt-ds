@@ -10,7 +10,7 @@ DECLARE @_account string = "";    // your account name
 DECLARE @_start DateTime = new DateTime(2019, 10, 1);  //your inclusive start date
 DECLARE @_end DateTime = new DateTime(2019, 10, 12);    //your non-inclusive end date
 
-DECLARE @OutputFolder string = "/" + @_appId + "_daily/";      //your output folder
+DECLARE @OutputFolder string = "/daily/" + @_appId + "/";      //your output folder
 DECLARE @OutputSlimLogs bool = true;     //true if you want to have slime version of logs (all metadata without features)
      
 DECLARE @InputFile string = "wasb://"+ @_appId +"@" + @_account + ".blob.core.windows.net/{model}/data/{date:yyyy}/{date:MM}/{date:dd}_{filename}.json";
