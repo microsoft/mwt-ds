@@ -13,7 +13,7 @@ except ImportError as e:
         pip.main(['install', 'azure.storage.blob'])
         print('Please re-run script.')
     sys.exit()
-
+    
 
 def valid_date(s):
     try:
@@ -42,10 +42,26 @@ def cmp_files(f1, f2, start_range_f1=0, start_range_f2=0, erase_checkpoint_line=
                 return True
             prev_b1 = b1
 
+def erase_invalid_end_line(fp):
+    with open(fp,'rb+') as f:
+        f.seek(-1, os.SEEK_END)
+        pos = f.tell()
+        initial_pos = pos
+        while pos > 0 and f.read(1) != b'\n':
+            pos -= 1
+            f.seek(pos, os.SEEK_SET)
+
+        if pos < initial_pos:
+            f.seek(pos+1, os.SEEK_SET)
+            f.truncate()
+
 def add_parser_args(parser):
     parser.add_argument('-a','--app_id', help="app id (i.e., Azure storage blob container name)", required=True)
     parser.add_argument('-l','--log_dir', help="base dir to download data (a subfolder will be created)", required=True)
     parser.add_argument('-cs','--conn_string', help="storage account connection string", required=False)
+    parser.add_argument('-cn','--container', help="storage container name", required=False)
+    parser.add_argument('--account_name', help="storage account name", required=False)
+    parser.add_argument('--sas_token', help="storage account sas token to a container", required=False)
     parser.add_argument('-s','--start_date', help="downloading start date (included) - format YYYY-MM-DD", type=valid_date)
     parser.add_argument('-e','--end_date', help="downloading end date (included) - format YYYY-MM-DD", type=valid_date)
     parser.add_argument('-o','--overwrite_mode', type=int, help='''    0: never overwrite; ask the user whether blobs are currently used [default]
@@ -67,6 +83,8 @@ def add_parser_args(parser):
     parser.add_argument('-v','--version', type=int, default=2, help='''version of log downloader to use:
     1: for uncooked logs (only for backward compatibility) [deprecated]
     2: for cooked logs [default]''')
+    parser.add_argument('--keep_invalid_eof', help="avoid to erase the last line when it is invalid", action='store_true')
+
 
 def update_progress(current, total):
     barLength = 50 # Length of the progress bar
@@ -76,7 +94,7 @@ def update_progress(current, total):
     sys.stdout.write(text)
     sys.stdout.flush()
 
-def download_container(app_id, log_dir, container=None, conn_string=None, account_name=None, sas_token=None, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, verbose=False, create_gzip_mode=-1, delta_mod_t=3600, max_connections=4, confirm=False, report_progress=True, if_match=None):
+def download_container(app_id, log_dir, container=None, conn_string=None, account_name=None, sas_token=None, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, verbose=False, create_gzip_mode=-1, delta_mod_t=3600, max_connections=4, confirm=False, report_progress=True, if_match=None, keep_invalid_eof=False):
     t_start = time.time()
     if not container:
         container=app_id
@@ -131,7 +149,7 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
     else: # using BlockBlobService python api for cooked logs
         try:
             print('Establishing Azure Storage BlockBlobService connection using ',end='')
-            if sas_token:
+            if sas_token and account_name:
                 print('sas token...')
                 bbs = BlockBlobService(account_name=account_name, sas_token=sas_token)
             else:
@@ -141,9 +159,7 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
             print('Getting blobs list...')
             blobs = bbs.list_blobs(container)
         except Exception as e:
-            if e.args[0] == 'dictionary update sequence element #0 has length 1; 2 is required':
-                print("Error: Invalid Azure Storage ConnectionString.")
-            elif type(e.args[0]) == str and e.args[0].startswith('The specified container does not exist.'):
+            if type(e.args[0]) == str and e.args[0].startswith('The specified container does not exist.'):
                 print("Error: The specified container ({}) does not exist.".format(container))
             else:
                 print("Error:\nType: {}\nArgs: {}".format(type(e).__name__, e.args))
@@ -239,6 +255,8 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                         download_time = time.time()-t0
                         download_size_MB = os.path.getsize(fp)/(1024**2) # file size in MB
                         print('\nDownloaded {:.3f} MB in {:.1f} sec. ({:.3f} MB/sec)\n'.format(download_size_MB, download_time, download_size_MB/download_time))
+                    if not keep_invalid_eof:
+                        erase_invalid_end_line(fp)
             except Exception as e:
                 print('Error: {}'.format(e))
 
@@ -304,7 +322,7 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                                 for x in open(fn, 'rb'):
                                     if x.startswith(b'{"_label_cost') and x.strip().endswith(b'}'):     # reading only cooked lined
                                         data = ds_parse.json_cooked(x)
-                                        if data['ei'] not in d or float(data['cost']) < d[data['ei']][1]: # taking line with best reward
+                                        if data is not None and (data['ei'] not in d or float(data['cost']) < d[data['ei']][1]): # taking line with best reward
                                             d[data['ei']] = (data['ts'], float(data['cost']), x)
                             print(' - len(d): {}'.format(len(d)))
 
@@ -341,8 +359,18 @@ if __name__ == '__main__':
             kwargs['end_date'] = datetime.datetime.utcnow() 
 
     # Parse ds.config
-    auth_dict = dict(x.split(': ',1) for x in open('ds.config').read().split('[AzureStorageAuthentication]',1)[1].split('\n') if ': ' in x)
-    auth_str = auth_dict.get(kwargs['app_id'], auth_dict['$Default'])
-    kwargs.update(dict(x.split(':',1) for x in auth_str.split(',')))
+    try:
+        auth_dict = dict(x.split(': ',1) for x in open('ds.config').read().split('[AzureStorageAuthentication]',1)[1].split('\n') if ': ' in x)
+        auth_str = auth_dict.get(kwargs['app_id'], auth_dict['$Default'])
+        if ':' in auth_str:
+            kwargs.update(dict(x.split(':',1) for x in auth_str.split(',')))
+        else:
+            kwargs.update({'conn_string': auth_str})
+    except Exception as e:
+        if e.args[0] == 'dictionary update sequence element #0 has length 1; 2 is required':
+            print("Error: Invalid Azure Storage Authentication format: {}".format(auth_str))
+        else:
+            print("Error:\nType: {}\nArgs: {}".format(type(e).__name__, e.args))
+        sys.exit()
 
     download_container(**kwargs)

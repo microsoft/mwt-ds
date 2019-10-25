@@ -29,38 +29,19 @@ def points_to_file(points, fname):
 
 
 def generate(interactions_grid, marginals_grid):
-    hyper1_points = product(
-        dimension('--power_t', [
-            1e-09,
-            1.4953487812212204e-07,
-            2.2360679774997894e-05,
-            0.0033437015248821097,
-            0.5
-        ]),
-        # TODO: known bug in vw, --l1 is not working properly with
-        # --save_resume. Should uncomment this once it's fixed
+    hyper_points = product(
+        dimension('--power_t', [0]),    # fixing power_t to 0 since this is what should be used online
+        # TODO: known bug in vw, --l1 is not working properly with --save_resume. Should uncomment this once it's fixed
         # dimension('--l1', [1e-09, 1e-07, 1e-05, 0.001, 0.1]),
-        dimension('-l', [
-            1e-05,
-            0.00036840314986403866,
-            0.013572088082974531,
-            0.5
-        ]))
+        dimension('-l', [1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 0.5, 1, 10]),
+        dimension('--cb_type', ['ips', 'mtr']),
+        marginals_grid[:2]
+        )
 
     return [
-        grid(hyper1_points, configuration(name='hyper1', output=1, promote=1)),
-        grid(
-            dimension('--cb_type', ['ips', 'mtr']),
-            configuration(name='cbtype', output=1, promote=1)
-        ),
-        grid(
-            product(interactions_grid, marginals_grid[:10]),
-            configuration(name='interactions', output=1, promote=1)
-        ),
-        grid(
-            hyper1_points,
-            configuration(name='hyper2', output=1, promote=1)
-        )
+        grid(hyper_points, configuration(name='hyper1', output=1, promote=1)),
+        grid(interactions_grid, configuration(name='interactions', output=1, promote=1)),
+        grid(hyper_points, configuration(name='hyper2', output=1, promote=1))
     ]
 
 
