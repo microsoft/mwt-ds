@@ -25,6 +25,7 @@
     <Script Include="AggregateStatistics.usql" />
     <Script Include="DanglingRewardsAnalysis.usql" />
     <Script Include="Process.usql" />
+    <Script Include="ProcessCCB.usql" />
     <ScriptCode Include="AggregateStatistics.usql.cs">
       <DependentUpon>AggregateStatistics.usql</DependentUpon>
     </ScriptCode>
@@ -33,6 +34,9 @@
     </ScriptCode>
     <ScriptCode Include="Process.usql.cs">
       <DependentUpon>Process.usql</DependentUpon>
+    </ScriptCode>
+    <ScriptCode Include="ProcessCCB.usql.cs">
+      <DependentUpon>ProcessCCB.usql</DependentUpon>
     </ScriptCode>
   </ItemGroup>
   <!-- check for SDK Build target in current path then in USQLSDKPath-->

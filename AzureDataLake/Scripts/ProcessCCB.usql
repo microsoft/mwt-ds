@@ -1,0 +1,51 @@
+﻿SET @@FeaturePreviews = "DataPartitionedOutput:on";
+
+USE DATABASE [DecisionServiceDBTest];
+
+REFERENCE ASSEMBLY DecisionServiceDBTest.[DecisionServiceExtractor];
+
+DECLARE @_appId string = "";    //your appId
+DECLARE @_account string = "";    // your account name
+
+DECLARE @_start DateTime = new DateTime(2019, 10, 1);  //your inclusive start date
+DECLARE @_end DateTime = new DateTime(2019, 10, 12);    //your non-inclusive end date
+
+DECLARE @OutputFolder string = "/daily/" + @_appId + "/";      //your output folder
+     
+DECLARE @InputFile string = "wasb://"+ @_appId +"@" + @_account + ".blob.core.windows.net/{model}/data/{date:yyyy}/{date:MM}/{date:dd}_{filename}.json";
+
+DECLARE @OutputFileStatistics string = @OutputFolder + "statistics-{date:yyyy}-{date:MM}-{date:dd}.csv";
+DECLARE @OutputFileInvalid string = @OutputFolder + "invalid-{date:yyyy}-{date:MM}-{date:dd}.csv";
+
+@Events =  
+    EXTRACT SessionId string,
+            SlotIdx int,
+            EventId string,
+            model string,
+            ParseError string,
+            date DateTime,
+            filename string //virtual column
+    FROM @InputFile
+    USING new DecisionServiceExtractor.CcbExtractor();
+
+@Events = SELECT * FROM @Events WHERE date >= @_start AND date < @_end;
+
+@Valid = SELECT * FROM @Events WHERE string.IsNullOrEmpty(ParseError);
+
+@Invalid = SELECT ParseError, date FROM @Events WHERE !string.IsNullOrEmpty(ParseError);
+
+
+@Statistics =
+    SELECT COUNT() AS SessionCount, model, date
+    FROM @Valid
+    GROUP BY model, date;
+
+OUTPUT @Statistics
+TO @OutputFileStatistics
+USING Outputters.Csv(outputHeader:true);
+
+OUTPUT @Invalid
+TO @OutputFileInvalid
+USING Outputters.Csv(outputHeader:true);
+
+
