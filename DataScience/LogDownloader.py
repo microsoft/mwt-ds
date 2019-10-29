@@ -52,6 +52,7 @@ def erase_invalid_end_line(fp):
             f.seek(pos, os.SEEK_SET)
 
         if pos < initial_pos:
+            print('Erasing invalid last line (to keep it use --keep_invalid_eof)')
             f.seek(pos+1, os.SEEK_SET)
             f.truncate()
 
@@ -84,6 +85,7 @@ def add_parser_args(parser):
     1: for uncooked logs (only for backward compatibility) [deprecated]
     2: for cooked logs [default]''')
     parser.add_argument('--keep_invalid_eof', help="avoid to erase the last line when it is invalid", action='store_true')
+    parser.add_argument('--max_download_size', help="download only head of file up to max_download_size bytes", type=int, default=None)
 
 
 def update_progress(current, total):
@@ -94,7 +96,7 @@ def update_progress(current, total):
     sys.stdout.write(text)
     sys.stdout.flush()
 
-def download_container(app_id, log_dir, container=None, conn_string=None, account_name=None, sas_token=None, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, verbose=False, create_gzip_mode=-1, delta_mod_t=3600, max_connections=4, confirm=False, report_progress=True, if_match=None, keep_invalid_eof=False):
+def download_container(app_id, log_dir, container=None, conn_string=None, account_name=None, sas_token=None, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, verbose=False, create_gzip_mode=-1, delta_mod_t=3600, max_connections=4, confirm=False, report_progress=True, if_match=None, keep_invalid_eof=False, max_download_size=None):
     t_start = time.time()
     if not container:
         container=app_id
@@ -229,34 +231,36 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                     t0 = time.time()
                     process_checker = update_progress if report_progress == True else None
                     if overwrite_mode in {3, 4} and file_size:
-                        print('Check validity of remote file... ', end='')
-                        temp_fp = fp + '.temp'
-                        cmpsize = min(file_size,8*1024**2)
-                        bbs.get_blob_to_path(container, blob.name, temp_fp, max_connections=max_connections, start_range=file_size-cmpsize, end_range=file_size-1, if_match=if_match)
-                        if cmp_files(fp, temp_fp, -cmpsize):
-                            print('Valid!')
-                            print('Resume downloading to temp file with max_connections = {}...'.format(max_connections))
-                            bbs.get_blob_to_path(container, blob.name, temp_fp, progress_callback=process_checker, max_connections=max_connections, start_range=os.path.getsize(fp), if_match=if_match)
-                            download_time = time.time()-t0
-                            download_size_MB = os.path.getsize(temp_fp)/(1024**2) # file size in MB
-                            print('\nAppending to local file...')
-                            with open(fp, 'ab') as f1, open(temp_fp, 'rb') as f2:
-                                shutil.copyfileobj(f2, f1, length=100*1024**2)   # writing chunks of 100MB to avoid consuming memory
-                            print('Appending completed. Deleting temp file...')
-                            os.remove(temp_fp)
-                        else:
-                            os.remove(temp_fp)
-                            print('Invalid! - Skip\n')
-                            continue
-                        print('Downloaded {:.3f} MB in {:.1f} sec. ({:.3f} MB/sec) - Total elapsed time: {:.1f} sec.\n'.format(download_size_MB, download_time, download_size_MB/download_time, time.time()-t0))
+                        if max_download_size is None or file_size < max_download_size:
+                            print('Check validity of remote file... ', end='')
+                            temp_fp = fp + '.temp'
+                            cmpsize = min(file_size,8*1024**2)
+                            bbs.get_blob_to_path(container, blob.name, temp_fp, max_connections=max_connections, start_range=file_size-cmpsize, end_range=file_size-1, if_match=if_match)
+                            if cmp_files(fp, temp_fp, -cmpsize):
+                                print('Valid!')
+                                print('Resume downloading to temp file with max_connections = {}...'.format(max_connections))
+                                bbs.get_blob_to_path(container, blob.name, temp_fp, progress_callback=process_checker, max_connections=max_connections, start_range=os.path.getsize(fp), if_match=if_match, end_range=max_download_size)
+                                download_time = time.time()-t0
+                                download_size_MB = os.path.getsize(temp_fp)/(1024**2) # file size in MB
+                                print('\nAppending to local file...')
+                                with open(fp, 'ab') as f1, open(temp_fp, 'rb') as f2:
+                                    shutil.copyfileobj(f2, f1, length=100*1024**2)   # writing chunks of 100MB to avoid consuming memory
+                                print('Appending completed. Deleting temp file...')
+                                os.remove(temp_fp)
+                            else:
+                                os.remove(temp_fp)
+                                print('Invalid! - Skip\n')
+                                continue
+                            print('Downloaded {:.3f} MB in {:.1f} sec. ({:.3f} MB/sec) - Total elapsed time: {:.1f} sec.'.format(download_size_MB, download_time, download_size_MB/download_time, time.time()-t0))
                     else:
                         print('Downloading with max_connections = {}...'.format(max_connections))
-                        bbs.get_blob_to_path(container, blob.name, fp, progress_callback=process_checker, max_connections=max_connections, if_match=if_match)
+                        bbs.get_blob_to_path(container, blob.name, fp, progress_callback=process_checker, max_connections=max_connections, if_match=if_match, start_range=0, end_range=max_download_size)
                         download_time = time.time()-t0
                         download_size_MB = os.path.getsize(fp)/(1024**2) # file size in MB
-                        print('\nDownloaded {:.3f} MB in {:.1f} sec. ({:.3f} MB/sec)\n'.format(download_size_MB, download_time, download_size_MB/download_time))
+                        print('\nDownloaded {:.3f} MB in {:.1f} sec. ({:.3f} MB/sec)'.format(download_size_MB, download_time, download_size_MB/download_time))
                     if not keep_invalid_eof:
                         erase_invalid_end_line(fp)
+                    print()
             except Exception as e:
                 print('Error: {}'.format(e))
 
