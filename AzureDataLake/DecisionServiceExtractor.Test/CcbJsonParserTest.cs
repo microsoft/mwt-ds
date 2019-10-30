@@ -18,7 +18,8 @@ namespace DecisionServiceExtractor.Test
             return new USqlSchema(
                 new USqlColumn<string>("EventId"),
                 new USqlColumn<int>("SlotIdx"),
-                new USqlColumn<string>("SessionId")
+                new USqlColumn<string>("SessionId"),
+                new USqlColumn<DateTime>("Timestamp")
                 );
         }
 
@@ -58,6 +59,7 @@ namespace DecisionServiceExtractor.Test
                         Assert.IsNotNull(output.Get<string>("SessionId"));
                         Assert.AreEqual(0, output.Get<int>("SlotIdx"));
                         Assert.AreEqual("62ddd79e-4d75-4c64-94f1-a5e13a75c2e4", output.Get<string>("EventId"));
+                        //Assert.AreEqual(new DateTime(2019, 8, 23, 12,45, 53, 63), output.Get<DateTime>("Timestamp"));
                     }
                     else if (counter == 1)
                     {

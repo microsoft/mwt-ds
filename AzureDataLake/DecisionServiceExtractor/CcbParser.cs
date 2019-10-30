@@ -9,40 +9,29 @@ namespace DecisionServiceExtractor
 {
     internal class CcbParser
     {
-        private readonly bool hasEventId;
-        private readonly bool hasSlotIdx;
-        private readonly bool hasSessionId;
-
-        private readonly bool hasParseError;
-
-        private readonly int idxEventId;
-        private readonly int idxSlotIdx;
-        private readonly int idxSessionId;
-
-        private readonly int idxParseError;
+        ColumnInfo EventIdColumn;
+        ColumnInfo SlotIdxColumn;
+        ColumnInfo SessionIdColumn;
+        ColumnInfo ParserErrorColumn;
 
         internal CcbParser(ISchema schema)
         {
-            this.hasSessionId = Helpers.HasColumnOfType(schema, "SessionId", typeof(string), out this.idxSessionId);
-            this.hasSlotIdx = Helpers.HasColumnOfType(schema, "SlotIdx", typeof(int), out this.idxSlotIdx);
-            this.hasEventId = Helpers.HasColumnOfType(schema, "EventId", typeof(string), out this.idxEventId);
-       
-            this.hasParseError = Helpers.HasColumnOfType(schema, "ParseError", typeof(string), out idxParseError);
+            this.EventIdColumn = new ColumnInfo(schema, "EventId", typeof(string));
+            this.SlotIdxColumn = new ColumnInfo(schema, "SlotIdx", typeof(int));
+            this.SessionIdColumn = new ColumnInfo(schema, "SessionId", typeof(string));
+            this.ParserErrorColumn = new ColumnInfo(schema, "ParseError", typeof(string));
         }
 
         //called on every line
         public IEnumerable<IRow> ParseEvent(IUpdatableRow output, Stream input)
         {
-            if (this.hasParseError)
-            {
-                output.Set(this.idxParseError, string.Empty);
-            }
+            output.Set(this.ParserErrorColumn, string.Empty);
 
             TextReader inputReader;
             bool firstPass = true;
             int slotIdx = 0;
             inputReader = new StreamReader(input, Encoding.UTF8);
-            output.Set(this.idxSessionId, Guid.NewGuid().ToString());
+            output.Set(this.SessionIdColumn, Guid.NewGuid().ToString());
 
             string errorMessage = null;
             // this is a optimized version only parsing parts of the data
@@ -64,11 +53,13 @@ namespace DecisionServiceExtractor
                                     case "_id":
                                         if (!firstPass) yield return output.AsReadOnly();
                                         firstPass = false;
-                                        Helpers.ExtractPropertyString(jsonReader, output, this.idxEventId, this.hasEventId);
-                                        if (this.hasSlotIdx)
-                                        {
-                                            output.Set(this.idxSlotIdx, slotIdx++);
-                                        }
+                                        Helpers.ExtractPropertyString(jsonReader, output, this.EventIdColumn);
+                                        output.Set(this.SlotIdxColumn, slotIdx++);
+                                        break;
+                                    case "Timestamp":
+                                   /*     output.Set(this.)
+                                        if (this.hasTimestamp)
+                                            output.Set(this.idxTimestamp, (DateTime)jsonReader.ReadAsDateTime());*/
                                         break;
                                     default:
                                         jsonReader.Skip();
@@ -78,9 +69,9 @@ namespace DecisionServiceExtractor
                             break;
                     }
                 }
-                if (!string.IsNullOrEmpty(errorMessage) && this.hasParseError)
+                if (!string.IsNullOrEmpty(errorMessage))
                 {
-                    output.Set(this.idxParseError, errorMessage);
+                    output.Set(this.ParserErrorColumn, errorMessage);
                 }
             }
 

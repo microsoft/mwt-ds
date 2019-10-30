@@ -22,40 +22,37 @@ namespace DecisionServiceExtractor
             return column.Type == t;
         }
 
-        public static void ExtractPropertyString(JsonTextReader jsonReader, IUpdatableRow output, int fieldIdx, bool hasField)
+        public static void ExtractPropertyString(JsonTextReader jsonReader, IUpdatableRow output, ColumnInfo columnInfo)
         {
             jsonReader.Read();
-            if (hasField)
-                output.Set(fieldIdx, (string)jsonReader.Value);
+            output.Set(columnInfo, (string)jsonReader.Value);
         }
 
-        public static void ExtractPropertyBool(JsonTextReader jsonReader, IUpdatableRow output, int fieldIdx, bool hasField)
+        public static void ExtractPropertyBool(JsonTextReader jsonReader, IUpdatableRow output, ColumnInfo columnInfo)
         {
             jsonReader.Read();
-            if (hasField)
-                output.Set(fieldIdx, (bool)jsonReader.Value);
+            output.Set(columnInfo, (bool)jsonReader.Value);
         }
 
-        public static void ExtractPropertyInteger(JsonTextReader jsonReader, IUpdatableRow output, int fieldIdx, bool hasField)
+        public static void ExtractPropertyInteger(JsonTextReader jsonReader, IUpdatableRow output, ColumnInfo columnInfo)
         {
             jsonReader.Read();
-            if (hasField)
-                output.Set(fieldIdx, (int)(long)jsonReader.Value);
+            output.Set(columnInfo, (int)(long)jsonReader.Value);
         }
 
-        public static void ExtractPropertyDouble(JsonTextReader jsonReader, IUpdatableRow output, int fieldIdx, bool hasField)
+        public static void ExtractPropertyDouble(JsonTextReader jsonReader, IUpdatableRow output, ColumnInfo columnInfo)
         {
             jsonReader.Read();
 
-            if (hasField)
+            if (columnInfo.IsRequired)
             {
                 switch (jsonReader.TokenType)
                 {
                     case JsonToken.Integer:
-                        output.Set(fieldIdx, (float)(long)jsonReader.Value);
+                        output.Set(columnInfo.Idx, (float)(long)jsonReader.Value);
                         break;
                     case JsonToken.Float:
-                        output.Set(fieldIdx, (float)(double)jsonReader.Value);
+                        output.Set(columnInfo.Idx, (float)(double)jsonReader.Value);
                         break;
                     default:
                         throw new Exception("wrong data type");
@@ -80,6 +77,14 @@ namespace DecisionServiceExtractor
             }
 
             return numActions;
+        }
+
+        public static void Set<T>(this IUpdatableRow row, ColumnInfo columnInfo, T value)
+        {
+            if (columnInfo.IsRequired)
+            {
+                row.Set(columnInfo.Idx, value);
+            }
         }
     }
 }
