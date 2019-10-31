@@ -1,6 +1,7 @@
 ﻿using Microsoft.Analytics.Interfaces;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 
 namespace DecisionServiceExtractor
 {
@@ -77,6 +78,62 @@ namespace DecisionServiceExtractor
             }
 
             return numActions;
+        }
+
+        public static int CountObjects(JsonTextReader jsonReader)
+        {
+            int numActions = 0;
+
+            while (jsonReader.Read())
+            {
+                switch (jsonReader.TokenType)
+                {
+                    case JsonToken.StartObject:
+                        numActions++;
+                        jsonReader.Skip();
+                        break;
+                    case JsonToken.EndArray:
+                        return numActions;
+                    default:
+                        break;
+                }
+            }
+
+            return numActions;
+        }
+
+        public static IEnumerable<int> EnumerateInts(JsonTextReader jsonReader)
+        {
+            while (jsonReader.Read())
+            {
+                switch (jsonReader.TokenType)
+                {
+                    case JsonToken.Integer:
+                        yield return (int)(long)jsonReader.Value;
+                        break;
+                    case JsonToken.EndArray:
+                        yield break;
+                }
+            }
+        }
+
+
+        public static IEnumerable<float> EnumerateFloats(JsonTextReader jsonReader)
+        {
+            while (jsonReader.Read())
+            {
+                switch (jsonReader.TokenType)
+                {
+                    case JsonToken.Integer:
+                        yield return (float)(long)jsonReader.Value;
+                        break;
+                    case JsonToken.Float:
+                        yield return (float)(double)jsonReader.Value;
+                        break;
+                    case JsonToken.EndArray:
+                        yield break;
+                }
+            }
         }
 
         public static void Set<T>(this IUpdatableRow row, ColumnInfo columnInfo, T value)
