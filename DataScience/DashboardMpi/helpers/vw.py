@@ -10,9 +10,9 @@ def _safe_to_float(str, default):
         return default
 
 
-def _cache(input, opts, env):
-    opts['-d'] = input
-    opts['--cache_file'] = env.cache_path_gen.get(input)
+def _cache(log_path, opts, env):
+    opts['-d'] = log_path
+    opts['--cache_file'] = env.caches_provider.new_path(log_path)
     return (opts, run(build_command(env.vw_path, opts), env.logger))
 
 
@@ -20,16 +20,16 @@ def _cache_func(input):
     return _cache(input[0], input[1], input[2])
 
 
-def _cache_multi(opts, env):
-    input_files = env.txt_provider.get()
+def _cache_multi(opts, env, file_path):
+    input_files = [file_path]
     inputs = list(map(lambda i: (i, opts, env), input_files))
     result = env.job_pool.map(_cache_func, inputs)
     return result
 
 
-def _train(cache_file, opts, env):
-    opts['--cache_file'] = cache_file
-    opts['-f'] = env.model_path_gen.get(cache_file, opts)
+def _train(cache_path, opts, env):
+    opts['--cache_file'] = cache_path
+    opts['-f'] = env.models_provider.new_path(cache_path, opts)
     result = (opts, run(build_command(env.vw_path, opts), env.logger))
     return result
 
@@ -39,7 +39,7 @@ def _train_func(input):
 
 
 def _train_multi(opts, env):
-    cache_files = env.cache_provider.get()
+    cache_files = env.caches_provider.list()
     for c in cache_files:
         inputs = list(map(lambda o: (c, o, env), opts))
         result = env.job_pool.map(_train_func, inputs)
@@ -49,9 +49,9 @@ def _train_multi(opts, env):
     return result
 
 
-def _predict(cache_file, command_name, command, env):
-    command['-p'] = env.pred_path_gen.get(cache_file, command_name)
-    _train(cache_file, command, env)
+def _predict(cache_path, command_name, command, env):
+    command['-p'] = env.predictions_provider.new_path(cache_path, command_name)
+    _train(cache_path, command, env)
     return command_name, command
 
 
@@ -60,7 +60,7 @@ def _predict_func(input):
 
 
 def _predict_multi(labeled_opts, env):
-    cache_files = env.cache_provider.get()
+    cache_files = env.caches_provider.list()
     for c in cache_files:
         inputs = list(map(
             lambda lo: (c, lo[0], lo[1], env), labeled_opts.items()))
@@ -89,6 +89,7 @@ def run(command, logger):
     )
     output, error = process.communicate()
     logger.debug(command)
+    logger.debug(error)
     return _parse_vw_output(error)
 
 
@@ -96,8 +97,8 @@ def build_command(path, opts):
     return ' '.join([path, command.to_commandline(opts)])
 
 
-def cache(opts, env):
-    _cache_multi(opts, env)
+def cache(opts, env, file_path):
+    _cache_multi(opts, env, file_path)
     command.generalize(opts)
 
 

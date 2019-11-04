@@ -1,101 +1,159 @@
 import datetime
 import glob
 import os
-from azure.storage.blob import BlockBlobService
+import copy
+import sys
+sys.path.append("..")
+import ds_parse
+import simplejson
+# import json
+from helpers import command
 
 
-class cache_provider:
-    def __init__(self, folder):
+class InputProvider:
+    def __init__(self, folder, create=True):
         self.folder = folder
+        if create:
+            os.makedirs(folder, exist_ok=True)
 
-    def get(self):
-        pattern = os.path.join(self.folder, '*.cache')
+    def list(self, pattern):
         return sorted(list(glob.glob(pattern)))
 
+    def new_path(self, relative_path, suffix):
+        return os.path.join(self.folder, '.'.join([relative_path, suffix]))
 
-class LogsExtractor:
-    @staticmethod
-    def _get_log_relative_path(date):
-        return 'data/%s/%s/%s_0.json' % (
-            str(date.year),
-            str(date.month).zfill(2),
-            str(date.day).zfill(2)
+
+class CachesProvider(InputProvider):
+    def __init__(self, folder, create=True):
+        super().__init__(folder, create)
+
+    def list(self):
+        pattern = os.path.join(self.folder, '*.cache')
+        return super().list(pattern)
+
+    def new_path(self, input_path):
+        year, month, day = _get_date_from_path(input_path)
+        log_file_name = _get_file_name_from_path(input_path)
+        cache_file_name = year + month + log_file_name
+        return super().new_path(cache_file_name, 'cache')
+
+
+class LocalLogsProvider(InputProvider):
+    def __init__(self, folder, create=True):
+        super().__init__(folder, create)
+
+    def list(self):
+        pattern = os.path.join(self.folder, 'data', '*', '*', '*.json')
+        return super().list(pattern)
+
+    def new_path(self, blob_name, index):
+        year, month, day = _get_date_from_path(blob_name)
+        relative_path = os.path.join(
+            'data',
+            year,
+            month,
+            day + '_' + str(index).zfill(3)
         )
+        return super().new_path(relative_path, 'json')
 
-    @staticmethod
-    def iterate_files(folder, start_date, end_date):
-        for i in range((end_date - start_date).days + 1):
-            current_date = start_date + datetime.timedelta(i)
-            log_relative_path = LogsExtractor._get_log_relative_path(
-                current_date
-            )
-            log_path = os.path.join(folder, log_relative_path)
-            if os.path.isfile(log_path):
-                yield log_path
-        return
-        yield
+    def get_metadata(self, local_log_path):
+        summary_path = local_log_path + '.summary'
 
+        for x in open(local_log_path, 'rb'):
+            if x.startswith(b'{"_label_cost":') and x.strip().endswith(b'}'):
+                data = ds_parse.json_cooked(x)
+                with open(summary_path, 'a') as f:
+                    f.write(simplejson.dumps(data)+'\n')
+        os.remove(local_log_path)
+        os.rename(summary_path, local_log_path)
+
+
+class ModelsProvider(InputProvider):
+    def __init__(self, folder, create=True):
+        super().__init__(folder, create)
+
+    def new_path(self, cache_path, command):
+        tmp = InputProvider(os.path.join(self.folder, _hash(command)))
+        return tmp.new_path(_get_file_name_from_path(cache_path), 'vw')
+
+
+class PredictionsProvider(InputProvider):
+    def __init__(self, folder, create=True):
+        super().__init__(folder, create)
+
+    def list(self, log_path):
+        year, month, day = _get_date_from_path(log_path)
+        log_file_name = _get_file_name_from_path(log_path)
+        pred_sub_directory = year + month + log_file_name
+        pattern = os.path.join(self.folder,  pred_sub_directory, '*.pred')
+        return super().list(pattern)
+
+    def new_path(self, cache_path, policy_name):
+        tmp = InputProvider(
+            os.path.join(self.folder, _get_file_name_from_path(cache_path))
+        )
+        return tmp.new_path(policy_name, 'pred')
+
+
+class AzureLogsProvider:
     @staticmethod
     def iterate_blobs(bbs, container, folder, start_date, end_date):
         for i in range((end_date - start_date).days + 1):
             current_date = start_date + datetime.timedelta(i)
-            log_relative_path = LogsExtractor._get_log_relative_path(
-                current_date
+            log_path = os.path.join(
+                folder,
+                'data',
+                str(current_date.year),
+                str(current_date.month).zfill(2),
+                str(current_date.day).zfill(2)
             )
-            log_path = folder + '/' + log_relative_path
             for blob in bbs.list_blobs(container, prefix=log_path):
                 yield blob
         return
         yield
 
-
-class ps_logs_provider:
-    def __init__(self, folder, start, end):
-        self.folder = folder
-        self.start = start
-        self.end = end
-
-    def get(self):
-        return list(
-            LogsExtractor.iterate_files(self.folder, self.start, self.end)
+    @staticmethod
+    def download_blob(bbs, container, blob_name, local_log_path, start_range, end_range, max_connections):
+        os.makedirs(os.path.dirname(local_log_path), exist_ok=True)
+        bbs.get_blob_to_path(
+            container,
+            blob_name,
+            local_log_path,
+            start_range=start_range,
+            end_range=end_range,
+            max_connections=max_connections
         )
 
+    def truncate_log(local_log_path):
+        last_line_length = 0
+        with open(local_log_path, "r+", encoding="utf-8", errors='ignore') as file:
+            file.seek(0, os.SEEK_END)
+            file_size = file.tell()
+            pos = file_size
+            while pos > 0 and file.read(1) != "\n":
+                pos -= 1
+                file.seek(pos, os.SEEK_SET)
 
-class azure_logs_provider(ps_logs_provider):
-    @staticmethod
-    def _copy(container, connection_string, folder, start, end, local_folder,
-              logger, delta_mod_t=3600, max_connections=4):
-        bbs = BlockBlobService(connection_string=connection_string)
-        for blob in LogsExtractor.iterate_blobs(bbs, container, folder, start, end):
-            tmp1 = os.path.split(blob.name)
-            tmp2 = os.path.split(tmp1[0])
-            tmp3 = os.path.split(tmp2[0])
-            relative_path = os.path.join(
-                'data',
-                os.path.join(tmp3[1], os.path.join(tmp2[1], tmp1[1]))
-            )
-            full_path = os.path.join(local_folder, relative_path)
-            os.makedirs(os.path.dirname(full_path), exist_ok=True)
-            logger.info(blob.name + ': Downloading to ' + full_path)
-            blob_properties = bbs.get_blob_properties(container, blob.name)
+            if pos > 0:
+                file.seek(pos, os.SEEK_SET)
+                last_line_length = file_size - pos
+                file.truncate()
+        return last_line_length
 
-            current_time = datetime.datetime.now(datetime.timezone.utc)
-            if  current_time - blob_properties.properties.last_modified < datetime.timedelta(0, delta_mod_t):
-                max_connections = 1
 
-            bbs.get_blob_to_path(
-                container,
-                blob.name,
-                full_path,
-                max_connections=max_connections
-            )
-            logger.info(blob.name + ': Done.')
+def _hash(c):
+    tmp = copy.deepcopy(c)
+    command.generalize(tmp)
+    return command.to_commandline(tmp).replace(' ', '')
 
-    def __init__(self, container, connection_string, folder, start, end,
-                 local_folder, logger):
-        azure_logs_provider._copy(container, connection_string, folder, start,
-                                  end, local_folder, logger)
-        super().__init__(local_folder, start, end)
 
-    def get(self):
-        return super().get()
+def _get_date_from_path(path):
+    path, file = os.path.split(path)
+    day = file.split('_')[0]
+    path, month = os.path.split(path)
+    path, year = os.path.split(path)
+    return year, month, day
+
+
+def _get_file_name_from_path(path):
+    return os.path.splitext(os.path.basename(path))[0]

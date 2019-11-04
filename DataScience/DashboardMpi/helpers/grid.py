@@ -15,19 +15,6 @@ class grid:
         self.config = config
 
 
-def points_from_file(fname, limit=-1):
-    result = list(map(
-        lambda line: command.deserialize(line), open(fname, 'r')
-    ))
-    return result if limit == -1 or len(result) < limit else result[:limit]
-
-
-def points_to_file(points, fname):
-    open(fname, 'w').writelines(map(
-        lambda p: command.serialize(p) + '\n', points
-    ))
-
-
 def generate(interactions_grid, marginals_grid):
     hyper_points = product(
         dimension('--power_t', [0]),    # fixing power_t to 0 since this is what should be used online
@@ -36,7 +23,7 @@ def generate(interactions_grid, marginals_grid):
         dimension('-l', [1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 0.5, 1, 10]),
         dimension('--cb_type', ['ips', 'mtr']),
         marginals_grid[:2]
-        )
+    )
 
     return [
         grid(hyper_points, configuration(name='hyper1', output=1, promote=1)),

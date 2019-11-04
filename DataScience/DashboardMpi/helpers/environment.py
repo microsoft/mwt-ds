@@ -1,13 +1,27 @@
-class environment:
-    def __init__(self, vw_path, runtime, job_pool, cache_path_gen=None,
-                 model_path_gen=None, pred_path_gen=None, cache_provider=None,
-                 txt_provider=None, logger=None):
+import os
+from helpers import logger, runtime, pool
+from helpers.input_provider import CachesProvider, LocalLogsProvider, ModelsProvider, PredictionsProvider
+
+
+class Environment:
+    def __init__(self, vw_path, runtime_mode, procs, log_level, tmp_folder):
+        rt = runtime.mpi() if runtime_mode == 'mpi' else runtime.local()
+
+        self.runtime = rt
+        self.job_pool = pool.multiproc_pool(procs) if procs > 1 else pool.seq_pool()
+        self.logger = logger.console_logger(rt.get_node_id(), log_level)
+
         self.vw_path = vw_path
-        self.runtime = runtime
-        self.job_pool = job_pool
-        self.logger = logger
-        self.cache_path_gen = cache_path_gen
-        self.model_path_gen = model_path_gen
-        self.pred_path_gen = pred_path_gen
-        self.cache_provider = cache_provider
-        self.txt_provider = txt_provider
+
+        self.local_logs_provider = LocalLogsProvider(
+            os.path.join(tmp_folder, 'logs')
+        )
+        self.caches_provider = CachesProvider(
+            os.path.join(tmp_folder, 'caches')
+        )
+        self.models_provider = ModelsProvider(
+            os.path.join(tmp_folder, 'models')
+        )
+        self.predictions_provider = PredictionsProvider(
+            os.path.join(tmp_folder, 'predictions')
+        )
