@@ -9,12 +9,16 @@ from helpers.constant import LOG_CHUNK_SIZE
 from helpers.input_provider import AzureLogsProvider
 
 
-def dashboard_e2e(app_container, connection_string, app_folder, vw_path, start, end, tmp_folder, runtime_mode, procs, log_level, output_connection_string, output_container, output_path, enable_sweep, delta_mod_t=3600, max_connections=50):
+def dashboard_e2e(connection_string, account_name, sas_token, app_container, app_folder, vw_path, start, end, tmp_folder, runtime_mode, procs, log_level, output_connection_string, output_container, output_path, enable_sweep, delta_mod_t=3600, max_connections=50):
     env = Environment(vw_path, runtime_mode, procs, log_level, tmp_folder)
 
     commands = {}
 
-    bbs = BlockBlobService(connection_string=connection_string)
+    if connection_string:
+        bbs = BlockBlobService(connection_string=connection_string)
+    elif account_name and sas_token:
+        bbs = BlockBlobService(account_name=account_name, sas_token=sas_token)
+
     base_command = {'#base': '--cb_adf --dsjson --compressed --save_resume --preserve_performance_counters'}
 
     namespaces = set()
@@ -103,6 +107,8 @@ def main():
     parser.add_argument("--tmp_folder", type=str, help="temporary folder")
     parser.add_argument("--app_container", type=str, help="app_container")
     parser.add_argument("--connection_string", type=str, help="connection_string")
+    parser.add_argument("--account_name", type=str, help="account name from sas URI")
+    parser.add_argument("--sas_token", type=str, help="sas token")
     parser.add_argument("--procs", type=int, help="procs")
     parser.add_argument("--env", type=str, help="environment (local / mpi)", default="local")
     parser.add_argument("--log_level", type=str, help="log level (CRITICAL / ERROR / WARNING / INFO / DEBUG)", default='INFO')
@@ -119,10 +125,13 @@ def main():
     start = datetime.datetime.strptime(args.start_date, date_format)
     end = datetime.datetime.strptime(args.end_date, date_format)
 
-    dashboard_e2e(args.app_container, args.connection_string, args.app_folder,
-                  args.vw, start, end, args.tmp_folder, args.env, args.procs,
-                  args.log_level, args.output_connection_string,
-                  args.output_container, args.output_path, args.enable_sweep)
+    dashboard_e2e(args.connection_string, args.account_name,
+                  args.sas_token, args.app_container, args.app_folder,
+                  args.vw, start, end, args.tmp_folder, args.env,
+                  args.procs, args.log_level,
+                  args.output_connection_string,
+                  args.output_container, args.output_path,
+                  args.enable_sweep)
 
 
 if __name__ == '__main__':
