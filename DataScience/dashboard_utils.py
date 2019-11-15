@@ -3,7 +3,7 @@ import numpy as np
 import argparse
 import time
 import simplejson
-from helpers import command
+from DashboardMpi.helpers import command
 
 def get_ts_5min_bin(ts):
     str_5min = str(ts[:14])

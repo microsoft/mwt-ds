@@ -1,5 +1,5 @@
-from helpers import command
-from helpers.command import dimension, product
+from DashboardMpi.helpers import command
+from DashboardMpi.helpers.command import dimension, product
 
 
 class configuration:

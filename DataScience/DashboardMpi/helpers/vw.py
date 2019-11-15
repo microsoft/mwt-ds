@@ -1,6 +1,6 @@
 import subprocess
 import sys
-from helpers import command
+from DashboardMpi.helpers import command
 
 
 def _safe_to_float(str, default):

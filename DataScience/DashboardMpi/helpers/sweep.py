@@ -1,5 +1,5 @@
 import multiprocessing
-from helpers import vw, command
+from DashboardMpi.helpers import vw, command
 
 
 def _top(candidates, k):

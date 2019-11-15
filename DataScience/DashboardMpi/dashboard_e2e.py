@@ -1,15 +1,35 @@
 import argparse
 import datetime
 import os
+from subprocess import check_output, STDOUT
 from shutil import rmtree
 from azure.storage.blob import BlockBlobService
-from helpers import vw, preprocessing, grid, sweep, command, dashboard
-from helpers.environment import Environment
-from helpers.constant import LOG_CHUNK_SIZE
-from helpers.input_provider import AzureLogsProvider
+from DashboardMpi.helpers import vw, preprocessing, grid, sweep, command, dashboard
+from DashboardMpi.helpers.environment import Environment
+from DashboardMpi.helpers.constant import LOG_CHUNK_SIZE
+from DashboardMpi.helpers.input_provider import AzureLogsProvider
 
 
-def dashboard_e2e(connection_string, account_name, sas_token, app_container, app_folder, vw_path, start, end, tmp_folder, runtime_mode, procs, log_level, output_connection_string, output_container, output_path, enable_sweep, delta_mod_t=3600, max_connections=50):
+def dashboard_e2e(args, delta_mod_t=3600, max_connections=50):
+    connection_string = args.connection_string
+    account_name = args.account_name
+    sas_token = args.sas_token
+    app_container = args.app_container
+    app_folder = args.app_folder
+    vw_path = args.vw
+    tmp_folder = args.tmp_folder
+    runtime_mode = args.env
+    procs = args.procs
+    log_level = args.log_level
+    output_connection_string = args.output_connection_string
+    output_container = args.output_container
+    output_path = args.output_path
+    enable_sweep = args.enable_sweep
+
+    date_format = '%m/%d/%Y'
+    start = datetime.datetime.strptime(args.start_date, date_format)
+    end = datetime.datetime.strptime(args.end_date, date_format)
+
     env = Environment(vw_path, runtime_mode, procs, log_level, tmp_folder)
 
     commands = {}
@@ -29,7 +49,7 @@ def dashboard_e2e(connection_string, account_name, sas_token, app_container, app
         blob_properties = bbs.get_blob_properties(app_container, blob.name).properties
 
         current_time = datetime.datetime.now(datetime.timezone.utc)
-        if  current_time - blob_properties.last_modified < datetime.timedelta(0, delta_mod_t):
+        if current_time - blob_properties.last_modified < datetime.timedelta(0, delta_mod_t):
             max_connections = 1
 
         start_range = 0
@@ -94,45 +114,14 @@ def dashboard_e2e(connection_string, account_name, sas_token, app_container, app
         env.logger.info(output_container + ':' + output_path + ': Uploading from ' + local_dashboard_path)
         bbs.create_blob_from_path(output_container, output_path, local_dashboard_path, max_connections=4)
         env.logger.info(output_container + ':' + output_path + ': Succeesfully uploaded')
-    rmtree(tmp_folder)
 
+    # Clean out logs directory
+    if args.delete_logs_dir and os.path.isdir(tmp_folder):
+        logs_dir = os.path.join(tmp_folder, 'logs')
+        print('Deleting ' + logs_dir)
+        shutil.rmtree(logs_dir, ignore_errors=True)
 
-def main():
-    parser = argparse.ArgumentParser("dashboard e2e")
-    parser.add_argument("--app_folder", type=str, help="app folder")
-    parser.add_argument("--vw", type=str, help="vw path")
-    parser.add_argument("--start_date", type=str, help="start date")
-    parser.add_argument("--end_date", type=str, help="end date")
-    parser.add_argument("--enable_sweep", action='store_true')
-    parser.add_argument("--tmp_folder", type=str, help="temporary folder")
-    parser.add_argument("--app_container", type=str, help="app_container")
-    parser.add_argument("--connection_string", type=str, help="connection_string")
-    parser.add_argument("--account_name", type=str, help="account name from sas URI")
-    parser.add_argument("--sas_token", type=str, help="sas token")
-    parser.add_argument("--procs", type=int, help="procs")
-    parser.add_argument("--env", type=str, help="environment (local / mpi)", default="local")
-    parser.add_argument("--log_level", type=str, help="log level (CRITICAL / ERROR / WARNING / INFO / DEBUG)", default='INFO')
-    parser.add_argument("--output_connection_string", type=str, help="output connection_string")
-    parser.add_argument("--output_container", type=str, help="output_container")
-    parser.add_argument("--output_path", type=str, help="dashboard file's path inside output container")
-
-    args = parser.parse_args()
-
-    date_format = '%m/%d/%Y'
-
-    os.makedirs(args.tmp_folder, exist_ok=True)
-
-    start = datetime.datetime.strptime(args.start_date, date_format)
-    end = datetime.datetime.strptime(args.end_date, date_format)
-
-    dashboard_e2e(args.connection_string, args.account_name,
-                  args.sas_token, args.app_container, args.app_folder,
-                  args.vw, start, end, args.tmp_folder, args.env,
-                  args.procs, args.log_level,
-                  args.output_connection_string,
-                  args.output_container, args.output_path,
-                  args.enable_sweep)
-
-
-if __name__ == '__main__':
-    main()
+    # Remove json files
+    if args.cleanup and os.path.isdir(tmp_folder):
+        print('Deleting ' + tmp_folder)
+        shutil.rmtree(tmp_folder, ignore_errors=True)

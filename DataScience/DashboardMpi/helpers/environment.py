@@ -1,6 +1,6 @@
 import os
-from helpers import logger, runtime, pool
-from helpers.input_provider import CachesProvider, LocalLogsProvider, ModelsProvider, PredictionsProvider
+from DashboardMpi.helpers import logger, runtime, pool
+from DashboardMpi.helpers.input_provider import CachesProvider, LocalLogsProvider, ModelsProvider, PredictionsProvider
 
 
 class Environment:

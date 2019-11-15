@@ -1,16 +1,11 @@
 import argparse, json, os, psutil, sys, shutil
 from datetime import datetime
 from subprocess import check_output, STDOUT
-from AzureUtil import AzureUtil
-import Experimentation
-import FeatureImportance
-import dashboard_utils
-import LogDownloader
 import uuid
 from applicationinsights import TelemetryClient
+from DashboardMpi import dashboard_e2e
 
 def get_telemetry_client(appInsightsInstrumentationKey):
-    print(appInsightsInstrumentationKey)
     if appInsightsInstrumentationKey:
         client = TelemetryClient(appInsightsInstrumentationKey)
         client.context.operation.id = str(uuid.uuid4())
@@ -39,183 +34,43 @@ if __name__ == '__main__':
     timestamp = start_time.strftime("%Y-%m-%d-%H_%M_%S")
 
     # Parse system parameters
-    main_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-    main_parser.add_argument('--evaluation_id', help="evaluation id")
-    main_parser.add_argument('--output_folder', help="storage account container's job folder where output files are stored", required=True)
-    main_parser.add_argument('--dashboard_filename', help="name of the output dashboard file", default='aggregates.txt')
-    main_parser.add_argument('--summary_json', help="json file containing custom policy commands to run", default='')
-    main_parser.add_argument('--run_experimentation', help="run Experimentation.py", action='store_true')
-    main_parser.add_argument('--delete_logs_dir', help="delete logs directory before starting to download new logs", action='store_true')
-    main_parser.add_argument('--cleanup', help="delete logs and created files after use", action='store_true')
-    main_parser.add_argument('--get_feature_importance', help="run FeatureImportance.py", action='store_true')
-    main_parser.add_argument('--feature_importance_filename', help="name of the output feature importance file", default='featureimportance.json')
-    main_parser.add_argument('--feature_importance_raw_filename', help="name of the output feature importance file with raw (unparsed) features", default='featureimportanceraw.json')
-    main_parser.add_argument('--ml_args', help="the online policy that we need for calculating the feature importances", required=True)
-    main_parser.add_argument('--appInsightsInstrumentationKey', help="App Insights key for logging metrics")
-    main_args, other_args = main_parser.parse_known_args(sys.argv[1:])
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
 
-    telemetry_client = get_telemetry_client(main_args.appInsightsInstrumentationKey)
+    parser.add_argument('--appInsightsInstrumentationKey', help="App Insights key for logging metrics")
+    parser.add_argument('--evaluation_id', help="evaluation id")
+    parser.add_argument('--tmp_folder', help="storage account container's job folder where output files are stored", required=True)
+    parser.add_argument('--delete_logs_dir', help="delete logs directory before starting to download new logs", action='store_true')
+    parser.add_argument('--cleanup', help="delete logs and created files after use", action='store_true')
+    parser.add_argument("--vw", type=str, help="vw path")
+    parser.add_argument("--env", type=str, help="environment (local / mpi)", default="local")
 
-    # Parse LogDownloader args
-    log_download_start_time = datetime.now()
-    logdownloader_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-    LogDownloader.add_parser_args(logdownloader_parser)
-    other_args.append('-o')
-    other_args.append('2')
-    other_args.append('--report_progress')
-    other_args.append('false')
-    ld_args, other_args = logdownloader_parser.parse_known_args(other_args)
-    output_dir = os.path.join(ld_args.log_dir, ld_args.app_id)
+    parser.add_argument("--connection_string", type=str, help="connection_string")
+    parser.add_argument("--account_name", type=str, help="account name from sas URI")
+    parser.add_argument("--sas_token", type=str, help="sas token")
+    parser.add_argument("--app_container", type=str, help="app_container")
+    parser.add_argument("--app_folder", type=str, help="app folder")
+    parser.add_argument("--start_date", type=str, help="start date")
+    parser.add_argument("--end_date", type=str, help="end date")
+    parser.add_argument("--log_level", type=str, help="log level (CRITICAL / ERROR / WARNING / INFO / DEBUG)", default='INFO')
 
-    properties = {'app_id' : ld_args.app_id, 'evaluation_id' : main_args.evaluation_id }
-    telemetry_client != None and telemetry_client.track_event('ExperimentationAzure.StartEvaluation', properties)
+    parser.add_argument('--enable_sweep', help="run Experimentation.py", action='store_true')
+    parser.add_argument("--procs", type=int, help="procs")
 
-     # Clean out logs directory
-    if main_args.delete_logs_dir and os.path.isdir(ld_args.log_dir):
-        print('Deleting ' + ld_args.log_dir)
-        shutil.rmtree(ld_args.log_dir, ignore_errors=True)
+    parser.add_argument("--output_connection_string", type=str, help="output connection_string")
+    parser.add_argument("--output_container", type=str, help="output_container")
+    parser.add_argument('--output_path', help="name of the output dashboard file", default='aggregates.txt')
 
-    # Download cooked logs
-    output_gz_fp = LogDownloader.download_container(**vars(ld_args))
-    telemetry_client != None and telemetry_client.track_event('ExperimentationAzure.LogDownload', properties, { 'TimeTaken' : (datetime.now() - log_download_start_time).seconds })
+    parser.add_argument('--summary_json', help="json file containing custom policy commands to run", default='')
 
-    if output_gz_fp == None:
-        message = 'No logs found between start date: {0} and end date:{1}. Exiting ... '.format(ld_args.start_date, ld_args.end_date)
-        print(message)
-        telemetry_client != None and telemetry_client.track_trace(message)
-        telemetry_client != None and telemetry_client.track_event('ExperimentationAzure.CompleteEvaluation', properties)
-        telemetry_client != None and telemetry_client.flush()
-        sys.exit()
+    parser.add_argument('--get_feature_importance', help="run FeatureImportance.py", action='store_true')
+    parser.add_argument('--feature_importance_filename', help="name of the output feature importance file", default='featureimportance.json')
+    parser.add_argument('--feature_importance_raw_filename', help="name of the output feature importance file with raw (unparsed) features", default='featureimportanceraw.json')
+    parser.add_argument('--ml_args', help="the online policy that we need for calculating the feature importances", required=True)
 
-    #Init Azure Util
-    azure_util = AzureUtil(ld_args.conn_string, ld_args.account_name, ld_args.sas_token)
+    args = parser.parse_args()
 
-    # Remove json files
-    if main_args.cleanup:
-        for f in os.listdir(output_dir):
-            if f.endswith('json'):
-                print('Deleting ' + f)
-                os.remove(os.path.join(output_dir, f))
+    telemetry_client = get_telemetry_client(args.appInsightsInstrumentationKey)
 
-    # Evaluate custom policies
-    if main_args.summary_json:
-        print('Evaluating custom policies')
-        summary_file_path = os.path.join(output_dir, main_args.summary_json)
-        azure_util.download_from_blob(ld_args.app_id, os.path.join(main_args.output_folder, main_args.summary_json), summary_file_path, True)
-        try:
-            with open(summary_file_path) as summary_file:
-                data = json.load(summary_file)
-                for p in data['policyResults']:
-                    policyName = p['name']
-                    policyArgs = p['arguments']
-                    print('Name: ' + policyName)
-                    print('Command: ' + policyArgs)
-                    custom_command = "vw " + policyArgs + " -d " + output_gz_fp + " -p " + output_gz_fp + "." + policyName + ".pred"
-                    try:
-                        check_output(custom_command.split(' '), stderr=STDOUT)
-                    except Exception as e:
-                        print("Custom policy run failed")
-                        print(e)
-                        telemetry_client != None and telemetry_client.track_exception(e, { 'PolicyName': p['name'], 'PolicyArguments' : p['arguments']}.update(properties))
-        except Exception as e:
-            print(e)
-
-    if main_args.run_experimentation:
-        experimentation_start_time = datetime.now()
-        print('Running Experimentation')
-        # Parse Experimentation args
-        experimentation_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-        Experimentation.add_parser_args(experimentation_parser)
-        other_args.append('-f')
-        other_args.append(output_gz_fp)
-        exp_args, other_args = experimentation_parser.parse_known_args(other_args)
-
-        # Run Experimentation.py using output_gz_fp as input
-        Experimentation.main(exp_args)
-        experiments_file_path = os.path.join(os.getcwd(), "experiments.csv")
-        azure_util.upload_to_blob(ld_args.app_id,  os.path.join(main_args.output_folder, "experiments.csv"), experiments_file_path)
-        if main_args.cleanup: os.remove(experiments_file_path)
-        telemetry_client != None and telemetry_client.track_event('ExperimentationAzure.OfflineExperimentation', properties, { 'TimeTaken' : (datetime.now() - experimentation_start_time).seconds })
-
-    # Generate dashboard files
-    dashboard_file_path = os.path.join(output_dir, main_args.dashboard_filename)
-    d = dashboard_utils.create_stats(output_gz_fp)
-    dashboard_utils.output_dashboard_data(d, dashboard_file_path)
-    azure_util.upload_to_blob(ld_args.app_id,  os.path.join(main_args.output_folder, main_args.dashboard_filename), dashboard_file_path, True)
-
-    if main_args.get_feature_importance:
-        feature_importance_start_time = datetime.now()
-        print('Download model file')
-        model_fp = None
-        blobs = azure_util.list_blobs(ld_args.app_id)
-        for blob in blobs:
-            if '/model/' not in blob.name:
-                continue
-            # blob.name looks like this: '20180416094500/model/2019/01/14.json'
-            blob_day = datetime.strptime(blob.name.split('/model/', 1)[1].split('_', 1)[0].split('.', 1)[0], '%Y/%m/%d')
-            if blob_day == ld_args.start_date:
-                model_fp = os.path.join(output_dir, 'model.vw')
-                azure_util.download_from_blob(ld_args.app_id, blob.name, model_fp, True)
-
-        print('Generate Feature Importance')
-        feature_importance_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-        FeatureImportance.add_parser_args(feature_importance_parser)
-        other_args.append('--data')
-        other_args.append(output_gz_fp)
-
-        if model_fp:
-            other_args.append('--model')
-            other_args.append(model_fp)
-        other_args.append('--min_num_features')
-        other_args.append('1')
-        fi_args, other_args = feature_importance_parser.parse_known_args(other_args)
-
-        # Run FeatureImportance.py using output_gz_fp as input
-        feature_buckets, pretty_feature_buckets = FeatureImportance.main(fi_args)
-
-        # Feature importance values that are user-friendly strings
-        feature_importance_file_path = os.path.join(output_dir, main_args.feature_importance_filename)
-        with open(feature_importance_file_path, 'w') as feature_importance_file:
-            json.dump(pretty_feature_buckets, feature_importance_file)
-        azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, main_args.feature_importance_filename), feature_importance_file_path, True)
-
-        # Feature importance values that are hashes returned by vw
-        feature_importance_raw_file_path = os.path.join(output_dir, main_args.feature_importance_raw_filename)
-        with open(feature_importance_raw_file_path, 'w') as feature_importance_raw_file:
-            json.dump(feature_buckets, feature_importance_raw_file)
-        azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, main_args.feature_importance_raw_filename), feature_importance_raw_file_path, True)
-
-        telemetry_client != None and telemetry_client.track_event('ExperimentationAzure.FeatureImportance', properties, { 'TimeTaken' : (datetime.now() - feature_importance_start_time).seconds })
-
-    # Merge calculated policies into summary file path, upload summary file
-    if main_args.summary_json:
-        summary_file_path = os.path.join(output_dir, main_args.summary_json)
-        if os.path.isfile(summary_file_path):
-            with open(summary_file_path) as summary_file:
-                summary_data = json.load(summary_file)
-                summary_data['status'] = 0 # Success status
-                try:
-                    policy_file_path = os.path.join(output_dir, "policy.json")
-                    if os.path.isfile(policy_file_path):
-                        with open(policy_file_path) as policy_file:
-                            policy_data = json.load(policy_file)
-                            for p in policy_data['policies']:
-                                summary_data['policyResults'].append({
-                                    'name': p['name'],
-                                    'arguments' :p['arguments']
-                                })
-                except Exception as e:
-                    print(e)
-            with open(summary_file_path, 'w') as outfile:
-                json.dump(summary_data, outfile)
-            azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, main_args.summary_json), summary_file_path, True)
-
-    if main_args.cleanup:
-        print('Deleting folder as part of cleanup: ' + ld_args.log_dir)
-        shutil.rmtree(ld_args.log_dir, ignore_errors=True)
-
-    end_time = datetime.now()
-    print("Done executing job")
-    print('Total Job time in seconds:', (end_time - start_time).seconds)
-    telemetry_client != None and telemetry_client.track_event('ExperimentationAzure.CompleteEvaluation', properties, { 'TimeTaken' : (end_time - start_time).seconds })
-    telemetry_client != None and telemetry_client.flush()
+    tmp_folder = args.tmp_folder
+    os.makedirs(tmp_folder, exist_ok=True)
+    dashboard_e2e.dashboard_e2e(args)

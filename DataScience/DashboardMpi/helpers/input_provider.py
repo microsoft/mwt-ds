@@ -6,8 +6,7 @@ import sys
 sys.path.append("..")
 import ds_parse
 import simplejson
-# import json
-from helpers import command
+from DashboardMpi.helpers import command
 
 
 class InputProvider:
@@ -113,7 +112,7 @@ class AzureLogsProvider:
         yield
 
     @staticmethod
-    def download_blob(bbs, container, blob_name, local_log_path, start_range, end_range, max_connections):
+    def download_blob(bbs, container, blob_name, local_log_path, start_range=None, end_range=None, max_connections=4):
         os.makedirs(os.path.dirname(local_log_path), exist_ok=True)
         bbs.get_blob_to_path(
             container,
