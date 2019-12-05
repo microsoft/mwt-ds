@@ -96,18 +96,18 @@ class PredictionsProvider(InputProvider):
 
 class AzureLogsProvider:
     @staticmethod
-    def iterate_blobs(bbs, container, folder, start_date, end_date):
-        for i in range((end_date - start_date).days + 1):
-            current_date = start_date + datetime.timedelta(i)
-            log_path = os.path.join(
-                folder,
-                'data',
-                str(current_date.year),
-                str(current_date.month).zfill(2),
-                str(current_date.day).zfill(2)
-            )
-            for blob in bbs.list_blobs(container, prefix=log_path):
+    def iterate_blobs(bbs, container, start_date, end_date):
+        blobs = list(filter(lambda blob: '/data/' in blob.name, bbs.list_blobs(container)))
+
+        blobs = list(_get_blobs_within_range(blobs, start_date, end_date))
+        blobs = sorted(blobs, key=lambda x: (_get_blob_day(x.name), -bbs.get_blob_properties(container, x.name).properties.content_length, x))
+
+        last_blob_day = None
+        for blob in blobs:
+            blob_day = _get_blob_day(blob.name)
+            if blob_day != last_blob_day:
                 yield blob
+            last_blob_day = blob_day
         return
         yield
 
@@ -156,3 +156,14 @@ def _get_date_from_path(path):
 
 def _get_file_name_from_path(path):
     return os.path.splitext(os.path.basename(path))[0]
+
+
+def _get_blob_day(blob_name):
+    return datetime.datetime.strptime(blob_name.split('/data/', 1)[1].split('_', 1)[0], '%Y/%m/%d')
+
+
+def _get_blobs_within_range(blobs, start_date, end_date):
+    for blob in blobs:
+        blob_day = _get_blob_day(blob.name)
+        if (blob_day >= start_date) and (blob_day <= end_date):
+            yield blob

@@ -48,7 +48,6 @@ if __name__ == '__main__':
     parser.add_argument("--account_name", type=str, help="account name from sas URI")
     parser.add_argument("--sas_token", type=str, help="sas token")
     parser.add_argument("--app_container", type=str, help="app_container")
-    parser.add_argument("--app_folder", type=str, help="app folder")
     parser.add_argument("--start_date", type=str, help="start date")
     parser.add_argument("--end_date", type=str, help="end date")
     parser.add_argument("--log_level", type=str, help="log level (CRITICAL / ERROR / WARNING / INFO / DEBUG)", default='INFO')

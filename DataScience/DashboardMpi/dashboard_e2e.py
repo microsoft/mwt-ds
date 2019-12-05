@@ -15,7 +15,6 @@ def dashboard_e2e(args, delta_mod_t=3600, max_connections=50):
     account_name = args.account_name
     sas_token = args.sas_token
     app_container = args.app_container
-    app_folder = args.app_folder
     vw_path = args.vw
     tmp_folder = args.tmp_folder
     runtime_mode = args.env
@@ -45,7 +44,7 @@ def dashboard_e2e(args, delta_mod_t=3600, max_connections=50):
     marginals_grid = []
     interactions_grid = []
 
-    for blob_index, blob in enumerate(AzureLogsProvider.iterate_blobs(bbs, app_container, app_folder, start, end)):
+    for blob_index, blob in enumerate(AzureLogsProvider.iterate_blobs(bbs, app_container, start, end)):
         blob_properties = bbs.get_blob_properties(app_container, blob.name).properties
 
         current_time = datetime.datetime.now(datetime.timezone.utc)
