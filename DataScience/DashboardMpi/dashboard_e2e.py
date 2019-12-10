@@ -1,6 +1,7 @@
 import argparse
 import datetime
 import os
+import json
 from subprocess import check_output, STDOUT
 from shutil import rmtree
 from azure.storage.blob import BlockBlobService
@@ -23,6 +24,7 @@ def dashboard_e2e(args, delta_mod_t=3600, max_connections=50):
     output_container = args.output_container
     output_path = args.output_path
     enable_sweep = args.enable_sweep
+    summary_json = args.summary_json
 
     date_format = '%m/%d/%Y'
     start = datetime.datetime.strptime(args.start_date, date_format)
@@ -95,6 +97,45 @@ def dashboard_e2e(args, delta_mod_t=3600, max_connections=50):
             index += 1
 
             env.local_logs_provider.get_metadata(local_log_path)
+
+    # Evaluate custom policies
+    if summary_json:
+        env.logger.info('Evaluating custom policies')
+        local_summary_file_path = os.path.join(tmp_folder, summary_json)
+        output_bbs = BlockBlobService(connection_string=output_connection_string)
+
+        AzureLogsProvider.download_blob(
+            output_bbs,
+            os.path.join(output_container, summary_json),
+            local_summary_file_path
+        )
+
+        try:
+            with open(local_summary_file_path) as summary_file:
+                data = json.load(summary_file)
+                for p in data['policyResults']:
+                    policy_name = p['name']
+                    policy_args = p['arguments']
+                    if '--save_resume' not in policy_args:
+                        policy_args += ' --save_resume --preserve_performance_counters'
+
+                    env.logger.info('Name: ' + policy_name)
+                    env.logger.info('Command: ' + policy_args)
+
+                    try:
+                        custom_command = {}
+                        custom_command[policy_name] = {
+                            '#base': policy_args
+                        }
+                        vw.predict(custom_command, env)
+
+                    except Exception as e:
+                        env.logger.error("Custom policy run failed")
+                        env.logger.error(e)
+
+        except Exception as e:
+            env.logger.error(e)
+
     if enable_sweep:
         multi_grid = grid.generate(interactions_grid, marginals_grid)
         best = sweep.sweep(multi_grid, env, base_command)

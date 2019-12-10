@@ -128,6 +128,7 @@ def predict(labeled_commands, env):
     for kv in labeled_commands.items():
         command.generalize(kv[1])
 
+
 def check_vw_installed(logger):
     try:
         check_output(['vw', '-h'], stderr=subprocess.DEVNULL)
