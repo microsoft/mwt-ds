@@ -41,7 +41,6 @@ if __name__ == '__main__':
     parser.add_argument('--tmp_folder', help="storage account container's job folder where output files are stored", required=True)
     parser.add_argument('--delete_logs_dir', help="delete logs directory before starting to download new logs", action='store_true')
     parser.add_argument('--cleanup', help="delete logs and created files after use", action='store_true')
-    parser.add_argument("--vw", type=str, help="vw path")
     parser.add_argument("--env", type=str, help="environment (local / mpi)", default="local")
 
     parser.add_argument("--connection_string", type=str, help="connection_string")

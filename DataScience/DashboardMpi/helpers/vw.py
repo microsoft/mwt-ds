@@ -1,5 +1,6 @@
-import subprocess
 import sys
+import subprocess
+from subprocess import check_output
 from DashboardMpi.helpers import command
 
 
@@ -13,7 +14,7 @@ def _safe_to_float(str, default):
 def _cache(log_path, opts, env):
     opts['-d'] = log_path
     opts['--cache_file'] = env.caches_provider.new_path(log_path)
-    return (opts, run(build_command(env.vw_path, opts), env.logger))
+    return (opts, run(build_command(opts), env.logger))
 
 
 def _cache_func(input):
@@ -29,7 +30,7 @@ def _cache_multi(opts, env, file_path):
 def _train(cache_path, opts, env):
     opts['--cache_file'] = cache_path
     opts['-f'] = env.models_provider.new_path(cache_path, opts)
-    result = (opts, run(build_command(env.vw_path, opts), env.logger))
+    result = (opts, run(build_command(opts), env.logger))
     return result
 
 
@@ -104,8 +105,8 @@ def run(command, logger):
     return _parse_vw_output(error)
 
 
-def build_command(path, opts):
-    return ' '.join([path, command.to_commandline(opts)])
+def build_command(opts):
+    return command.to_commandline(opts)
 
 
 def cache(opts, env, file_path):
@@ -126,6 +127,13 @@ def predict(labeled_commands, env):
     _predict_multi(labeled_commands, env)
     for kv in labeled_commands.items():
         command.generalize(kv[1])
+
+def check_vw_installed(logger):
+    try:
+        check_output(['vw', '-h'], stderr=subprocess.DEVNULL)
+    except Exception:
+        logger.error("Error: Vowpal Wabbit executable not found. Please install and add it to your path")
+        sys.exit()
 
 
 if __name__ == '__main__':

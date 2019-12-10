@@ -2,8 +2,6 @@ import datetime
 import glob
 import os
 import copy
-import sys
-sys.path.append("..")
 import ds_parse
 import simplejson
 from DashboardMpi.helpers import command

@@ -1,5 +1,3 @@
-import sys
-sys.path.append("..")
 import dashboard_utils
 
 def create(path, env, commands, enable_sweep):

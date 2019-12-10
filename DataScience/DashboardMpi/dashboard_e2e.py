@@ -15,7 +15,6 @@ def dashboard_e2e(args, delta_mod_t=3600, max_connections=50):
     account_name = args.account_name
     sas_token = args.sas_token
     app_container = args.app_container
-    vw_path = args.vw
     tmp_folder = args.tmp_folder
     runtime_mode = args.env
     procs = args.procs
@@ -29,7 +28,7 @@ def dashboard_e2e(args, delta_mod_t=3600, max_connections=50):
     start = datetime.datetime.strptime(args.start_date, date_format)
     end = datetime.datetime.strptime(args.end_date, date_format)
 
-    env = Environment(vw_path, runtime_mode, procs, log_level, tmp_folder)
+    env = Environment(runtime_mode, procs, log_level, tmp_folder)
 
     commands = {}
 
@@ -75,9 +74,9 @@ def dashboard_e2e(args, delta_mod_t=3600, max_connections=50):
             env.logger.info(local_log_path + ': Done.')
 
             if enable_sweep:
-                vw.cache(base_command, env, local_log_path)
-
                 if (blob_index == 0 and index == 0):
+                    vw.check_vw_installed(env.logger)
+
                     namespaces = preprocessing.extract_namespaces(
                         open(local_log_path, 'r', encoding='utf-8')
                     )
@@ -91,6 +90,7 @@ def dashboard_e2e(args, delta_mod_t=3600, max_connections=50):
                     )
 
                     env.logger.info("namespaces: " + str(namespaces))
+                vw.cache(base_command, env, local_log_path)
 
             index += 1
 
@@ -117,10 +117,10 @@ def dashboard_e2e(args, delta_mod_t=3600, max_connections=50):
     # Clean out logs directory
     if args.delete_logs_dir and os.path.isdir(tmp_folder):
         logs_dir = os.path.join(tmp_folder, 'logs')
-        print('Deleting ' + logs_dir)
+        env.logger.info('Deleting ' + logs_dir)
         shutil.rmtree(logs_dir, ignore_errors=True)
 
     # Remove json files
     if args.cleanup and os.path.isdir(tmp_folder):
-        print('Deleting ' + tmp_folder)
+        env.logger.info('Deleting ' + tmp_folder)
         shutil.rmtree(tmp_folder, ignore_errors=True)
