@@ -15,7 +15,7 @@ class multiproc_pool:
 
     def map(self, task, inputs):
         p = multiprocessing.Pool(self.procs)
-        result = p.map(task, inputs)
+        result = p.imap_unordered(task, inputs)
         p.close()
         p.join()
         return result

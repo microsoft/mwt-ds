@@ -23,8 +23,7 @@ def _cache_func(input):
 def _cache_multi(opts, env, file_path):
     input_files = [file_path]
     inputs = list(map(lambda i: (i, opts, env), input_files))
-    result = env.job_pool.map(_cache_func, inputs)
-    return result
+    return env.job_pool.map(_cache_func, inputs)
 
 
 def _train(cache_path, opts, env):
@@ -38,15 +37,26 @@ def _train_func(input):
     return _train(input[0], input[1], input[2])
 
 
+def _update_opts(r):
+    r[0]['-i'] = r[0]['-f']
+    return r[0]
+
+
+def _process_result(r):
+    command.generalize(r[0])
+    return (r[0], r[1]["average loss"])
+
+
 def _train_multi(opts, env):
     cache_files = env.caches_provider.list()
-    for c in cache_files:
-        inputs = list(map(lambda o: (c, o, env), opts))
+    for index, cache in enumerate(cache_files):
+        inputs = list(map(lambda o: (cache, o, env), opts))
         result = env.job_pool.map(_train_func, inputs)
-        opts = list(map(lambda r: r[0], result))
-        for o in opts:
-            o['-i'] = o['-f']
-    return result
+
+        if index == len(cache_files) - 1:
+            return list(map(_process_result, result))
+        else:
+            opts = list(map(_update_opts, result))
 
 
 def _predict(cache_path, command_name, command, env):
@@ -76,7 +86,8 @@ def _parse_vw_output(txt):
             index = line.find('=')
             key = line[0:index].strip()
             value = line[index + 1:].strip()
-            result[key] = value
+            if key == "average loss":
+                result[key] = _safe_to_float(value, sys.float_info.max)
     return result
 
 
@@ -105,12 +116,7 @@ def cache(opts, env, file_path):
 def train(opts, env):
     if not isinstance(opts, list):
         opts = [opts]
-
-    result = _train_multi(opts, env)
-    for r in result:
-        command.generalize(r[0])
-    return list(map(lambda r: (r[0], _safe_to_float(r[1]['average loss'],
-                sys.float_info.max)), result))
+    return _train_multi(opts, env)
 
 
 def predict(labeled_commands, env):
