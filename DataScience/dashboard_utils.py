@@ -2,10 +2,11 @@ import pandas,ds_parse,json,collections,os,gzip,sys
 import numpy as np
 import argparse
 import time
-
+import simplejson
+from DashboardMpi.helpers import command
 
 def get_ts_5min_bin(ts):
-    str_5min = str(ts[:14],'utf-8')
+    str_5min = str(ts[:14])
     x = int(float(ts[14:16])/5)*5
     if x < 10:
         str_5min += '0'
@@ -97,7 +98,7 @@ def merge_and_unique_stats(stats_files, dashboard_file):
     print('Output dashboard data...')
     output_dashboard_data(d, dashboard_file)
 
-def create_stats(log_fp, d=None, predictions_files=None):
+def create_stats(log_fp, d=None, predictions_files=None, is_summary=False, report_progress=True):
 
     t0 = time.time()
     if d is None:
@@ -114,7 +115,10 @@ def create_stats(log_fp, d=None, predictions_files=None):
     pred = {}
     for pred_fp in predictions_files:
         if os.path.isfile(pred_fp):
-            name = pred_fp.split('.')[-2]   # check that policy name is encoded in file_name
+            if is_summary:
+                name = pred_fp.split('/')[-1].split('.')[-2]
+            else:
+                name = pred_fp.split('.')[-2] # check that policy name is encoded in file_name
             if name:
                 pred[name] = [x.strip() for x in open(pred_fp) if x.strip()]
                 print('Loaded {} predictions from {}'.format(len(pred[name]),pred_fp))
@@ -133,91 +137,97 @@ def create_stats(log_fp, d=None, predictions_files=None):
     tot_bytes = os.path.getsize(log_fp)
     evts = 0
     for i,x in enumerate(gzip.open(log_fp, 'rb') if log_fp.endswith('.gz') else open(log_fp, 'rb')):
-        # display progress
-        bytes_count += len(x)
-        if (i+1) % 1000 == 0:
-            if log_fp.endswith('.gz'):
-                ds_parse.update_progress(i+1)
-            else:
-                ds_parse.update_progress(bytes_count,tot_bytes)
+        if report_progress:
+            # display progress
+            bytes_count += len(x)
+            if (i+1) % 1000 == 0:
+                if log_fp.endswith('.gz'):
+                    ds_parse.update_progress(i+1)
+                else:
+                    ds_parse.update_progress(bytes_count,tot_bytes)
 
-        if x.startswith(b'{"_label_cost":') and x.strip().endswith(b'}'):
+        data = None
+        if is_summary:
+            data = simplejson.loads(x)
+        elif x.startswith(b'{"_label_cost":') and x.strip().endswith(b'}'):
             data = ds_parse.json_cooked(x)
 
-            # Skip wrongly formated lines or not activated lines
-            if data is None or data['skipLearn']:
-                continue
+        # Skip wrongly formated lines or not activated lines
+        if data is None or data['skipLearn']:
+            continue
 
-            if data['cost'] == b'0':
-                r = 0
-                abs_r = 0
-            else:
-                r = -float(data['cost'])
-                abs_r = abs(r)
+        if data['cost'] == b'0':
+            r = 0
+            abs_r = 0
+        else:
+            r = -float(data['cost'])
+            abs_r = abs(r)
 
-            ############################### Aggregates for each bin ######################################
-            #
-            # 'n':   IPS of numerator
-            # 'N':   total number of samples in bin from log (IPS = n/N)
-            # 'd':   IPS of denominator (SNIPS = n/d)
-            # 'Ne':  number of samples in bin when off-policy agrees with log policy
-            # 'c':   max abs. value of numerator's items (needed for Clopper-Pearson confidence intervals)
-            # 'SoS': sum of squares of numerator's items (needed for Gaussian confidence intervals)
-            #
-            #################################################################################################
+        ############################### Aggregates for each bin ######################################
+        #
+        # 'n':   IPS of numerator
+        # 'N':   total number of samples in bin from log (IPS = n/N)
+        # 'd':   IPS of denominator (SNIPS = n/d)
+        # 'Ne':  number of samples in bin when off-policy agrees with log policy
+        # 'c':   max abs. value of numerator's items (needed for Clopper-Pearson confidence intervals)
+        # 'SoS': sum of squares of numerator's items (needed for Gaussian confidence intervals)
+        #
+        #################################################################################################
 
-            # binning timestamp every 5 min
-            ts_bin = get_ts_5min_bin(data['ts'])
+        # binning timestamp every 5 min
+        ts_bin = get_ts_5min_bin(data['ts'])
 
-            # initialize aggregates for ts_bin
-            if ts_bin not in d:
-                d[ts_bin] = collections.OrderedDict({'online' : {'n':0,'N':0,'d':0},
-                                                     'baseline1' : {'n':0.,'N':0,'d':0.,'Ne':0,'c':0.,'SoS':0},
-                                                     'baselineRand' : {'n':0.,'N':0,'d':0.,'Ne':0,'c':0.,'SoS':0}})
-                for name in pred:
-                    d[ts_bin][name] = {'n':0.,'N':0,'d':0.,'Ne':0,'c':0.,'SoS':0}
-
-            # update aggregates for online and baseline policies
-            d[ts_bin]['online']['d'] += 1
-            d[ts_bin]['online']['N'] += 1
-            d[ts_bin]['baselineRand']['N'] += 1
-            d[ts_bin]['baseline1']['N'] += 1
-
-            d[ts_bin]['baselineRand']['Ne'] += 1
-            d[ts_bin]['baselineRand']['d'] += 1/data['p']/data['num_a']
-            if data['a'] == 1:
-                d[ts_bin]['baseline1']['Ne'] += 1
-                d[ts_bin]['baseline1']['d'] += 1/data['p']
-
-            if r != 0:
-                d[ts_bin]['online']['n'] += r
-                d[ts_bin]['baselineRand']['n'] += r/data['p']/data['num_a']
-                d[ts_bin]['baselineRand']['c'] = max(d[ts_bin]['baselineRand']['c'], abs_r/data['p']/data['num_a'])
-                d[ts_bin]['baselineRand']['SoS'] += (r/data['p']/data['num_a'])**2
-                if data['a'] == 1:
-                    d[ts_bin]['baseline1']['n'] += r/data['p']
-                    d[ts_bin]['baseline1']['c'] = max(d[ts_bin]['baseline1']['c'], abs_r/data['p'])
-                    d[ts_bin]['baseline1']['SoS'] += (r/data['p'])**2
-
-            # update aggregates for additional policies from predictions
+        # initialize aggregates for ts_bin
+        if ts_bin not in d:
+            d[ts_bin] = collections.OrderedDict({'online' : {'n':0,'N':0,'d':0},
+                                                 'baseline1' : {'n':0.,'N':0,'d':0.,'Ne':0,'c':0.,'SoS':0},
+                                                 'baselineRand' : {'n':0.,'N':0,'d':0.,'Ne':0,'c':0.,'SoS':0}})
             for name in pred:
-                pred_prob = get_prediction_prob(data['a']-1, pred[name][evts])     # a-1: 0-index action
-                d[ts_bin][name]['N'] += 1
-                if pred_prob > 0:
-                    p_over_p = pred_prob/data['p']
-                    d[ts_bin][name]['d'] += p_over_p
-                    d[ts_bin][name]['Ne'] += 1
-                    if r != 0:
-                        d[ts_bin][name]['n'] += r*p_over_p
-                        d[ts_bin][name]['c'] = max(d[ts_bin][name]['c'], abs_r*p_over_p)
-                        d[ts_bin][name]['SoS'] += (r*p_over_p)**2
-            evts += 1
-    if log_fp.endswith('.gz'):
-        len_text = ds_parse.update_progress(i+1)
-    else:
-        len_text = ds_parse.update_progress(bytes_count,tot_bytes)
-    sys.stdout.write("\r" + " "*len_text + "\r")
-    sys.stdout.flush()
+                d[ts_bin][name] = {'n':0.,'N':0,'d':0.,'Ne':0,'c':0.,'SoS':0}
+
+        # update aggregates for online and baseline policies
+        d[ts_bin]['online']['d'] += 1
+        d[ts_bin]['online']['N'] += 1
+        d[ts_bin]['baselineRand']['N'] += 1
+        d[ts_bin]['baseline1']['N'] += 1
+
+        d[ts_bin]['baselineRand']['Ne'] += 1
+        d[ts_bin]['baselineRand']['d'] += 1/data['p']/data['num_a']
+        if data['a'] == 1:
+            d[ts_bin]['baseline1']['Ne'] += 1
+            d[ts_bin]['baseline1']['d'] += 1/data['p']
+
+        if r != 0:
+            d[ts_bin]['online']['n'] += r
+            d[ts_bin]['baselineRand']['n'] += r/data['p']/data['num_a']
+            d[ts_bin]['baselineRand']['c'] = max(d[ts_bin]['baselineRand']['c'], abs_r/data['p']/data['num_a'])
+            d[ts_bin]['baselineRand']['SoS'] += (r/data['p']/data['num_a'])**2
+            if data['a'] == 1:
+                d[ts_bin]['baseline1']['n'] += r/data['p']
+                d[ts_bin]['baseline1']['c'] = max(d[ts_bin]['baseline1']['c'], abs_r/data['p'])
+                d[ts_bin]['baseline1']['SoS'] += (r/data['p'])**2
+
+        # update aggregates for additional policies from predictions
+        for name in pred:
+            pred_prob = get_prediction_prob(data['a']-1, pred[name][evts])     # a-1: 0-index action
+            d[ts_bin][name]['N'] += 1
+            if pred_prob > 0:
+                p_over_p = pred_prob/data['p']
+                d[ts_bin][name]['d'] += p_over_p
+                d[ts_bin][name]['Ne'] += 1
+                if r != 0:
+                    d[ts_bin][name]['n'] += r*p_over_p
+                    d[ts_bin][name]['c'] = max(d[ts_bin][name]['c'], abs_r*p_over_p)
+                    d[ts_bin][name]['SoS'] += (r*p_over_p)**2
+        evts += 1
+
+    if report_progress:
+        if log_fp.endswith('.gz'):
+            len_text = ds_parse.update_progress(i+1)
+        else:
+            len_text = ds_parse.update_progress(bytes_count,tot_bytes)
+        sys.stdout.write("\r" + " "*len_text + "\r")
+        sys.stdout.flush()
 
     print('Read {} lines - Processed {} events'.format(i+1,evts))
     if any(len(pred[name]) != evts for name in pred):

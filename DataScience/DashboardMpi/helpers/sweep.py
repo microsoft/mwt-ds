@@ -1,5 +1,5 @@
 import multiprocessing
-from helpers import vw, command
+from DashboardMpi.helpers import vw, command
 
 
 def _top(candidates, k):
@@ -17,11 +17,10 @@ def _promote(candidates, grid_config, env, promoted):
                         command.to_commandline(c[0]) + ': ' + str(c[1]))
     return result
 
-
 def _output(candidates, grid_config, env):
     step_name = '[' + grid_config.name + ']'
     result = dict(map(
-        lambda item: (grid_config.name + str(item[0]), item[1][0]),
+        lambda item: (grid_config.name, item[1][0]),
         enumerate(_top(candidates, grid_config.output))))
     for k, v in result.items():
         env.logger.info(step_name + ' Output: [' + k + '] ' +

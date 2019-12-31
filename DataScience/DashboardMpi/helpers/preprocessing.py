@@ -2,7 +2,7 @@ import collections
 import itertools
 import json
 from enum import Enum
-from helpers import command
+from DashboardMpi.helpers import command
 
 
 class PropType(Enum):
