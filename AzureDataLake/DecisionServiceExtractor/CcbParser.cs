@@ -98,16 +98,15 @@ namespace DecisionServiceExtractor
                                     case "_outcomes":
                                         break;
                                     case "_id":
-                                        if (!firstPass)
-                                        {
-                                            yield return shared.Apply(output);
-                                        }
-                                        output.Set(this.HasObservationsColumn, 0);
-                                        firstPass = false;
                                         Helpers.ExtractPropertyString(jsonReader, output, this.EventIdColumn);
                                         output.Set(this.SlotIdxColumn, slotIdx++);
                                         break;
                                     case "_label_cost":
+                                        if (!firstPass)
+                                        {
+                                            yield return shared.Apply(output);
+                                        }
+                                        firstPass = false;
                                         Helpers.ExtractPropertyDouble(jsonReader, output, this.CostColumn);
                                         output.Set(this.IsDanglingColumn, false);
                                         break;

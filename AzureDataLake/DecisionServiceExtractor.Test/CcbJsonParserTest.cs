@@ -54,7 +54,7 @@ namespace DecisionServiceExtractor.Test
         [TestMethod]
         public void CcbTest()
         {
-            var ccbLine = @"{ ""Timestamp"": ""2019-08-27T12:45:53.0000000Z"", ""Version"": ""1"", ""c"": { ""GUser"": { ""shared_feature"": ""feature"" }, ""_multi"": [ { ""TAction"": { ""feature1"": 3.0, ""feature2"": ""name1"" } }, { ""TAction"": { ""feature1"": 3.0, ""feature2"": ""name1"" } }, { ""TAction"": { ""feature1"": 3.0, ""feature2"": ""name1"" } } ], ""_slots"": [ { ""size"": ""small"", ""_inc"": [0, 2] }, { ""size"": ""large"" } ] }, ""_outcomes"": [ { ""_id"": ""62ddd79e-4d75-4c64-94f1-a5e13a75c2e4"", ""_label_cost"": 0, ""_a"": [2, 0], ""_p"": [0.9, 0.1], ""_o"": [] }, { ""_id"": ""042661c4-d433-4b05-83d6-d51a2d1c68be"", ""_label_cost"": -1.0, ""_a"": [1, 0], ""_p"": [0.1, 0.9], ""_o"": [{""v"": 1.0}] } ], ""VWState"": { ""m"": ""da63c529-018b-44b1-ad0f-c2b13056832c/195fc8ed-224f-471a-90c4-d3e60b336f8f"" } }";
+            var ccbLine = @"{ ""Timestamp"": ""2019-08-27T12:45:53.0000000Z"", ""Version"": ""1"", ""c"": { ""GUser"": { ""shared_feature"": ""feature"" }, ""_multi"": [ { ""TAction"": { ""feature1"": 3.0, ""feature2"": ""name1"" } }, { ""TAction"": { ""feature1"": 3.0, ""feature2"": ""name1"" } }, { ""TAction"": { ""feature1"": 3.0, ""feature2"": ""name1"" } } ], ""_slots"": [ { ""size"": ""small"", ""_inc"": [0, 2] }, { ""size"": ""large"" } ] }, ""_outcomes"": [ { ""_label_cost"": 0, ""_id"": ""62ddd79e-4d75-4c64-94f1-a5e13a75c2e4"", ""_a"": [2, 0], ""_p"": [0.9, 0.1], ""_o"": [] }, { ""_label_cost"": -1.0, ""_id"": ""042661c4-d433-4b05-83d6-d51a2d1c68be"", ""_a"": [1, 0], ""_p"": [0.1, 0.9], ""_o"": [{""v"": 1.0}] } ], ""VWState"": { ""m"": ""da63c529-018b-44b1-ad0f-c2b13056832c/195fc8ed-224f-471a-90c4-d3e60b336f8f"" } }";
             var extractor = new CcbExtractor();
             var output = new USqlUpdatableRow(CreateDefaultRow(CreateCcbBasicSchema()));
             using (var stream = new MemoryStream(Encoding.UTF8.GetBytes($"{ccbLine}")))
@@ -96,6 +96,25 @@ namespace DecisionServiceExtractor.Test
                         Assert.AreEqual(false, output.Get<bool>("IsDangling"));
                     }
                     counter++;
+                }
+            }
+        }
+
+        [TestMethod]
+        public void QuickTest()
+        {
+            string path = @"C:\xbox\test.txt";
+            var extractor = new CcbExtractor();
+            var output = new USqlUpdatableRow(CreateDefaultRow(CreateCcbBasicSchema()));
+            foreach (var line in File.ReadLines(path)) {
+                using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(line)))
+                {
+                    var input = new USqlStreamReader(stream);
+                    int counter = 0;
+                    foreach (var outputRow in extractor.Extract(input, output))
+                    {
+                        Assert.IsNotNull(output.Get<string>("SessionId"));
+                    }
                 }
             }
         }
