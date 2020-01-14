@@ -10,11 +10,33 @@ namespace DecisionServiceExtractor
 {
     internal class CcbParser
     {
+        private class SharedFields
+        {
+            private readonly ColumnInfo SessionIdColumn;
+
+            private readonly ColumnInfo TimestampColumn;
+
+            public string SessionId { get; set; }
+
+            public DateTime Timestamp { get; set; }
+
+            public SharedFields(ISchema schema)
+            {
+                this.SessionIdColumn = new ColumnInfo(schema, "SessionId", typeof(string));
+                this.TimestampColumn = new ColumnInfo(schema, "Timestamp", typeof(DateTime));
+            }
+
+            public IRow Apply(IUpdatableRow row)
+            {
+                row.Set(this.SessionIdColumn, this.SessionId);
+                row.Set(this.TimestampColumn, this.Timestamp);
+                return row.AsReadOnly();
+            }
+        }
+
         private readonly ColumnInfo EventIdColumn;
         private readonly ColumnInfo SlotIdxColumn;
-        private readonly ColumnInfo SessionIdColumn;
         private readonly ColumnInfo ParserErrorColumn;
-        private readonly ColumnInfo TimestampColumn;
         private readonly ColumnInfo CostColumn;
         private readonly ColumnInfo ProbabilityColumn;
         private readonly ColumnInfo ActionColumn;
@@ -30,9 +52,7 @@ namespace DecisionServiceExtractor
         {
             this.EventIdColumn = new ColumnInfo(schema, "EventId", typeof(string));
             this.SlotIdxColumn = new ColumnInfo(schema, "SlotIdx", typeof(int));
-            this.SessionIdColumn = new ColumnInfo(schema, "SessionId", typeof(string));
             this.ParserErrorColumn = new ColumnInfo(schema, "ParseError", typeof(string));
-            this.TimestampColumn = new ColumnInfo(schema, "Timestamp", typeof(DateTime));
             this.CostColumn = new ColumnInfo(schema, "Cost", typeof(float));
             this.ProbabilityColumn = new ColumnInfo(schema, "Prob", typeof(float));
             this.ActionColumn = new ColumnInfo(schema, "Action", typeof(int));
@@ -48,13 +68,14 @@ namespace DecisionServiceExtractor
         //called on every line
         public IEnumerable<IRow> ParseEvent(IUpdatableRow output, Stream input)
         {
+            var shared = new SharedFields(output.Schema);
             output.Set(this.ParserErrorColumn, string.Empty);
 
             TextReader inputReader;
             bool firstPass = true;
             int slotIdx = 0;
             inputReader = new StreamReader(input, Encoding.UTF8);
-            output.Set(this.SessionIdColumn, Guid.NewGuid().ToString());
+            shared.SessionId =  Guid.NewGuid().ToString();
 
             string errorMessage = null;
             // this is a optimized version only parsing parts of the data
@@ -72,12 +93,15 @@ namespace DecisionServiceExtractor
                                 switch (propertyName)
                                 {
                                     case "Timestamp":
-                                        output.Set(this.TimestampColumn, (DateTime)jsonReader.ReadAsDateTime());
+                                        shared.Timestamp = (DateTime)jsonReader.ReadAsDateTime();
                                         break;
                                     case "_outcomes":
                                         break;
                                     case "_id":
-                                        if (!firstPass) yield return output.AsReadOnly();
+                                        if (!firstPass)
+                                        {
+                                            yield return shared.Apply(output);
+                                        }
                                         output.Set(this.HasObservationsColumn, 0);
                                         firstPass = false;
                                         Helpers.ExtractPropertyString(jsonReader, output, this.EventIdColumn);
@@ -149,7 +173,7 @@ namespace DecisionServiceExtractor
                 }
             }
 
-            yield return output.AsReadOnly();
+            yield return shared.Apply(output);
         }
     }
 
