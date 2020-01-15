@@ -26,6 +26,8 @@ def dashboard_e2e(args, delta_mod_t=3600, max_connections=50):
     enable_sweep = args.enable_sweep
     summary_json = args.summary_json
 
+    log_type = args.log_type
+
     date_format = '%m/%d/%Y'
     start = datetime.datetime.strptime(args.start_date, date_format)
     end = datetime.datetime.strptime(args.end_date, date_format)
@@ -75,7 +77,7 @@ def dashboard_e2e(args, delta_mod_t=3600, max_connections=50):
 
             env.logger.info(local_log_path + ': Done.')
 
-            if enable_sweep:
+            if enable_sweep and log_type == 'cb':
                 if (blob_index == 0 and index == 0):
                     vw.check_vw_installed(env.logger)
 
@@ -96,7 +98,8 @@ def dashboard_e2e(args, delta_mod_t=3600, max_connections=50):
 
             index += 1
 
-            env.local_logs_provider.get_metadata(local_log_path)
+            if log_type == 'cb':
+                env.local_logs_provider.get_metadata(local_log_path)
 
     # Evaluate custom policies
     if summary_json:
@@ -136,7 +139,7 @@ def dashboard_e2e(args, delta_mod_t=3600, max_connections=50):
         except Exception as e:
             env.logger.error(e)
 
-    if enable_sweep:
+    if enable_sweep and log_type == 'cb':
         multi_grid = grid.generate(interactions_grid, marginals_grid)
         best = sweep.sweep(multi_grid, env, base_command)
 
@@ -148,7 +151,7 @@ def dashboard_e2e(args, delta_mod_t=3600, max_connections=50):
         vw.predict(commands, env)
 
     local_dashboard_path = os.path.join(tmp_folder, 'dashboard.json')
-    dashboard.create(local_dashboard_path, env, commands, enable_sweep)
+    dashboard.create(local_dashboard_path, env, commands, enable_sweep, log_type)
     if env.runtime.is_master() and output_connection_string:
         bbs = BlockBlobService(connection_string=output_connection_string)
         env.logger.info(output_container + ':' + output_path + ': Uploading from ' + local_dashboard_path)

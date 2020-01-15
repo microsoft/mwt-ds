@@ -65,6 +65,8 @@ if __name__ == '__main__':
     parser.add_argument('--feature_importance_raw_filename', help="name of the output feature importance file with raw (unparsed) features", default='featureimportanceraw.json')
     parser.add_argument('--ml_args', help="the online policy that we need for calculating the feature importances", required=True)
 
+    parser.add_argument('--log_type', help="cooked log format e.g. cb, ccb", default='cb')
+
     args = parser.parse_args()
 
     telemetry_client = get_telemetry_client(args.appInsightsInstrumentationKey)

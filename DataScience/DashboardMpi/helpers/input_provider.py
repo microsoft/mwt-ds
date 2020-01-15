@@ -133,7 +133,7 @@ class AzureLogsProvider:
 
             if pos > 0:
                 file.seek(pos, os.SEEK_SET)
-                last_line_length = file_size - pos
+                last_line_length = file_size - pos - 1
                 file.truncate()
         return last_line_length
 
