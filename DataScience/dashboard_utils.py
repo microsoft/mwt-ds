@@ -172,6 +172,7 @@ def create_stats(log_fp, log_type='cb', d={}, predictions_files=None, is_summary
                 data = simplejson.loads(x)
             elif x.startswith(b'{"_label_cost":') and x.strip().endswith(b'}'):
                 data = ds_parse.json_cooked(x)
+                data['ts'] = data['ts'].decode('utf-8')
 
             # Skip wrongly formated lines or not activated lines
             if data is None or data['skipLearn']:
