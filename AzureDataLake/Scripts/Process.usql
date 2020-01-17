@@ -4,22 +4,28 @@ USE DATABASE [DecisionServiceDB];
 
 REFERENCE ASSEMBLY DecisionServiceDB.[DecisionServiceExtractor];
 
-DECLARE @_appId string = "";    //your appId
-DECLARE @_account string = "";    // your account name
+DECLARE @_appId string = "xbetgameshomespotlight";    //your appId
+DECLARE @_account string = "decisionengine";    // your account name
 
-DECLARE @_start DateTime = new DateTime(2019, 10, 1);  //your inclusive start date
-DECLARE @_end DateTime = new DateTime(2019, 10, 12);    //your non-inclusive end date
+DECLARE @_start DateTime = new DateTime(2019, 10, 22);  //your inclusive start date
+DECLARE @_end DateTime = new DateTime(2019, 11, 15);    //your non-inclusive end date
 
 DECLARE @OutputFolder string = "/daily/" + @_appId + "/";      //your output folder
-DECLARE @OutputSlimLogs bool = true;     //true if you want to have slime version of logs (all metadata without features)
-     
+DECLARE @OutputSlimLogs bool = false;     //true if you want to have slime version of logs (all metadata without features)
+
+DECLARE @RawInput bool = false;
+
 DECLARE @InputFile string = "wasb://"+ @_appId +"@" + @_account + ".blob.core.windows.net/{model}/data/{date:yyyy}/{date:MM}/{date:dd}_{filename}.json";
+
+DECLARE @InputFolder string = "/daily_incorrect_binary_cost/" + @_appId + "/";      //your output folder
+DECLARE @InputFileInteractions string = @InputFolder + "interactions-{date:yyyy}-{date:MM}-{date:dd}.csv";
 
 DECLARE @OutputFileInteractions string = @OutputFolder + "interactions-{date:yyyy}-{date:MM}-{date:dd}.csv";
 DECLARE @OutputFileDangling string = @OutputFolder + "dangling-{date:yyyy}-{date:MM}-{date:dd}.csv";
 DECLARE @OutputFileStatistics string = @OutputFolder + "statistics-{date:yyyy}-{date:MM}-{date:dd}.csv";
 
-@Events =  
+IF @RawInput == true THEN
+    @Events =  
     EXTRACT EventId string, 
             Timestamp DateTime, 
             EnqueuedTimeUtc DateTime,
@@ -37,10 +43,26 @@ DECLARE @OutputFileStatistics string = @OutputFolder + "statistics-{date:yyyy}-{
     FROM @InputFile
     USING new DecisionServiceExtractor.HeaderOnly();
 
-@Events = SELECT * FROM @Events WHERE date >= @_start AND date < @_end;
+    @Events = SELECT * FROM @Events WHERE date >= @_start AND date < @_end;
 
-@Interactions = SELECT EventId, Timestamp, HasObservations, Prob, Cost, Action, NumActions, pdrop, SkipLearn, model, date FROM @Events WHERE IsDangling == false;
-
+    @Interactions = SELECT EventId, Timestamp, HasObservations, Prob, Cost, Action, NumActions, pdrop, SkipLearn, model, date FROM @Events WHERE IsDangling == false;
+ELSE
+    @Interactions = EXTRACT 
+            EventId string, 
+            Timestamp DateTime, 
+            HasObservations int,
+            Prob float,
+            Cost float,
+            [Action] int,
+            NumActions int,
+            pdrop float,
+            SkipLearn bool,
+            model string,
+            date DateTime
+     FROM @InputFileInteractions
+     USING Extractors.Csv(skipFirstNRows:1);
+    @Interactions = SELECT * FROM @Interactions WHERE date >= @_start AND date < @_end;
+END;
 @Statistics =
     SELECT Timestamp.ToString("yyyy/MM/dd HH:00") AS hour,
            model,
