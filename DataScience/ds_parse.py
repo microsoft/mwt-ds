@@ -191,15 +191,9 @@ def json_cooked(x, do_devType=False, do_VWState=False, do_p_vec=False):
 
 
 def ccb_json_cooked(x):
-    try:
-        data = simplejson.loads(x)
-    except Exception:
-        print(x)
-
-    dashboard_data = {}
-    dashboard_data['ts'] = data['Timestamp']
-    dashboard_data['_outcomes'] = data['_outcomes']
-    return dashboard_data
+    data = simplejson.loads(x)
+    data['ts'] = data.pop('Timestamp')
+    return data
 
 def json_dangling(x):
     #################################

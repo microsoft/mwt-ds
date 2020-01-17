@@ -43,6 +43,9 @@ def dashboard_e2e(args, delta_mod_t=3600, max_connections=50):
 
     base_command = {'#base': '--cb_adf --dsjson --compressed --save_resume --preserve_performance_counters'}
 
+    if log_type == 'ccb':
+        base_command = {'#base': '--ccb_explore_adf --epsilon 0 --dsjson --compressed --save_resume --preserve_performance_counters'}
+
     namespaces = set()
     marginals_grid = []
     interactions_grid = []
@@ -77,12 +80,13 @@ def dashboard_e2e(args, delta_mod_t=3600, max_connections=50):
 
             env.logger.info(local_log_path + ': Done.')
 
-            if enable_sweep and log_type == 'cb':
+            if enable_sweep:
                 if (blob_index == 0 and index == 0):
                     vw.check_vw_installed(env.logger)
 
                     namespaces = preprocessing.extract_namespaces(
-                        open(local_log_path, 'r', encoding='utf-8')
+                        open(local_log_path, 'r', encoding='utf-8'),
+                        log_type
                     )
 
                     marginals_grid = preprocessing.get_marginals_grid(
@@ -139,11 +143,15 @@ def dashboard_e2e(args, delta_mod_t=3600, max_connections=50):
         except Exception as e:
             env.logger.error(e)
 
-    if enable_sweep and log_type == 'cb':
+    if enable_sweep:
         multi_grid = grid.generate(interactions_grid, marginals_grid)
         best = sweep.sweep(multi_grid, env, base_command)
 
         predict_opts = {'#base': '--cb_explore_adf --epsilon 0.2 --compressed --dsjson --save_resume --preserve_performance_counters'}
+
+        if log_type == 'ccb':
+            predict_opts = {'#base': '--ccb_explore_adf --epsilon 0.2 --compressed --dsjson --save_resume --preserve_performance_counters'}
+
         commands = dict(map(
             lambda lo: (lo[0], command.apply(lo[1], predict_opts)),
             best.items()

@@ -26,7 +26,7 @@ def get_prediction_prob(a0, pred_line):
                 sep = ','+str(a0)+':'
             pred_prob = float(ds_parse.extract_field(pred_line,sep,','))
         else:
-            if a0 == 0:
+            if pred_line.startswith(str(a0)+':'):
                 pred_prob = 1
             else:
                 print('Error: Prediction action (0) does not match log file action ({}) - log: {} - pred: {}'.format(a0,pred_line))
@@ -104,6 +104,7 @@ def merge_and_unique_stats(stats_files, dashboard_file):
 def create_stats(log_fp, log_type='cb', d={}, predictions_files=None, is_summary=False, report_progress=True):
 
     t0 = time.time()
+    ccb_pred_index = 0
 
     if predictions_files is None:
         print('Searching prediction files for log file: {}'.format(log_fp))
@@ -121,8 +122,20 @@ def create_stats(log_fp, log_type='cb', d={}, predictions_files=None, is_summary
             else:
                 name = pred_fp.split('.')[-2] # check that policy name is encoded in file_name
             if name:
-                pred[name] = [x.strip() for x in open(pred_fp) if x.strip()]
-                print('Loaded {} predictions from {}'.format(len(pred[name]),pred_fp))
+                if log_type == 'cb':
+                    pred[name] = [x.strip() for x in open(pred_fp) if x.strip()]
+                elif log_type == 'ccb':
+                    with open(pred_fp) as f:
+                        pred[name] = []
+                        slot = []
+                        for x in f.read().splitlines():
+                            x = x.strip()
+                            if x:
+                                slot.append(x)
+                            else:
+                                pred[name].append(slot)
+                                slot = []
+                print('Loaded {} predictions from {}'.format(len(pred[name]), pred_fp))
             else:
                 print('Name is not valid - Skip: {}'.format(pred_fp))
         else:
@@ -150,8 +163,10 @@ def create_stats(log_fp, log_type='cb', d={}, predictions_files=None, is_summary
         data = None
 
         if log_type == 'ccb':
-            data = ds_parse.ccb_json_cooked(x)
-            aggregates_ccb_data(data, d)
+            if x.startswith(b'{"Timestamp"') and x.strip().endswith(b'}'):
+                data = ds_parse.ccb_json_cooked(x)
+                aggregates_ccb_data(data, pred, d, evts)
+
         elif log_type == 'cb':
             if is_summary:
                 data = simplejson.loads(x)
@@ -252,7 +267,7 @@ def aggregates_cb_data(data, pred, d, evts):
     return d
 
 
-def aggregates_ccb_data(data, d):
+def aggregates_ccb_data(data, pred, d, evts):
     # binning timestamp every 5 min
     ts_bin = get_ts_5min_bin(data['ts'])
 
@@ -264,6 +279,9 @@ def aggregates_ccb_data(data, d):
             'baselineRand': {'n': 0., 'N': 0, 'd': 0., 'Ne': 0, 'c': 0., 'SoS': 0}
         })
 
+        for name in pred:
+            d[ts_bin][name] = {'n':0.,'N':0,'d':0.,'Ne':0,'c':0.,'SoS':0}
+
     # update aggregates for online and baseline policies
     d[ts_bin]['online']['d'] += len(data["_outcomes"])
     d[ts_bin]['online']['N'] += len(data["_outcomes"])
@@ -272,7 +290,10 @@ def aggregates_ccb_data(data, d):
     d[ts_bin]['baselineRand']['N'] += len(data["_outcomes"])
     d[ts_bin]['baselineRand']['Ne'] += len(data["_outcomes"])
 
-    for item in data['_outcomes']:
+    for name in pred:
+        d[ts_bin][name]['N'] += len(data["_outcomes"])
+
+    for index, item in enumerate(data['_outcomes']):
         reward = -float(item["_label_cost"])
 
         d[ts_bin]['online']['n'] += reward
@@ -284,6 +305,15 @@ def aggregates_ccb_data(data, d):
 
         d[ts_bin]['baselineRand']['d'] += 1/item['_p'][0]/len(item['_a'])
         d[ts_bin]['baselineRand']['n'] += reward/item['_p'][0]/len(item['_a'])
+
+        for name in pred:
+            pred_prob = get_prediction_prob(item['_a'][0], pred[name][evts][index])
+            if pred_prob > 0:
+                p_over_p = pred_prob/item['_p'][0]
+                d[ts_bin][name]['d'] += p_over_p
+                d[ts_bin][name]['Ne'] += 1
+                if reward != 0:
+                    d[ts_bin][name]['n'] += reward*p_over_p
     return d
 
 
