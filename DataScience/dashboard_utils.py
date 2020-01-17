@@ -295,6 +295,7 @@ def aggregates_ccb_data(data, pred, d, evts):
 
     for index, item in enumerate(data['_outcomes']):
         reward = -float(item["_label_cost"])
+        abs_reward = abs(reward)
 
         d[ts_bin]['online']['n'] += reward
 
@@ -302,9 +303,19 @@ def aggregates_ccb_data(data, pred, d, evts):
             d[ts_bin]['baseline1']['Ne'] += len(data["_outcomes"])
             d[ts_bin]['baseline1']['d'] += 1/item['_p'][0]
             d[ts_bin]['baseline1']['n'] += reward/item["_p"][0]
+            d[ts_bin]['baseline1']['c'] = max(
+                d[ts_bin]['baseline1']['c'],
+                abs_reward / item["_p"][0]
+            )
+            d[ts_bin]['baseline1']['SoS'] += (reward/item["_p"][0])**2
 
         d[ts_bin]['baselineRand']['d'] += 1/item['_p'][0]/len(item['_a'])
         d[ts_bin]['baselineRand']['n'] += reward/item['_p'][0]/len(item['_a'])
+        d[ts_bin]['baselineRand']['c'] = max(
+            d[ts_bin]['baselineRand']['c'],
+            abs_reward/item['_p'][0]/len(item['_a'])
+        )
+        d[ts_bin]['baselineRand']['SoS'] += (reward/item['_p'][0]/len(item['_a']))**2
 
         for name in pred:
             pred_prob = get_prediction_prob(item['_a'][0], pred[name][evts][index])
@@ -314,6 +325,11 @@ def aggregates_ccb_data(data, pred, d, evts):
                 d[ts_bin][name]['Ne'] += 1
                 if reward != 0:
                     d[ts_bin][name]['n'] += reward*p_over_p
+                    d[ts_bin][name]['c'] = max(
+                        d[ts_bin][name]['c'],
+                        abs_reward*p_over_p
+                    )
+                    d[ts_bin][name]['SoS'] += (reward*p_over_p)**2
     return d
 
 
