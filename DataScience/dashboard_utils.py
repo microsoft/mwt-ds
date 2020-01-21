@@ -17,8 +17,7 @@ def get_prediction_prob(a0, pred_line):
     # parse probability of predicted action
     # this function assume that a0 is 0-index
 
-    if ':' in pred_line:
-        # prediction file has pdf of all actions (as in --cb_explore_adf -p)
+    if ':' in pred_line:                           # prediction file has pdf of all actions (as in --cb_explore_adf -p)
         if ',' in pred_line:
             if pred_line.startswith(str(a0)+':'):
                 sep = ':'
@@ -31,8 +30,7 @@ def get_prediction_prob(a0, pred_line):
             else:
                 print('Error: Prediction action (0) does not match log file action ({}) - log: {} - pred: {}'.format(a0,pred_line))
                 sys.exit()
-    else:
-        # prediction file has only one action (as in --cb_adf -p)
+    else:                                          # prediction file has only one action (as in --cb_adf -p)
         pred_prob = 1 if a0 == int(pred_line) else 0
 
     return pred_prob
@@ -101,10 +99,11 @@ def merge_and_unique_stats(stats_files, dashboard_file):
     print('Output dashboard data...')
     output_dashboard_data(d, dashboard_file)
 
-def create_stats(log_fp, log_type='cb', d={}, predictions_files=None, is_summary=False, report_progress=True):
+def create_stats(log_fp, log_type='cb', d=None, predictions_files=None, is_summary=False, report_progress=True):
 
     t0 = time.time()
-    ccb_pred_index = 0
+    if d is None:
+        d = {}
 
     if predictions_files is None:
         print('Searching prediction files for log file: {}'.format(log_fp))
@@ -128,7 +127,7 @@ def create_stats(log_fp, log_type='cb', d={}, predictions_files=None, is_summary
                     with open(pred_fp) as f:
                         pred[name] = []
                         slot = []
-                        for x in f.read().splitlines():
+                        for x in f:
                             x = x.strip()
                             if x:
                                 slot.append(x)

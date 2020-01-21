@@ -41,10 +41,12 @@ def dashboard_e2e(args, delta_mod_t=3600, max_connections=50):
     elif account_name and sas_token:
         bbs = BlockBlobService(account_name=account_name, sas_token=sas_token)
 
-    base_command = {'#base': '--cb_adf --dsjson --compressed --save_resume --preserve_performance_counters'}
-
     if log_type == 'ccb':
-        base_command = {'#base': '--ccb_explore_adf --epsilon 0 --dsjson --compressed --save_resume --preserve_performance_counters'}
+        base = '--ccb_explore_adf --epsilon 0'
+    else:
+        base = '--cb_adf'
+
+    base_command = {'#base': base + ' --dsjson --compressed --save_resume --preserve_performance_counters'}
 
     namespaces = set()
     marginals_grid = []
@@ -84,18 +86,11 @@ def dashboard_e2e(args, delta_mod_t=3600, max_connections=50):
                 if (blob_index == 0 and index == 0):
                     vw.check_vw_installed(env.logger)
 
-                    namespaces = preprocessing.extract_namespaces(
-                        open(local_log_path, 'r', encoding='utf-8'),
-                        log_type
-                    )
+                    namespaces = preprocessing.extract_namespaces(open(local_log_path, 'r', encoding='utf-8'), log_type)
 
-                    marginals_grid = preprocessing.get_marginals_grid(
-                        '#marginals', namespaces[2]
-                    )
+                    marginals_grid = preprocessing.get_marginals_grid('#marginals', namespaces[2])
 
-                    interactions_grid = preprocessing.get_interactions_grid(
-                        '#interactions', namespaces[0], namespaces[1]
-                    )
+                    interactions_grid = preprocessing.get_interactions_grid('#interactions', namespaces[0], namespaces[1])
 
                     env.logger.info("namespaces: " + str(namespaces))
                 vw.cache(base_command, env, local_log_path)
@@ -147,10 +142,12 @@ def dashboard_e2e(args, delta_mod_t=3600, max_connections=50):
         multi_grid = grid.generate(interactions_grid, marginals_grid)
         best = sweep.sweep(multi_grid, env, base_command)
 
-        predict_opts = {'#base': '--cb_explore_adf --epsilon 0.2 --compressed --dsjson --save_resume --preserve_performance_counters'}
-
         if log_type == 'ccb':
-            predict_opts = {'#base': '--ccb_explore_adf --epsilon 0.2 --compressed --dsjson --save_resume --preserve_performance_counters'}
+            predict_base = '--ccb_explore_adf'
+        else:
+            predict_base = '--cb_explore_adf'
+
+        predict_opts = {'#base': predict_base + ' --epsilon 0.2 --compressed --dsjson --save_resume --preserve_performance_counters'}
 
         commands = dict(map(
             lambda lo: (lo[0], command.apply(lo[1], predict_opts)),
