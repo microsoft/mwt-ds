@@ -1,4 +1,4 @@
-from subprocess import check_output, STDOUT, DEVNULL, Popen
+from subprocess import check_output, STDOUT, DEVNULL, Popen, PIPE
 import multiprocessing, psutil
 import sys, os
 import json, re
@@ -75,7 +75,7 @@ class Command:
         print("power_t: {0}".format(self.power_t))
         print("overall command: {0}".format(self.full_command))
         print("loss: {0}".format(self.loss))
-        
+
 def result_writer(command_list):
     experiment_file = open("experiments.csv", "a")
     for command in command_list:
@@ -84,7 +84,7 @@ def result_writer(command_list):
             str(command.ignore_list), str(command.interaction_list), str(command.regularization), str(datetime.now()), command.full_command)
         experiment_file.write(line + "\n")
     experiment_file.flush()
-    
+
 def run_experiment(command):
     try:
         results = check_output(command.full_command.split(' '), stderr=STDOUT).decode("utf-8")
@@ -97,7 +97,7 @@ def run_experiment(command):
     except Exception as e:
         print("Error for command {}: {}".format(command.full_command, e))
     return command
-    
+
 def run_experiment_set(command_list, n_proc):
     # Run the experiments in parallel using n_proc processes
     p = multiprocessing.Pool(n_proc)
@@ -201,36 +201,30 @@ def parse_cb_types(val):
     return cb_types
 
 def generate_predictions_files(log_fp, policies):
-
     predictions_files = []
     data = {}
     data['policies'] = []
-    print('Generating predictions files (using --cb_explore_adf) for {} policies:'.format(len(policies)))
-    for name,policy in policies:
-        policy_command =  policy.full_command.replace('--cb_adf', '--cb_explore_adf --epsilon 0.2')
-        data['policies'].append({
-            'name':name,
-            'arguments': re.sub(r'(-c|-d\s[\S]*|vw)\s', '', policy_command),
-            'loss': policy.loss
+    for name, policy in policies:
+        pred_fp = log_fp + '.' + name + '.pred'
+        predictions_files.append(pred_fp)
+        cmd = policy.full_command.replace('--cb_adf', '--cb_explore_adf --epsilon 0.2') + ' -p ' + pred_fp + ' -P 100000 '
+        p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE)
+        out, err = p.communicate()
+        loss_lines = [x for x in err.splitlines() if x.startswith(b'average loss = ')]
+
+        if len(loss_lines) == 1:
+            data['policies'].append({
+                'name': name,
+                'arguments': re.sub(r'(-c|-d\s[\S]*|-P\s[0-9]*|vw)\s', '', cmd),
+                'loss': float(loss_lines[0].split()[3])
             })
-        print('Name: {} Ave. Loss: {} cmd: {}'.format(name, policy.loss, policy_command))
-    print("*************************")
+        else:
+            print("Error for command {0}: {} lines with 'average loss = '. Expected 1".format(cmd, len(loss_lines)))
 
     policy_path = os.path.join(os.path.dirname(log_fp), 'policy.json')
     with open(policy_path, 'w') as outfile:
         json.dump(data, outfile)
 
-    processes = []
-    for name,policy in policies:
-        pred_fp = log_fp + '.' + name + '.pred'
-        predictions_files.append(pred_fp)
-        cmd = policy.full_command.replace('--cb_adf', '--cb_explore_adf --epsilon 0.2') + ' -p ' + pred_fp + ' -P 100000'
-        p = Popen(cmd.split(' '), stdout=DEVNULL, stderr=DEVNULL)
-        processes.append(p)
-
-    for p in processes:
-        p.wait()
-        
     return predictions_files
 
 def add_parser_args(parser):
