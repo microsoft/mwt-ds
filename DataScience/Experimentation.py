@@ -1,4 +1,4 @@
-from subprocess import check_output, STDOUT, DEVNULL, Popen, PIPE
+from subprocess import check_output, STDOUT, DEVNULL, Popen
 import multiprocessing, psutil
 import sys, os
 import json, re
@@ -208,9 +208,8 @@ def generate_predictions_files(log_fp, policies):
         pred_fp = log_fp + '.' + name + '.pred'
         predictions_files.append(pred_fp)
         cmd = policy.full_command.replace('--cb_adf', '--cb_explore_adf --epsilon 0.2') + ' -p ' + pred_fp + ' -P 100000 '
-        p = Popen(cmd.split(' '), stdout=PIPE, stderr=PIPE)
-        out, err = p.communicate()
-        loss_lines = [x for x in err.splitlines() if x.startswith(b'average loss = ')]
+        results = check_output(cmd.split(' '), stderr=STDOUT).decode("utf-8")
+        loss_lines = [x for x in results.splitlines() if x.startswith('average loss = ')]
 
         if len(loss_lines) == 1:
             data['policies'].append({
