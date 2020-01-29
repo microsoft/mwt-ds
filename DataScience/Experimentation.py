@@ -204,6 +204,7 @@ def generate_predictions_files(log_fp, policies):
     predictions_files = []
     data = {}
     data['policies'] = []
+    print('Generating predictions files (using --cb_explore_adf) for {} policies:'.format(len(policies)))
     for name, policy in policies:
         pred_fp = log_fp + '.' + name + '.pred'
         predictions_files.append(pred_fp)
