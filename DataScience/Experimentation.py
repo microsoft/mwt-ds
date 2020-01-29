@@ -87,7 +87,7 @@ def result_writer(command_list):
 
 def run_experiment(command):
     try:
-        results = check_output(command.full_command.split(' '), stderr=STDOUT).decode("utf-8")
+        results = check_output(command.full_command, stderr=STDOUT).decode("utf-8")
         loss_lines = [x for x in str(results).splitlines() if x.startswith('average loss = ')]
         if len(loss_lines) == 1:
             command.loss = float(loss_lines[0].split()[3])
@@ -200,26 +200,28 @@ def parse_cb_types(val):
         raise argparse.ArgumentTypeError('Input "{}" is an invalid cb_types input string - Valid cb_types are mtr, dr, ips'.format(val))
     return cb_types
 
-def generate_predictions_files(log_fp, policies):
-    predictions_files = []
-    data = {}
-    data['policies'] = []
+def generate_predictions_files(log_fp, policies, n_proc):
+
     print('Generating predictions files (using --cb_explore_adf) for {} policies:'.format(len(policies)))
+    data = {'policies': []}
+    predictions_files = []
+    command_list = []
     for name, policy in policies:
         pred_fp = log_fp + '.' + name + '.pred'
         predictions_files.append(pred_fp)
-        cmd = policy.full_command.replace('--cb_adf', '--cb_explore_adf --epsilon 0.2') + ' -p ' + pred_fp + ' -P 100000 '
-        results = check_output(cmd.split(' '), stderr=STDOUT).decode("utf-8")
-        loss_lines = [x for x in results.splitlines() if x.startswith('average loss = ')]
-
-        if len(loss_lines) == 1:
-            data['policies'].append({
+        policy.full_command = policy.full_command.replace('--cb_adf', '--cb_explore_adf --epsilon 0.2') + ' -p ' + pred_fp + ' -P 100000 '
+        command_list.append(policy)
+        data['policies'].append({
                 'name': name,
-                'arguments': re.sub(r'(-c|-d\s[\S]*|-P\s[0-9]*|vw)\s', '', cmd),
-                'loss': float(loss_lines[0].split()[3])
+                'arguments': re.sub(r'(-c|-d\s[\S]*|-P\s[0-9]*|vw)\s', '', policy.full_command)
             })
-        else:
-            print("Error for command {0}: {} lines with 'average loss = '. Expected 1".format(cmd, len(loss_lines)))
+
+    results = run_experiment_set(command_list, n_proc)
+
+    for i,result in enumerate(results):
+        if result.full_command != policies[i].full_command:
+            raise
+        data['policies'][i]['loss'] = result.loss
 
     policy_path = os.path.join(os.path.dirname(log_fp), 'policy.json')
     with open(policy_path, 'w') as outfile:
@@ -409,7 +411,7 @@ def main(args):
     print("*************************")
 
     if args.generate_predictions:
-        _ = generate_predictions_files(args.file_path, best_commands)
+        _ = generate_predictions_files(args.file_path, best_commands, args.n_proc)
         t2 = datetime.now()
         print('Predictions Generation Time:',(t2-t1)-timedelta(microseconds=(t2-t1).microseconds))
         print('Total Elapsed Time:',(t2-t0)-timedelta(microseconds=(t2-t0).microseconds))
