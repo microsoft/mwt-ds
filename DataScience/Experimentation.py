@@ -12,9 +12,10 @@ import collections
 
 
 class Command:
-    def __init__(self, base, cb_type=None, marginal_list=None, ignore_list=None, interaction_list=None, regularization=None, learning_rate=None, power_t=None, clone_from=None):
+    def __init__(self, base, cb_type=None, marginal_list=None, ignore_list=None, interaction_list=None, regularization=None, learning_rate=None, power_t=None, clone_from=None, name=None):
         self.base = base
         self.loss = np.inf
+        self.name = 'N/A' if name is None else name
 
         if clone_from is not None:
             # Clone initial values
@@ -26,14 +27,14 @@ class Command:
             self.regularization = clone_from.regularization
             self.power_t = clone_from.power_t
         else:
-            # Initialize all values to vw default
+            # Initialize all values to default
             self.cb_type = 'ips'
             self.marginal_list = set()
             self.ignore_list = set()
             self.interaction_list = set()
-            self.learning_rate = 0.5
+            self.learning_rate = 1e-3
             self.regularization = 0
-            self.power_t = 0.5
+            self.power_t = 0
 
         # Update non-None values (for set we are doing the union not a replacement)
         if cb_type is not None:
@@ -98,11 +99,12 @@ def run_experiment(command):
         print("Error for command {}: {}".format(command.full_command, e))
     return command
 
-def run_experiment_set(command_list, n_proc):
+def run_experiment_set(command_list, n_proc, do_sort=True):
     # Run the experiments in parallel using n_proc processes
     p = multiprocessing.Pool(n_proc)
     results = p.map(run_experiment, command_list)
-    results.sort(key=lambda result: result.loss)
+    if do_sort:
+        results.sort(key=lambda result: result.loss)
     p.close()
     p.join()
     del p
@@ -203,25 +205,21 @@ def parse_cb_types(val):
 def generate_predictions_files(log_fp, policies, n_proc):
 
     print('Generating predictions files (using --cb_explore_adf) for {} policies:'.format(len(policies)))
-    data = {'policies': []}
     predictions_files = []
-    command_list = []
-    for name, policy in policies:
-        pred_fp = log_fp + '.' + name + '.pred'
+    for policy in policies:
+        pred_fp = log_fp + '.' + policy.name + '.pred'
         predictions_files.append(pred_fp)
         policy.full_command = policy.full_command.replace('--cb_adf', '--cb_explore_adf --epsilon 0.2') + ' -p ' + pred_fp + ' -P 100000 '
-        command_list.append(policy)
-        data['policies'].append({
-                'name': name,
-                'arguments': re.sub(r'(-c|-d\s[\S]*|-P\s[0-9]*|vw)\s', '', policy.full_command)
+
+    results = run_experiment_set(policies, n_proc, do_sort=False)
+
+    data = {'policies': []}
+    for result in results:
+            data['policies'].append({
+                'name': result.name,
+                'arguments': re.sub(r'(-c|-d\s[\S]*|-P\s[0-9]*|vw)\s', '', result.full_command),
+                'loss': result.loss
             })
-
-    results = run_experiment_set(command_list, n_proc)
-
-    for i,result in enumerate(results):
-        if result.full_command != policies[i][1].full_command:
-            raise
-        data['policies'][i]['loss'] = result.loss
 
     policy_path = os.path.join(os.path.dirname(log_fp), 'policy.json')
     with open(policy_path, 'w') as outfile:
@@ -248,7 +246,7 @@ def add_parser_args(parser):
 
 def main(args):
     try:
-        check_output(['vw','-h'], stderr=DEVNULL)
+        check_output('vw -h', stderr=DEVNULL)
     except:
         print("Error: Vowpal Wabbit executable not found. Please install and add it to your path")
         sys.exit()
@@ -320,21 +318,16 @@ def main(args):
     shared_features = {x[0] for x in shared_features}
     action_features = {x[0] for x in action_features}
     marginal_features = {x[0] for x in marginal_features}
-    
-    best_commands = []
-    
-    best_command = Command(base_command)
+
     t0 = datetime.now()
-    
-    if ' -c ' in base_command:    
-        if not os.path.exists(args.file_path+'.cache'):
-            print('\nCreating the cache file...')
-            result = run_experiment(best_command)
-            if result.loss < best_command.loss:
-                best_command = result
-    else:
-        if os.path.exists(args.file_path+'.cache'):
-            input('Warning: Cache file found, but not used (-c not in CLI). Press to continue anyway...')
+    best_commands = []
+
+    print('\nRunning the base command...')
+    if ' -c ' not in base_command and os.path.exists(args.file_path+'.cache'):
+        input('Warning: Cache file found, but not used (-c not in CLI): this is unnesessarily slow. Press to continue anyway...')
+    best_command = run_experiment(Command(base_command))
+    best_commands.append(best_command)
+    best_commands[-1].name = 'Base'
 
     # cb_types, marginal, regularization, learning rates, and power_t rates grid search
     command_list = get_hp_command_list(base_command, best_command, args.cb_types, marginal_features, args.learning_rates, args.regularizations, args.power_t_rates)
@@ -343,7 +336,8 @@ def main(args):
     results = run_experiment_set(command_list, args.n_proc)
     if results[0].loss < best_command.loss:
         best_command = results[0]
-        best_commands.append(['Hyper1', results[0]])
+        best_commands.append(results[0])
+        best_commands[-1].name = 'Hyper1'
     
     if not args.only_hp:
         # TODO: Which namespaces to ignore
@@ -365,7 +359,9 @@ def main(args):
         results = run_experiment_set(command_list, args.n_proc)
         if results[0].loss < best_command.loss:
             best_command = results[0]
-            best_commands.append(['Inter-len'+str(len(results[0].interaction_list)),results[0]])
+            best_commands.append(results[0])
+            best_commands[-1].name = 'Inter-len'+str(len(results[0].interaction_list))
+            
         
         # Build greedily on top of the best parameters found above (stop when no improvements for q_greedy_stop consecutive rounds)
         print('\nTesting interactions (greedy phase)...')
@@ -387,7 +383,8 @@ def main(args):
             results = run_experiment_set(command_list, args.n_proc)
             if results[0].loss < best_command.loss:
                 best_command = results[0]
-                best_commands.append(['Inter-len'+str(len(results[0].interaction_list)),results[0]])
+                best_commands.append(results[0])
+                best_commands[-1].name = 'Inter-len'+str(len(results[0].interaction_list))
                 rounds_without_improvements = 0
             else:
                 rounds_without_improvements += 1
@@ -400,7 +397,8 @@ def main(args):
         results = run_experiment_set(command_list, args.n_proc)
         if results[0].loss < best_command.loss:
             best_command = results[0]
-            best_commands.append(['Hyper2', results[0]])
+            best_commands.append(results[0])
+            best_commands[-1].name = 'Hyper2'
 
         # TODO: Repeat above process of tuning parameters and interactions until convergence / no more improvements.
 
