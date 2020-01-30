@@ -88,7 +88,7 @@ def result_writer(command_list):
 
 def run_experiment(command):
     try:
-        results = check_output(command.full_command, stderr=STDOUT).decode("utf-8")
+        results = check_output(command.full_command.split(' '), stderr=STDOUT, universal_newlines=True)
         loss_lines = [x for x in str(results).splitlines() if x.startswith('average loss = ')]
         if len(loss_lines) == 1:
             command.loss = float(loss_lines[0].split()[3])
@@ -158,7 +158,7 @@ def detect_namespaces(j_obj, ns_set, marginal_set):
 
     return prop_type
 
-def identify_namespaces(log_fp, auto_lines):
+def identify_namespaces(log_fp, auto_lines, shared_features, action_features, marginal_features):
 
     shared_tmp = collections.Counter()
     action_tmp = collections.Counter()
@@ -194,7 +194,7 @@ def identify_namespaces(log_fp, auto_lines):
     if not action_features:
         action_features = action_tmp
     if not marginal_features:
-            marginal_features = marginal_tmp
+        marginal_features = marginal_tmp
 
     return shared_features, action_features, marginal_features
 
@@ -287,7 +287,7 @@ def add_parser_args(parser):
 
 def main(args):
     try:
-        vw_version = check_output('vw --version', stderr=DEVNULL, universal_newlines=True)
+        vw_version = check_output(['vw','--version'], stderr=DEVNULL, universal_newlines=True)
     except:
         print("Error: Vowpal Wabbit executable not found. Please install and add it to your path")
         sys.exit()
@@ -300,7 +300,7 @@ def main(args):
     action_features = set(args.action_namespaces)
     marginal_features = set(args.marginal_namespaces)
     if not (shared_features and action_features and marginal_features):
-        shared_features, action_features, marginal_features = identify_namespaces(args.file_path)
+        shared_features, action_features, marginal_features = identify_namespaces(args.file_path, args.auto_lines, shared_features, action_features, marginal_features)
 
     print("\n*********** SETTINGS ******************")
     print('Log file size: {:.3f} MB'.format(os.path.getsize(args.file_path)/(1024**2)))
