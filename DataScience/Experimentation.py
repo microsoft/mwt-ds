@@ -12,9 +12,10 @@ import collections
 
 
 class Command:
-    def __init__(self, base, cb_type=None, marginal_list=None, ignore_list=None, interaction_list=None, regularization=None, learning_rate=None, power_t=None, clone_from=None):
+    def __init__(self, base, cb_type=None, marginal_list=None, ignore_list=None, interaction_list=None, regularization=None, learning_rate=None, power_t=None, clone_from=None, name=None):
         self.base = base
         self.loss = np.inf
+        self.name = 'N/A' if name is None else name
 
         if clone_from is not None:
             # Clone initial values
@@ -26,14 +27,14 @@ class Command:
             self.regularization = clone_from.regularization
             self.power_t = clone_from.power_t
         else:
-            # Initialize all values to vw default
+            # Initialize all values to default
             self.cb_type = 'ips'
             self.marginal_list = set()
             self.ignore_list = set()
             self.interaction_list = set()
-            self.learning_rate = 0.5
+            self.learning_rate = 1e-3
             self.regularization = 0
-            self.power_t = 0.5
+            self.power_t = 0
 
         # Update non-None values (for set we are doing the union not a replacement)
         if cb_type is not None:
@@ -75,7 +76,7 @@ class Command:
         print("power_t: {0}".format(self.power_t))
         print("overall command: {0}".format(self.full_command))
         print("loss: {0}".format(self.loss))
-        
+
 def result_writer(command_list):
     experiment_file = open("experiments.csv", "a")
     for command in command_list:
@@ -84,10 +85,10 @@ def result_writer(command_list):
             str(command.ignore_list), str(command.interaction_list), str(command.regularization), str(datetime.now()), command.full_command)
         experiment_file.write(line + "\n")
     experiment_file.flush()
-    
+
 def run_experiment(command):
     try:
-        results = check_output(command.full_command.split(' '), stderr=STDOUT).decode("utf-8")
+        results = check_output(command.full_command.split(' '), stderr=STDOUT, universal_newlines=True)
         loss_lines = [x for x in str(results).splitlines() if x.startswith('average loss = ')]
         if len(loss_lines) == 1:
             command.loss = float(loss_lines[0].split()[3])
@@ -97,12 +98,13 @@ def run_experiment(command):
     except Exception as e:
         print("Error for command {}: {}".format(command.full_command, e))
     return command
-    
-def run_experiment_set(command_list, n_proc):
+
+def run_experiment_set(command_list, n_proc, do_sort=True):
     # Run the experiments in parallel using n_proc processes
     p = multiprocessing.Pool(n_proc)
     results = p.map(run_experiment, command_list)
-    results.sort(key=lambda result: result.loss)
+    if do_sort:
+        results.sort(key=lambda result: result.loss)
     p.close()
     p.join()
     del p
@@ -156,6 +158,47 @@ def detect_namespaces(j_obj, ns_set, marginal_set):
 
     return prop_type
 
+def identify_namespaces(log_fp, auto_lines, shared_features, action_features, marginal_features):
+
+    shared_tmp = collections.Counter()
+    action_tmp = collections.Counter()
+    marginal_tmp = collections.Counter()
+    with gzip.open(log_fp, 'rt', encoding='utf8') if log_fp.endswith('.gz') else open(log_fp, 'r', encoding="utf8") as data:
+        iter = 0
+        for line in data:
+            if not line.startswith('{"_label_cost"'):
+                continue
+
+            iter += 1
+            event = json.loads(line)
+            # Separate the shared features from the action features for namespace analysis
+            if 'c' in event:
+                context = event['c']
+                action_set = context['_multi']
+                del context['_multi']
+                detect_namespaces(context, shared_tmp, marginal_tmp)
+                # Namespace detection expects object of type 'dict', so unwrap the action list
+                for action in action_set:
+                    detect_namespaces(action, action_tmp, marginal_tmp)
+            else:
+                print('Error: c not in json:',line)
+                input('Press ENTER to continue...')
+
+            # We assume the schema is consistent throughout the file, but since some
+            # namespaces may not appear in every datapoint, check enough points.
+            if iter >= auto_lines:
+                break
+    # Only overwrite the namespaces that were not specified by the user
+    if not shared_features:
+        shared_features = shared_tmp
+    if not action_features:
+        action_features = action_tmp
+    if not marginal_features:
+        marginal_features = marginal_tmp
+
+    return shared_features, action_features, marginal_features
+
+
 def get_hp_command_list(base_command, best_command, cb_types, marginal_features, learning_rates, regularizations, power_t_rates):
     marginal_lists = [set()]
     for marginal_feature in marginal_features:
@@ -200,37 +243,29 @@ def parse_cb_types(val):
         raise argparse.ArgumentTypeError('Input "{}" is an invalid cb_types input string - Valid cb_types are mtr, dr, ips'.format(val))
     return cb_types
 
-def generate_predictions_files(log_fp, policies):
+def generate_predictions_files(log_fp, policies, n_proc):
 
-    predictions_files = []
-    data = {}
-    data['policies'] = []
     print('Generating predictions files (using --cb_explore_adf) for {} policies:'.format(len(policies)))
-    for name,policy in policies:
-        policy_command =  policy.full_command.replace('--cb_adf', '--cb_explore_adf --epsilon 0.2')
+    predictions_files = []
+    for policy in policies:
+        pred_fp = log_fp + '.' + policy.name + '.pred'
+        predictions_files.append(pred_fp)
+        policy.full_command = policy.full_command.replace('--cb_adf', '--cb_explore_adf --epsilon 0.2') + ' -p ' + pred_fp + ' -P 100000 '
+
+    results = run_experiment_set(policies, n_proc, do_sort=False)
+
+    data = {'policies': []}
+    for result in results:
         data['policies'].append({
-            'name':name,
-            'arguments': re.sub(r'(-c|-d\s[\S]*|vw)\s', '', policy_command),
-            'loss': policy.loss
-            })
-        print('Name: {} Ave. Loss: {} cmd: {}'.format(name, policy.loss, policy_command))
-    print("*************************")
+            'name': result.name,
+            'arguments': re.sub(r'(-c|-d\s[\S]*|-P\s[0-9]*|vw)\s', '', result.full_command),
+            'loss': result.loss
+        })
 
     policy_path = os.path.join(os.path.dirname(log_fp), 'policy.json')
     with open(policy_path, 'w') as outfile:
         json.dump(data, outfile)
 
-    processes = []
-    for name,policy in policies:
-        pred_fp = log_fp + '.' + name + '.pred'
-        predictions_files.append(pred_fp)
-        cmd = policy.full_command.replace('--cb_adf', '--cb_explore_adf --epsilon 0.2') + ' -p ' + pred_fp + ' -P 100000'
-        p = Popen(cmd.split(' '), stdout=DEVNULL, stderr=DEVNULL)
-        processes.append(p)
-
-    for p in processes:
-        p.wait()
-        
     return predictions_files
 
 def add_parser_args(parser):
@@ -252,62 +287,30 @@ def add_parser_args(parser):
 
 def main(args):
     try:
-        check_output(['vw','-h'], stderr=DEVNULL)
+        vw_version = check_output(['vw','--version'], stderr=DEVNULL, universal_newlines=True)
     except:
         print("Error: Vowpal Wabbit executable not found. Please install and add it to your path")
         sys.exit()
-    print('File name: ' + args.file_path)
-    print('File size: {:.3f} MB'.format(os.path.getsize(args.file_path)/(1024**2)))
+
     # Additional processing of inputs not covered by above
-    base_command = args.base_command + ('' if args.base_command[-1] == ' ' else ' ') + '-d ' + args.file_path
+    base_command = args.base_command + ('-d ' if args.base_command[-1] == ' ' else ' -d ') + args.file_path
+    
+    # Shared and Action Features
     shared_features = set(args.shared_namespaces)
     action_features = set(args.action_namespaces)
     marginal_features = set(args.marginal_namespaces)
-
-    # Identify namespaces and detect marginal features (unless already specified)
     if not (shared_features and action_features and marginal_features):
-        shared_tmp = collections.Counter()
-        action_tmp = collections.Counter()
-        marginal_tmp = collections.Counter()
-        with gzip.open(args.file_path, 'rt', encoding='utf8') if args.file_path.endswith('.gz') else open(args.file_path, 'r', encoding="utf8") as data:
-            counter = 0
-            for line in data:
-                if not line.startswith('{"_label_cost"'):
-                    continue
-
-                counter += 1
-                event = json.loads(line)
-                # Separate the shared features from the action features for namespace analysis
-                if 'c' in event:
-                    context = event['c']
-                    action_set = context['_multi']
-                    del context['_multi']
-                    detect_namespaces(context, shared_tmp, marginal_tmp)
-                    # Namespace detection expects object of type 'dict', so unwrap the action list
-                    for action in action_set:
-                        detect_namespaces(action, action_tmp, marginal_tmp)
-                else:
-                    print('Error: c not in json:',line)
-                    input('Press ENTER to continue...')
-
-                # We assume the schema is consistent throughout the file, but since some
-                # namespaces may not appear in every datapoint, check enough points.
-                if counter >= args.auto_lines:
-                    break
-        # Only overwrite the namespaces that were not specified by the user
-        if not shared_features:
-            shared_features = shared_tmp
-        if not action_features:
-            action_features = action_tmp
-        if not marginal_features:
-            marginal_features = marginal_tmp
+        shared_features, action_features, marginal_features = identify_namespaces(args.file_path, args.auto_lines, shared_features, action_features, marginal_features)
 
     print("\n*********** SETTINGS ******************")
-    print("Base command + log file: {}".format(base_command))
+    print('Log file size: {:.3f} MB'.format(os.path.getsize(args.file_path)/(1024**2)))
     print()
-    print("Shared feature namespaces: " + str(shared_features))
-    print("Action feature namespaces: " + str(action_features))
-    print("Marginal feature namespaces: " + str(marginal_features))
+    print('Using VW version {}'.format(vw_version.strip()))
+    print('Base command: {}'.format(base_command))
+    print()
+    print('Shared feature namespaces: ' + str(shared_features))
+    print('Action feature namespaces: ' + str(action_features))
+    print('Marginal feature namespaces: ' + str(marginal_features))
     print()
     print('cb_types: ['+', '.join(args.cb_types)+']')
     print('learning rates: ['+', '.join(map(str,args.learning_rates))+']')
@@ -315,30 +318,25 @@ def main(args):
     print('power_t rates: ['+', '.join(map(str,args.power_t_rates))+']')
     print()
     print('Hyper-parameters grid size: ',(len(marginal_features)+1)*len(args.cb_types)*len(args.learning_rates)*len(args.regularizations)*len(args.power_t_rates))
-    print()
-    print("Parallel processes: {}".format(args.n_proc))
+    print('Parallel processes: {}'.format(args.n_proc))
     print("***************************************")
     if __name__ == '__main__' and input('Press ENTER to start (any other key to exit)...' ) != '':
         sys.exit()
 
+    # Use only first character of namespace for interactions
     shared_features = {x[0] for x in shared_features}
     action_features = {x[0] for x in action_features}
     marginal_features = {x[0] for x in marginal_features}
-    
-    best_commands = []
-    
-    best_command = Command(base_command)
+
     t0 = datetime.now()
-    
-    if ' -c ' in base_command:    
-        if not os.path.exists(args.file_path+'.cache'):
-            print('\nCreating the cache file...')
-            result = run_experiment(best_command)
-            if result.loss < best_command.loss:
-                best_command = result
-    else:
-        if os.path.exists(args.file_path+'.cache'):
-            input('Warning: Cache file found, but not used (-c not in CLI). Press to continue anyway...')
+    best_commands = []
+
+    print('\nRunning the base command...')
+    if ' -c ' not in base_command and os.path.exists(args.file_path+'.cache'):
+        input('Warning: Cache file found, but not used (-c not in CLI): this is unnesessarily slow. Press to continue anyway...')
+    best_command = run_experiment(Command(base_command))
+    best_commands.append(best_command)
+    best_commands[-1].name = 'Base'
 
     # cb_types, marginal, regularization, learning rates, and power_t rates grid search
     command_list = get_hp_command_list(base_command, best_command, args.cb_types, marginal_features, args.learning_rates, args.regularizations, args.power_t_rates)
@@ -347,7 +345,8 @@ def main(args):
     results = run_experiment_set(command_list, args.n_proc)
     if results[0].loss < best_command.loss:
         best_command = results[0]
-        best_commands.append(['Hyper1', results[0]])
+        best_commands.append(results[0])
+        best_commands[-1].name = 'Hyper1'
     
     if not args.only_hp:
         # TODO: Which namespaces to ignore
@@ -369,7 +368,9 @@ def main(args):
         results = run_experiment_set(command_list, args.n_proc)
         if results[0].loss < best_command.loss:
             best_command = results[0]
-            best_commands.append(['Inter-len'+str(len(results[0].interaction_list)),results[0]])
+            best_commands.append(results[0])
+            best_commands[-1].name = 'Inter-len'+str(len(results[0].interaction_list))
+            
         
         # Build greedily on top of the best parameters found above (stop when no improvements for q_greedy_stop consecutive rounds)
         print('\nTesting interactions (greedy phase)...')
@@ -391,7 +392,8 @@ def main(args):
             results = run_experiment_set(command_list, args.n_proc)
             if results[0].loss < best_command.loss:
                 best_command = results[0]
-                best_commands.append(['Inter-len'+str(len(results[0].interaction_list)),results[0]])
+                best_commands.append(results[0])
+                best_commands[-1].name = 'Inter-len'+str(len(results[0].interaction_list))
                 rounds_without_improvements = 0
             else:
                 rounds_without_improvements += 1
@@ -404,7 +406,8 @@ def main(args):
         results = run_experiment_set(command_list, args.n_proc)
         if results[0].loss < best_command.loss:
             best_command = results[0]
-            best_commands.append(['Hyper2', results[0]])
+            best_commands.append(results[0])
+            best_commands[-1].name = 'Hyper2'
 
         # TODO: Repeat above process of tuning parameters and interactions until convergence / no more improvements.
 
@@ -415,7 +418,7 @@ def main(args):
     print("*************************")
 
     if args.generate_predictions:
-        _ = generate_predictions_files(args.file_path, best_commands)
+        _ = generate_predictions_files(args.file_path, best_commands, args.n_proc)
         t2 = datetime.now()
         print('Predictions Generation Time:',(t2-t1)-timedelta(microseconds=(t2-t1).microseconds))
         print('Total Elapsed Time:',(t2-t0)-timedelta(microseconds=(t2-t0).microseconds))
