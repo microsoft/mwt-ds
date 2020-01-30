@@ -158,6 +158,47 @@ def detect_namespaces(j_obj, ns_set, marginal_set):
 
     return prop_type
 
+def identify_namespaces(log_fp, auto_lines):
+
+    shared_tmp = collections.Counter()
+    action_tmp = collections.Counter()
+    marginal_tmp = collections.Counter()
+    with gzip.open(log_fp, 'rt', encoding='utf8') if log_fp.endswith('.gz') else open(log_fp, 'r', encoding="utf8") as data:
+        iter = 0
+        for line in data:
+            if not line.startswith('{"_label_cost"'):
+                continue
+
+            iter += 1
+            event = json.loads(line)
+            # Separate the shared features from the action features for namespace analysis
+            if 'c' in event:
+                context = event['c']
+                action_set = context['_multi']
+                del context['_multi']
+                detect_namespaces(context, shared_tmp, marginal_tmp)
+                # Namespace detection expects object of type 'dict', so unwrap the action list
+                for action in action_set:
+                    detect_namespaces(action, action_tmp, marginal_tmp)
+            else:
+                print('Error: c not in json:',line)
+                input('Press ENTER to continue...')
+
+            # We assume the schema is consistent throughout the file, but since some
+            # namespaces may not appear in every datapoint, check enough points.
+            if iter >= auto_lines:
+                break
+    # Only overwrite the namespaces that were not specified by the user
+    if not shared_features:
+        shared_features = shared_tmp
+    if not action_features:
+        action_features = action_tmp
+    if not marginal_features:
+            marginal_features = marginal_tmp
+
+    return shared_features, action_features, marginal_features
+
+
 def get_hp_command_list(base_command, best_command, cb_types, marginal_features, learning_rates, regularizations, power_t_rates):
     marginal_lists = [set()]
     for marginal_feature in marginal_features:
@@ -246,62 +287,30 @@ def add_parser_args(parser):
 
 def main(args):
     try:
-        check_output('vw -h', stderr=DEVNULL)
+        vw_version = check_output('vw --version', stderr=DEVNULL, universal_newlines=True)
     except:
         print("Error: Vowpal Wabbit executable not found. Please install and add it to your path")
         sys.exit()
-    print('File name: ' + args.file_path)
-    print('File size: {:.3f} MB'.format(os.path.getsize(args.file_path)/(1024**2)))
+
     # Additional processing of inputs not covered by above
-    base_command = args.base_command + ('' if args.base_command[-1] == ' ' else ' ') + '-d ' + args.file_path
+    base_command = args.base_command + ('-d ' if args.base_command[-1] == ' ' else ' -d ') + args.file_path
+    
+    # Shared and Action Features
     shared_features = set(args.shared_namespaces)
     action_features = set(args.action_namespaces)
     marginal_features = set(args.marginal_namespaces)
-
-    # Identify namespaces and detect marginal features (unless already specified)
     if not (shared_features and action_features and marginal_features):
-        shared_tmp = collections.Counter()
-        action_tmp = collections.Counter()
-        marginal_tmp = collections.Counter()
-        with gzip.open(args.file_path, 'rt', encoding='utf8') if args.file_path.endswith('.gz') else open(args.file_path, 'r', encoding="utf8") as data:
-            counter = 0
-            for line in data:
-                if not line.startswith('{"_label_cost"'):
-                    continue
-
-                counter += 1
-                event = json.loads(line)
-                # Separate the shared features from the action features for namespace analysis
-                if 'c' in event:
-                    context = event['c']
-                    action_set = context['_multi']
-                    del context['_multi']
-                    detect_namespaces(context, shared_tmp, marginal_tmp)
-                    # Namespace detection expects object of type 'dict', so unwrap the action list
-                    for action in action_set:
-                        detect_namespaces(action, action_tmp, marginal_tmp)
-                else:
-                    print('Error: c not in json:',line)
-                    input('Press ENTER to continue...')
-
-                # We assume the schema is consistent throughout the file, but since some
-                # namespaces may not appear in every datapoint, check enough points.
-                if counter >= args.auto_lines:
-                    break
-        # Only overwrite the namespaces that were not specified by the user
-        if not shared_features:
-            shared_features = shared_tmp
-        if not action_features:
-            action_features = action_tmp
-        if not marginal_features:
-            marginal_features = marginal_tmp
+        shared_features, action_features, marginal_features = identify_namespaces(args.file_path)
 
     print("\n*********** SETTINGS ******************")
-    print("Base command + log file: {}".format(base_command))
+    print('Log file size: {:.3f} MB'.format(os.path.getsize(args.file_path)/(1024**2)))
     print()
-    print("Shared feature namespaces: " + str(shared_features))
-    print("Action feature namespaces: " + str(action_features))
-    print("Marginal feature namespaces: " + str(marginal_features))
+    print('Using VW version {}'.format(vw_version.strip()))
+    print('Base command: {}'.format(base_command))
+    print()
+    print('Shared feature namespaces: ' + str(shared_features))
+    print('Action feature namespaces: ' + str(action_features))
+    print('Marginal feature namespaces: ' + str(marginal_features))
     print()
     print('cb_types: ['+', '.join(args.cb_types)+']')
     print('learning rates: ['+', '.join(map(str,args.learning_rates))+']')
@@ -309,12 +318,12 @@ def main(args):
     print('power_t rates: ['+', '.join(map(str,args.power_t_rates))+']')
     print()
     print('Hyper-parameters grid size: ',(len(marginal_features)+1)*len(args.cb_types)*len(args.learning_rates)*len(args.regularizations)*len(args.power_t_rates))
-    print()
-    print("Parallel processes: {}".format(args.n_proc))
+    print('Parallel processes: {}'.format(args.n_proc))
     print("***************************************")
     if __name__ == '__main__' and input('Press ENTER to start (any other key to exit)...' ) != '':
         sys.exit()
 
+    # Use only first character of namespace for interactions
     shared_features = {x[0] for x in shared_features}
     action_features = {x[0] for x in action_features}
     marginal_features = {x[0] for x in marginal_features}
