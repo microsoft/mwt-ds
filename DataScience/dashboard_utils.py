@@ -220,11 +220,11 @@ def aggregates_cb_data(data, pred, d, evts):
 
     # initialize aggregates for ts_bin
     if ts_bin not in d:
-        d[ts_bin] = collections.OrderedDict({
-            'online': {'n': 0, 'N': 0, 'd': 0},
-            'baseline1': {'n': 0., 'N': 0, 'd': 0., 'Ne': 0, 'c': 0., 'SoS': 0},
-            'baselineRand': {'n': 0., 'N': 0, 'd': 0., 'Ne': 0, 'c': 0., 'SoS': 0}
-        })
+        d[ts_bin] = collections.OrderedDict([
+            ('online', {'n': 0, 'N': 0, 'd': 0}),
+            ('baseline1', {'n': 0., 'N': 0, 'd': 0., 'Ne': 0, 'c': 0., 'SoS': 0}),
+            ('baselineRand', {'n': 0., 'N': 0, 'd': 0., 'Ne': 0, 'c': 0., 'SoS': 0})
+        ])
         for name in pred:
             d[ts_bin][name] = {'n': 0., 'N': 0, 'd': 0., 'Ne': 0, 'c': 0., 'SoS': 0}
 
@@ -272,11 +272,11 @@ def aggregates_ccb_data(data, pred, d, evts):
 
     # initialize aggregates for ts_bin
     if ts_bin not in d:
-        d[ts_bin] = collections.OrderedDict({
-            'online': {'n': 0, 'N': 0, 'd': 0},
-            'baseline1': {'n': 0., 'N': 0, 'd': 0., 'Ne': 0, 'c': 0., 'SoS': 0},
-            'baselineRand': {'n': 0., 'N': 0, 'd': 0., 'Ne': 0, 'c': 0., 'SoS': 0}
-        })
+        d[ts_bin] = collections.OrderedDict([
+            ('online', {'n': 0, 'N': 0, 'd': 0}),
+            ('baseline1', {'n': 0., 'N': 0, 'd': 0., 'Ne': 0, 'c': 0., 'SoS': 0}),
+            ('baselineRand', {'n': 0., 'N': 0, 'd': 0., 'Ne': 0, 'c': 0., 'SoS': 0})
+        ])
 
         for name in pred:
             d[ts_bin][name] = {'n':0.,'N':0,'d':0.,'Ne':0,'c':0.,'SoS':0}
