@@ -256,11 +256,11 @@ def generate_predictions_files(log_fp, policies, n_proc):
 
     data = {'policies': []}
     for result in results:
-            data['policies'].append({
-                'name': result.name,
-                'arguments': re.sub(r'(-c|-d\s[\S]*|-P\s[0-9]*|vw)\s', '', result.full_command),
-                'loss': result.loss
-            })
+        data['policies'].append({
+            'name': result.name,
+            'arguments': re.sub(r'(-c|-d\s[\S]*|-P\s[0-9]*|vw)\s', '', result.full_command),
+            'loss': result.loss
+        })
 
     policy_path = os.path.join(os.path.dirname(log_fp), 'policy.json')
     with open(policy_path, 'w') as outfile:
