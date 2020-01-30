@@ -2,7 +2,6 @@ import pandas,ds_parse,json,collections,os,gzip,sys
 import numpy as np
 import argparse
 import time
-import simplejson
 from DashboardMpi.helpers import command
 
 def get_ts_5min_bin(ts):
@@ -168,7 +167,7 @@ def create_stats(log_fp, log_type='cb', d=None, predictions_files=None, is_summa
 
         elif log_type == 'cb':
             if is_summary:
-                data = simplejson.loads(x)
+                data = json.loads(x.decode("utf-8"))
             elif x.startswith(b'{"_label_cost":') and x.strip().endswith(b'}'):
                 data = ds_parse.json_cooked(x)
                 data['ts'] = data['ts'].decode('utf-8')

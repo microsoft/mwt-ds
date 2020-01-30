@@ -3,7 +3,7 @@ import glob
 import os
 import copy
 import ds_parse
-import simplejson
+import json
 from DashboardMpi.helpers import command
 
 
@@ -60,7 +60,7 @@ class LocalLogsProvider(InputProvider):
             if x.startswith(b'{"_label_cost":') and x.strip().endswith(b'}'):
                 data = ds_parse.json_cooked(x)
                 with open(summary_path, 'a') as f:
-                    f.write(simplejson.dumps(data)+'\n')
+                    f.write(json.dumps(data.encode('utf-8'))+'\n')
         os.remove(local_log_path)
         os.rename(summary_path, local_log_path)
 

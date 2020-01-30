@@ -1,5 +1,4 @@
-import time,collections,os,types,gzip,sys
-import simplejson
+import time, collections, os, types, gzip, sys, json
 
 def update_progress(current, total=None, prefix=''):
     if total:
@@ -191,7 +190,7 @@ def json_cooked(x, do_devType=False, do_VWState=False, do_p_vec=False):
 
 
 def ccb_json_cooked(x):
-    data = simplejson.loads(x)
+    data = json.loads(x.decode("utf-8"))
     data['ts'] = data.pop('Timestamp')
     return data
 
