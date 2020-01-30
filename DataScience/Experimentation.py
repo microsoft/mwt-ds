@@ -219,7 +219,7 @@ def generate_predictions_files(log_fp, policies, n_proc):
     results = run_experiment_set(command_list, n_proc)
 
     for i,result in enumerate(results):
-        if result.full_command != policies[i].full_command:
+        if result.full_command != policies[i][1].full_command:
             raise
         data['policies'][i]['loss'] = result.loss
 
