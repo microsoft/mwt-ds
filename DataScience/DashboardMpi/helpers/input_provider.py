@@ -58,9 +58,9 @@ class LocalLogsProvider(InputProvider):
 
         for x in open(local_log_path, 'rb'):
             if x.startswith(b'{"_label_cost":') and x.strip().endswith(b'}'):
-                data = ds_parse.json_cooked(x)
+                data = ds_parse.json_cooked(x, do_decode=True)
                 with open(summary_path, 'a') as f:
-                    f.write(json.dumps(data.encode('utf-8'))+'\n')
+                    f.write(json.dumps(data)+'\n')
         os.remove(local_log_path)
         os.rename(summary_path, local_log_path)
 

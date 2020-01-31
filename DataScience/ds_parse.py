@@ -138,7 +138,7 @@ def input_files_to_fp_list(files):
 
 ###############################################################################################################################################################################
 
-def json_cooked(x, do_devType=False, do_VWState=False, do_p_vec=False):
+def json_cooked(x, do_devType=False, do_VWState=False, do_p_vec=False, do_decode=False):
     #################################
     # Optimized version based on expected structure:
     # {"_label_cost":0,"_label_probability":0.01818182,"_label_Action":9,"_labelIndex":8,"Timestamp":"2017-10-24T00:00:15.5160000Z","Version":"1","EventId":"fa68cd9a71764118a635fd3d7a908634","a":[9,11,3,1,6,4,10,5,7,8,2],"c":{"_synthetic":false,"User":{"_age":0},"Geo":{"country":"United States","_countrycf":"8","state":"New York","city":"Springfield Gardens","_citycf":"8","dma":"501"},"MRefer":{"referer":"http://www.complex.com/"},"OUserAgent":{"_ua":"Mozilla/5.0 (iPad; CPU OS 10_3_2 like Mac OS X) AppleWebKit/603.2.4 (KHTML, like Gecko) Version/10.0 Mobile/14F89 Safari/602.1","_DeviceBrand":"Apple","_DeviceFamily":"iPad","_DeviceIsSpider":false,"_DeviceModel":"iPad","_OSFamily":"iOS","_OSMajor":"10","_OSPatch":"2","DeviceType":"Tablet"},"_multi":[{"
@@ -186,6 +186,8 @@ def json_cooked(x, do_devType=False, do_VWState=False, do_p_vec=False):
     if do_devType:
         data['devType'] = extract_field(x[ind8:],b'"DeviceType":"',b'"')
 
+    if do_decode:
+        data = data.decode()
     return data
 
 

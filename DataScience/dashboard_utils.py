@@ -5,7 +5,7 @@ import time
 from DashboardMpi.helpers import command
 
 def get_ts_5min_bin(ts):
-    str_5min = str(ts[:14])
+    str_5min = ts[:14]
     x = int(float(ts[14:16])/5)*5
     if x < 10:
         str_5min += '0'
@@ -167,10 +167,9 @@ def create_stats(log_fp, log_type='cb', d=None, predictions_files=None, is_summa
 
         elif log_type == 'cb':
             if is_summary:
-                data = json.loads(x.decode("utf-8"))
+                data = json.loads(x)
             elif x.startswith(b'{"_label_cost":') and x.strip().endswith(b'}'):
-                data = ds_parse.json_cooked(x)
-                data['ts'] = data['ts'].decode('utf-8')
+                data = ds_parse.json_cooked(x, do_decode=True)
 
             # Skip wrongly formated lines or not activated lines
             if data is None or data['skipLearn']:
