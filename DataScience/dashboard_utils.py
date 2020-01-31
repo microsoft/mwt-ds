@@ -167,7 +167,7 @@ def create_stats(log_fp, log_type='cb', d=None, predictions_files=None, is_summa
 
         elif log_type == 'cb':
             if is_summary:
-                data = json.loads(x)
+                data = json.loads(x.decode("utf-8"))
             elif x.startswith(b'{"_label_cost":') and x.strip().endswith(b'}'):
                 data = ds_parse.json_cooked(x, do_decode=True)
 
