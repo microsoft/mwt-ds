@@ -187,7 +187,12 @@ def json_cooked(x, do_devType=False, do_VWState=False, do_p_vec=False, do_decode
         data['devType'] = extract_field(x[ind8:],b'"DeviceType":"',b'"')
 
     if do_decode:
-        data = data.decode()
+        for key, value in data.items():
+            if key == 'a_vec':
+                data[key] = [z.decode() for z in value]
+            else:
+                if type(value) is bytes:
+                    data[key] = value.decode()
     return data
 
 
