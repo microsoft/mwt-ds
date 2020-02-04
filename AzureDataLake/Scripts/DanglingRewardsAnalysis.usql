@@ -3,7 +3,7 @@
 DECLARE @_appId string = "";    //your appId
 
 DECLARE @_experimentalUnitDuration TimeSpan = new TimeSpan(2, 0, 0, 0); //days, hour, minutes, seconds
-
+ 
 DECLARE @_start DateTime = new DateTime(2019, 10, 05);  //your inclusive start date
 DECLARE @_end DateTime = new DateTime(2019, 10, 15);    //your non-inclusive end date
     
@@ -58,15 +58,18 @@ DECLARE @OutputFileChronology string = @OutputFolder + "chronology.csv";
     FROM @Statistics
     GROUP BY hour, model;
 
-@Interactions = EXTRACT EventId string,
+@Interactions = EXTRACT SessionId string,
+                        SlotIdx int,
+                        EventId string,
                         Timestamp DateTime,
                         HasObservations int,
                         Prob float,
                         Cost float,
                         [Action] int,
+                        CbAction int,
                         NumActions int,
+                        NumActionsPerSlot int,
                         pdrop float,
-                        SkipLearn bool,
                         model string,
                         date DateTime
                 FROM @InputFileInteractions
@@ -96,7 +99,9 @@ DECLARE @OutputFileChronology string = @OutputFolder + "chronology.csv";
 
 
 @Matched =
-    SELECT @Interactions.EventId,
+    SELECT @Interactions.SessionId,
+           @Interactions.SlotIdx,
+           @Interactions.EventId,
            @Interactions.Timestamp AS InteractionTimestamp,
            @DanglingRewards.RewardTimestamp AS RewardTimestamp,
            @Interactions.model
@@ -105,7 +110,7 @@ DECLARE @OutputFileChronology string = @OutputFolder + "chronology.csv";
              @DanglingRewards
          ON @Interactions.EventId == @DanglingRewards.EventId AND @Interactions.model == @DanglingRewards.model;
 
-@Matched = SELECT EventId,
+@Matched = SELECT SessionId, SlotIdx, EventId,
                   (int)((RewardTimestamp - InteractionTimestamp).TotalMinutes) AS TimestampDiff,
                   RewardTimestamp,
                   InteractionTimestamp,
