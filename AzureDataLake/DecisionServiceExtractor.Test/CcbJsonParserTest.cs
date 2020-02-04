@@ -13,6 +13,14 @@ namespace DecisionServiceExtractor.Test
     [TestClass]
     public class CcbJsonParserTest
     {
+        private ISchema CreateDanglingRewardSchema()
+        {
+            return new USqlSchema(
+                new USqlColumn<string>("EventId"),
+                new USqlColumn<DateTime>("EnqueuedTimeUtc")
+                );
+        }
+
         private ISchema CreateCcbBasicSchema()
         {
             return new USqlSchema(
@@ -96,6 +104,23 @@ namespace DecisionServiceExtractor.Test
                         Assert.AreEqual(false, output.Get<bool>("IsDangling"));
                     }
                     counter++;
+                }
+            }
+        }
+
+        [TestMethod]
+        public void CcbDanglingRewardTest()
+        {
+            var danglingReward = @"{""RewardValue"":846.7236,""ActionTaken"":false,""EnqueuedTimeUtc"":""2018-12-13T03:27:57.000Z"",""EventId"":""id"",""Observations"":[{""v"":846.7236,""ActionTaken"":false,""EventId"":""id"",""ActionId"":null}]}";
+            var extractor = new CcbExtractor();
+            var output = new USqlUpdatableRow(CreateDefaultRow(CreateDanglingRewardSchema()));
+            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(danglingReward)))
+            {
+                var input = new USqlStreamReader(stream);
+                foreach (var outputRow in extractor.Extract(input, output))
+                {
+                    Assert.AreEqual("id", output.Get<string>("EventId"));
+                    Assert.AreEqual(new DateTime(2018, 12, 13, 3, 27, 57), output.Get<DateTime>("EnqueuedTimeUtc"));
                 }
             }
         }
