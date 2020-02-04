@@ -1,4 +1,4 @@
-import time,collections,os,types,gzip,sys
+import time, collections, os, types, gzip, sys, json
 
 def update_progress(current, total=None, prefix=''):
     if total:
@@ -32,7 +32,7 @@ def process_files(files, output_file=None, d=None, e=None):
     if output_file:
         f.close()
     print('Total time: {:.1f} sec'.format(time.time()-t0))
-    
+
 def process_dsjson_file(fp, d=None, e=None):
     stats = {}
     slot_len_c = collections.Counter()
@@ -54,14 +54,14 @@ def process_dsjson_file(fp, d=None, e=None):
                     update_progress(i+1,prefix=fp+' - ')
                 else:
                     update_progress(bytes_count,tot_bytes,fp+' - ')
-                
+
             if x.startswith(b'['):   # Ignore checkpoint info line
                 continue
 
             if not (x.startswith(b'{"') and x.strip().endswith(b'}')):
                 corrupted += 1
                 continue
-            
+
             if x.startswith(b'{"_label_cost":'):
                 data = json_cooked(x)
                 if data is None:
@@ -135,10 +135,10 @@ def input_files_to_fp_list(files):
         except:
             fp_list.append(x)
     return fp_list
-    
+
 ###############################################################################################################################################################################
 
-def json_cooked(x, do_devType=False, do_VWState=False, do_p_vec=False):
+def json_cooked(x, do_devType=False, do_VWState=False, do_p_vec=False, do_decode=False):
     #################################
     # Optimized version based on expected structure:
     # {"_label_cost":0,"_label_probability":0.01818182,"_label_Action":9,"_labelIndex":8,"Timestamp":"2017-10-24T00:00:15.5160000Z","Version":"1","EventId":"fa68cd9a71764118a635fd3d7a908634","a":[9,11,3,1,6,4,10,5,7,8,2],"c":{"_synthetic":false,"User":{"_age":0},"Geo":{"country":"United States","_countrycf":"8","state":"New York","city":"Springfield Gardens","_citycf":"8","dma":"501"},"MRefer":{"referer":"http://www.complex.com/"},"OUserAgent":{"_ua":"Mozilla/5.0 (iPad; CPU OS 10_3_2 like Mac OS X) AppleWebKit/603.2.4 (KHTML, like Gecko) Version/10.0 Mobile/14F89 Safari/602.1","_DeviceBrand":"Apple","_DeviceFamily":"iPad","_DeviceIsSpider":false,"_DeviceModel":"iPad","_OSFamily":"iOS","_OSMajor":"10","_OSPatch":"2","DeviceType":"Tablet"},"_multi":[{"
@@ -182,10 +182,23 @@ def json_cooked(x, do_devType=False, do_VWState=False, do_p_vec=False):
 
     if do_p_vec:
         data['p_vec'] = [float(p) for p in extract_field(x[-120-15*data['num_a']:], b'"p":[', b']').split(b',')]
-        
+
     if do_devType:
         data['devType'] = extract_field(x[ind8:],b'"DeviceType":"',b'"')
-            
+
+    if do_decode:
+        for key, value in data.items():
+            if key == 'a_vec':
+                data[key] = [z.decode() for z in value]
+            else:
+                if type(value) is bytes:
+                    data[key] = value.decode()
+    return data
+
+
+def ccb_json_cooked(x):
+    data = json.loads(x.decode("utf-8"))
+    data['ts'] = data.pop('Timestamp')
     return data
 
 def json_dangling(x):
@@ -203,7 +216,7 @@ def json_dangling(x):
         ind2 = x.find(b',',ind1+16)         # equal to: x.find(',"EnqueuedTimeUtc',ind1+16)
         ind3 = x.find(b'"',ind2+39)             # equal to: x.find('","EventId',ind2+39)
         ind4 = x.find(b'"',ind3+40)
-        
+
         data['r'] = x[ind1+16:ind2]         # len('","RewardValue":') = 16
         data['et'] = x[ind2+20:ind3]                    # len(',"EnqueuedTimeUtc":"') = 20
         data['ei'] = x[ind3+13:ind4]                    # len('","EventId":"') = 13
@@ -216,7 +229,7 @@ def json_dangling(x):
         data['r'] = x[15:ind2]                # len('{"RewardValue":') = 15
         data['et'] = x[ind3+19:ind4]                    # len(',"EnqueuedTimeUtc":"') = 20
         data['ei'] = x[ind4+13:ind5]                    # len('","EventId":"') = 13
-        
+
     data['ActionTaken'] = b'"DeferredAction":false' in x[:70]
     return data
 
@@ -312,7 +325,7 @@ def create_time_hist(d,e, normed=True, cumulative=True, scale_sec=1, n_bins=100,
         ei_ = ei_.intersection(ei)
         print('len(ei): {}'.format(len(ei)))
         print('len(ei_): {}'.format(len(ei_)))
-    
+
     for x in ei_:
         td = datetime.datetime.strptime(str(d[x][0][0]['ts'],'utf-8').split('.')[0].replace('Z',''), "%Y-%m-%dT%H:%M:%S")
         if td_day_start and td < datetime.datetime.strptime(td_day_start, "%Y-%m-%d"):
@@ -323,7 +336,7 @@ def create_time_hist(d,e, normed=True, cumulative=True, scale_sec=1, n_bins=100,
         else:
             te = datetime.datetime.strptime(str(ts,'utf-8').split('.', 1)[0].replace('Z',''), "%Y-%m-%dT%H:%M:%S")
         t_vec.append((x,(te-td).total_seconds()/scale_sec))
-    
+
     print('len(t_vec): {}'.format(len(t_vec)))
     plt.hist([x[1] for x in t_vec], n_bins, normed=normed, cumulative=cumulative, histtype='step')
     if xlabel:
@@ -331,7 +344,7 @@ def create_time_hist(d,e, normed=True, cumulative=True, scale_sec=1, n_bins=100,
     if ylabel:
         plt.ylabel(ylabel)
     plt.show()
-    
+
     return t_vec
 
 

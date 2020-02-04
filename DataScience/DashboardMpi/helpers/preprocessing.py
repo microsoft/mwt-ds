@@ -52,14 +52,14 @@ def detect_namespaces(j_obj, ns_set, marginal_set):
     return prop_type
 
 
-def extract_namespaces(lines, auto_lines=100):
+def extract_namespaces(lines, log_type='cb', auto_lines=100):
     shared_tmp = collections.Counter()
     action_tmp = collections.Counter()
     marginal_tmp = collections.Counter()
 
     counter = 0
     for line in lines:
-        if not line.startswith('{"_label_cost"'):
+        if (log_type == 'cb' and not line.startswith('{"_label_cost"')) or (log_type == 'ccb' and not line.startswith('{"Timestamp"')):
             continue
 
         counter += 1

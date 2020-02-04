@@ -26,6 +26,8 @@ def dashboard_e2e(args, delta_mod_t=3600, max_connections=50):
     enable_sweep = args.enable_sweep
     summary_json = args.summary_json
 
+    log_type = args.log_type
+
     date_format = '%m/%d/%Y'
     start = datetime.datetime.strptime(args.start_date, date_format)
     end = datetime.datetime.strptime(args.end_date, date_format)
@@ -39,7 +41,12 @@ def dashboard_e2e(args, delta_mod_t=3600, max_connections=50):
     elif account_name and sas_token:
         bbs = BlockBlobService(account_name=account_name, sas_token=sas_token)
 
-    base_command = {'#base': '--cb_adf --dsjson --compressed --save_resume --preserve_performance_counters'}
+    if log_type == 'ccb':
+        base = '--ccb_explore_adf --epsilon 0'
+    else:
+        base = '--cb_adf'
+
+    base_command = {'#base': base + ' --dsjson --compressed --save_resume --preserve_performance_counters'}
 
     namespaces = set()
     marginals_grid = []
@@ -79,24 +86,19 @@ def dashboard_e2e(args, delta_mod_t=3600, max_connections=50):
                 if (blob_index == 0 and index == 0):
                     vw.check_vw_installed(env.logger)
 
-                    namespaces = preprocessing.extract_namespaces(
-                        open(local_log_path, 'r', encoding='utf-8')
-                    )
+                    namespaces = preprocessing.extract_namespaces(open(local_log_path, 'r', encoding='utf-8'), log_type)
 
-                    marginals_grid = preprocessing.get_marginals_grid(
-                        '#marginals', namespaces[2]
-                    )
+                    marginals_grid = preprocessing.get_marginals_grid('#marginals', namespaces[2])
 
-                    interactions_grid = preprocessing.get_interactions_grid(
-                        '#interactions', namespaces[0], namespaces[1]
-                    )
+                    interactions_grid = preprocessing.get_interactions_grid('#interactions', namespaces[0], namespaces[1])
 
                     env.logger.info("namespaces: " + str(namespaces))
                 vw.cache(base_command, env, local_log_path)
 
             index += 1
 
-            env.local_logs_provider.get_metadata(local_log_path)
+            if log_type == 'cb':
+                env.local_logs_provider.get_metadata(local_log_path)
 
     # Evaluate custom policies
     if summary_json:
@@ -140,7 +142,13 @@ def dashboard_e2e(args, delta_mod_t=3600, max_connections=50):
         multi_grid = grid.generate(interactions_grid, marginals_grid)
         best = sweep.sweep(multi_grid, env, base_command)
 
-        predict_opts = {'#base': '--cb_explore_adf --epsilon 0.2 --compressed --dsjson --save_resume --preserve_performance_counters'}
+        if log_type == 'ccb':
+            predict_base = '--ccb_explore_adf'
+        else:
+            predict_base = '--cb_explore_adf'
+
+        predict_opts = {'#base': predict_base + ' --epsilon 0.2 --compressed --dsjson --save_resume --preserve_performance_counters'}
+
         commands = dict(map(
             lambda lo: (lo[0], command.apply(lo[1], predict_opts)),
             best.items()
@@ -148,7 +156,7 @@ def dashboard_e2e(args, delta_mod_t=3600, max_connections=50):
         vw.predict(commands, env)
 
     local_dashboard_path = os.path.join(tmp_folder, 'dashboard.json')
-    dashboard.create(local_dashboard_path, env, commands, enable_sweep)
+    dashboard.create(local_dashboard_path, env, commands, enable_sweep, log_type)
     if env.runtime.is_master() and output_connection_string:
         bbs = BlockBlobService(connection_string=output_connection_string)
         env.logger.info(output_container + ':' + output_path + ': Uploading from ' + local_dashboard_path)

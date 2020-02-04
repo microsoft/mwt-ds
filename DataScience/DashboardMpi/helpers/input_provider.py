@@ -3,7 +3,7 @@ import glob
 import os
 import copy
 import ds_parse
-import simplejson
+import json
 from DashboardMpi.helpers import command
 
 
@@ -58,9 +58,9 @@ class LocalLogsProvider(InputProvider):
 
         for x in open(local_log_path, 'rb'):
             if x.startswith(b'{"_label_cost":') and x.strip().endswith(b'}'):
-                data = ds_parse.json_cooked(x)
+                data = ds_parse.json_cooked(x, do_decode=True)
                 with open(summary_path, 'a') as f:
-                    f.write(simplejson.dumps(data)+'\n')
+                    f.write(json.dumps(data)+'\n')
         os.remove(local_log_path)
         os.rename(summary_path, local_log_path)
 
@@ -133,7 +133,7 @@ class AzureLogsProvider:
 
             if pos > 0:
                 file.seek(pos, os.SEEK_SET)
-                last_line_length = file_size - pos
+                last_line_length = file_size - pos - 1
                 file.truncate()
         return last_line_length
 
