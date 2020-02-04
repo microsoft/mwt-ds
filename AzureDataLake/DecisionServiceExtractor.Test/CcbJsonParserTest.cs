@@ -126,25 +126,6 @@ namespace DecisionServiceExtractor.Test
         }
 
         [TestMethod]
-        public void QuickTest()
-        {
-            string path = @"C:\xbox\test.txt";
-            var extractor = new CcbExtractor();
-            var output = new USqlUpdatableRow(CreateDefaultRow(CreateCcbBasicSchema()));
-            foreach (var line in File.ReadLines(path)) {
-                using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(line)))
-                {
-                    var input = new USqlStreamReader(stream);
-                    int counter = 0;
-                    foreach (var outputRow in extractor.Extract(input, output))
-                    {
-                        Assert.IsNotNull(output.Get<string>("SessionId"));
-                    }
-                }
-            }
-        }
-
-        [TestMethod]
         public void BadLinesHandlingTest()
         {
             var junk = @"blablabla";

@@ -92,6 +92,9 @@ namespace DecisionServiceExtractor
 
                                 switch (propertyName)
                                 {
+                                    case "EventId":
+                                        Helpers.ExtractPropertyString(jsonReader, output, this.EventIdColumn);
+                                        break;
                                     case "Timestamp":
                                         shared.Timestamp = (DateTime)jsonReader.ReadAsDateTime();
                                         break;
