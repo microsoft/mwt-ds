@@ -16,7 +16,7 @@ DECLARE @OutputFolder string = "/daily/" + @_appId + "/";      //your output fol
      
 DECLARE @InputFile string = "wasb://"+ @_appId +"@" + @_account + ".blob.core.windows.net/{model}/data/{date:yyyy}/{date:MM}/{date:dd}_{filename}.json";
 
-DECLARE @OutputFileStatisticsCB string = @OutputFolder + "statistics-cb-{date:yyyy}-{date:MM}-{date:dd}.csv";
+DECLARE @OutputFileStatisticsCB string = @OutputFolder + "statistics-{date:yyyy}-{date:MM}-{date:dd}.csv";
 DECLARE @OutputFileInvalid string = @OutputFolder + "invalid-{date:yyyy}-{date:MM}-{date:dd}.csv";
 DECLARE @OutputFileInteractions string = @OutputFolder + "interactions-{date:yyyy}-{date:MM}-{date:dd}.csv";
 DECLARE @OutputFileDangling string = @OutputFolder + "dangling-{date:yyyy}-{date:MM}-{date:dd}.csv";
