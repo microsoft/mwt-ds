@@ -9,55 +9,38 @@ namespace DecisionServiceExtractor
 {
     internal class CbParser
     {
-        private readonly bool hasEventId;
-        private readonly bool hasTimestamp;
-        private readonly bool hasEnqueuedTimeUtc;
-        private readonly bool hasCost;
-        private readonly bool hasProbability;
-        private readonly bool hasAction;
-        private readonly bool hasNumActions;
-        private readonly bool hasHasObservations;
-        private readonly bool hasData;
+        private readonly ColumnInfo EventIdColumn;
+        private readonly ColumnInfo TimestampColumn;
+        private readonly ColumnInfo EnqueuedTimeUtcColumn;
+        private readonly ColumnInfo CostColumn;
+        private readonly ColumnInfo ProbabilityColumn;
+        private readonly ColumnInfo ActionColumn;
+        private readonly ColumnInfo NumActionsColumn;
+        private readonly ColumnInfo HasObservationsColumn;
+        private readonly ColumnInfo DataColumn;
+        private readonly ColumnInfo PdropColumn;
+        private readonly ColumnInfo IsDanglingColumn;
+        private readonly ColumnInfo SkipLearnColumn;
+
         private readonly bool hasJsonObject;
-        private readonly bool hasPdrop;
-        private readonly bool hasIsDangling;
-        private readonly bool hasSkipLearn;
-        private readonly bool hasSessionId;
-
-        private readonly int idxEventId;
-        private readonly int idxTimestamp;
-        private readonly int idxEnqueuedTimeUtc;
-        private readonly int idxCost;
-        private readonly int idxProbability;
-        private readonly int idxAction;
-        private readonly int idxNumActions;
-        private readonly int idxHasObservations;
-        private readonly int idxData;
-        private readonly int idxPdrop;
-        private readonly int idxIsDangling;
-        private readonly int idxSkipLearn;
-        private readonly int idxSessionId;
-
         private FieldExpression[] expressions;
 
         internal CbParser(ISchema schema, FieldExpression[] expressions)
         {
             this.expressions = expressions;
 
-            this.hasEventId = Helpers.HasColumnOfType(schema, "EventId", typeof(string), out this.idxEventId);
-            this.hasTimestamp = Helpers.HasColumnOfType(schema, "Timestamp", typeof(DateTime), out this.idxTimestamp);
-            this.hasEnqueuedTimeUtc = Helpers.HasColumnOfType(schema, "EnqueuedTimeUtc", typeof(DateTime), out this.idxEnqueuedTimeUtc);
-            this.hasCost = Helpers.HasColumnOfType(schema, "Cost", typeof(float), out this.idxCost);
-            this.hasProbability = Helpers.HasColumnOfType(schema, "Prob", typeof(float), out this.idxProbability);
-            this.hasAction = Helpers.HasColumnOfType(schema, "Action", typeof(int), out this.idxAction);
-            this.hasNumActions = Helpers.HasColumnOfType(schema, "NumActions", typeof(int), out this.idxNumActions);
-            this.hasHasObservations = Helpers.HasColumnOfType(schema, "HasObservations", typeof(int), out this.idxHasObservations);
-            this.hasData = Helpers.HasColumnOfType(schema, "Data", typeof(string), out this.idxData);
-            this.hasPdrop = Helpers.HasColumnOfType(schema, "pdrop", typeof(float), out this.idxPdrop);
-            this.hasIsDangling = Helpers.HasColumnOfType(schema, "IsDangling", typeof(bool), out this.idxIsDangling);
-            this.hasSkipLearn = Helpers.HasColumnOfType(schema, "SkipLearn", typeof(bool), out this.idxSkipLearn);
-
-            this.hasSessionId = Helpers.HasColumnOfType(schema, "SessionId", typeof(string), out this.idxSessionId);
+            this.EventIdColumn = new ColumnInfo(schema, "EventId", typeof(string));
+            this.TimestampColumn = new ColumnInfo(schema, "Timestamp", typeof(DateTime));
+            this.EnqueuedTimeUtcColumn = new ColumnInfo(schema, "EnqueuedTimeUtc", typeof(DateTime));
+            this.CostColumn = new ColumnInfo(schema, "Cost", typeof(float));
+            this.ProbabilityColumn = new ColumnInfo(schema, "Prob", typeof(float));
+            this.ActionColumn = new ColumnInfo(schema, "Action", typeof(int));
+            this.NumActionsColumn = new ColumnInfo(schema, "NumActions", typeof(int));
+            this.HasObservationsColumn = new ColumnInfo(schema, "HasObservations", typeof(int));
+            this.DataColumn = new ColumnInfo(schema, "Data", typeof(string));
+            this.PdropColumn = new ColumnInfo(schema, "pdrop", typeof(float));
+            this.IsDanglingColumn = new ColumnInfo(schema, "IsDangling", typeof(bool));
+            this.SkipLearnColumn = new ColumnInfo(schema, "SkipLearn", typeof(bool));
 
             this.hasJsonObject = false;
             foreach (var fe in expressions)
@@ -72,19 +55,14 @@ namespace DecisionServiceExtractor
         public IRow ParseEvent(IUpdatableRow output, Stream input)
         {
             TextReader inputReader;
-            if (this.hasSkipLearn)
-            {
-                output.Set(this.idxSkipLearn, false);
-            }
-            if (!this.hasData)
+            output.Set(this.SkipLearnColumn, false);
+            if (!this.DataColumn.IsRequired)
                 inputReader = new StreamReader(input, Encoding.UTF8);
             else
             {
                 string data = new StreamReader(input, Encoding.UTF8).ReadToEnd();
                 inputReader = new StringReader(data);
-
-                if (this.hasData)
-                    output.Set(this.idxData, data);
+                output.Set(this.DataColumn, data);
             }
 
             if (this.hasJsonObject)
@@ -116,46 +94,36 @@ namespace DecisionServiceExtractor
                 }
 
                 // since we already parse it, no need to parse twice
-                if (this.hasEventId)
-                    output.Set(this.idxEventId, jobj.Value<string>("EventId"));
+                output.Set(this.EventIdColumn, jobj.Value<string>("EventId"));
+                output.Set(this.TimestampColumn, jobj.Value<DateTime>("Timestamp"));
+                output.Set(this.EnqueuedTimeUtcColumn, jobj.Value<DateTime>("EnqueuedTimeUtc"));
 
-                if (this.hasTimestamp)
-                    output.Set(this.idxTimestamp, jobj.Value<DateTime>("Timestamp"));
-
-                if (this.hasEnqueuedTimeUtc)
-                    output.Set(this.idxEnqueuedTimeUtc, jobj.Value<DateTime>("EnqueuedTimeUtc"));
-
-                if (this.hasSkipLearn)
+                if (this.SkipLearnColumn.IsRequired)
                 {
                     var optional = jobj.Value<bool?>("_skipLearn"); ;
-                    output.Set(this.idxSkipLearn, (bool)(optional.HasValue ? optional : false));
+                    output.Set(this.SkipLearnColumn.Idx, (bool)(optional.HasValue ? optional : false));
                 }
 
-                if (this.hasCost)
-                    output.Set(this.idxCost, (float)jobj.Value<double>("_label_cost"));
+                output.Set(this.CostColumn, (float)jobj.Value<double>("_label_cost"));
+                output.Set(this.ProbabilityColumn, (float)jobj.Value<double>("_label_probability"));
+                output.Set(this.ActionColumn, (int)jobj.Value<long>("_label_Action"));
 
-                if (this.hasProbability)
-                    output.Set(this.idxProbability, (float)jobj.Value<double>("_label_probability"));
-
-                if (this.hasAction)
-                    output.Set(this.idxAction, (int)jobj.Value<long>("_label_Action"));
-
-                if (this.hasPdrop)
+                if (this.PdropColumn.IsRequired)
                 {
                     var optional = jobj.Value<double?>("pdrop");
-                    output.Set(this.idxPdrop, (float)(optional.HasValue ? optional.Value : 0.0f));
+                    output.Set(this.PdropColumn.Idx, (float)(optional.HasValue ? optional.Value : 0.0f));
                 }
 
-                if (this.hasNumActions)
+                if (this.NumActionsColumn.IsRequired)
                 {
                     if (jobj["a"] is JArray arr)
-                        output.Set(this.idxNumActions, arr.Count);
+                        output.Set(this.NumActionsColumn.Idx, arr.Count);
                 }
 
-                if (this.hasHasObservations)
+                if (this.HasObservationsColumn.IsRequired)
                 {
                     if (jobj["o"] is JArray arr)
-                        output.Set(this.idxHasObservations, 1);
+                        output.Set(this.HasObservationsColumn.Idx, 1);
                 }
 
                 // return early
@@ -180,47 +148,43 @@ namespace DecisionServiceExtractor
                                 switch (propertyName)
                                 {
                                     case "EventId":
-                                        Helpers.ExtractPropertyString(jsonReader, output, this.idxEventId, this.hasEventId);
+                                        Helpers.ExtractPropertyString(jsonReader, output, this.EventIdColumn);
                                         break;
                                     case "Timestamp":
-                                        if (this.hasTimestamp)
-                                            output.Set(this.idxTimestamp, (DateTime)jsonReader.ReadAsDateTime());
+                                        output.Set(this.TimestampColumn, (DateTime)jsonReader.ReadAsDateTime());
                                         break;
                                     case "_label_cost":
                                         foundLabelCost = true;
-                                        Helpers.ExtractPropertyDouble(jsonReader, output, this.idxCost, this.hasCost);
-                                        if (this.hasIsDangling)
-                                            output.Set(this.idxIsDangling, false);
+                                        Helpers.ExtractPropertyDouble(jsonReader, output, this.CostColumn);
+                                        output.Set(this.IsDanglingColumn, false);
                                         break;
                                     case "_label_probability":
-                                        Helpers.ExtractPropertyDouble(jsonReader, output, this.idxProbability, this.hasProbability);
+                                        Helpers.ExtractPropertyDouble(jsonReader, output, this.ProbabilityColumn);
                                         break;
                                     case "_label_Action":
-                                        Helpers.ExtractPropertyInteger(jsonReader, output, this.idxAction, this.hasAction);
+                                        Helpers.ExtractPropertyInteger(jsonReader, output, this.ActionColumn);
                                         break;
                                     case "a":
-                                        if (!this.hasNumActions)
+                                        if (!this.NumActionsColumn.IsRequired)
                                             jsonReader.Skip();
                                         else
-                                            output.Set(this.idxNumActions, Helpers.CountArrayElements(jsonReader));
+                                            output.Set(this.NumActionsColumn.Idx, Helpers.CountArrayElements(jsonReader));
                                         break;
                                     case "o":
-                                        if (!this.hasHasObservations)
+                                        if (!this.HasObservationsColumn.IsRequired)
                                             jsonReader.Skip();
                                         else
-                                            output.Set(this.idxHasObservations, 1);
+                                            output.Set(this.HasObservationsColumn.Idx, 1);
                                         break;
                                     case "pdrop":
-                                        Helpers.ExtractPropertyDouble(jsonReader, output, this.idxPdrop, this.hasPdrop);
+                                        Helpers.ExtractPropertyDouble(jsonReader, output, this.PdropColumn);
                                         break;
                                     case "_skipLearn":
-                                        Helpers.ExtractPropertyBool(jsonReader, output, this.idxSkipLearn, this.hasSkipLearn);
+                                        Helpers.ExtractPropertyBool(jsonReader, output, this.SkipLearnColumn);
                                         break;
                                     case "EnqueuedTimeUtc":
-                                        if (this.hasEnqueuedTimeUtc)
-                                            output.Set(this.idxEnqueuedTimeUtc, (DateTime)jsonReader.ReadAsDateTime());
-                                        if (this.hasIsDangling)
-                                            output.Set(this.idxIsDangling, true);
+                                        output.Set(this.EnqueuedTimeUtcColumn, (DateTime)jsonReader.ReadAsDateTime());
+                                        output.Set(this.IsDanglingColumn, true);
                                         break;
                                     default:
                                         jsonReader.Skip();

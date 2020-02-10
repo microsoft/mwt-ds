@@ -1,44 +1,82 @@
 ﻿SET @@FeaturePreviews = "DataPartitionedOutput:on";
 
-USE DATABASE [DecisionServiceDBTest];
+USE DATABASE [DecisionServiceDB];
 
-REFERENCE ASSEMBLY DecisionServiceDBTest.[DecisionServiceExtractor];
+REFERENCE ASSEMBLY DecisionServiceDB.[DecisionServiceExtractor];
+
+DECLARE @OutputSlimLogs bool = true;     //true if you want to have slime version of logs (all metadata without features)
 
 DECLARE @_appId string = "";    //your appId
 DECLARE @_account string = "";    // your account name
 
-DECLARE @_start DateTime = new DateTime(2019, 10, 1);  //your inclusive start date
-DECLARE @_end DateTime = new DateTime(2019, 10, 12);    //your non-inclusive end date
+DECLARE @_start DateTime = new DateTime(2019, 10, 25);  //your inclusive start date
+DECLARE @_end DateTime = new DateTime(2019, 10, 30);    //your non-inclusive end date
 
 DECLARE @OutputFolder string = "/daily/" + @_appId + "/";      //your output folder
      
 DECLARE @InputFile string = "wasb://"+ @_appId +"@" + @_account + ".blob.core.windows.net/{model}/data/{date:yyyy}/{date:MM}/{date:dd}_{filename}.json";
 
+// Statistics is equivalent to the one from CB script (Process.usql), calculated over CCB slots converted to CB events
 DECLARE @OutputFileStatistics string = @OutputFolder + "statistics-{date:yyyy}-{date:MM}-{date:dd}.csv";
 DECLARE @OutputFileInvalid string = @OutputFolder + "invalid-{date:yyyy}-{date:MM}-{date:dd}.csv";
+DECLARE @OutputFileInteractions string = @OutputFolder + "interactions-{date:yyyy}-{date:MM}-{date:dd}.csv";
+DECLARE @OutputFileDangling string = @OutputFolder + "dangling-{date:yyyy}-{date:MM}-{date:dd}.csv";
 
 @Events =  
     EXTRACT SessionId string,
             SlotIdx int,
             EventId string,
-            model string,
+            Timestamp DateTime, 
+            EnqueuedTimeUtc DateTime,
+            Prob float,
+            Cost float,
+            Action int,
+            CbAction int,
+            NumActions int,
+            NumActionsPerSlot int,
+            HasObservations int,
+            pdrop float,
+            IsDangling bool,
             ParseError string,
-            date DateTime,
+            model string,  //virtual column 
+            date DateTime, //virtual column
             filename string //virtual column
     FROM @InputFile
     USING new DecisionServiceExtractor.CcbExtractor();
 
 @Events = SELECT * FROM @Events WHERE date >= @_start AND date < @_end;
 
-@Valid = SELECT * FROM @Events WHERE string.IsNullOrEmpty(ParseError);
+@Invalid = SELECT SessionId, ParseError, date, model FROM @Events WHERE !string.IsNullOrEmpty(ParseError);
 
-@Invalid = SELECT ParseError, date FROM @Events WHERE !string.IsNullOrEmpty(ParseError);
+@Valid =
+    SELECT Left.*
+    FROM @Events AS Left
+         LEFT ANTISEMIJOIN
+         (
+         SELECT DISTINCT SessionId, model
+         FROM @Invalid
+              ) AS Right
+         ON Left.SessionId == Right.SessionId AND Left.model == Right.model;
 
+
+@Interactions = SELECT SessionId, SlotIdx, EventId, Timestamp, HasObservations, Prob, Cost, Action, CbAction, NumActions, NumActionsPerSlot, pdrop, model, date FROM @Valid WHERE IsDangling == false;
 
 @Statistics =
-    SELECT COUNT() AS SessionCount, model, date
-    FROM @Valid
-    GROUP BY model, date;
+    SELECT Timestamp.ToString("yyyy/MM/dd HH:00") AS hour,
+           model,
+           SUM(HasObservations != 0? (1.0 / (1.0 - pdrop)) : 0) AS obser,
+           SUM(-Cost / (1.0 - pdrop)) AS clicks,
+           SUM(1.0 / (1.0 - pdrop)) AS impressions,
+           SUM(CbAction == 0? (-Cost / (1.0 - pdrop)) : 0) AS clicks1,
+           SUM(CbAction == 0? (1.0 / (1.0 - pdrop)) : 0) AS impressions1,
+           SUM(CbAction == 0? (-Cost / (1.0 - pdrop)) / Prob : 0) AS clicksIps1,
+           SUM(CbAction == 0? (1.0 / (1.0 - pdrop)) / Prob : 0) AS impressionsIps1,
+           SUM((-Cost / (1.0 - pdrop)) / Prob / NumActionsPerSlot) AS clicksIpsR,
+           SUM((1.0 / (1.0 - pdrop)) / Prob / NumActionsPerSlot) AS impressionsIpsR,
+           (SUM(1.0) / SUM(1.0 / (1.0 - pdrop))) AS PassRatio,
+           date
+    FROM @Interactions
+    GROUP BY Timestamp.ToString("yyyy/MM/dd HH:00"), model, date;
 
 OUTPUT @Statistics
 TO @OutputFileStatistics
@@ -47,5 +85,23 @@ USING Outputters.Csv(outputHeader:true);
 OUTPUT @Invalid
 TO @OutputFileInvalid
 USING Outputters.Csv(outputHeader:true);
+
+IF @OutputSlimLogs == true THEN
+    @Dangling =
+        SELECT EventId,
+            EnqueuedTimeUtc,
+            model,
+            date
+        FROM @Events
+        WHERE IsDangling == true;
+
+    OUTPUT @Interactions
+    TO @OutputFileInteractions
+    USING Outputters.Csv(outputHeader:true);
+
+    OUTPUT @Dangling
+    TO @OutputFileDangling
+    USING Outputters.Csv(outputHeader:true);
+END;
 
 

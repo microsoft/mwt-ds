@@ -1,6 +1,7 @@
 ﻿using Microsoft.Analytics.Interfaces;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 
 namespace DecisionServiceExtractor
 {
@@ -22,40 +23,37 @@ namespace DecisionServiceExtractor
             return column.Type == t;
         }
 
-        public static void ExtractPropertyString(JsonTextReader jsonReader, IUpdatableRow output, int fieldIdx, bool hasField)
+        public static void ExtractPropertyString(JsonTextReader jsonReader, IUpdatableRow output, ColumnInfo columnInfo)
         {
             jsonReader.Read();
-            if (hasField)
-                output.Set(fieldIdx, (string)jsonReader.Value);
+            output.Set(columnInfo, (string)jsonReader.Value);
         }
 
-        public static void ExtractPropertyBool(JsonTextReader jsonReader, IUpdatableRow output, int fieldIdx, bool hasField)
+        public static void ExtractPropertyBool(JsonTextReader jsonReader, IUpdatableRow output, ColumnInfo columnInfo)
         {
             jsonReader.Read();
-            if (hasField)
-                output.Set(fieldIdx, (bool)jsonReader.Value);
+            output.Set(columnInfo, (bool)jsonReader.Value);
         }
 
-        public static void ExtractPropertyInteger(JsonTextReader jsonReader, IUpdatableRow output, int fieldIdx, bool hasField)
+        public static void ExtractPropertyInteger(JsonTextReader jsonReader, IUpdatableRow output, ColumnInfo columnInfo)
         {
             jsonReader.Read();
-            if (hasField)
-                output.Set(fieldIdx, (int)(long)jsonReader.Value);
+            output.Set(columnInfo, (int)(long)jsonReader.Value);
         }
 
-        public static void ExtractPropertyDouble(JsonTextReader jsonReader, IUpdatableRow output, int fieldIdx, bool hasField)
+        public static void ExtractPropertyDouble(JsonTextReader jsonReader, IUpdatableRow output, ColumnInfo columnInfo)
         {
             jsonReader.Read();
 
-            if (hasField)
+            if (columnInfo.IsRequired)
             {
                 switch (jsonReader.TokenType)
                 {
                     case JsonToken.Integer:
-                        output.Set(fieldIdx, (float)(long)jsonReader.Value);
+                        output.Set(columnInfo.Idx, (float)(long)jsonReader.Value);
                         break;
                     case JsonToken.Float:
-                        output.Set(fieldIdx, (float)(double)jsonReader.Value);
+                        output.Set(columnInfo.Idx, (float)(double)jsonReader.Value);
                         break;
                     default:
                         throw new Exception("wrong data type");
@@ -80,6 +78,70 @@ namespace DecisionServiceExtractor
             }
 
             return numActions;
+        }
+
+        public static int CountObjects(JsonTextReader jsonReader)
+        {
+            int numActions = 0;
+
+            while (jsonReader.Read())
+            {
+                switch (jsonReader.TokenType)
+                {
+                    case JsonToken.StartObject:
+                        numActions++;
+                        jsonReader.Skip();
+                        break;
+                    case JsonToken.EndArray:
+                        return numActions;
+                    default:
+                        break;
+                }
+            }
+
+            return numActions;
+        }
+
+        public static IEnumerable<int> EnumerateInts(JsonTextReader jsonReader)
+        {
+            while (jsonReader.Read())
+            {
+                switch (jsonReader.TokenType)
+                {
+                    case JsonToken.Integer:
+                        yield return (int)(long)jsonReader.Value;
+                        break;
+                    case JsonToken.EndArray:
+                        yield break;
+                }
+            }
+        }
+
+
+        public static IEnumerable<float> EnumerateFloats(JsonTextReader jsonReader)
+        {
+            while (jsonReader.Read())
+            {
+                switch (jsonReader.TokenType)
+                {
+                    case JsonToken.Integer:
+                        yield return (float)(long)jsonReader.Value;
+                        break;
+                    case JsonToken.Float:
+                        yield return (float)(double)jsonReader.Value;
+                        break;
+                    case JsonToken.EndArray:
+                        yield break;
+                }
+            }
+        }
+
+        public static void Set<T>(this IUpdatableRow row, ColumnInfo columnInfo, T value)
+        {
+            if (columnInfo.IsRequired)
+            {
+                row.Set(columnInfo.Idx, value);
+            }
         }
     }
 }
