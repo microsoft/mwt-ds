@@ -1,0 +1,30 @@
+{
+    "dataset_name": "Test",
+    "output_folder": "E:\\data\\20190729_context_explorer\\simulated_data",
+    "reward_range": [-1, 1],
+    "reward_dense_range": [0, 0.3],
+    "actions": [1, 2, 3, 4, 5, 6, 7, 8],
+    "contexts": {
+        "CallType": ["1_1", "GVC"],
+        "MediaType": ["Audio", "Video"],
+        "NetworkType": ["wifi", "wired"]
+    },
+    "context_action_size": 1000,
+    "increase_winning_margin": 0.02,
+    "center": true,
+    "p_value": 0.001,
+    "random_state": 3,
+    "model_parameters": {
+        "batch_size_initial": 5000,
+        "batch_size":5000,
+        "iterations": 30,
+        "default_action_index": 0
+    },
+    "vw_commands":{
+        "exploration_policy": "--epsilon 0.3",
+        "cb_type": "ips",
+        "interactions": "--interactions iFFF",
+        "learning_rate": 0.001,
+        "other_commands": "--power_t 0"
+    }
+}
