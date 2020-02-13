@@ -1,14 +1,9 @@
 {
     "exps": {
 		"NewTest": {
-			"start_date": "2020-02-12", 
-			"end_date": "2020-03-02",
 			"context_feature_namespace": ["Features"],
 			"action_label_key": ["id"],
 			"default_action_index": 0,
-			"control_identifier": {
-				"_group": "control"
-			},
 			"data_folder": "E:\\data\\20190729_context_explorer\\simulated_data\\logs"
 		}
 	},

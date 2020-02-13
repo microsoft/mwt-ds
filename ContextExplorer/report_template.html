@@ -92,7 +92,8 @@ ul li { padding: 3px 3px; }
 
 <div id="OverallTrend" class="tabcontent">
   <h3>Overall - Trend</h3>
-  <font color="red"> TBD_Overall_Warning </font>
+  Rewards for the control group are estimated with Inverse Propensity Scoring(IPS). Reference: <a href="https://en.wikipedia.org/wiki/Inverse_probability_weighting">Wikipedia</a>, <a href="https://github.com/microsoft/mwt-ds/blob/master/images/MWT-WhitePaper.pdf">Paper</a> page 12. 
+  <br><br>
   TBD_OverallPlot
 
 </div>
@@ -104,16 +105,27 @@ ul li { padding: 3px 3px; }
     <li>Cumulative Performance: data aggregated for all dates within TBD_DATES </li>
   </ul>  
 
-  TBD_ContextTable
+  <b>Top Positive Movements</b>
+  TBD_ContextTable_Positive
+  <br>
+  <b>Top Negative Movements</b>
+  TBD_ContextTable_Negative
 
   <br><br>
-  <i><font size="2">* Note: Contexts filtered out due to sample size constraints and sensitivity limits are summarized in the excluded_contexts log.</font></i>
+  <i><font size="2">* Note: Some contexts are filtered out due to sample size constraints and sensitivity limits. Please find information of all contexts in the <a href="TBD_LOG_FILE"> log file</a></font></i>
 
 </div>
 
 <div id="ContextTrend" class="tabcontent">
   <h3>Context - Trend</h3>
-  TBD_ContextPlot
+  
+  <b>Top Positive Movements</b><br>
+  TBD_ContextPlot_Positive
+  <br>
+  <b>Top Negative Movements</b><br>
+  TBD_ContextPlot_Negative
+
+  
 </div>
 
 <script>

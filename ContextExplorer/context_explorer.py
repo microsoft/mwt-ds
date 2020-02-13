@@ -55,6 +55,7 @@ class ContextExplorer():
         self.action_col = 'Action'
         self.control_col = 'IsControl'
         self.exploit_col = 'IsExploitAction'
+        self.prob_col = 'Probability'
         self.lasttime_col = 'LastTimestamp'
         self.exp_col = 'Exp'
         self.date_col = 'Date'
@@ -120,6 +121,7 @@ class ContextExplorer():
         data[self.control_col] = self.control_logic(dsjson, config)
         data[self.action_col] = reduce(operator.getitem, config['action_label_key'], dsjson['c']['_multi'][dsjson['_labelIndex']])
         data[self.exploit_col] = dsjson['p'][0] == np.max(dsjson['p'])
+        data[self.prob_col] = dsjson['p'][0]
         data[self.lasttime_col] = timestamp
         return data
 
@@ -192,12 +194,12 @@ class ContextExplorer():
         df.loc[df[self.control_col]==True, self.exploit_col] = False
         return df, list(df_context.columns)
 
-    def process_data(self, exp, df, features):
+    def process_data(self, exp, df, features, config):
         # Aggregated data
         info_exp = defaultdict(dict)
-        info_exp['s_context_action']['df'], info_exp['s_context_action']['features'] = self.agg_data(exp, df, features, by_context=True, by_action=True)
-        info_exp['s_context']['df'], info_exp['s_context']['features'] = self.agg_data(exp, df, features, by_context=True, by_action=False)
-        info_exp['s_all']['df'], info_exp['s_all']['features'] = self.agg_data(exp, df, features, by_context=False, by_action=False)
+        info_exp['s_context_action']['df'], info_exp['s_context_action']['features'] = self.agg_data(exp, df, config, features, by_context=True, by_action=True)
+        info_exp['s_context']['df'], info_exp['s_context']['features'] = self.agg_data(exp, df, config, features, by_context=True, by_action=False)
+        info_exp['s_all']['df'], info_exp['s_all']['features'] = self.agg_data(exp, df, config, features, by_context=False, by_action=False)
         # Dates
         dates_in_df = pd.to_datetime(info_exp['s_all']['df'][self.date_col].unique())
         last_date = max(dates_in_df).strftime(self.date_format)
@@ -211,7 +213,7 @@ class ContextExplorer():
         df_agg.reset_index(inplace=True)
         return df_agg
 
-    def agg_data(self, exp, df, features, by_context, by_action):
+    def agg_data(self, exp, df, config, features, by_context, by_action):
         df_exp = df.copy()
         df_exp[self.exp_col] = exp
         df_exp[self.count_col] = 1
@@ -229,9 +231,31 @@ class ContextExplorer():
         agg_group = [self.exp_col] + features + [self.control_col, self.action_col, self.exploit_col, self.date_col]
         aggs = {self.reward_col: ['mean', 'var', self.ci], self.count_col: 'sum', self.lasttime_col: 'max'}
         df_agg = df_exp.groupby(agg_group).agg(aggs)
+        if ('control_identifier' not in config) & (by_action == False):
+            df_agg = self.update_ips(df_exp, df_agg, features)
         df_agg = self.format_agg_df(df_agg)
         return df_agg, features
  
+    def update_ips(self, df_exp, df_agg, features):
+        # Split control and treatment
+        df_agg_control = df_agg.xs('Control', level=self.control_col, drop_level=False).reset_index(self.control_col).copy()
+        df_agg_treatment = df_agg.xs('Treatment', level=self.control_col, drop_level=False).copy()
+        # Compute IPS and update
+        agg_group_ips = [self.exp_col] + features + [self.action_col, self.exploit_col, self.date_col]
+        agg_group = [self.exp_col] + features + [self.control_col, self.action_col, self.exploit_col, self.date_col]
+        df_ips_control = df_exp.groupby(agg_group_ips).apply(self.ips_control).to_frame()
+        df_ips_control.columns = [[self.reward_col], ['mean']]
+        df_agg_control.update(df_ips_control)
+        df_agg_control = df_agg_control.reset_index().set_index(agg_group)
+        df_agg = df_agg_control.append(df_agg_treatment)
+        return df_agg
+
+    def ips_control(self, df_group):
+        N = df_group.loc[df_group[self.control_col]=='Treatment', self.count_col].sum()
+        df_control = df_group.loc[df_group[self.control_col]=='Control']
+        ips = (df_control[self.reward_col]/df_control[self.prob_col]).sum()/N
+        return ips
+
     def add_cum_cols(self, df_wide):
         for g in self.groups:
             df_wide['Cum_'+self.count_col, g] = df_wide[self.count_col, g].cumsum()
@@ -254,12 +278,12 @@ class ContextExplorer():
             print('>>> Reading data for {0}...'.format(exp))
             df, features = self.read_df(econfig)
             print('>>> Generating Report')
-            info_exp = self.process_data(exp, df, features)
+            info_exp = self.process_data(exp, df, features, econfig)
             info_exp, pic_names = self.summarize_exp(exp, info_exp)
+            info_exp['log_path'] = self.log_all(exp, info_exp['time_range'], info_exp)
             html_exp = self.edit_html(exp, info_exp, html_template, pic_names)
             html_outpath = self.export_html(exp, info_exp['time_range'], html_exp)    
             print('>>> Report saved to {0}'.format(html_outpath))
-            excluded_log_path = self.log_excluded(exp, info_exp['time_range'], info_exp)
             exp_data[exp] = info_exp
         return exp_data
 
@@ -268,7 +292,7 @@ class ContextExplorer():
         pic_names = []
         for s in ['s_context', 's_all']:
             df_wide = self.reshape_data(info_exp[s])
-            info_exp[s]['table_summary'], info_exp[s]['excluded'] = self.generate_summary_table(df_wide, info_exp, s)
+            info_exp[s]['table_summary'] = self.generate_summary_table(df_wide, info_exp, s)
             tmp_pic_names = self.plot_trends(df_wide, info_exp, s, tmp_pic_folder)
             pic_names = pic_names + tmp_pic_names
         return info_exp, pic_names
@@ -323,22 +347,31 @@ class ContextExplorer():
         # Get last exploit action
         if s=='s_context':
             context_summary = self.add_exploit_action(context_summary, info_exp)
-            summary_included, summary_excluded = self.split_by_results(context_summary, df_wide)
-            return summary_included, summary_excluded
+            summary_all = self.split_by_results(context_summary, df_wide)
+            return summary_all
         else:
-            return context_summary, pd.DataFrame()
+            return context_summary
 
     def split_by_results(self, context_summary, df_wide):
-        check_n = (context_summary['Cum_'+self.count_col]/df_wide[self.date_col].nunique()>self.min_sample).all(axis=1)
-        tmp = context_summary[check_n].copy()
+        summary_all = context_summary.copy()
+        # Filter: sample size
+        check_n_small = (summary_all['Cum_'+self.count_col]/df_wide[self.date_col].nunique()<self.min_sample).any(axis=1)
+        summary_all['Result_Type'] = np.where(check_n_small, 'Excluded: Sample size too small', '')
+        # Filter: sensitivity
+        check_not_sig = (summary_all.iloc[:, summary_all.columns.get_level_values(1)=='sig']!='*').all(axis=1)
+        summary_all['Result_Type'] = np.where(check_not_sig & (summary_all['Result_Type']==''), 'Excluded: No significant movement', summary_all['Result_Type'])
+        # Filter: top n
+        tmp = summary_all.loc[(~check_n_small)&(~check_not_sig)].copy()
         tmp['abs_cum_delta'] = abs(tmp['Cum_'+self.reward_avg_col]['Delta'])
-        tmp = tmp.sort_values('abs_cum_delta', ascending=False)
-        tmp_pos_sensitive = tmp.loc[tmp['Cum_'+self.reward_avg_col]['Delta']>0].head(self.top_n)
-        tmp_neg_sensitive = tmp.loc[tmp['Cum_'+self.reward_avg_col]['Delta']<0].head(self.top_n)
-        tmp_included = tmp_pos_sensitive.append(tmp_neg_sensitive)
-        context_summary_included = context_summary.loc[[x for x in list(tmp_included.index.values)]]
-        context_summary_excluded = context_summary.loc[[x for x in context_summary.index.values if x not in list(tmp_included.index.values)]]
-        return context_summary_included, context_summary_excluded
+        tmp = tmp.sort_values('abs_cum_delta', ascending=False).drop(columns=['abs_cum_delta'], level=0)
+        top_pos = tmp.loc[tmp['Cum_'+self.reward_avg_col]['Delta']>0].head(self.top_n)
+        top_neg = tmp.loc[tmp['Cum_'+self.reward_avg_col]['Delta']<0].head(self.top_n)
+        summary_all.loc[top_pos.index.values, 'Result_Type'] = 'Included: Top {0} positive'.format(self.top_n)
+        summary_all.loc[top_neg.index.values, 'Result_Type'] = 'Included: Top {0} negative'.format(self.top_n)
+        summary_all['Result_Type'] = summary_all['Result_Type'].replace('', 'Excluded: Not top sensitive')
+        # Finalize
+        summary_all.sort_values('Result_Type', inplace=True)
+        return summary_all
 
     def add_exploit_action(self, context_summary, info_exp):
         last_date = info_exp['time_range'][2]
@@ -354,9 +387,14 @@ class ContextExplorer():
     def plot_trends(self, df_wide, info_exp, s, tmp_pic_folder):
         tmp_pic_names = []
         time_range = info_exp['time_range']
+        summary_all = info_exp[s]['table_summary']
+        if s == 's_context':
+            excluded_list = set(summary_all.loc[summary_all['Result_Type'].str.startswith('Excluded')].index.values)
+        else:
+            excluded_list = []
         for i in set(df_wide.index.values):
             # Skip the excluded ones
-            if i in set(info_exp[s]['excluded'].index.values):
+            if i in excluded_list:
                 continue
             # Title and file name
             title_text = 'Exp {0} - Context: {1}'.format(i[0], ', '.join([x for x in i[1:]]))
@@ -369,6 +407,8 @@ class ContextExplorer():
             df_count.set_index([self.date_col], inplace=True)
             df_count[self.count_col].plot(ax=axs[0], marker='.', x_compat=True)
             axs[0].set_title('Daily Count')
+            axs[0].set_xlabel("")
+            axs[0].set_ylabel(self.count_col)
             axs[0].legend(loc='upper right', framealpha=0.4)
             # Plot Reward
             for p, pre in enumerate(['', 'Cum_']):
@@ -383,6 +423,8 @@ class ContextExplorer():
                     axs[p+1].fill_between(df_plot.index, df_plot[group_band[0]], df_plot[group_band[1]], alpha=0.2, label=g)
                 subtitle = 'Daily Reward' if pre=='' else 'Cumulative Reward'
                 axs[p+1].set_title(subtitle)
+                axs[p+1].set_xlabel("")
+                axs[p+1].set_ylabel(self.reward_col)
                 axs[p+1].legend(loc='upper right', framealpha=0.4)
             # Formats
             axs[0].xaxis.set_major_locator(MultipleLocator(df_count.shape[0]//8))
@@ -412,25 +454,34 @@ class ContextExplorer():
         p1_pics = [p for p in pic_names if p=='{0}_{1}_{2}-{3}.png'.format(exp, 'All', date_min, date_max)]
         p1_pics = ''.join(['<img src="pic\{0}" width="1200"><br>'.format(p) for p in p1_pics])
         html_exp = html_exp.replace('TBD_OverallPlot', p1_pics)
-        counts = info_exp['s_all']['table_summary']['Cum_'+self.count_col].values[0]
-        if abs(counts[0]-counts[1])/max(counts)>0.2:
-            html_exp = html_exp.replace(
-                'TBD_Overall_Warning', 
-                'WARNING: Sample size mismatch between control and treatment. Overall results on this page can be misleading. Please refer to Context Summary and Context Trend for detailed results. <br><br>')
-        else:
-            html_exp = html_exp.replace('TBD_Overall_Warning', '')
         # [2] Context - Latest and Cumulative Performance
-        p2_table = info_exp['s_context']['table_summary'].copy()
-        html_exp = html_exp.replace('TBD_NIDX', str(len(p2_table.index.names)))
-        p2_table.reset_index(col_level=1, col_fill='Context', inplace=True)
-        p2_table.columns.names = [None, None]
-        p2_table = p2_table.to_html(index=False)
-        html_exp = html_exp.replace('TBD_ContextTable', p2_table)
+        summary_all = info_exp['s_context']['table_summary'].copy()
+        html_exp = html_exp.replace('TBD_NIDX', str(len(summary_all.index.names)))
+        summary_all.reset_index(col_level=1, col_fill='Context', inplace=True)
+        summary_all.columns.names = [None, None]
+        p2_table_pos = summary_all.loc[summary_all['Result_Type'].str.endswith('positive')].drop(columns=['Result_Type'], level=0)
+        p2_table_neg = summary_all.loc[summary_all['Result_Type'].str.endswith('negative')].drop(columns=['Result_Type'], level=0).copy()
+        p2_table_pos_html = p2_table_pos.to_html(index=False)
+        p2_table_neg_html = p2_table_neg.to_html(index=False)
+        html_exp = html_exp.replace('TBD_ContextTable_Positive', p2_table_pos_html)
+        html_exp = html_exp.replace('TBD_ContextTable_Negative', p2_table_neg_html)
         html_exp = html_exp.replace('TBD_LASTDATE', info_exp['time_range'][2])
+        html_exp = html_exp.replace('TBD_LOG_FILE', os.path.basename(info_exp['log_path']))
         # [3] Context - Trend
-        p3_pics = sorted([p for p in pic_names if (p.split('_')[1]!='All') and (p.split('_')[-1]=='{0}-{1}.png'.format(date_min, date_max))])
-        p3_pics = ''.join(['<img src="pic\{0}" width="1200"><br>'.format(p) for p in p3_pics])
-        html_exp = html_exp.replace('TBD_ContextPlot', p3_pics)    
+        if p2_table_pos.shape[0]>0:
+            pos_list = p2_table_pos['Context'][info_exp['s_context']['features']].astype(str).sum(axis=1).str.replace(' ', '').values
+            p3_pics_pos = [p for l in pos_list for p in pic_names if l in p]
+            p3_pics_pos = ''.join(['<img src="pic\{0}" width="1200"><br>'.format(p) for p in p3_pics_pos])
+            html_exp = html_exp.replace('TBD_ContextPlot_Positive', p3_pics_pos) 
+        else:
+            html_exp = html_exp.replace('TBD_ContextPlot_Positive', '') 
+        if p2_table_neg.shape[0]>0:
+            neg_list = p2_table_neg['Context'][info_exp['s_context']['features']].astype(str).sum(axis=1).str.replace(' ', '').values
+            p3_pics_neg = [p for l in neg_list for p in pic_names if l in p]
+            p3_pics_neg = ''.join(['<img src="pic\{0}" width="1200"><br>'.format(p) for p in p3_pics_neg])
+            html_exp = html_exp.replace('TBD_ContextPlot_Negative', p3_pics_neg) 
+        else:
+            html_exp = html_exp.replace('TBD_ContextPlot_Negative', '') 
         return html_exp
 
     def export_html(self, exp, dates, html_exp):
@@ -439,10 +490,10 @@ class ContextExplorer():
             o.write(html_exp)
         return html_outpath
 
-    def log_excluded(self, exp, dates, info_exp):
-        excluded_log_path = os.path.join(*[self.output_folder, exp, 'excluded_contexts_{0}_{1}-{2}.csv'.format(exp, dates[0], dates[1])])
-        info_exp['s_context']['excluded'].to_csv(excluded_log_path)
-        return excluded_log_path
+    def log_all(self, exp, dates, info_exp):
+        log_path = os.path.join(*[self.output_folder, exp, 'log_all_contexts_{0}_{1}-{2}.xlsx'.format(exp, dates[0], dates[1])])
+        info_exp['s_context']['table_summary'].to_excel(log_path)
+        return log_path
 
 def print_process(iteration, total, prefix='', suffix='', decimals=0, length=30, empty='-', fill='|'):
     percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
