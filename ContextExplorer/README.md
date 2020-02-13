@@ -1,7 +1,7 @@
 # Context Explorer
-Context Explorer generates detailed context reports by reading DSJson logs. You can fild an example in the <i>sample_output</i> folder ([Sample Context Explorer](sample_output/Context_Explorer_NewTest_2020-02-13-2020-03-13.html)). Here's a screenshot of the report:
+Context Explorer generates detailed context reports by reading DSJson logs. You can fild an example in the <i>sample_output</i> folder (Download the folder to view the HTML report). Here's a screenshot of the report:
 
-<img src="sample_output/ce_report_screenshot.png" width="1000">
+<img src="sample_output/ce_report_screenshot.PNG" width="1000">
 
 ## What is Context Explorer?
 For contextual bandit problems, the model performance and impact may vary on different contexts. For some experiments, it is critical to understand how the model works for different contexts. 
