@@ -10,15 +10,16 @@
         "NetworkType": ["wifi", "wired"]
     },
     "context_action_size": 1000,
+    "p_value": 0.001,
     "increase_winning_margin": 0.02,
     "center": true,
-    "p_value": 0.001,
     "random_state": 3,
     "model_parameters": {
         "batch_size_initial": 5000,
         "batch_size":5000,
         "iterations": 30,
-        "default_action_index": 0
+        "default_action_index": 0,
+        "add_control_group": false
     },
     "vw_commands":{
         "exploration_policy": "--epsilon 0.3",
