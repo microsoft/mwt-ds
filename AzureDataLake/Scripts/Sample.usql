@@ -8,7 +8,7 @@ DECLARE @_end DateTime = new DateTime(2020, 02, 19);    //your non-inclusive end
     
 DECLARE @_sample int = 40000;
 
-DECLARE @OutputFolder string = "/" + @_appId + "/daily/sample/";      //your output folder
+DECLARE @OutputFolder string = "/daily/" + @_appId + "/sample/";      //your output folder
 
 DECLARE @InputFile string = "wasb://"+ @_appId +"@" + @_account + ".blob.core.windows.net/{model}/data/{date:yyyy}/{date:MM}/{date:dd}_{filename}.json";
 
