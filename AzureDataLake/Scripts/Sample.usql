@@ -1,7 +1,7 @@
 ﻿SET @@FeaturePreviews = "DataPartitionedOutput:on";
 
-DECLARE @_appId string = "xbetgameshomespotlightccb";    //your appId
-DECLARE @_account string = "decisionengine";    // your account name
+DECLARE @_appId string = "";    //your appId
+DECLARE @_account string = "";    // your account name
 
 DECLARE @_start DateTime = new DateTime(2020, 02, 14);  //your inclusive start date
 DECLARE @_end DateTime = new DateTime(2020, 02, 19);    //your non-inclusive end date
