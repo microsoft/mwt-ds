@@ -34,6 +34,9 @@ class ContextExplorer():
         self.output_folder = configs['output_folder']
         self.top_n = configs.get('show_top_sensitive_contexts', 20)
         self.min_sample = configs.get('min_daily_sample', 200)
+        self.reduce_numerics = configs.get('reduce_numerics', {'max_unique_numbers': 20, 'n_buckets': 5})
+        self.reduce_numerics['max_unique_numbers'] = self.reduce_numerics.get('max_unique_numbers', 20)
+        self.reduce_numerics['n_buckets'] = self.reduce_numerics.get('n_buckets', 5)
         self.name_cols()
         self.prep_path()
         self.config_exps = self.complete_config_dates(config_exps)
@@ -213,12 +216,22 @@ class ContextExplorer():
         df_agg.reset_index(inplace=True)
         return df_agg
 
+    def reduce_num_values(self, df, x):
+        n_max = self.reduce_numerics['max_unique_numbers']
+        n_bucket = self.reduce_numerics['n_buckets']
+        if df[x].dtype.name.startswith(('float', 'int')):
+            if df[x].nunique()>n_max:
+                df[x] = pd.qcut(df[x], q=n_bucket, duplicates='drop').astype('str')
+        return df
+
     def agg_data(self, exp, df, config, features, by_context, by_action):
         df_exp = df.copy()
         df_exp[self.exp_col] = exp
         df_exp[self.count_col] = 1
         df_exp[self.date_col] = pd.to_datetime(df_exp[self.lasttime_col]).dt.date.astype(str)
         df_exp[self.control_col] = df_exp[self.control_col].map({True: 'Control', False: 'Treatment'})
+        for x in features:
+            df_exp = self.reduce_num_values(df_exp, x)
         str_cols = [self.action_col, self.exploit_col] + features
         for c in str_cols:
             df_exp[c] = df_exp[c].astype(str)
@@ -379,7 +392,7 @@ class ContextExplorer():
         df_exploit = df_action.loc[(df_action[self.date_col]==last_date)&(df_action[self.exploit_col]=='True')]
         df_exploit_last = df_exploit[df_exploit.groupby(context_summary.index.names)[self.lasttime_col].transform(max) == df_exploit[self.lasttime_col]]
         df_exploit_last.set_index(context_summary.index.names, inplace=True)
-        df_exploit_last = df_exploit_last[[self.action_col]]
+        df_exploit_last = df_exploit_last.groupby(df_exploit_last.index.names)[self.action_col].apply(lambda x: ', '.join(x)).to_frame()
         df_exploit_last.columns = pd.MultiIndex.from_product([['Last'], ['Exploit Action']])
         context_summary = pd.merge(context_summary, df_exploit_last, left_index=True, right_index=True, how='inner')
         return context_summary
@@ -398,7 +411,7 @@ class ContextExplorer():
                 continue
             # Title and file name
             title_text = 'Exp {0} - Context: {1}'.format(i[0], ', '.join([x for x in i[1:]]))
-            pic_name = '{0}_{1}_{2}-{3}.png'.format(i[0], ''.join([x for x in i[1:]]), time_range[0], time_range[1])
+            pic_name = '{0}_{1}_{2}-{3}.png'.format(i[0], ''.join([x for x in i[1:]]), time_range[0], time_range[1]).replace(' ', '')
             pic_path = os.path.join(tmp_pic_folder, pic_name)
             fig, axs = plt.subplots(1, 3, figsize=(16,4), sharex=True)
             # Plot Count 
@@ -427,7 +440,7 @@ class ContextExplorer():
                 axs[p+1].set_ylabel(self.reward_col)
                 axs[p+1].legend(loc='upper right', framealpha=0.4)
             # Formats
-            axs[0].xaxis.set_major_locator(MultipleLocator(df_count.shape[0]//8))
+            axs[0].xaxis.set_major_locator(MultipleLocator(df_count.shape[0]//8 if df_count.shape[0]>20 else df_count.shape[0]))
             axs[0].xaxis.set_major_formatter(mdates.DateFormatter('%m/%d/%Y'))
             fig.autofmt_xdate(rotation=30, ha='right')
             fig.suptitle(title_text, fontsize=18)
@@ -459,7 +472,7 @@ class ContextExplorer():
         html_exp = html_exp.replace('TBD_NIDX', str(len(summary_all.index.names)))
         summary_all.reset_index(col_level=1, col_fill='Context', inplace=True)
         summary_all.columns.names = [None, None]
-        p2_table_pos = summary_all.loc[summary_all['Result_Type'].str.endswith('positive')].drop(columns=['Result_Type'], level=0)
+        p2_table_pos = summary_all.loc[summary_all['Result_Type'].str.endswith('positive')].drop(columns=['Result_Type'], level=0).copy()
         p2_table_neg = summary_all.loc[summary_all['Result_Type'].str.endswith('negative')].drop(columns=['Result_Type'], level=0).copy()
         p2_table_pos_html = p2_table_pos.to_html(index=False)
         p2_table_neg_html = p2_table_neg.to_html(index=False)
