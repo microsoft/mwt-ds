@@ -9,6 +9,10 @@
 	},
     "output_folder": "\\\\avdsp-share\\InputFiles\\p_learning\\Monitoring",
     "show_top_sensitive_contexts": 20,
-    "min_daily_sample": 20
+    "min_daily_sample": 20,
+    "reduce_numerics":{
+        "max_unique_numbers": 20,
+        "n_buckets": 5
+    }
 }
 
