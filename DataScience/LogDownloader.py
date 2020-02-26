@@ -101,6 +101,7 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
         os.makedirs(os.path.join(log_dir, app_id), exist_ok=True)
 
     output_fp = None
+    total_download_size_MB = 0.0
     if version == 1: # using C# api for uncooked logs
         output_fp = os.path.join(log_dir, app_id, app_id+'_'+start_date.strftime("%Y-%m-%d")+'_'+end_date.strftime("%Y-%m-%d")+'.json')
         print('Destination: {}'.format(output_fp))
@@ -154,6 +155,7 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
 
         print('Iterating through blobs...\n')
         selected_fps = []
+
         for blob in blobs:
             if '/data/' not in blob.name:
                 if verbose:
@@ -226,6 +228,7 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                             bbs.get_blob_to_path(container, blob.name, temp_fp, progress_callback=process_checker, max_connections=max_connections, start_range=os.path.getsize(fp), if_match=if_match)
                             download_time = time.time()-t0
                             download_size_MB = os.path.getsize(temp_fp)/(1024**2) # file size in MB
+                            total_download_size_MB+=download_size_MB
                             print('\nAppending to local file...')
                             with open(fp, 'ab') as f1, open(temp_fp, 'rb') as f2:
                                 shutil.copyfileobj(f2, f1, length=100*1024**2)   # writing chunks of 100MB to avoid consuming memory
@@ -241,6 +244,7 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                         bbs.get_blob_to_path(container, blob.name, fp, progress_callback=process_checker, max_connections=max_connections, if_match=if_match)
                         download_time = time.time()-t0
                         download_size_MB = os.path.getsize(fp)/(1024**2) # file size in MB
+                        total_download_size_MB+=download_size_MB
                         print('\nDownloaded {:.3f} MB in {:.1f} sec. ({:.3f} MB/sec)\n'.format(download_size_MB, download_time, download_size_MB/download_time))
             except Exception as e:
                 print('Error: {}'.format(e))
@@ -329,8 +333,10 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
             else:
                 print('No file downloaded, skipping creating gzip files.')
                     
-    print('Total elapsed time: {:.1f} sec.\n'.format(time.time()-t_start))
-    return output_fp
+    time_taken = time.time()-t_start
+    print('Total elapsed time: {:.1f} sec.\n'.format(time_taken))
+    print('\nDownloaded {:.3f} MB in {:.1f} sec. ({:.3f} MB/sec)\n'.format(total_download_size_MB, time_taken, total_download_size_MB/time_taken))
+    return output_fp, total_download_size_MB
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
