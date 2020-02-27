@@ -169,7 +169,7 @@ def summarize_dataset(df, params, show_results=True):
 
 def increase_lead(df, context_actions, add_value=0.1):
     for k, v in context_actions.items():
-        targets = df.index.isin([k]) & (df['action'].isin(v['action_best']))
+        targets = (df.index.isin([k])) & (df['action']==v['action_best'][0])
         df.loc[targets, 'reward'] = df.loc[targets, 'reward'] + add_value
     return df
 
@@ -309,12 +309,12 @@ def get_unique_context(df_summary, action_col, reward_col, is_minimization):
 
 def select_data(i, df, df_contexts, configs, action_mapping, context_cols, action_col, reward_col):
     if i==0:
-        df_batch = df.sample(configs['model_parameters']['batch_size_initial']).copy().reset_index()
+        df_batch = df.sample(configs['model_parameters']['batch_size_initial'], replace=True).copy().reset_index()
         df_batch['action_prob'] = round(1/len(configs['actions']), 4)
         df_batch['prob_list'] = [[df_batch['action_prob'][0]]*len(configs['actions'])]*df_batch.shape[0]
     else:
         pred_context = load_pred_context(configs['pred_file'], df_contexts, context_cols, action_mapping)
-        df_batch = df.sample(configs['model_parameters']['batch_size']).copy().reset_index()[context_cols]
+        df_batch = df.sample(configs['model_parameters']['batch_size'], replace=True).copy().reset_index()[context_cols]
         df_batch = choose_action(df_batch, pred_context, action_col, action_mapping)
         df_batch = get_reward(df_batch, df, reward_col)
         df_batch = df_batch.reset_index()
@@ -334,23 +334,29 @@ def get_regrets(trajectory, df_contexts, context_cols, reward_col, exploration_p
     regret['exploration'] = exploration_policy
     return regret
 
-def plot_regrets(regret, groups, cumulate=False, rolling_window=10):
+def plot_regrets(regret, groups, cumulate=False, rolling_window=10, greyscale=False):
     regret_avg = regret.groupby(groups)['regret'].mean().reset_index(-1)
     fig = plt.figure(figsize=(8,4))
     ax1 = fig.add_subplot(111)
     plot_contexts = regret_avg.index.unique().values
-    for c in plot_contexts:
+    lines = ["--", "-.", "-", ":"]
+    for i, c in enumerate(plot_contexts):
         plot_data = regret_avg.loc[c, ['n_iteration', 'regret']].set_index('n_iteration')
         if cumulate:
             plot_data = plot_data.cumsum()
         else:
             plot_data = plot_data.rolling(rolling_window, min_periods=1).mean()
-        plot_data.plot(label=c, ax=ax1)
+        if greyscale:
+            c = "{0}".format(round(0.5/(i+1), 1))
+        else:
+            c = None
+        plot_data.plot(label=c, ax=ax1, style=lines[i%len(lines)], color=c)
     plt.title('Average Regret by Iteration')
     plt.legend(plot_contexts, loc="upper right", framealpha=0.2, fontsize='small')
     plt.xlabel('Number of Iterations')
-    plt.ylabel('Average Regret by Iteration (rolling window = 10)')
+    plt.ylabel('Average Regret by Iteration (rolling window={0})'.format(rolling_window))
     plt.show()
+    return regret_avg
 
 def init_plot(iterations):
     fig, ax = plt.subplots(1, 1, figsize=(8, 3))
@@ -372,9 +378,9 @@ def add_control_identifier(df_batch):
 def create_control_logs(i, df, new_name, configs, actions, context_cols, action_col, reward_col):
     new_name_control = new_name.replace('.json', '_control.json')
     if i==0:
-        df_batch = df.sample(configs['model_parameters']['batch_size_initial']).copy().reset_index()
+        df_batch = df.sample(configs['model_parameters']['batch_size_initial'], replace=True).copy().reset_index()
     else:
-        df_batch = df.sample(configs['model_parameters']['batch_size']).copy().reset_index()[context_cols]
+        df_batch = df.sample(configs['model_parameters']['batch_size'], replace=True).copy().reset_index()[context_cols]
     df_batch[action_col] = actions[configs['model_parameters']['default_action_index']]
     df_batch['action_prob'] = 1/len(actions)
     df_batch['prob_list'] = [[1/len(actions)]*len(actions)]*df_batch.shape[0]
