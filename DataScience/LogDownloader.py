@@ -199,7 +199,7 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                 else:
                     file_size = None
 
-                print('Processing: {} (size: {:.3f}MB - Last modified: {})'.format(blob.name, bp.properties.content_length/(1024**2), bp.properties.last_modified))
+                print('Processing: {} (size: {:.3f}MB - Last modified: {})'.format(blob.name, bp.properties.content_length/(1024**2), bp.properties.last_modified), flush=True)
                 # check if blob was modified in the last delta_mod_t sec
                 if datetime.datetime.now(datetime.timezone.utc)-bp.properties.last_modified < datetime.timedelta(0, delta_mod_t):
                     if overwrite_mode < 2:

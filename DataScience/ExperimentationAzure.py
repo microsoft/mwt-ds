@@ -20,14 +20,12 @@ def get_telemetry_client(appInsightsInstrumentationKey):
 
 def check_system():
     try:
+        bytes_in_gb = 1024**3
         print('Cpu count : {}'.format(psutil.cpu_count()))
         print('Cpu count : {}'.format(psutil.cpu_count(logical=False)))
-        for disk in psutil.disk_partitions():
-            print(disk.device)
-            bytes_in_gb = 1024**3
-            print('Total size: {:.3f} GB'.format(psutil.disk_usage(disk.device).total / bytes_in_gb))
-            print('Used size: {:.3f} GB'.format(psutil.disk_usage(disk.device).used / bytes_in_gb))
-            print('Free size: {:.3f} GB'.format(psutil.disk_usage(disk.device).free / bytes_in_gb))
+        print('/mnt Total size: {:.3f} GB'.format(shutil.disk_usage('/mnt').total / bytes_in_gb))
+        print('/mnt Used size:  {:.3f} GB'.format(shutil.disk_usage('/mnt').used  / bytes_in_gb))
+        print('/mnt Free size:  {:.3f} GB'.format(shutil.disk_usage('/mnt').free  / bytes_in_gb))
     except Exception as e:
         print(e)
 
