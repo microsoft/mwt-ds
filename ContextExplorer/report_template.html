@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+* {box-sizing: border-box}
+
+body, html {
+  margin: 0;
+  font-family: TBD_FONT_NAME, TBD_FONT_FAMILY;
+  background-color: #000000;
+  padding: 10px;
+}
+
+table {
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+th, td {
+  text-align: center;
+  padding: 4px;
+  border: 1px solid #d9d9d9;
+}
+
+tr:nth-child(even){background-color: #f2f2f2}
+tr:nth-child(odd){background-color: #ffffff}
+td:nth-child(-n+TBD_NIDX){background-color: #e6e6e6;}
+
+th {
+  background-color: #cccccc;
+}
+
+ul li { padding: 3px 3px; }
+
+.tablink {
+  background-color: #555;
+  color: white;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  font-size: 17px;
+  font-family: TBD_FONT_NAME, TBD_FONT_FAMILY;
+  width: 25%;
+}
+
+.tablink:hover {
+  background-color: #777;
+}
+
+.tabcontent {
+  display: none;
+  padding: 80px 20px;
+  height: 100%;
+}
+
+#Experiment {background-color: #f0f5f5;}
+#OverallTrend {background-color: #ecf9f2;}
+#ContextSummary {background-color: #e6f7ff;}
+#ContextTrend {background-color: #fff7e6;}
+
+</style>
+</head>
+<body>
+
+<h1 style="color:white;">TBD_TITLE</h1>
+
+<h3 style="color:white;">TBD_DATES</h3>
+
+<button class="tablink" onclick="openPage('Experiment', this, '#75a3a3')"id="defaultOpen">Experiment</button>
+<button class="tablink" onclick="openPage('OverallTrend', this, 'green')">Overall Trend</button>
+<button class="tablink" onclick="openPage('ContextSummary', this, '#008ae6')">Context Summary</button>
+<button class="tablink" onclick="openPage('ContextTrend', this, 'orange')">Context Trend</button>
+
+<div id="Experiment" class="tabcontent">
+  <h3>Experiment Summary</h3>
+  <ul>
+    <li>Experiment ID: TBD_EXPID</li>
+    <li>Report Time Span: TBD_DATES</li>
+
+  </ul>  
+  <h3> Navigate this Report: </h3>
+  <ul>
+    <li>Overall Trend: Plots for daily count and the main reward metric trend over time for the entire experiment.</li>
+    <li>Context Summary: A summary table for the latest and cumulative statistics by context. </li>
+    <li>Context Trend: Plots for daily count and the main reward metric trend over time by context. </li>
+  </ul>  
+
+</div>
+
+<div id="OverallTrend" class="tabcontent">
+  <h3>Overall - Trend</h3>
+  Rewards for the control group are estimated with Inverse Propensity Scoring(IPS). Reference: <a href="https://en.wikipedia.org/wiki/Inverse_probability_weighting">Wikipedia</a>, <a href="https://github.com/microsoft/mwt-ds/blob/master/images/MWT-WhitePaper.pdf">Paper</a> page 12. 
+  <br><br>
+  TBD_OverallPlot
+
+</div>
+
+<div id="ContextSummary" class="tabcontent">
+  <h3>Context Summary - Latest and Cumulative Performance</h3>
+  <ul>
+    <li>Latest Performance: data from the last full day -- TBD_LASTDATE</li>
+    <li>Cumulative Performance: data aggregated for all dates within TBD_DATES </li>
+  </ul>  
+
+  <b>Top Positive Movements</b>
+  TBD_ContextTable_Positive
+  <br>
+  <b>Top Negative Movements</b>
+  TBD_ContextTable_Negative
+
+  <br><br>
+  <i><font size="2">
+    * Note: Some contexts are filtered out due to sample size constraints and sensitivity limits. Please find information of all contexts in the <a href="TBD_LOG_FILE">log file</a>. <br>
+    * Note: There could be multiple Last Exploit Actions when (1) the probablities of taking the actions are the same or (2) group continuous values. 
+  </font></i>
+
+</div>
+
+<div id="ContextTrend" class="tabcontent">
+  <h3>Context - Trend</h3>
+  
+  <b>Top Positive Movements</b><br>
+  TBD_ContextPlot_Positive
+  <br>
+  <b>Top Negative Movements</b><br>
+  TBD_ContextPlot_Negative
+
+  
+</div>
+
+<script>
+function openPage(pageName,elmnt,color) {
+  var i, tabcontent, tablinks;
+  tabcontent = document.getElementsByClassName("tabcontent");
+  for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+  tablinks = document.getElementsByClassName("tablink");
+  for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].style.backgroundColor = "";
+  }
+  document.getElementById(pageName).style.display = "block";
+  elmnt.style.backgroundColor = color;
+}
+
+// Get the element with id="defaultOpen" and click on it
+document.getElementById("defaultOpen").click();
+</script>
+   
+</body>
+</html> 
