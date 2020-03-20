@@ -161,7 +161,13 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                 if verbose:
                     print('{} - Skip: Non-data blob\n'.format(blob.name))
                 continue
-            
+
+            configFolder = blob.name.split('/data/', 1)[0]
+            if(bbs.exists(container, configFolder + "/checkpoint/imitationModeMetrics.json")):
+                if verbose:
+                    print('{} - Skip: imitation mode detected for configuration.\n'.format(blob.name))
+                continue
+
             blob_day = datetime.datetime.strptime(blob.name.split('/data/', 1)[1].split('_', 1)[0], '%Y/%m/%d')
             if (start_date and blob_day < start_date) or (end_date and end_date < blob_day):
                 if verbose:
