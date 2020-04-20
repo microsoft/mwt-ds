@@ -41,6 +41,20 @@ namespace DecisionServiceExtractor
             output.Set(columnInfo, (int)(long)jsonReader.Value);
         }
 
+        public static float GetPropertyDouble(JsonTextReader jsonReader)
+        {
+            jsonReader.Read();
+            switch (jsonReader.TokenType)
+            {
+                case JsonToken.Integer:
+                    return (float)(long)jsonReader.Value;
+                case JsonToken.Float:
+                    return (float)(double)jsonReader.Value;
+                default:
+                    throw new Exception("wrong data type");
+            }
+        }
+
         public static void ExtractPropertyDouble(JsonTextReader jsonReader, IUpdatableRow output, ColumnInfo columnInfo)
         {
             jsonReader.Read();
