@@ -2,7 +2,7 @@ import sys
 from context_explorer import *
 
 def run_context_explorer(config_path):
-    ce = ContextExplorer(config_path)
+    ce = ContextExplorer_DSJson(config_path)
     exp_data = ce.generate_report()
 
 if __name__ == "__main__":
