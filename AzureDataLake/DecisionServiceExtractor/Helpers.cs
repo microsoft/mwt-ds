@@ -75,6 +75,29 @@ namespace DecisionServiceExtractor
             }
         }
 
+        public static void ExtractPropertyDoubleOpt(JsonTextReader jsonReader, IUpdatableRow output, ColumnInfo columnInfo)
+        {
+            jsonReader.Read();
+
+            if (columnInfo.IsRequired)
+            {
+                switch (jsonReader.TokenType)
+                {
+                    case JsonToken.Integer:
+                        output.Set(columnInfo.Idx, (float)(long)jsonReader.Value);
+                        break;
+                    case JsonToken.Float:
+                        output.Set(columnInfo.Idx, (float)(double)jsonReader.Value);
+                        break;
+                    case JsonToken.Null:
+                        output.Set(columnInfo.Idx, (double?)null);
+                        break;
+                    default:
+                        throw new Exception("wrong data type");
+                }
+            }
+        }
+
         public static int CountArrayElements(JsonTextReader jsonReader)
         {
             int numActions = 0;

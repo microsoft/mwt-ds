@@ -1,0 +1,55 @@
+﻿CREATE FUNCTION IF NOT EXISTS [dbo].ExtractStats(@InputFile string, @_model string, @_start DateTime, @_end DateTime)
+RETURNS
+    @Statistics TABLE(
+            Timestamp string, 
+            model string,
+            obser double?, 
+            clicks double?,
+            impressions double?,
+            clicks1 double?,
+            impressions1 double?,
+            clicksIps1 double?,
+            impressionsIps1 double?,
+            clicksIpsR double?,
+            impressionsIpsR double?,
+            impressionsObserved double?)
+AS
+BEGIN
+    @Statistics =
+        EXTRACT Timestamp string,
+               model string,
+               obser float,
+               clicks float,
+               impressions float,
+               clicks1 float,
+               impressions1 float,
+               clicksIps1 float,
+               impressionsIps1 float,
+               clicksIpsR float,
+               impressionsIpsR float,
+               impressionsObserved float,
+               date DateTime
+        FROM @InputFile
+        USING Extractors.Csv(skipFirstNRows:1);
+
+    @Statistics =
+        SELECT *
+        FROM @Statistics
+        WHERE date >= @_start AND date < @_end AND model == @_model;
+
+    @Statistics = SELECT Timestamp,
+                         model,
+                         SUM(obser) AS obser,
+                         SUM(clicks) AS clicks,
+                         SUM(impressions) AS impressions,
+                         SUM(clicks1) AS clicks1,
+                         SUM(impressions1) AS impressions1,
+                         SUM(clicksIps1) AS clicksIps1,
+                         SUM(impressionsIps1) AS impressionsIps1,
+                         SUM(clicksIpsR) AS clicksIpsR,
+                         SUM(impressionsIpsR) AS impressionsIpsR,
+                         SUM(impressionsObserved) AS impressionsObserved
+        FROM @Statistics
+        GROUP BY Timestamp, model;
+RETURN;
+END;

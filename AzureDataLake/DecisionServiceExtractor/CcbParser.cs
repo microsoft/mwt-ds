@@ -58,6 +58,7 @@ namespace DecisionServiceExtractor
         private readonly ColumnInfo HasObservationsColumn;
         private readonly ColumnInfo IsDanglingColumn;
         private readonly ColumnInfo EnqueuedTimeUtcColumn;
+        private readonly ColumnInfo RewardValueColumn;
 
         internal CcbParser(ISchema schema)
         {
@@ -72,6 +73,7 @@ namespace DecisionServiceExtractor
             this.HasObservationsColumn = new ColumnInfo(schema, "HasObservations", typeof(int));
             this.IsDanglingColumn = new ColumnInfo(schema, "IsDangling", typeof(bool));
             this.EnqueuedTimeUtcColumn = new ColumnInfo(schema, "EnqueuedTimeUtc", typeof(DateTime));
+            this.RewardValueColumn = new ColumnInfo(schema, "RewardValue", typeof(float?));
         }
 
         //called on every line
@@ -169,6 +171,9 @@ namespace DecisionServiceExtractor
                                         break;
                                     case "pdrop":
                                         shared.pdrop = Helpers.GetPropertyDouble(jsonReader);
+                                        break;
+                                    case "RewardValue":
+                                        Helpers.ExtractPropertyDoubleOpt(jsonReader, output, this.RewardValueColumn);
                                         break;
                                     default:
                                         jsonReader.Skip();

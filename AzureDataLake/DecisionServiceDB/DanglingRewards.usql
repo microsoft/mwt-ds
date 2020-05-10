@@ -1,0 +1,28 @@
+﻿CREATE FUNCTION IF NOT EXISTS [dbo].ExtractDanglingRewards(@InputFile string, @_model string, @_start DateTime, @_end DateTime)
+RETURNS
+    @DanglingRewards TABLE(
+            EventId string,
+            EnqueuedTimeUtc DateTime,
+            RewardValue float?,
+            model string,        
+            date DateTime)
+AS
+BEGIN
+    @DanglingRewards = EXTRACT
+                EventId string,
+                EnqueuedTimeUtc DateTime,
+                RewardValue float?,
+                model string,        
+                date DateTime
+        FROM @InputFile
+        USING Extractors.Csv(skipFirstNRows:1);
+
+    @DanglingRewards = SELECT EventId,
+                              EnqueuedTimeUtc.ToUniversalTime() AS EnqueuedTimeUtc,
+                              RewardValue,
+                              model,
+                              date
+        FROM @DanglingRewards
+        WHERE date >= @_start AND date < @_end AND model == @_model;
+RETURN;
+END;

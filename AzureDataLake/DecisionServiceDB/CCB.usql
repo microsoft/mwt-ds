@@ -1,0 +1,196 @@
+﻿CREATE FUNCTION IF NOT EXISTS [dbo].ParseCCB(@InputFile string, @_model string, @_start DateTime, @_end DateTime)
+RETURNS (
+    @Decisions TABLE(
+            SessionId string,
+            SlotIdx int,
+            EventId string, 
+            Timestamp DateTime, 
+            HasObservations int,
+            Prob float,
+            Cost float,
+            Action int,
+            CbAction int,
+            NumActions int,
+            NumActionsPerSlot int,
+            pdrop float,
+            model string,
+            date DateTime),
+    @DanglingRewards TABLE(
+            EventId string,
+            EnqueuedTimeUtc DateTime,
+            RewardValue float?,
+            model string,        
+            date DateTime))
+AS
+BEGIN
+    REFERENCE ASSEMBLY DecisionServiceExtractor;
+
+    @Events =  
+        EXTRACT SessionId string,
+                SlotIdx int,
+                EventId string,
+                Timestamp DateTime, 
+                EnqueuedTimeUtc DateTime,
+                Prob float,
+                Cost float,
+                Action int,
+                CbAction int,
+                NumActions int,
+                NumActionsPerSlot int,
+                HasObservations int,
+                pdrop float,
+                IsDangling bool,
+                RewardValue float?,
+                ParseError string,
+                model string,  //virtual column 
+                date DateTime, //virtual column
+                filename string //virtual column
+        FROM @InputFile
+        USING new DecisionServiceExtractor.CcbExtractor();
+
+    @Events = SELECT * FROM @Events WHERE date >= @_start AND date < @_end AND model == @_model;
+
+    @Events = SELECT * FROM @Events WHERE string.IsNullOrEmpty(ParseError);
+
+    @Decisions =
+        SELECT SessionId,
+               SlotIdx,
+               EventId,
+               Timestamp,
+               HasObservations,
+               Prob,
+               Cost,
+               Action,
+               CbAction,
+               NumActions,
+               NumActionsPerSlot,
+               pdrop,
+               model,
+               date
+        FROM @Events
+        WHERE IsDangling == false;
+
+    @DanglingRewards =
+        SELECT EventId,
+               EnqueuedTimeUtc,
+               RewardValue,
+               model,
+               date
+        FROM @Events
+        WHERE IsDangling == true;
+RETURN;
+END;
+
+CREATE FUNCTION IF NOT EXISTS [dbo].ExtractCCBDecisions(@InputFile string, @_model string, @_start DateTime, @_end DateTime)
+RETURNS
+    @Decisions TABLE(
+            SessionId string,
+            SlotIdx int,
+            EventId string, 
+            Timestamp DateTime, 
+            HasObservations int,
+            Prob float,
+            Cost float,
+            Action int,
+            CbAction int,
+            NumActions int,
+            NumActionsPerSlot int,
+            pdrop float,
+            model string,
+            date DateTime)
+AS
+BEGIN
+    @Decisions = EXTRACT 
+            SessionId string,
+            SlotIdx int,
+            EventId string,
+            Timestamp DateTime,
+            HasObservations int,
+            Prob float,
+            Cost float,
+            [Action] int,
+            CbAction int,
+            NumActions int,
+            NumActionsPerSlot int,
+            pdrop float,
+            model string,
+            date DateTime
+    FROM @InputFile
+    USING Extractors.Csv(skipFirstNRows:1);
+    @Decisions = SELECT SessionId,
+                        SlotIdx,
+                        EventId,
+                        Timestamp.ToUniversalTime() AS Timestamp,
+                        HasObservations,
+                        Prob,
+                        Cost,
+                        Action,
+                        CbAction,
+                        NumActions,
+                        NumActionsPerSlot,
+                        pdrop,
+                        model,
+                        date
+    FROM @Decisions WHERE date >= @_start AND date < @_end AND model == @_model;
+RETURN;
+END;
+
+CREATE FUNCTION IF NOT EXISTS [dbo].CCBStats(
+    @Decisions TABLE(
+            SessionId string,
+            SlotIdx int,
+            EventId string, 
+            Timestamp DateTime, 
+            HasObservations int,
+            Prob float,
+            Cost float,
+            Action int,
+            CbAction int,
+            NumActions int,
+            NumActionsPerSlot int,
+            pdrop float,
+            model string,
+            date DateTime))
+RETURNS
+    @Statistics TABLE(
+            Timestamp string, 
+            model string,
+            obser double?, 
+            clicks double?,
+            impressions double?,
+            clicks1 double?,
+            impressions1 double?,
+            clicksIps1 double?,
+            impressionsIps1 double?,
+            clicksIpsN1 double?,
+            impressionsIpsN1 double?,
+            clicksIps1Slot1 double?,
+            impressionsIps1Slot1 double?,            
+            clicksIpsR double?,
+            impressionsIpsR double?,
+            impressionsObserved double?,
+            date DateTime)
+AS
+BEGIN
+    @Statistics =
+    SELECT Timestamp.ToString("yyyy/MM/dd HH:mm") AS Timestamp,
+           model,
+           SUM(HasObservations != 0? (1.0 / (1.0 - pdrop)) : 0) AS obser,
+           SUM(-Cost / (1.0 - pdrop)) AS clicks,
+           SUM(1.0 / (1.0 - pdrop)) AS impressions,
+           SUM(SlotIdx == 0? (-Cost / (1.0 - pdrop)) : 0) AS clicks1,
+           SUM(SlotIdx == 0? (1.0 / (1.0 - pdrop)) : 0) AS impressions1,
+           SUM(CbAction == 0? (-Cost / (1.0 - pdrop)) / Prob : 0) AS clicksIps1,
+           SUM(CbAction == 0? (1.0 / (1.0 - pdrop)) / Prob : 0) AS impressionsIps1,
+           SUM(Action == SlotIdx ? (-Cost / (1.0 - pdrop)) / Prob : 0) AS clicksIpsN1,
+           SUM(Action == SlotIdx ? (1.0 / (1.0 - pdrop)) / Prob : 0) AS impressionsIpsN1,
+           SUM(Action == 0 && SlotIdx == 0 ? (-Cost / (1.0 - pdrop)) / Prob : 0) AS clicksIps1Slot1,
+           SUM(Action == 0 && SlotIdx == 0 ? (1.0 / (1.0 - pdrop)) / Prob : 0) AS impressionsIps1Slot1,             
+           SUM((-Cost / (1.0 - pdrop)) / Prob / NumActionsPerSlot) AS clicksIpsR,
+           SUM((1.0 / (1.0 - pdrop)) / Prob / NumActionsPerSlot) AS impressionsIpsR,
+           SUM(1.0) AS impressionsObserved,
+           date
+    FROM @Decisions
+    GROUP BY Timestamp.ToString("yyyy/MM/dd HH:mm"), model, date;
+RETURN;
+END;
