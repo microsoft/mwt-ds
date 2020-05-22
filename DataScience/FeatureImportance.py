@@ -162,8 +162,7 @@ def main(args):
     try:
         check_output(['vw','-h'], stderr=DEVNULL)
     except:
-        print("Error: Vowpal Wabbit executable not found. Please install and add it to your path")
-        sys.exit()
+        sys.exit("Vowpal Wabbit executable not found. Please install and add it to your path")
     return get_feature_importance(args.data, args.ml_args, args.model, int(args.min_num_features))
 
 if __name__ == "__main__":

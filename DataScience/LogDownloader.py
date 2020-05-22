@@ -123,8 +123,7 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                     LogDownloaderURL = "https://cps-staging-exp-experimentation.azurewebsites.net/api/Log?account={ACCOUNT_NAME}&key={ACCOUNT_KEY}&start={START_DATE}&end={END_DATE}&container={CONTAINER}"
                     conn_string_dict = dict(x.split('=',1) for x in conn_string.split(';'))
                     if not conn_string_dict['AccountName'] or len(conn_string_dict['AccountKey']) != 88:
-                        print("Error: Invalid Azure Storage ConnectionString.")
-                        sys.exit()
+                        sys.exit("Invalid Azure Storage ConnectionString.")
                     url = LogDownloaderURL.format(ACCOUNT_NAME=conn_string_dict['AccountName'], ACCOUNT_KEY=conn_string_dict['AccountKey'].replace('+','%2b'), CONTAINER=container, START_DATE=start_date.strftime("%Y-%m-%d"), END_DATE=(end_date+datetime.timedelta(days=1)).strftime("%Y-%m-%d"))
                     r = requests.post(url)
                     open(output_fp, 'wb').write(r.content)
@@ -146,12 +145,12 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
             blobs = bbs.list_blobs(container)
         except Exception as e:
             if e.args[0] == 'dictionary update sequence element #0 has length 1; 2 is required':
-                print("Error: Invalid Azure Storage ConnectionString.")
+                sys.exit("Invalid Azure Storage ConnectionString.")
             elif type(e.args[0]) == str and e.args[0].startswith('The specified container does not exist.'):
-                print("Error: The specified container ({}) does not exist.".format(container))
+                sys.exit("The specified container ({}) does not exist.".format(container))
             else:
-                print("Error:\nType: {}\nArgs: {}".format(type(e).__name__, e.args))
-            sys.exit()
+                sys.exit("\nType: {}\nArgs: {}".format(type(e).__name__, e.args))
+            sys.exit(1)
 
         print('Iterating through blobs...\n')
         selected_fps = []

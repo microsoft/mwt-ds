@@ -81,11 +81,10 @@ if __name__ == '__main__':
 
         if output_gz_fp == None:
             message = 'No logs found between start date: {0} and end date:{1}. Exiting ... '.format(ld_args.start_date, ld_args.end_date)
-            print(message)
             telemetry_client != None and telemetry_client.track_trace(message)
             telemetry_client != None and telemetry_client.track_event('ExperimentationAzure.CompleteEvaluation', properties)
             telemetry_client != None and telemetry_client.flush()
-            sys.exit()
+            sys.exit(message)
 
         #Init Azure Util
         azure_util = AzureUtil(ld_args.conn_string, ld_args.account_name, ld_args.sas_token)
@@ -213,14 +212,15 @@ if __name__ == '__main__':
     except Exception as e:
         print(e, file=sys.stderr, flush=True)
         print('Job failed. Please check stderr')
+        exit(1)
+    finally:
+        if main_args.cleanup:
+            print('Deleting folder as part of cleanup: ' + ld_args.log_dir)
+            shutil.rmtree(ld_args.log_dir, ignore_errors=True)
 
-    if main_args.cleanup:
-        print('Deleting folder as part of cleanup: ' + ld_args.log_dir)
-        shutil.rmtree(ld_args.log_dir, ignore_errors=True)
-
-    end_time = datetime.now()
-    print('Total Job time in seconds:', (end_time - start_time).seconds, flush=True)
-    azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, 'stdout.txt'), os.path.join(task_dir, 'stdout.txt'))
-    azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, 'stderr.txt'), os.path.join(task_dir, 'stderr.txt'))
-    telemetry_client != None and telemetry_client.track_event('ExperimentationAzure.CompleteEvaluation', properties, { 'TimeTaken' : (end_time - start_time).seconds })
-    telemetry_client != None and telemetry_client.flush()
+        end_time = datetime.now()
+        print('Total Job time in seconds:', (end_time - start_time).seconds, flush=True)
+        azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, 'stdout.txt'), os.path.join(task_dir, 'stdout.txt'))
+        azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, 'stderr.txt'), os.path.join(task_dir, 'stderr.txt'))
+        telemetry_client != None and telemetry_client.track_event('ExperimentationAzure.CompleteEvaluation', properties, { 'TimeTaken' : (end_time - start_time).seconds })
+        telemetry_client != None and telemetry_client.flush()
