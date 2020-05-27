@@ -67,9 +67,9 @@ def extract_features(fp, inv_hash):
 # read the invert hash file and return a dictionary that maps from hash value to feature.
 def get_feature_inv_hash(fp):
     inv_hash = {}
-    text = open(fp).read().split('\n:0\n',1)[1].strip()
+    text = open(fp, encoding='utf-8').read().split('\n:0\n',1)[1].strip()
     if '\n' not in text:
-        print ('no features found in invert has file: {0}.'.format(fp))
+        print ('no features found in invert hash file: {0}.'.format(fp))
     else:
         for line in text.splitlines():
             data = line.split(':')
