@@ -254,8 +254,7 @@ def main(args):
     try:
         check_output(['vw','-h'], stderr=DEVNULL)
     except:
-        print("Error: Vowpal Wabbit executable not found. Please install and add it to your path")
-        sys.exit()
+        sys.exit("Vowpal Wabbit executable not found. Please install and add it to your path")
     print('File name: ' + args.file_path)
     print('File size: {:.3f} MB'.format(os.path.getsize(args.file_path)/(1024**2)))
     # Additional processing of inputs not covered by above

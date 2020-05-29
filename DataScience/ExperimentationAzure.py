@@ -81,11 +81,10 @@ if __name__ == '__main__':
 
         if output_gz_fp == None:
             message = 'No logs found between start date: {0} and end date:{1}. Exiting ... '.format(ld_args.start_date, ld_args.end_date)
-            print(message)
             telemetry_client != None and telemetry_client.track_trace(message)
             telemetry_client != None and telemetry_client.track_event('ExperimentationAzure.CompleteEvaluation', properties)
             telemetry_client != None and telemetry_client.flush()
-            sys.exit()
+            sys.exit(message)
 
         #Init Azure Util
         azure_util = AzureUtil(ld_args.conn_string, ld_args.account_name, ld_args.sas_token)
@@ -101,7 +100,7 @@ if __name__ == '__main__':
         if main_args.summary_json:
             print('Evaluating custom policies')
             summary_file_path = os.path.join(output_dir, main_args.summary_json)
-            azure_util.download_from_blob(ld_args.app_id, os.path.join(main_args.output_folder, main_args.summary_json), summary_file_path, True)
+            azure_util.download_from_blob(ld_args.app_id, os.path.join(main_args.output_folder, main_args.summary_json), summary_file_path)
             try:
                 with open(summary_file_path) as summary_file:
                     data = json.load(summary_file)
@@ -141,7 +140,7 @@ if __name__ == '__main__':
         dashboard_file_path = os.path.join(output_dir, main_args.dashboard_filename)
         d = dashboard_utils.create_stats(output_gz_fp)
         dashboard_utils.output_dashboard_data(d, dashboard_file_path)
-        azure_util.upload_to_blob(ld_args.app_id,  os.path.join(main_args.output_folder, main_args.dashboard_filename), dashboard_file_path, True)
+        azure_util.upload_to_blob(ld_args.app_id,  os.path.join(main_args.output_folder, main_args.dashboard_filename), dashboard_file_path)
 
         if main_args.get_feature_importance:
             feature_importance_start_time = datetime.now()
@@ -155,7 +154,7 @@ if __name__ == '__main__':
                 blob_day = datetime.strptime(blob.name.split('/model/', 1)[1].split('_', 1)[0].split('.', 1)[0], '%Y/%m/%d')
                 if blob_day == ld_args.start_date:
                     model_fp = os.path.join(output_dir, 'model.vw')
-                    azure_util.download_from_blob(ld_args.app_id, blob.name, model_fp, True)
+                    azure_util.download_from_blob(ld_args.app_id, blob.name, model_fp)
 
             print('Generate Feature Importance')
             feature_importance_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
@@ -177,13 +176,13 @@ if __name__ == '__main__':
             feature_importance_file_path = os.path.join(output_dir, main_args.feature_importance_filename)
             with open(feature_importance_file_path, 'w') as feature_importance_file:
                 json.dump(pretty_feature_buckets, feature_importance_file)
-            azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, main_args.feature_importance_filename), feature_importance_file_path, True)
+            azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, main_args.feature_importance_filename), feature_importance_file_path)
 
             # Feature importance values that are hashes returned by vw
             feature_importance_raw_file_path = os.path.join(output_dir, main_args.feature_importance_raw_filename)
             with open(feature_importance_raw_file_path, 'w') as feature_importance_raw_file:
                 json.dump(feature_buckets, feature_importance_raw_file)
-            azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, main_args.feature_importance_raw_filename), feature_importance_raw_file_path, True)
+            azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, main_args.feature_importance_raw_filename), feature_importance_raw_file_path)
 
             telemetry_client != None and telemetry_client.track_event('ExperimentationAzure.FeatureImportance', properties, { 'TimeTaken' : (datetime.now() - feature_importance_start_time).seconds })
 
@@ -208,19 +207,20 @@ if __name__ == '__main__':
                         print(e)
                 with open(summary_file_path, 'w') as outfile:
                     json.dump(summary_data, outfile)
-                azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, main_args.summary_json), summary_file_path, True)
+                azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, main_args.summary_json), summary_file_path)
         print("Done executing job")
     except Exception as e:
         print(e, file=sys.stderr, flush=True)
         print('Job failed. Please check stderr')
+        sys.exit(1)
+    finally:
+        if main_args.cleanup:
+            print('Deleting folder as part of cleanup: ' + ld_args.log_dir)
+            shutil.rmtree(ld_args.log_dir, ignore_errors=True)
 
-    if main_args.cleanup:
-        print('Deleting folder as part of cleanup: ' + ld_args.log_dir)
-        shutil.rmtree(ld_args.log_dir, ignore_errors=True)
-
-    end_time = datetime.now()
-    print('Total Job time in seconds:', (end_time - start_time).seconds, flush=True)
-    azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, 'stdout.txt'), os.path.join(task_dir, 'stdout.txt'))
-    azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, 'stderr.txt'), os.path.join(task_dir, 'stderr.txt'))
-    telemetry_client != None and telemetry_client.track_event('ExperimentationAzure.CompleteEvaluation', properties, { 'TimeTaken' : (end_time - start_time).seconds })
-    telemetry_client != None and telemetry_client.flush()
+        end_time = datetime.now()
+        print('Total Job time in seconds:', (end_time - start_time).seconds, flush=True)
+        azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, 'stdout.txt'), os.path.join(task_dir, 'stdout.txt'))
+        azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, 'stderr.txt'), os.path.join(task_dir, 'stderr.txt'))
+        telemetry_client != None and telemetry_client.track_event('ExperimentationAzure.CompleteEvaluation', properties, { 'TimeTaken' : (end_time - start_time).seconds })
+        telemetry_client != None and telemetry_client.flush()
