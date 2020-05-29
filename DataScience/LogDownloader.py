@@ -128,7 +128,7 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                     open(output_fp, 'wb').write(r.content)
                     print(' Done!\n')
                 except Exception as e:
-                    print('Error: {}'.format(e))
+                    sys.exit('Error: {}'.format(e))
         
     else: # using BlockBlobService python api for cooked logs
         try:
