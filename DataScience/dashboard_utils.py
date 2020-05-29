@@ -27,8 +27,7 @@ def get_prediction_prob(a0, pred_line):
             if a0 == 0:
                 pred_prob = 1
             else:
-                print('Error: Prediction action (0) does not match log file action ({}) - log: {} - pred: {}'.format(a0,pred_line))
-                sys.exit()
+                sys.exit('Prediction action (0) does not match log file action ({}) - pred: {}'.format(a0, pred_line))
     else:                                          # prediction file has only one action (as in --cb_adf -p)
         pred_prob = 1 if a0 == int(pred_line) else 0
 
@@ -121,12 +120,10 @@ def create_stats(log_fp, d=None, predictions_files=None):
             else:
                 print('Name is not valid - Skip: {}'.format(pred_fp))
         else:
-            print('Error loading policy predictions. Pred file not found: {}'.format(pred_fp))
-            sys.exit()
+            sys.exit('Error loading policy predictions. Pred file not found: {}'.format(pred_fp))
 
     if len(pred) > 1 and min(len(pred[name]) for name in pred) != max(len(pred[name]) for name in pred):
-        print('Error: Prediction file length ({}) must be equal for all files'.format([len(pred[name]) for name in pred]))
-        sys.exit()
+        sys.exit('Error: Prediction file length ({}) must be equal for all files'.format([len(pred[name]) for name in pred]))
 
     print('Processing: {}'.format(log_fp))
     bytes_count = 0
@@ -221,8 +218,7 @@ def create_stats(log_fp, d=None, predictions_files=None):
 
     print('Read {} lines - Processed {} events'.format(i+1,evts))
     if any(len(pred[name]) != evts for name in pred):
-        print('Error: Prediction file length ({}) is different from number of events in log file ({})'.format([len(pred[name]) for name in pred],evts))
-        sys.exit()
+        sys.exit('Error: Prediction file length ({}) is different from number of events in log file ({})'.format([len(pred[name]) for name in pred],evts))
 
     print('Total Elapsed Time: {:.1f} sec.'.format(time.time()-t0))
     return d

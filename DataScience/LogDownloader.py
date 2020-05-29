@@ -7,12 +7,11 @@ import os, time, datetime, argparse, gzip, shutil, ds_parse
 try:
     from azure.storage.blob import BlockBlobService
 except ImportError as e:
-    print('ImportError: {}'.format(e))
     if input("azure.storage.blob is required. Do you want to install it [Y/n]? ") in {'Y', 'y'}:
         import pip
         pip.main(['install', 'azure.storage.blob'])
         print('Please re-run script.')
-    sys.exit()
+    sys.exit('ImportError: {}'.format(e))
 
 
 def valid_date(s):
