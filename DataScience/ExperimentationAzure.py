@@ -39,7 +39,6 @@ if __name__ == '__main__':
     main_parser.add_argument('--feature_importance_filename', help="name of the output feature importance file", default='featureimportance.json')
     main_parser.add_argument('--feature_importance_raw_filename', help="name of the output feature importance file with raw (unparsed) features", default='featureimportanceraw.json')
     main_parser.add_argument('--ml_args', help="the online policy that we need for calculating the feature importances", required=True)
-    main_parser.add_argument('--appInsightsInstrumentationKey', help="App Insights key for logging metrics")
     main_args, other_args = main_parser.parse_known_args(sys.argv[1:])
 
     # Parse LogDownloader args
