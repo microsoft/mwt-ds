@@ -2,6 +2,7 @@ import pandas,ds_parse,json,collections,os,gzip,sys
 import numpy as np
 import argparse
 import time
+from GenevaLogger import Logger
 
 
 def get_ts_5min_bin(ts):
@@ -27,7 +28,8 @@ def get_prediction_prob(a0, pred_line):
             if a0 == 0:
                 pred_prob = 1
             else:
-                sys.exit('Prediction action (0) does not match log file action ({}) - pred: {}'.format(a0, pred_line))
+                Logger.error('Prediction action (0) does not match log file action ({}) - pred: {}'.format(a0, pred_line))
+                sys.exit(1)
     else:                                          # prediction file has only one action (as in --cb_adf -p)
         pred_prob = 1 if a0 == int(pred_line) else 0
 
@@ -70,12 +72,12 @@ def output_dashboard_data(d, dashboard_file, commands={}, sep=':'):
                 temp["command"] = command.to_commandline(commands[type])
             d.append(temp)
         f.write(json.dumps({"ts":"Total","d":d})+'\n')
-    print('Dashboard file:',dashboard_file)
+    Logger.info('Dashboard file: {}'.format(dashboard_file))
 
 def merge_and_unique_stats(stats_files, dashboard_file):
     d = {}
     for stats_file in ds_parse.input_files_to_fp_list(stats_files):
-        print('Processing: {}'.format(stats_file))
+        Logger.info('Processing: {}'.format(stats_file))
         for x in open(stats_file, 'rb'):
             js = json.loads(x)
             if js['d'][0]['w'] != 5:
@@ -88,12 +90,12 @@ def merge_and_unique_stats(stats_files, dashboard_file):
                     den = y['d']
                     break
             if num is None or den is None:
-                print('Error: "online" policy stats not found in input:',x)
+                Logger.error('Error: "online" policy stats not found in input: {}'.format(x))
                 continue
             if js['ts'] not in d or d[js['ts']]['online']['d'] < den or (d[js['ts']]['online']['d'] == den and d[js['ts']]['online']['n'] < num):
                 d[js['ts']] = {y['t'] : {field : y[field] for field in y if field not in {'w','t'}} for y in js['d']}
 
-    print('Output dashboard data...')
+    Logger.info('Output dashboard data...')
     output_dashboard_data(d, dashboard_file)
 
 def create_stats(log_fp, d=None, predictions_files=None):
@@ -103,7 +105,7 @@ def create_stats(log_fp, d=None, predictions_files=None):
         d = {}
 
     if predictions_files is None:
-        print('Searching prediction files for log file: {}'.format(log_fp))
+        Logger.info('Searching prediction files for log file: {}'.format(log_fp))
         predictions_files = []
         for fn in os.scandir(os.path.dirname(log_fp)):
             if fn.path.startswith(log_fp+'.') and fn.name.endswith('.pred'):
@@ -116,16 +118,18 @@ def create_stats(log_fp, d=None, predictions_files=None):
             name = pred_fp.split('.')[-2]   # check that policy name is encoded in file_name
             if name:
                 pred[name] = [x.strip() for x in open(pred_fp) if x.strip()]
-                print('Loaded {} predictions from {}'.format(len(pred[name]),pred_fp))
+                Logger.info('Loaded {} predictions from {}'.format(len(pred[name]),pred_fp))
             else:
-                print('Name is not valid - Skip: {}'.format(pred_fp))
+                Logger.info('Name is not valid - Skip: {}'.format(pred_fp))
         else:
-            sys.exit('Error loading policy predictions. Pred file not found: {}'.format(pred_fp))
+            Logger.error('Error loading policy predictions. Pred file not found: {}'.format(pred_fp))
+            sys.exit(1)
 
     if len(pred) > 1 and min(len(pred[name]) for name in pred) != max(len(pred[name]) for name in pred):
-        sys.exit('Error: Prediction file length ({}) must be equal for all files'.format([len(pred[name]) for name in pred]))
+        Logger.error('Error: Prediction file length ({}) must be equal for all files'.format([len(pred[name]) for name in pred]))
+        sys.exit(1)
 
-    print('Processing: {}'.format(log_fp))
+    Logger.info('Processing: {}'.format(log_fp))
     bytes_count = 0
     tot_bytes = os.path.getsize(log_fp)
     evts = 0
@@ -216,11 +220,12 @@ def create_stats(log_fp, d=None, predictions_files=None):
     sys.stdout.write("\r" + " "*len_text + "\r")
     sys.stdout.flush()
 
-    print('Read {} lines - Processed {} events'.format(i+1,evts))
+    Logger.info('Read {} lines - Processed {} events'.format(i+1,evts))
     if any(len(pred[name]) != evts for name in pred):
-        sys.exit('Error: Prediction file length ({}) is different from number of events in log file ({})'.format([len(pred[name]) for name in pred],evts))
+        Logger.error('Error: Prediction file length ({}) is different from number of events in log file ({})'.format([len(pred[name]) for name in pred],evts))
+        sys.exit(1)
 
-    print('Total Elapsed Time: {:.1f} sec.'.format(time.time()-t0))
+    Logger.info('Total Elapsed Time: {:.1f} sec.'.format(time.time()-t0))
     return d
 
 def add_parser_args(parser):
