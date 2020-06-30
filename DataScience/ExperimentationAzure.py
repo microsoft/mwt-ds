@@ -198,6 +198,8 @@ if __name__ == '__main__':
 
         end_time = datetime.now()
         Logger.info('Total Job time in seconds: {}'.format((end_time - start_time).seconds))
+        sys.stdout.flush()
+        sys.stderr.flush()
         azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, 'stdout.txt'), os.path.join(task_dir, 'stdout.txt'))
         azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, 'stderr.txt'), os.path.join(task_dir, 'stderr.txt'))
         Logger.close()
