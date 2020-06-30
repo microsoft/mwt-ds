@@ -36,6 +36,7 @@ Emotion2^sadness:157471:-1.35735
 
 import os, argparse, sys
 from subprocess import check_output, DEVNULL
+from GenevaLogger import Logger
 
 def get_pretty_feature(feature):
     tokens = feature.split('^')
@@ -54,14 +55,14 @@ def extract_features(fp, inv_hash):
     features = []
     text = open(fp).read().split('\n:0\n',1)[1].strip()
     if '\n' not in text:
-        print ('no features found in model output file: {0}'.format(fp))
+        Logger.info('no features found in model output file: {0}'.format(fp))
     else:
         for line in text.splitlines():
             data = line.split(':')
             if data[0] in inv_hash:
                 features.append(inv_hash[data[0]])
             else:
-                print ('missing hash value in inv_hash: {0}'.format(data[0]))
+                Logger.info('missing hash value in inv_hash: {0}'.format(data[0]))
     return features
 
 # read the invert hash file and return a dictionary that maps from hash value to feature.
@@ -69,7 +70,7 @@ def get_feature_inv_hash(fp):
     inv_hash = {}
     text = open(fp, encoding='utf-8').read().split('\n:0\n',1)[1].strip()
     if '\n' not in text:
-        print ('no features found in invert hash file: {0}.'.format(fp))
+        Logger.info('no features found in invert hash file: {0}.'.format(fp))
     else:
         for line in text.splitlines():
             data = line.split(':')
@@ -110,15 +111,15 @@ def get_feature_importance(log_file, ml_args, warmstart_model=None, min_num_feat
         vw_base += ' -i {0}'.format(warmstart_model)
 
     print('\n=====================================')
-    print('Generating invert hash file to map the hash to feature names')
+    Logger.info('Generating invert hash file to map the hash to feature names')
 
     vw_inv_hash_cmd = vw_base + ' --invert_hash {0}'.format(invHash_fp)
-    print('command to get invert hash file: ' + vw_inv_hash_cmd)
+    Logger.info('command to get invert hash file: {0}'.format(vw_inv_hash_cmd))
     os.system(vw_inv_hash_cmd)
     inv_hash = get_feature_inv_hash(invHash_fp)
 
     print('\n=====================================')
-    print('Testing a range of L1 regularization')
+    Logger.info('Testing a range of L1 regularization')
     all_features_funnel = []
     index = 0
     max_run_count = 20
@@ -130,22 +131,22 @@ def get_feature_importance(log_file, ml_args, warmstart_model=None, min_num_feat
         os.system(vw_readable_model_cmd)
         features = extract_features(readModel_fp, inv_hash)
         num_features = len(features)
-        print('L1: {0:.0e} - Num of Features: {1}, File - {2}'.format(l1, num_features, os.path.basename(readModel_fp)))
+        Logger.info('L1: {0:.0e} - Num of Features: {1}, File - {2}'.format(l1, num_features, os.path.basename(readModel_fp)))
         
         all_features_funnel.append(features)
         
         # If we fall below the minimum number of features, then break out of the loop.
         if num_features < min_num_features:
-            print('Number of features is {0} which is below the minimum of {1}. Exiting the loop with L1 value of: {2:.0e}'.format(num_features, min_num_features, l1))
+            Logger.info('Number of features is {0} which is below the minimum of {1}. Exiting the loop with L1 value of: {2:.0e}'.format(num_features, min_num_features, l1))
             break
             
         # Add a max run count so we avoid getting stuck in an infinite loop for any special case.
         if index > max_run_count:
-            print('Run count exceeds max run count. Exiting the loop with L1 value of: {0:.0e}'.format(l1))
+            Logger.info('Run count exceeds max run count. Exiting the loop with L1 value of: {0:.0e}'.format(l1))
             break
         else:
             l1 *= 10
-    print("feature funnel sizes: {0}".format([len(features) for features in all_features_funnel]))
+    Logger.info("feature funnel sizes: {0}".format([len(features) for features in all_features_funnel]))
     feature_buckets = get_feature_buckets(all_features_funnel)
     not_required_features = ['constant', 'action.constant']
     pretty_feature_buckets = [[get_pretty_features(feature) for feature in feature_bucket] for feature_bucket in feature_buckets]
@@ -162,11 +163,12 @@ def main(args):
     try:
         check_output(['vw','-h'], stderr=DEVNULL)
     except:
-        sys.exit("Vowpal Wabbit executable not found. Please install and add it to your path")
+        Logger.error("Vowpal Wabbit executable not found. Please install and add it to your path")
+        sys.exit(1)
     return get_feature_importance(args.data, args.ml_args, args.model, int(args.min_num_features))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     add_parser_args(parser)
     feature_importance = main(parser.parse_args())
-    print("feature importance sizes: {0}".format([len(features) for features in feature_importance]))
+    Logger.info("feature importance sizes: {0}".format([len(features) for features in feature_importance]))
