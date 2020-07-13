@@ -1,4 +1,6 @@
 import sys
+from loggers import Logger
+
 if sys.maxsize < 2**32:     # check for 32-bit python version
     if input("32-bit python interpreter detected. There may be problems downloading large files. Do you want to continue anyway [Y/n]? ") not in {'Y', 'y'}:
         sys.exit()
@@ -10,8 +12,9 @@ except ImportError as e:
     if input("azure.storage.blob is required. Do you want to install it [Y/n]? ") in {'Y', 'y'}:
         import pip
         pip.main(['install', 'azure.storage.blob'])
-        print('Please re-run script.')
-    sys.exit('ImportError: {}'.format(e))
+        Logger.info('Please re-run script.')
+    Logger.exception()
+    sys.exit(1)
 
 
 def valid_date(s):
@@ -74,9 +77,7 @@ def update_progress(current, total):
     barLength = 50 # Length of the progress bar
     progress = current/total
     block = int(barLength*progress)
-    text = "\rProgress: [{0}] {1:.1f}%".format( "#"*block + "-"*(barLength-block), progress*100)
-    sys.stdout.write(text)
-    sys.stdout.flush()
+    Logger.info("\rProgress: [{0}] {1:.1f}%".format( "#"*block + "-"*(barLength-block), progress*100))
 
 def download_container(app_id, log_dir, container=None, conn_string=None, account_name=None, sas_token=None, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, verbose=False, create_gzip_mode=-1, delta_mod_t=3600, max_connections=4, confirm=False, report_progress=True, if_match=None):
     t_start = time.time()
@@ -84,16 +85,16 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
         container=app_id
 
     print('------'*10)
-    print('Current UTC time: {}'.format(datetime.datetime.now(datetime.timezone.utc)))
-    print('app_id: {}'.format(app_id))
-    print('container: {}'.format(container))
-    print('log_dir: {}'.format(log_dir))
-    print('Start Date: {}'.format(start_date))
-    print('End Date: {}'.format(end_date))
-    print('Overwrite mode: {}'.format(overwrite_mode))
-    print('dry_run: {}'.format(dry_run))
-    print('version: {}'.format(version))
-    print('create_gzip_mode: {}'.format(create_gzip_mode))
+    Logger.info('Current UTC time: {}\n'.format(datetime.datetime.now(datetime.timezone.utc)) + 
+                'app_id: {}\n'.format(app_id) +
+                'container: {}\n'.format(container) +
+                'log_dir: {}\n'.format(log_dir) +
+                'Start Date: {}\n'.format(start_date) +
+                'End Date: {}\n'.format(end_date) +
+                'Overwrite mode: {}\n'.format(overwrite_mode) +
+                'dry_run: {}\n'.format(dry_run) +
+                'version: {}\n'.format(version) +
+                'create_gzip_mode: {}\n'.format(create_gzip_mode))
     print('------'*10)
 
     if not dry_run:
@@ -103,73 +104,74 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
     total_download_size_MB = 0.0
     if version == 1: # using C# api for uncooked logs
         output_fp = os.path.join(log_dir, app_id, app_id+'_'+start_date.strftime("%Y-%m-%d")+'_'+end_date.strftime("%Y-%m-%d")+'.json')
-        print('Destination: {}'.format(output_fp))
+        Logger.info('Destination: {}'.format(output_fp))
         do_download = True
         if os.path.isfile(output_fp):
             if overwrite_mode in {0, 3, 4}:
-                print('Output file already exits. Not downloading'.format(output_fp))
+                Logger.info('Output file {} already exists. Not downloading'.format(output_fp))
                 do_download = False
-            elif overwrite_mode == 1 and input('Output file already exits. Do you want to overwrite [Y/n]? '.format(output_fp)) not in {'Y', 'y'}:
+            elif overwrite_mode == 1 and input('Output file {} already exists. Do you want to overwrite [Y/n]? '.format(output_fp)) not in {'Y', 'y'}:
                 do_download = False
                 
         if do_download:
             if dry_run:
-                print('--dry_run - Not downloading!')
+                Logger.info('--dry_run - Not downloading!')
             else:
-                print('Downloading...', end='')
+                Logger.info('Downloading output file')
                 try:
                     import requests
                     LogDownloaderURL = "https://cps-staging-exp-experimentation.azurewebsites.net/api/Log?account={ACCOUNT_NAME}&key={ACCOUNT_KEY}&start={START_DATE}&end={END_DATE}&container={CONTAINER}"
                     conn_string_dict = dict(x.split('=',1) for x in conn_string.split(';'))
                     if not conn_string_dict['AccountName'] or len(conn_string_dict['AccountKey']) != 88:
-                        sys.exit("Invalid Azure Storage ConnectionString.")
+                        Logger.error("Invalid Azure Storage ConnectionString.")
+                        sys.exit(1)
                     url = LogDownloaderURL.format(ACCOUNT_NAME=conn_string_dict['AccountName'], ACCOUNT_KEY=conn_string_dict['AccountKey'].replace('+','%2b'), CONTAINER=container, START_DATE=start_date.strftime("%Y-%m-%d"), END_DATE=(end_date+datetime.timedelta(days=1)).strftime("%Y-%m-%d"))
                     r = requests.post(url)
                     open(output_fp, 'wb').write(r.content)
-                    print(' Done!\n')
-                except Exception as e:
-                    sys.exit('Error: {}'.format(e))
+                    Logger.info('Finished downloading output file')
+                except:
+                    Logger.exception()
+                    sys.exit(1)
         
     else: # using BlockBlobService python api for cooked logs
         try:
-            print('Establishing Azure Storage BlockBlobService connection using ',end='')
             if sas_token and account_name:
-                print('sas token...')
+                Logger.info('Establishing Azure Storage BlockBlobService connection using sas token...')
                 bbs = BlockBlobService(account_name=account_name, sas_token=sas_token)
             else:
-                print('connection string...')
+                Logger.info('Establishing Azure Storage BlockBlobService connection using connection string...')
                 bbs = BlockBlobService(connection_string=conn_string)
             # List all blobs and download them one by one
-            print('Getting blobs list...')
+            Logger.info('Getting blobs list...')
             blobs = bbs.list_blobs(container)
         except Exception as e:
             if e.args[0] == 'dictionary update sequence element #0 has length 1; 2 is required':
-                sys.exit("Invalid Azure Storage ConnectionString.")
+                Logger.error("Invalid Azure Storage ConnectionString.")
             elif type(e.args[0]) == str and e.args[0].startswith('The specified container does not exist.'):
-                sys.exit("The specified container ({}) does not exist.".format(container))
+                Logger.error("The specified container ({}) does not exist.".format(container))
             else:
-                sys.exit("\nType: {}\nArgs: {}".format(type(e).__name__, e.args))
+                Logger.error("\nType: {}\nArgs: {}".format(type(e).__name__, e.args))
             sys.exit(1)
 
-        print('Iterating through blobs...\n')
+        Logger.info('Iterating through blobs...\n')
         selected_fps = []
 
         for blob in blobs:
             if '/data/' not in blob.name:
                 if verbose:
-                    print('{} - Skip: Non-data blob\n'.format(blob.name))
+                    Logger.info('{} - Skip: Non-data blob\n'.format(blob.name))
                 continue
 
             configFolder = blob.name.split('/data/', 1)[0]
             if(bbs.exists(container, configFolder + "/checkpoint/imitationModeMetrics.json")):
                 if verbose:
-                    print('{} - Skip: imitation mode detected for configuration.\n'.format(blob.name))
+                    Logger.info('{} - Skip: imitation mode detected for configuration.\n'.format(blob.name))
                 continue
 
             blob_day = datetime.datetime.strptime(blob.name.split('/data/', 1)[1].split('_', 1)[0], '%Y/%m/%d')
             if (start_date and blob_day < start_date) or (end_date and end_date < blob_day):
                 if verbose:
-                    print('{} - Skip: Outside of date range\n'.format(blob.name))
+                    Logger.info('{} - Skip: Outside of date range\n'.format(blob.name))
                 continue
 
             try:
@@ -186,16 +188,16 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                     file_size = os.path.getsize(fp)
                     if overwrite_mode == 0:
                         if verbose:
-                            print('{} - Skip: Output file already exits\n'.format(blob.name))
+                            Logger.info('{} - Skip: Output file already exists\n'.format(blob.name))
                         continue
                     elif overwrite_mode in {1, 3, 4}:
                         if file_size == bp.properties.content_length: # file size is the same, skip!
                             if verbose:
-                                print('{} - Skip: Output file already exits with same size\n'.format(blob.name))
+                                Logger.info('{} - Skip: Output file already exists with same size\n'.format(blob.name))
                             continue
-                        print('Output file already exits: {}\nLocal size: {:.3f} MB\nAzure size: {:.3f} MB'.format(fp, file_size/(1024**2), bp.properties.content_length/(1024**2)))
+                        Logger.info('Output file already exists: {}\nLocal size: {:.3f} MB\nAzure size: {:.3f} MB'.format(fp, file_size/(1024**2), bp.properties.content_length/(1024**2)))
                         if overwrite_mode in {3, 4} and file_size > bp.properties.content_length: # local file size is larger, skip with warning!
-                            print('{} - Skip: Output file already exits with larger size\n'.format(blob.name))
+                            Logger.info('{} - Skip: Output file already exists with larger size\n'.format(blob.name))
                             continue
                         if overwrite_mode == 1 and input("Do you want to overwrite [Y/n]? ") not in {'Y', 'y'}:
                             print()
@@ -203,7 +205,7 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                 else:
                     file_size = None
 
-                print('Processing: {} (size: {:.3f}MB - Last modified: {})'.format(blob.name, bp.properties.content_length/(1024**2), bp.properties.last_modified), flush=True)
+                Logger.info('Processing: {} (size: {:.3f}MB - Last modified: {})'.format(blob.name, bp.properties.content_length/(1024**2), bp.properties.last_modified))
                 # check if blob was modified in the last delta_mod_t sec
                 if datetime.datetime.now(datetime.timezone.utc)-bp.properties.last_modified < datetime.timedelta(0, delta_mod_t):
                     if overwrite_mode < 2:
@@ -211,47 +213,46 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                             print()
                             continue
                     elif overwrite_mode == 4:
-                        print('Azure blob currently in use (modified in the last delta_mod_t={} sec). Skipping!\n'.format(delta_mod_t))
+                        Logger.info('Azure blob currently in use (modified in the last delta_mod_t={} sec). Skipping!\n'.format(delta_mod_t))
                         continue
                     if if_match != '*':     # when if_match is not '*', reset max_connections to 1 to prevent crash if azure blob is modified during download
                         max_connections = 1
 
                 if dry_run:
-                    print('--dry_run - Not downloading!')
+                    Logger.info('--dry_run - Not downloading!')
                 else:
                     t0 = time.time()
                     process_checker = update_progress if report_progress == True else None
                     if overwrite_mode in {3, 4} and file_size:
-                        print('Check validity of remote file... ', end='')
                         temp_fp = fp + '.temp'
                         cmpsize = min(file_size,8*1024**2)
                         bbs.get_blob_to_path(container, blob.name, temp_fp, max_connections=max_connections, start_range=file_size-cmpsize, end_range=file_size-1, if_match=if_match)
                         if cmp_files(fp, temp_fp, -cmpsize):
-                            print('Valid!')
-                            print('Resume downloading to temp file with max_connections = {}...'.format(max_connections))
+                            Logger.info('Check validity of remote file...Valid!')
+                            Logger.info('Resume downloading to temp file with max_connections = {}...'.format(max_connections))
                             bbs.get_blob_to_path(container, blob.name, temp_fp, progress_callback=process_checker, max_connections=max_connections, start_range=os.path.getsize(fp), if_match=if_match)
                             download_time = time.time()-t0
                             download_size_MB = os.path.getsize(temp_fp)/(1024**2) # file size in MB
                             total_download_size_MB+=download_size_MB
-                            print('\nAppending to local file...')
+                            Logger.info('\nAppending to local file...')
                             with open(fp, 'ab') as f1, open(temp_fp, 'rb') as f2:
                                 shutil.copyfileobj(f2, f1, length=100*1024**2)   # writing chunks of 100MB to avoid consuming memory
-                            print('Appending completed. Deleting temp file...')
+                            Logger.info('Appending completed. Deleting temp file...')
                             os.remove(temp_fp)
                         else:
                             os.remove(temp_fp)
-                            print('Invalid! - Skip\n')
+                            Logger.info('Check validity of remote file...Invalid! - Skip\n')
                             continue
-                        print('Downloaded {:.3f} MB in {:.1f} sec. ({:.3f} MB/sec) - Total elapsed time: {:.1f} sec.\n'.format(download_size_MB, download_time, download_size_MB/download_time, time.time()-t0))
+                        Logger.info('Downloaded {:.3f} MB in {:.1f} sec. ({:.3f} MB/sec) - Total elapsed time: {:.1f} sec.\n'.format(download_size_MB, download_time, download_size_MB/download_time, time.time()-t0))
                     else:
-                        print('Downloading with max_connections = {}...'.format(max_connections))
+                        Logger.info('Downloading with max_connections = {}...'.format(max_connections))
                         bbs.get_blob_to_path(container, blob.name, fp, progress_callback=process_checker, max_connections=max_connections, if_match=if_match)
                         download_time = time.time()-t0
                         download_size_MB = os.path.getsize(fp)/(1024**2) # file size in MB
                         total_download_size_MB+=download_size_MB
-                        print('\nDownloaded {:.3f} MB in {:.1f} sec. ({:.3f} MB/sec)\n'.format(download_size_MB, download_time, download_size_MB/download_time))
-            except Exception as e:
-                print('Error: {}'.format(e))
+                        Logger.info('\nDownloaded {:.3f} MB in {:.1f} sec. ({:.3f} MB/sec)\n'.format(download_size_MB, download_time, download_size_MB/download_time))
+            except:
+                Logger.exception()
 
         if create_gzip_mode > -1:
             if selected_fps:
@@ -265,15 +266,15 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                         start_date = '-'.join(models[model][0].split('_data_')[1].split('_')[:3])
                         end_date = '-'.join(models[model][-1].split('_data_')[1].split('_')[:3])
                         output_fp = os.path.join(log_dir, app_id, app_id+'_'+model+'_data_'+start_date+'_'+end_date+'.json.gz')
-                        print('Concat and zip files of LastConfigurationEditDate={} to: {}'.format(model, output_fp))
-                        if os.path.isfile(output_fp) and __name__ == '__main__' and input('Output file already exits. Do you want to overwrite [Y/n]? '.format(output_fp)) not in {'Y', 'y'}:
+                        Logger.info('Concat and zip files of LastConfigurationEditDate={} to: {}'.format(model, output_fp))
+                        if os.path.isfile(output_fp) and __name__ == '__main__' and input('Output file already exists. Do you want to overwrite [Y/n]? '.format(output_fp)) not in {'Y', 'y'}:
                             continue
                         if dry_run:
-                            print('--dry_run - Not downloading!')
+                            Logger.info('--dry_run - Not downloading!')
                         else:
                             with gzip.open(output_fp, 'wb') as f_out:
                                 for fp in models[model]:
-                                    print('Adding: {}'.format(fp))
+                                    Logger.info('Adding: {}'.format(fp))
                                     with open(fp, 'rb') as f_in:
                                         shutil.copyfileobj(f_in, f_out, length=100*1024**2)   # writing chunks of 100MB to avoid consuming memory
                 elif create_gzip_mode == 1:
@@ -289,16 +290,16 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                     start_date = '-'.join(selected_fps_merged[0].split('_data_')[1].split('_')[:3])
                     end_date = '-'.join(selected_fps_merged[-1].split('_data_')[1].split('_')[:3])
                     output_fp = os.path.join(log_dir, app_id, app_id+'_merged_data_'+start_date+'_'+end_date+'.json.gz')
-                    print('Merge and zip files of all LastConfigurationEditDate to: {}'.format(output_fp))
-                    if not os.path.isfile(output_fp) or __name__ == '__main__' and input('Output file already exits. Do you want to overwrite [Y/n]? '.format(output_fp)) in {'Y', 'y'}:
+                    Logger.info('Merge and zip files of all LastConfigurationEditDate to: {}'.format(output_fp))
+                    if not os.path.isfile(output_fp) or __name__ == '__main__' and input('Output file already exists. Do you want to overwrite [Y/n]? '.format(output_fp)) in {'Y', 'y'}:
                         if dry_run:
                             for fp in selected_fps_merged:
-                                print('Adding: {}'.format(fp))
-                            print('--dry_run - Not downloading!')
+                                Logger.info('Adding: {}'.format(fp))
+                            Logger.info('--dry_run - Not downloading!')
                         else:
                             with gzip.open(output_fp, 'wb') as f_out:
                                 for fp in selected_fps_merged:
-                                    print('Adding: {}'.format(fp))
+                                    Logger.info('Adding: {}'.format(fp))
                                     with open(fp, 'rb') as f_in:
                                         shutil.copyfileobj(f_in, f_out, length=1024**3)   # writing chunks of 1GB to avoid consuming memory
                 elif create_gzip_mode == 2:
@@ -306,22 +307,22 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                     start_date = '-'.join(selected_fps[0].split('_data_')[1].split('_')[:3])
                     end_date = '-'.join(selected_fps[-1].split('_data_')[1].split('_')[:3])
                     output_fp = os.path.join(log_dir, app_id, app_id+'_deepmerged_data_'+start_date+'_'+end_date+'.json.gz')
-                    print('Merge, unique, sort, and zip files of all LastConfigurationEditDate to: {}'.format(output_fp))
-                    if not os.path.isfile(output_fp) or __name__ == '__main__' and input('Output file already exits. Do you want to overwrite [Y/n]? '.format(output_fp)) in {'Y', 'y'}:
+                    Logger.info('Merge, unique, sort, and zip files of all LastConfigurationEditDate to: {}'.format(output_fp))
+                    if not os.path.isfile(output_fp) or __name__ == '__main__' and input('Output file already exists. Do you want to overwrite [Y/n]? '.format(output_fp)) in {'Y', 'y'}:
                         d = {}
                         for fn in selected_fps:
-                            print('Parsing: {}'.format(fn), end='', flush=True)
+                            Logger.info('Parsing: {}'.format(fn))
                             if not dry_run:
                                 for x in open(fn, 'rb'):
                                     if x.startswith(b'{"_label_cost') and x.strip().endswith(b'}'):     # reading only cooked lined
                                         data = ds_parse.json_cooked(x)
                                         if data['ei'] not in d or float(data['cost']) < d[data['ei']][1]: # taking line with best reward
                                             d[data['ei']] = (data['ts'], float(data['cost']), x)
-                            print(' - len(d): {}'.format(len(d)))
+                            Logger.info(' - len(d): {}'.format(len(d)))
 
-                        print('Writing to output .gz file...')
+                        Logger.info('Writing to output .gz file...')
                         if dry_run:
-                            print('--dry_run - Not downloading!')
+                            Logger.info('--dry_run - Not downloading!')
                         else:
                             with gzip.open(output_fp, 'wb') as f:
                                 i = 0
@@ -333,13 +334,13 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                                 update_progress(i, len(d))
                                 print()
                 else:
-                    print('Unrecognized --create_gzip_mode: {}, skipping creating gzip files.'.format(create_gzip_mode))
+                    Logger.warning('Unrecognized --create_gzip_mode: {}, skipping creating gzip files.'.format(create_gzip_mode))
             else:
-                print('No file downloaded, skipping creating gzip files.')
+                Logger.info('No file downloaded, skipping creating gzip files.')
                     
     time_taken = time.time()-t_start
-    print('Total elapsed time: {:.1f} sec.\n'.format(time_taken))
-    print('\nDownloaded {:.3f} MB in {:.1f} sec. ({:.3f} MB/sec)\n'.format(total_download_size_MB, time_taken, total_download_size_MB/time_taken))
+    Logger.info('Total elapsed time: {:.1f} sec.\n'.format(time_taken))
+    Logger.info('\nDownloaded {:.3f} MB in {:.1f} sec. ({:.3f} MB/sec)\n'.format(total_download_size_MB, time_taken, total_download_size_MB/time_taken))
     return output_fp, total_download_size_MB
 
 if __name__ == '__main__':
