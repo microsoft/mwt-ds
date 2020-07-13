@@ -3,7 +3,9 @@ import json
 import sys
 import traceback
 
-class GenevaLogger:
+from loggers.logger_base import LoggerBase
+
+class GenevaLogger(LoggerBase):
 
     def __init__(self, namespace, host, port, **global_args):
         sender.setup(namespace, host=host, port=port)
