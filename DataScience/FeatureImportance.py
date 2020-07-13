@@ -36,7 +36,7 @@ Emotion2^sadness:157471:-1.35735
 
 import os, argparse, sys
 from subprocess import check_output, DEVNULL
-from loggers.logger_wrapper import Logger
+from loggers import Logger
 
 def get_pretty_feature(feature):
     tokens = feature.split('^')

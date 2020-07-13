@@ -1,5 +1,5 @@
 import sys
-from loggers.logger_wrapper import Logger
+from loggers import Logger
 
 if sys.maxsize < 2**32:     # check for 32-bit python version
     if input("32-bit python interpreter detected. There may be problems downloading large files. Do you want to continue anyway [Y/n]? ") not in {'Y', 'y'}:

@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from azure.storage.blob import BlockBlobService
 import os
-from loggers.logger_wrapper import Logger
+from loggers import Logger
 
 class AzureUtil:
     def __init__(self, conn_string=None, account_name=None, sas_token=None, throw_ex=True):

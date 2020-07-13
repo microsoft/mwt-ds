@@ -9,7 +9,7 @@ import itertools
 from enum import Enum
 import numpy as np
 import collections
-from loggers.logger_wrapper import Logger
+from loggers import Logger
 
 class Command:
     def __init__(self, base, cb_type=None, marginal_list=None, ignore_list=None, interaction_list=None, regularization=None, learning_rate=None, power_t=None, clone_from=None):

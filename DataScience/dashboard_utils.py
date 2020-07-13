@@ -2,7 +2,7 @@ import pandas,ds_parse,json,collections,os,gzip,sys
 import numpy as np
 import argparse
 import time
-from loggers.logger_wrapper import Logger
+from loggers import Logger
 
 def get_ts_5min_bin(ts):
     str_5min = str(ts[:14],'utf-8')
