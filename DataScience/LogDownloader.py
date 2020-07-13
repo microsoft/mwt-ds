@@ -1,5 +1,6 @@
 import sys
-from GenevaLogger import Logger
+from loggers.logger_wrapper import Logger
+
 if sys.maxsize < 2**32:     # check for 32-bit python version
     if input("32-bit python interpreter detected. There may be problems downloading large files. Do you want to continue anyway [Y/n]? ") not in {'Y', 'y'}:
         sys.exit()
@@ -107,9 +108,9 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
         do_download = True
         if os.path.isfile(output_fp):
             if overwrite_mode in {0, 3, 4}:
-                Logger.info('Output file already exits. Not downloading'.format(output_fp))
+                Logger.info('Output file {} already exists. Not downloading'.format(output_fp))
                 do_download = False
-            elif overwrite_mode == 1 and input('Output file already exits. Do you want to overwrite [Y/n]? '.format(output_fp)) not in {'Y', 'y'}:
+            elif overwrite_mode == 1 and input('Output file {} already exists. Do you want to overwrite [Y/n]? '.format(output_fp)) not in {'Y', 'y'}:
                 do_download = False
                 
         if do_download:

@@ -6,7 +6,9 @@ import Experimentation
 import FeatureImportance
 import dashboard_utils
 import LogDownloader
-from GenevaLogger import Logger
+from loggers.logger_wrapper import Logger
+import traceback
+
 import uuid
 
 def check_system():
@@ -21,48 +23,57 @@ def check_system():
         Logger.exception()
 
 if __name__ == '__main__':
-    # Change directory to working directory to have vw.exe in path
-    os.chdir(os.path.dirname(os.path.realpath(__file__)))
-    start_time = datetime.now()
-    timestamp = start_time.strftime("%Y-%m-%d-%H_%M_%S")
-
-    # Parse system parameters
-    main_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-    main_parser.add_argument('--evaluation_id', help="evaluation id")
-    main_parser.add_argument('--output_folder', help="storage account container's job folder where output files are stored", required=True)
-    main_parser.add_argument('--dashboard_filename', help="name of the output dashboard file", default='aggregates.txt')
-    main_parser.add_argument('--summary_json', help="json file containing custom policy commands to run", default='')
-    main_parser.add_argument('--run_experimentation', help="run Experimentation.py", action='store_true')
-    main_parser.add_argument('--delete_logs_dir', help="delete logs directory before starting to download new logs", action='store_true')
-    main_parser.add_argument('--cleanup', help="delete logs and created files after use", action='store_true')
-    main_parser.add_argument('--get_feature_importance', help="run FeatureImportance.py", action='store_true')
-    main_parser.add_argument('--feature_importance_filename', help="name of the output feature importance file", default='featureimportance.json')
-    main_parser.add_argument('--feature_importance_raw_filename', help="name of the output feature importance file with raw (unparsed) features", default='featureimportanceraw.json')
-    main_parser.add_argument('--ml_args', help="the online policy that we need for calculating the feature importances", required=True)
-    main_args, other_args = main_parser.parse_known_args(sys.argv[1:])
-
-    # Parse LogDownloader args
-    log_download_start_time = datetime.now()
-    logdownloader_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-    LogDownloader.add_parser_args(logdownloader_parser)
-    other_args.append('-o')
-    other_args.append('2')
-    other_args.append('--report_progress')
-    other_args.append('false')
-    ld_args, other_args = logdownloader_parser.parse_known_args(other_args)
-    output_dir = os.path.join(ld_args.log_dir, ld_args.app_id)
-    task_dir = os.path.dirname(os.path.dirname(ld_args.log_dir))
-
-    Logger.create_logger(ld_args.app_id, main_args.evaluation_id)
-
-    check_system()
-
-     # Clean out logs directory
-    if main_args.delete_logs_dir and os.path.isdir(ld_args.log_dir):
-        Logger.info('Deleting ' + ld_args.log_dir)
-        shutil.rmtree(ld_args.log_dir, ignore_errors=True)
-
     try:
+        # Change directory to working directory to have vw.exe in path
+        os.chdir(os.path.dirname(os.path.realpath(__file__)))
+        start_time = datetime.now()
+        timestamp = start_time.strftime("%Y-%m-%d-%H_%M_%S")
+
+        # Parse system parameters
+        main_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+        main_parser.add_argument('--evaluation_id', help="evaluation id")
+        main_parser.add_argument('--output_folder', help="storage account container's job folder where output files are stored", required=True)
+        main_parser.add_argument('--dashboard_filename', help="name of the output dashboard file", default='aggregates.txt')
+        main_parser.add_argument('--summary_json', help="json file containing custom policy commands to run", default='')
+        main_parser.add_argument('--run_experimentation', help="run Experimentation.py", action='store_true')
+        main_parser.add_argument('--delete_logs_dir', help="delete logs directory before starting to download new logs", action='store_true')
+        main_parser.add_argument('--cleanup', help="delete logs and created files after use", action='store_true')
+        main_parser.add_argument('--get_feature_importance', help="run FeatureImportance.py", action='store_true')
+        main_parser.add_argument('--feature_importance_filename', help="name of the output feature importance file", default='featureimportance.json')
+        main_parser.add_argument('--feature_importance_raw_filename', help="name of the output feature importance file with raw (unparsed) features", default='featureimportanceraw.json')
+        main_parser.add_argument('--ml_args', help="the online policy that we need for calculating the feature importances", required=True)
+        main_parser.add_argument('--geneva_namespace', help="namespace for Geneva logging")
+        main_parser.add_argument('--geneva_host', help="host for Geneva logging")
+        main_parser.add_argument('--geneva_port', help="port for Geneva logging", type=int)
+        main_args, other_args = main_parser.parse_known_args(sys.argv[1:])
+       
+        # Parse LogDownloader args
+        log_download_start_time = datetime.now()
+        logdownloader_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+        LogDownloader.add_parser_args(logdownloader_parser)
+        other_args.append('-o')
+        other_args.append('2')
+        other_args.append('--report_progress')
+        other_args.append('false')
+        ld_args, other_args = logdownloader_parser.parse_known_args(other_args)
+        output_dir = os.path.join(ld_args.log_dir, ld_args.app_id)
+        task_dir = os.path.dirname(os.path.dirname(ld_args.log_dir))
+  
+        Logger.create_loggers(geneva=True,
+                            namespace=main_args.geneva_namespace,
+                            host=main_args.geneva_host,
+                            port=main_args.geneva_port,
+                            appId=ld_args.app_id,
+                            jobId=main_args.evaluation_id)
+
+        check_system()
+
+        # Clean out logs directory
+        if main_args.delete_logs_dir and os.path.isdir(ld_args.log_dir):
+            Logger.info('Deleting ' + ld_args.log_dir)
+            shutil.rmtree(ld_args.log_dir, ignore_errors=True)
+
+    
         # Download cooked logs
         output_gz_fp, total_download_size = LogDownloader.download_container(**vars(ld_args))
 
@@ -188,6 +199,7 @@ if __name__ == '__main__':
                     json.dump(summary_data, outfile)
                 azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, main_args.summary_json), summary_file_path)
         Logger.info("Done executing job")
+        raise NameError("Testing log wrapper error")
     except:
         Logger.exception('Job failed.')
         sys.exit(1)

@@ -9,8 +9,7 @@ import itertools
 from enum import Enum
 import numpy as np
 import collections
-from GenevaLogger import Logger
-
+from loggers.logger_wrapper import Logger
 
 class Command:
     def __init__(self, base, cb_type=None, marginal_list=None, ignore_list=None, interaction_list=None, regularization=None, learning_rate=None, power_t=None, clone_from=None):
@@ -84,6 +83,7 @@ def result_writer(command_list):
             command.base, command.learning_rate, command.cb_type, str(command.marginal_list), \
             str(command.ignore_list), str(command.interaction_list), str(command.regularization), str(datetime.now()), command.full_command)
         experiment_file.write(line + "\n")
+        Logger.info(line)
     experiment_file.flush()
     
 def run_experiment(command):
@@ -419,5 +419,9 @@ def main(args):
         
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+
+
     add_parser_args(parser)
+    main(parser.parse_args())
+
     main(parser.parse_args())
