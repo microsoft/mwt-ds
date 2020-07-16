@@ -66,15 +66,15 @@ class Command:
         self.full_command += " --power_t {:g}".format(self.power_t)
 
     def prints(self):
-        Logger.info("cb type: {0}\n".format(self.cb_type) +
-                    "marginals: {0}\n".format(self.marginal_list) +
-                    "ignore list: {0}\n".format(self.ignore_list) +
-                    "interactions: {0}\n".format(self.interaction_list) +
-                    "learning rate: {0}\n".format(self.learning_rate) +
-                    "regularization: {0}\n".format(self.regularization) +
-                    "power_t: {0}\n".format(self.power_t) +
-                    "overall command: {0}\n".format(self.full_command) +
-                    "loss: {0}\n".format(self.loss))
+        print("cb type: {0}\n".format(self.cb_type) +
+              "marginals: {0}\n".format(self.marginal_list) +
+              "ignore list: {0}\n".format(self.ignore_list) +
+              "interactions: {0}\n".format(self.interaction_list) +
+              "learning rate: {0}\n".format(self.learning_rate) +
+              "regularization: {0}\n".format(self.regularization) +
+              "power_t: {0}\n".format(self.power_t) +
+              "overall command: {0}\n".format(self.full_command) +
+              "loss: {0}\n".format(self.loss))
         
 def result_writer(command_list):
     experiment_file = open("experiments.csv", "a")
@@ -83,7 +83,6 @@ def result_writer(command_list):
             command.base, command.learning_rate, command.cb_type, str(command.marginal_list), \
             str(command.ignore_list), str(command.interaction_list), str(command.regularization), str(datetime.now()), command.full_command)
         experiment_file.write(line + "\n")
-        Logger.info(line)
     experiment_file.flush()
     
 def run_experiment(command):
