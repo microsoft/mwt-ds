@@ -1,0 +1,31 @@
+﻿SET @@FeaturePreviews = "DataPartitionedOutput:on";
+
+DECLARE @_appId string = "";    //your appId
+DECLARE @_account string = "";    // your account name
+
+DECLARE @_start DateTime = new DateTime(2020, 02, 14);  //your inclusive start date
+DECLARE @_end DateTime = new DateTime(2020, 02, 19);    //your non-inclusive end date
+    
+DECLARE @_sample float = 0.01f;
+
+DECLARE @OutputFolder string = "/daily/" + @_appId + "/sample/";      //your output folder
+
+DECLARE @InputFile string = "wasb://"+ @_appId +"@" + @_account + ".blob.core.windows.net/{model}/data/{date:yyyy}/{date:MM}/{date:dd}_{filename}.json";
+
+DECLARE @OutputFileSample string = @OutputFolder + "{model}/{date:yyyy}-{date:MM}-{date:dd}.csv";
+
+@Events =  
+    EXTRACT Line string, 
+            model string, //virtual column
+            date DateTime,
+            filename string //virtual column
+    FROM @InputFile
+    USING Extractors.Tsv();
+
+@Events = SELECT Line, model, date FROM @Events WHERE date >= @_start AND date < @_end;
+
+@Events = SELECT * FROM @Events SAMPLE UNIFORM (@_sample);
+
+OUTPUT @Events
+TO @OutputFileSample
+USING Outputters.Text(quoting: false, outputHeader:false);

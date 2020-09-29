@@ -29,8 +29,25 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Script Include="CB_E2E.usql">
+      <SubType>Procedure</SubType>
+    </Script>
+    <Script Include="CCB_E2E.usql">
+      <SubType>Procedure</SubType>
+    </Script>
+    <Script Include="CCB_E2E_fast.usql">
+      <SubType>Procedure</SubType>
+    </Script>
+    <Script Include="DanglingRewards.usql">
+      <SubType>TableValuedFunction</SubType>
+    </Script>
     <Script Include="DecisionServiceExtractor.usql">
       <SubType>Assembly</SubType>
+    </Script>
+    <Script Include="CB.usql" />
+    <Script Include="CCB.usql" />
+    <Script Include="Statistics.usql">
+      <SubType>TableValuedFunction</SubType>
     </Script>
   </ItemGroup>
   <Import Project="$(USQLSDKPath)\USqlDBProject.targets" Condition="'$(USQLSDKPath)' != '' And Exists('$(USQLSDKPath)\USqlDBProject.targets')" />

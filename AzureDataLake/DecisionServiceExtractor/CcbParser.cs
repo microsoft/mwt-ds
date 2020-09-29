@@ -12,24 +12,37 @@ namespace DecisionServiceExtractor
     {
         private class SharedFields
         {
-            private readonly ColumnInfo SessionIdColumn;
+            public ColumnInfo SessionIdColumn { get; private set; }
 
-            private readonly ColumnInfo TimestampColumn;
+            public ColumnInfo TimestampColumn { get; private set; }
+
+            public ColumnInfo NumActionsColumn { get; private set; }
+
+            public ColumnInfo PdropColumn { get; private set; }
 
             public string SessionId { get; set; }
 
             public DateTime Timestamp { get; set; }
 
+            public int NumActions { get; set; }
+
+            public float pdrop { get; set; } 
+
             public SharedFields(ISchema schema)
             {
                 this.SessionIdColumn = new ColumnInfo(schema, "SessionId", typeof(string));
                 this.TimestampColumn = new ColumnInfo(schema, "Timestamp", typeof(DateTime));
+                this.NumActionsColumn = new ColumnInfo(schema, "NumActions", typeof(int));
+                this.PdropColumn = new ColumnInfo(schema, "pdrop", typeof(float));
             }
 
             public IRow Apply(IUpdatableRow row)
             {
                 row.Set(this.SessionIdColumn, this.SessionId);
                 row.Set(this.TimestampColumn, this.Timestamp);
+                row.Set(this.NumActionsColumn, this.NumActions);
+                row.Set(this.PdropColumn, this.pdrop);
+
                 return row.AsReadOnly();
             }
         }
@@ -42,11 +55,10 @@ namespace DecisionServiceExtractor
         private readonly ColumnInfo ActionColumn;
         private readonly ColumnInfo CbActionColumn;
         private readonly ColumnInfo NumActionsPerSlotColumn;
-        private readonly ColumnInfo NumActionsColumn;
         private readonly ColumnInfo HasObservationsColumn;
         private readonly ColumnInfo IsDanglingColumn;
         private readonly ColumnInfo EnqueuedTimeUtcColumn;
-        private readonly ColumnInfo PdropColumn;
+        private readonly ColumnInfo RewardValueColumn;
 
         internal CcbParser(ISchema schema)
         {
@@ -58,11 +70,10 @@ namespace DecisionServiceExtractor
             this.ActionColumn = new ColumnInfo(schema, "Action", typeof(int));
             this.CbActionColumn = new ColumnInfo(schema, "CbAction", typeof(int));
             this.NumActionsPerSlotColumn = new ColumnInfo(schema, "NumActionsPerSlot", typeof(int));
-            this.NumActionsColumn = new ColumnInfo(schema, "NumActions", typeof(int));
             this.HasObservationsColumn = new ColumnInfo(schema, "HasObservations", typeof(int));
             this.IsDanglingColumn = new ColumnInfo(schema, "IsDangling", typeof(bool));
             this.EnqueuedTimeUtcColumn = new ColumnInfo(schema, "EnqueuedTimeUtc", typeof(DateTime));
-            this.PdropColumn = new ColumnInfo(schema, "pdrop", typeof(float));
+            this.RewardValueColumn = new ColumnInfo(schema, "RewardValue", typeof(float?));
         }
 
         //called on every line
@@ -147,19 +158,22 @@ namespace DecisionServiceExtractor
                                         }
                                         break;
                                     case "c":
-                                        if (!this.NumActionsColumn.IsRequired)
+                                        if (!shared.NumActionsColumn.IsRequired)
                                         {
                                             jsonReader.Skip();
                                         }
                                         break;
                                     case "_multi":
-                                        if (this.NumActionsColumn.IsRequired)
+                                        if (shared.NumActionsColumn.IsRequired)
                                         {
-                                            output.Set(this.NumActionsColumn.Idx, Helpers.CountObjects(jsonReader));
+                                            shared.NumActions = Helpers.CountObjects(jsonReader);
                                         }
                                         break;
                                     case "pdrop":
-                                        Helpers.ExtractPropertyDouble(jsonReader, output, this.PdropColumn);
+                                        shared.pdrop = Helpers.GetPropertyDouble(jsonReader);
+                                        break;
+                                    case "RewardValue":
+                                        Helpers.ExtractPropertyDoubleOpt(jsonReader, output, this.RewardValueColumn);
                                         break;
                                     default:
                                         jsonReader.Skip();

@@ -1,10 +1,10 @@
 ﻿SET @@FeaturePreviews = "DataPartitionedOutput:on";
 
-USE DATABASE [DecisionServiceDB];
-
 DECLARE @_appId string = "";    //your appId
 DECLARE @_model = "";
 
+DECLARE @_experimentalUnitDuration TimeSpan = new TimeSpan(9, 0, 0, 0); //days, hour, minutes, seconds
+ 
 DECLARE @_start DateTime = new DateTime(2020, 04, 20);  //your inclusive start date
 DECLARE @_end DateTime = new DateTime(2020, 04, 29);    //your non-inclusive end date
     
@@ -24,7 +24,7 @@ DECLARE @OutputFileChronology string = @OutputFolder + "chronology.csv";
 
 @Statistics = DecisionServiceDB.dbo.ExtractStats(@InputFileStatistics, @_model, @_start, @_end);
 
-@Interactions = DecisionServiceDB.dbo.ExtractCBDecisions(@InputFileInteractions, @_model, @_start, @_end);
+@Interactions = DecisionServiceDB.dbo.ExtractCCBDecisions(@InputFileInteractions, @_model, @_start, @_end);
 
 @DanglingRewards = DecisionServiceDB.dbo.ExtractDanglingRewards(@InputFileDanglingRewards, @_model, @_start, @_end);
 
@@ -37,7 +37,9 @@ DECLARE @OutputFileChronology string = @OutputFolder + "chronology.csv";
 
 
 @Matched =
-    SELECT @Interactions.EventId,
+    SELECT @Interactions.SessionId,
+           @Interactions.SlotIdx,
+           @Interactions.EventId,
            @Interactions.Timestamp AS InteractionTimestamp,
            @DanglingRewards.RewardTimestamp AS RewardTimestamp,
            @Interactions.model
@@ -46,7 +48,7 @@ DECLARE @OutputFileChronology string = @OutputFolder + "chronology.csv";
              @DanglingRewards
          ON @Interactions.EventId == @DanglingRewards.EventId AND @Interactions.model == @DanglingRewards.model;
 
-@Matched = SELECT EventId,
+@Matched = SELECT SessionId, SlotIdx, EventId,
                   (int)((RewardTimestamp - InteractionTimestamp).TotalMinutes) AS TimestampDiff,
                   RewardTimestamp,
                   InteractionTimestamp,
@@ -111,19 +113,19 @@ DECLARE @OutputFileChronology string = @OutputFolder + "chronology.csv";
          ON Left.EventId == Right.EventId AND Left.model == Right.model;
 
 @NotMatchedStatisticsAll =
-    SELECT RewardTimestamp.ToString("yyyy/MM/dd HH:mm") AS RewardTimestamp,
+    SELECT RewardTimestamp.ToString("yyyy/MM/dd HH:00") AS RewardTimestamp,
            COUNT() AS DanglingRewards,
            model
     FROM @NotMatched
-    GROUP BY RewardTimestamp.ToString("yyyy/MM/dd HH:mm"), model;
+    GROUP BY RewardTimestamp.ToString("yyyy/MM/dd HH:00"), model;
 
 @NotMatchedStatistics =
-    SELECT RewardTimestamp.ToString("yyyy/MM/dd HH:mm") AS RewardTimestamp,
+    SELECT RewardTimestamp.ToString("yyyy/MM/dd HH:00") AS RewardTimestamp,
            date,
            model,
            COUNT() AS DanglingRewards
     FROM @NotMatched
-    GROUP BY RewardTimestamp.ToString("yyyy/MM/dd HH:mm"), date, model;
+    GROUP BY RewardTimestamp.ToString("yyyy/MM/dd HH:00"), date, model;
 
 @DanglingRewardsChronology =
     SELECT RewardTimestamp.ToString("yyyy/MM/dd HH:mm") AS RewardTimestamp,

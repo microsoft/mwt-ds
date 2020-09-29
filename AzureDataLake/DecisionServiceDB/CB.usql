@@ -1,0 +1,167 @@
+﻿CREATE FUNCTION IF NOT EXISTS [dbo].ParseCB(@InputFile string, @_model string, @_start DateTime, @_end DateTime)
+RETURNS (
+    @Decisions TABLE(
+            EventId string, 
+            Timestamp DateTime, 
+            HasObservations int,
+            Prob float,
+            Cost float,
+            Action int,
+            NumActions int,
+            pdrop float,
+            SkipLearn bool,
+            model string,
+            date DateTime),
+    @DanglingRewards TABLE(
+            EventId string,
+            EnqueuedTimeUtc DateTime,
+            RewardValue float?,
+            model string,        
+            date DateTime))
+AS
+BEGIN
+    REFERENCE ASSEMBLY DecisionServiceExtractor;
+
+    @Events =
+        EXTRACT EventId string,
+                Timestamp DateTime,
+                EnqueuedTimeUtc DateTime,
+                Prob float,
+                Cost float,
+                Action int,
+                NumActions int,
+                HasObservations int,
+                model string, //virtual column
+                date DateTime,
+                filename string, //virtual column
+                pdrop float,
+                IsDangling bool,
+                SkipLearn bool,
+                RewardValue float?
+        FROM @InputFile
+        USING new DecisionServiceExtractor.HeaderOnly();
+
+    @Events =
+        SELECT *
+        FROM @Events
+        WHERE date >= @_start AND date < @_end AND model == @_model;
+
+    @Decisions =
+        SELECT EventId,
+               Timestamp,
+               HasObservations,
+               Prob,
+               Cost,
+               Action,
+               NumActions,
+               pdrop,
+               SkipLearn,
+               model,
+               date
+        FROM @Events
+        WHERE IsDangling == false;
+
+    @DanglingRewards =
+        SELECT EventId,
+               EnqueuedTimeUtc,
+               RewardValue,
+               model,
+               date
+        FROM @Events
+        WHERE IsDangling == true;
+RETURN;
+END;
+
+CREATE FUNCTION IF NOT EXISTS [dbo].ExtractCBDecisions(@InputFile string, @_model string, @_start DateTime, @_end DateTime)
+RETURNS
+    @Decisions TABLE(
+            EventId string, 
+            Timestamp DateTime, 
+            HasObservations int,
+            Prob float,
+            Cost float,
+            Action int,
+            NumActions int,
+            pdrop float,
+            SkipLearn bool,
+            model string,
+            date DateTime)
+AS
+BEGIN
+    @Decisions = EXTRACT 
+            EventId string, 
+            Timestamp DateTime, 
+            HasObservations int,
+            Prob float,
+            Cost float,
+            [Action] int,
+            NumActions int,
+            pdrop float,
+            SkipLearn bool,
+            model string,
+            date DateTime
+     FROM @InputFile
+     USING Extractors.Csv(skipFirstNRows:1);
+    @Decisions = SELECT EventId,
+                        Timestamp.ToUniversalTime() AS Timestamp,
+                        HasObservations,
+                        Prob,
+                        Cost,
+                        Action,
+                        NumActions,
+                        pdrop,
+                        SkipLearn,
+                        model,
+                        date
+     FROM @Decisions WHERE date >= @_start AND date < @_end AND model == @_model;
+RETURN;
+END;
+
+CREATE FUNCTION IF NOT EXISTS [dbo].CBStats(
+    @Decisions TABLE(
+            EventId string, 
+            Timestamp DateTime, 
+            HasObservations int,
+            Prob float,
+            Cost float,
+            Action int,
+            NumActions int,
+            pdrop float,
+            SkipLearn bool,
+            model string,
+            date DateTime))
+RETURNS
+    @Statistics TABLE(
+            Timestamp string, 
+            model string,
+            obser double?, 
+            clicks double?,
+            impressions double?,
+            clicks1 double?,
+            impressions1 double?,
+            clicksIps1 double?,
+            impressionsIps1 double?,
+            clicksIpsR double?,
+            impressionsIpsR double?,
+            impressionsObserved double?,
+            date DateTime)
+AS
+BEGIN
+    @Statistics =
+    SELECT Timestamp.ToString("yyyy/MM/dd HH:mm") AS Timestamp,
+           model,
+           SUM(HasObservations != 0? (1.0 / (1.0 - pdrop)) : 0) AS obser,
+           SUM(-Cost / (1.0 - pdrop)) AS clicks,
+           SUM(1.0 / (1.0 - pdrop)) AS impressions,
+           SUM(Action == 1? (-Cost / (1.0 - pdrop)) : 0) AS clicks1,
+           SUM(Action == 1? (1.0 / (1.0 - pdrop)) : 0) AS impressions1,
+           SUM(Action == 1? (-Cost / (1.0 - pdrop)) / Prob : 0) AS clicksIps1,
+           SUM(Action == 1? (1.0 / (1.0 - pdrop)) / Prob : 0) AS impressionsIps1,
+           SUM((-Cost / (1.0 - pdrop)) / Prob / NumActions) AS clicksIpsR,
+           SUM((1.0 / (1.0 - pdrop)) / Prob / NumActions) AS impressionsIpsR,
+           SUM(1.0) AS impressionsObserved,
+           date
+    FROM @Decisions
+    GROUP BY Timestamp.ToString("yyyy/MM/dd HH:mm"), model, date;
+RETURN;
+END;

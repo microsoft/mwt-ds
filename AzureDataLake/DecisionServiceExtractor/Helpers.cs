@@ -41,6 +41,20 @@ namespace DecisionServiceExtractor
             output.Set(columnInfo, (int)(long)jsonReader.Value);
         }
 
+        public static float GetPropertyDouble(JsonTextReader jsonReader)
+        {
+            jsonReader.Read();
+            switch (jsonReader.TokenType)
+            {
+                case JsonToken.Integer:
+                    return (float)(long)jsonReader.Value;
+                case JsonToken.Float:
+                    return (float)(double)jsonReader.Value;
+                default:
+                    throw new Exception("wrong data type");
+            }
+        }
+
         public static void ExtractPropertyDouble(JsonTextReader jsonReader, IUpdatableRow output, ColumnInfo columnInfo)
         {
             jsonReader.Read();
@@ -54,6 +68,29 @@ namespace DecisionServiceExtractor
                         break;
                     case JsonToken.Float:
                         output.Set(columnInfo.Idx, (float)(double)jsonReader.Value);
+                        break;
+                    default:
+                        throw new Exception("wrong data type");
+                }
+            }
+        }
+
+        public static void ExtractPropertyDoubleOpt(JsonTextReader jsonReader, IUpdatableRow output, ColumnInfo columnInfo)
+        {
+            jsonReader.Read();
+
+            if (columnInfo.IsRequired)
+            {
+                switch (jsonReader.TokenType)
+                {
+                    case JsonToken.Integer:
+                        output.Set(columnInfo.Idx, (float)(long)jsonReader.Value);
+                        break;
+                    case JsonToken.Float:
+                        output.Set(columnInfo.Idx, (float)(double)jsonReader.Value);
+                        break;
+                    case JsonToken.Null:
+                        output.Set(columnInfo.Idx, (double?)null);
                         break;
                     default:
                         throw new Exception("wrong data type");
