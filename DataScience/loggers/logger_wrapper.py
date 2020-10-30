@@ -11,7 +11,7 @@ class Logger:
     @classmethod
     def create_loggers(cls, **kwargs):
         cls.loggers.append(ConsoleLogger())
-        if "geneva_namespace" in kwargs:
+        if "geneva_namespace" in kwargs and kwargs["geneva_namespace"]:
             cls.loggers.append(GenevaLogger(namespace=kwargs["geneva_namespace"],
                                             host=kwargs["geneva_host"],
                                             port=kwargs["geneva_port"],
