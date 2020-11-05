@@ -304,9 +304,6 @@ def main(args):
 
     print("\n***************************************")
     Logger.info("SETTINGS\n Base command + log file: {}\n".format(base_command) +
-                "Shared feature namespaces: {}\n".format(shared_features) +
-                "Action feature namespaces: {}\n".format(action_features) +
-                "Marginal feature namespaces: {}\n".format(marginal_features) +
                 'cb_types: ['+', '.join(args.cb_types) + ']\n' +
                 'learning rates: ['+', '.join(map(str,args.learning_rates)) + ']\n' +
                 'l1 regularization rates: ['+', '.join(map(str,args.regularizations)) + ']\n' +

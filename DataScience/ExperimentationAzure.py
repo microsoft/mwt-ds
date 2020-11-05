@@ -59,6 +59,7 @@ if __name__ == '__main__':
         task_dir = os.path.dirname(os.path.dirname(ld_args.log_dir))
   
         geneva_gbl_vals = {'appId': ld_args.app_id, 'jobId': main_args.evaluation_id}
+        
         Logger.create_loggers(geneva_namespace=main_args.geneva_namespace,
                               geneva_host=main_args.geneva_host,
                               geneva_port=main_args.geneva_port,
@@ -209,6 +210,4 @@ if __name__ == '__main__':
         Logger.info('Total Job time in seconds: {}'.format((end_time - start_time).seconds))
         sys.stdout.flush()
         sys.stderr.flush()
-        azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, 'stdout.txt'), os.path.join(task_dir, 'stdout.txt'))
-        azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, 'stderr.txt'), os.path.join(task_dir, 'stderr.txt'))
         Logger.close()
