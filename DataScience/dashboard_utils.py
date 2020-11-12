@@ -297,7 +297,7 @@ def aggregates_ccb_data(data, pred, d, evts):
 
         d[ts_bin]['online']['n'] += reward
 
-        if (item["_a"][0] == min(item["_a"])):
+        if (item["_a"][0] == index):
             d[ts_bin]['baseline1']['Ne'] += len(data["_outcomes"])
             d[ts_bin]['baseline1']['d'] += 1/item['_p'][0]
             d[ts_bin]['baseline1']['n'] += reward/item["_p"][0]
