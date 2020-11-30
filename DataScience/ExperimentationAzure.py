@@ -157,6 +157,8 @@ if __name__ == '__main__':
                 other_args.append(model_fp)
             other_args.append('--min_num_features')
             other_args.append('1')
+            other_args.append('--ml_args')
+            other_args.append(main_args.ml_args)
             fi_args, other_args = feature_importance_parser.parse_known_args(other_args)
 
             # Run FeatureImportance.py using output_gz_fp as input
