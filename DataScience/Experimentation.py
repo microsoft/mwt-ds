@@ -200,14 +200,19 @@ def parse_cb_types(val):
         raise argparse.ArgumentTypeError('Input "{}" is an invalid cb_types input string - Valid cb_types are mtr, dr, ips'.format(val))
     return cb_types
 
-def generate_predictions_files(log_fp, policies):
+def create_prediction_command(policy_command, log_type):
+    if log_type == 'ccb':
+        return policy_command.replace('--ccb_explore_adf --epsilon 0', '--ccb_explore_adf --epsilon 0.2')
+    else:
+        return policy_command.replace('--cb_adf', '--cb_explore_adf --epsilon 0.2');
 
+def generate_predictions_files(log_fp, policies, log_type):
     predictions_files = []
     data = {}
     data['policies'] = []
-    Logger.info('Generating predictions files (using --cb_explore_adf) for {} policies:'.format(len(policies)))
+    Logger.info('Generating predictions files for {} '.format(log_type) + 'for {} policies:'.format(len(policies)));
     for name,policy in policies:
-        policy_command =  policy.full_command.replace('--cb_adf', '--cb_explore_adf --epsilon 0.2')
+        policy_command = create_prediction_command(policy.full_command, log_type)
         data['policies'].append({
             'name':name,
             'arguments': re.sub(r'(-c|-d\s[\S]*|vw)\s', '', policy_command),
@@ -224,7 +229,7 @@ def generate_predictions_files(log_fp, policies):
     for name,policy in policies:
         pred_fp = log_fp + '.' + name + '.pred'
         predictions_files.append(pred_fp)
-        cmd = policy.full_command.replace('--cb_adf', '--cb_explore_adf --epsilon 0.2') + ' -p ' + pred_fp + ' -P 100000'
+        cmd = create_prediction_command(policy.full_command, log_type) + ' -p ' + pred_fp + ' -P 100000'
         p = Popen(cmd.split(' '), stdout=DEVNULL, stderr=DEVNULL)
         processes.append(p)
 
@@ -249,6 +254,7 @@ def add_parser_args(parser):
     parser.add_argument('--q_bruteforce_terms', type=int, help="number of quadratic pairs to test in brute-force phase (default: 2)", default=2)
     parser.add_argument('--q_greedy_stop', type=int, help="rounds without improvements after which quadratic greedy search phase is halted (default: 3)", default=3)
     parser.add_argument('--generate_predictions', help="generate prediction files for best policies", action='store_true')
+    parser.add_argument('--log_type', help="cooked log format e.g. cb, ccb", default='cb')
 
 def main(args):
     try:
@@ -272,7 +278,7 @@ def main(args):
         with gzip.open(args.file_path, 'rt', encoding='utf8') if args.file_path.endswith('.gz') else open(args.file_path, 'r', encoding="utf8") as data:
             counter = 0
             for line in data:
-                if not line.startswith('{"_label_cost"'):
+                if (args.log_type == 'cb' and not line.startswith('{"_label_cost"')) or (args.log_type == 'ccb' and not line.startswith('{"Timestamp"')):
                     continue
 
                 counter += 1
@@ -411,7 +417,7 @@ def main(args):
     print("*************************")
 
     if args.generate_predictions:
-        _ = generate_predictions_files(args.file_path, best_commands)
+        _ = generate_predictions_files(args.file_path, best_commands, args.log_type)
         t2 = datetime.now()
         Logger.info('Predictions Generation Time: {}'.format((t2-t1)-timedelta(microseconds=(t2-t1).microseconds)))
         Logger.info('Total Elapsed Time: {}'.format((t2-t0)-timedelta(microseconds=(t2-t0).microseconds)))

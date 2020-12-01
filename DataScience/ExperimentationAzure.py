@@ -44,7 +44,8 @@ if __name__ == '__main__':
         main_parser.add_argument('--geneva_namespace', help="namespace for Geneva logging")
         main_parser.add_argument('--geneva_host', help="host for Geneva logging")
         main_parser.add_argument('--geneva_port', help="port for Geneva logging", type=int)
-        main_args, other_args = main_parser.parse_known_args(sys.argv[1:])
+        main_parser.add_argument('--log_type', help="cooked log format e.g. cb, ccb", default='cb')
+        main_args, other_args = main_parser.parse_known_args(sys.argv[1:])        
        
         # Parse LogDownloader args
         log_download_start_time = datetime.now()
@@ -73,7 +74,7 @@ if __name__ == '__main__':
 
     
         # Download cooked logs
-        output_gz_fp, total_download_size = LogDownloader.download_container(**vars(ld_args))
+        output_gz_fp, total_download_size = LogDownloader.download_container(**vars(ld_args))        
 
         if output_gz_fp == None:
             Logger.error('No logs found between start date: {0} and end date:{1}. Exiting ... '.format(ld_args.start_date, ld_args.end_date))
@@ -91,7 +92,7 @@ if __name__ == '__main__':
 
         # Evaluate custom policies
         if main_args.summary_json:
-            Logger.info('Evaluating custom policies')
+            Logger.info('Evaluating custom policies')            
             summary_file_path = os.path.join(output_dir, main_args.summary_json)
             azure_util.download_from_blob(ld_args.app_id, os.path.join(main_args.output_folder, main_args.summary_json), summary_file_path)
             try:
@@ -110,6 +111,9 @@ if __name__ == '__main__':
             except:
                 Logger.exception()
 
+        if main_args.log_type == 'ccb':
+            base_command = 'vw --ccb_explore_adf --epsilon 0 --dsjson -c '
+                
         if main_args.run_experimentation:
             experimentation_start_time = datetime.now()
             Logger.info('Running Experimentation')
@@ -118,6 +122,11 @@ if __name__ == '__main__':
             Experimentation.add_parser_args(experimentation_parser)
             other_args.append('-f')
             other_args.append(output_gz_fp)
+            if main_args.log_type == 'ccb':
+                other_args.append('-b')
+                other_args.append(base_command)
+            other_args.append('--log_type')
+            other_args.append(main_args.log_type)
             exp_args, other_args = experimentation_parser.parse_known_args(other_args)
 
             # Run Experimentation.py using output_gz_fp as input
@@ -128,7 +137,7 @@ if __name__ == '__main__':
 
         # Generate dashboard files
         dashboard_file_path = os.path.join(output_dir, main_args.dashboard_filename)
-        d = dashboard_utils.create_stats(output_gz_fp)
+        d = dashboard_utils.create_stats(output_gz_fp, main_args.log_type)
         dashboard_utils.output_dashboard_data(d, dashboard_file_path)
         azure_util.upload_to_blob(ld_args.app_id,  os.path.join(main_args.output_folder, main_args.dashboard_filename), dashboard_file_path)
 
@@ -156,7 +165,7 @@ if __name__ == '__main__':
                 other_args.append('--model')
                 other_args.append(model_fp)
             other_args.append('--min_num_features')
-            other_args.append('1')
+            other_args.append('1')            
             fi_args, other_args = feature_importance_parser.parse_known_args(other_args)
 
             # Run FeatureImportance.py using output_gz_fp as input
