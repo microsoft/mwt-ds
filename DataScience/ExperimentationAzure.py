@@ -74,7 +74,7 @@ if __name__ == '__main__':
 
     
         # Download cooked logs
-        output_gz_fp, total_download_size = LogDownloader.download_container(**vars(ld_args))        
+        output_gz_fp, total_download_size = LogDownloader.download_container(**vars(ld_args))
 
         if output_gz_fp == None:
             Logger.error('No logs found between start date: {0} and end date:{1}. Exiting ... '.format(ld_args.start_date, ld_args.end_date))
@@ -92,7 +92,7 @@ if __name__ == '__main__':
 
         # Evaluate custom policies
         if main_args.summary_json:
-            Logger.info('Evaluating custom policies')            
+            Logger.info('Evaluating custom policies')
             summary_file_path = os.path.join(output_dir, main_args.summary_json)
             azure_util.download_from_blob(ld_args.app_id, os.path.join(main_args.output_folder, main_args.summary_json), summary_file_path)
             try:
@@ -165,7 +165,7 @@ if __name__ == '__main__':
                 other_args.append('--model')
                 other_args.append(model_fp)
             other_args.append('--min_num_features')
-            other_args.append('1')            
+            other_args.append('1')
             fi_args, other_args = feature_importance_parser.parse_known_args(other_args)
 
             # Run FeatureImportance.py using output_gz_fp as input

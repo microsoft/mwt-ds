@@ -98,7 +98,6 @@ def merge_and_unique_stats(stats_files, dashboard_file):
     output_dashboard_data(d, dashboard_file)
 
 def create_stats(log_fp, log_type='cb', d=None, predictions_files=None):
-    
     t0 = time.time()
     if d is None:
         d = {}
@@ -131,7 +130,7 @@ def create_stats(log_fp, log_type='cb', d=None, predictions_files=None):
                                 slot = []
                 print('Loaded {} predictions from {}'.format(len(pred[name]), pred_fp))
             else:
-                print('Name is not valid - Skip: {}'.format(pred_fp))            
+                print('Name is not valid - Skip: {}'.format(pred_fp))
         else:
             Logger.error('Error loading policy predictions. Pred file not found: {}'.format(pred_fp))
             sys.exit(1)
@@ -180,7 +179,6 @@ def create_stats(log_fp, log_type='cb', d=None, predictions_files=None):
     sys.stdout.flush()
 
     Logger.info('Read {} lines - Processed {} events'.format(i+1,evts))
-
     if any(len(pred[name]) != evts for name in pred):
         Logger.error('Error: Prediction file length ({}) is different from number of events in log file ({})'.format([len(pred[name]) for name in pred],evts))
         sys.exit(1)
