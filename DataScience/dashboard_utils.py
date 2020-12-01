@@ -128,9 +128,9 @@ def create_stats(log_fp, log_type='cb', d=None, predictions_files=None):
                             else:
                                 pred[name].append(slot)
                                 slot = []
-                print('Loaded {} predictions from {}'.format(len(pred[name]), pred_fp))
+                Logger.info('Loaded {} predictions from {}'.format(len(pred[name]), pred_fp))
             else:
-                print('Name is not valid - Skip: {}'.format(pred_fp))
+                Logger.info('Name is not valid - Skip: {}'.format(pred_fp))
         else:
             Logger.error('Error loading policy predictions. Pred file not found: {}'.format(pred_fp))
             sys.exit(1)
@@ -157,7 +157,6 @@ def create_stats(log_fp, log_type='cb', d=None, predictions_files=None):
         if log_type == 'ccb':
             if x.startswith(b'{"Timestamp"') and x.strip().endswith(b'}'):
                 data = ds_parse.ccb_json_cooked(x)
-                Logger.info(data)
                 aggregates_ccb_data(data, pred, d, evts)
 
         elif log_type == 'cb':
