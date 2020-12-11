@@ -5,7 +5,7 @@ import time
 from loggers import Logger
 
 def get_ts_5min_bin(ts):
-    str_5min = str(ts[:14],'utf-8')
+    str_5min = str(ts[:14])
     x = int(float(ts[14:16])/5)*5
     if x < 10:
         str_5min += '0'
