@@ -22,7 +22,11 @@ def get_prediction_prob(a0, pred_line):
                 sep = ':'
             else:
                 sep = ','+str(a0)+':'
-            pred_prob = float(ds_parse.extract_field(pred_line,sep,','))
+            x = ds_parse.extract_field(pred_line,sep,',')
+            if x == b'N/A':
+                pred_prob = 0                                
+            else:
+                pred_prob = float(x)
         else:
             if pred_line.startswith(str(a0)+':'):
                 pred_prob = 1
