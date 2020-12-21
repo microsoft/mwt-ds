@@ -278,7 +278,7 @@ def main(args):
         with gzip.open(args.file_path, 'rt', encoding='utf8') if args.file_path.endswith('.gz') else open(args.file_path, 'r', encoding="utf8") as data:
             counter = 0
             for line in data:
-                if (args.log_type == 'cb' and not line.startswith('{"_label_cost"')) or (args.log_type == 'ccb' and not line.startswith('{"Timestamp"')):
+                if (args.log_type == 'cb' and not line.startswith('{"_label_cost"')) or (args.log_type == 'ccb' and (not line.startswith('{"Timestamp"') and not line.startswith('{"_label_cost"'))):
                     continue
 
                 counter += 1
@@ -306,7 +306,7 @@ def main(args):
         if not action_features:
             action_features = action_tmp
         if not marginal_features:
-            marginal_features = marginal_tmp
+            marginal_features = marginal_tmp        
 
     print("\n***************************************")
     Logger.info("SETTINGS\n Base command + log file: {}\n".format(base_command) +
