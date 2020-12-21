@@ -306,7 +306,7 @@ def main(args):
         if not action_features:
             action_features = action_tmp
         if not marginal_features:
-            marginal_features = marginal_tmp        
+            marginal_features = marginal_tmp
 
     print("\n***************************************")
     Logger.info("SETTINGS\n Base command + log file: {}\n".format(base_command) +

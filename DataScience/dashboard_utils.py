@@ -239,7 +239,7 @@ def aggregates_cb_data(data, pred, d, evts):
             d[ts_bin]['baseline1']['n'] += r/data['p']
             d[ts_bin]['baseline1']['c'] = max(d[ts_bin]['baseline1']['c'], abs_r/data['p'])
             d[ts_bin]['baseline1']['SoS'] += (r/data['p'])**2
-    
+
     # update aggregates for additional policies from predictions
     for name in pred:
         # a-1: 0-index action
