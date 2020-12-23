@@ -114,20 +114,17 @@ def create_stats(log_fp, log_type='cb', d=None, predictions_files=None):
     for pred_fp in predictions_files:
         if os.path.isfile(pred_fp):
             name = pred_fp.split('.')[-2]   # check that policy name is encoded in file_name
-            if name:
-                if log_type == 'cb':
-                    pred[name] = [x.strip() for x in open(pred_fp) if x.strip()]
-                elif log_type == 'ccb':
-                    with open(pred_fp) as f:
-                        pred[name] = []
-                        slot = []
-                        for x in f:
-                            x = x.strip()
-                            if x:
-                                slot.append(x)
-                            else:
-                                pred[name].append(slot)
-                                slot = []
+            if name:                
+                with open(pred_fp) as f:
+                    pred[name] = []
+                    slot = []
+                    for x in f:
+                        x = x.strip()
+                        if x:
+                            slot.append(x)
+                        else:
+                            pred[name].append(slot)
+                            slot = []
                 Logger.info('Loaded {} predictions from {}'.format(len(pred[name]), pred_fp))
             else:
                 Logger.info('Name is not valid - Skip: {}'.format(pred_fp))
@@ -157,17 +154,21 @@ def create_stats(log_fp, log_type='cb', d=None, predictions_files=None):
         if log_type == 'ccb':
             if x.startswith(b'{"Timestamp"') and x.strip().endswith(b'}'):
                 data = ds_parse.ccb_json_cooked(x)
+                if data is None:
+                    continue
                 aggregates_ccb_data(data, pred, d, evts)
 
-        elif log_type == 'cb':
+        if log_type == 'ccb' or log_type == 'cb':
             if x.startswith(b'{"_label_cost":') and x.strip().endswith(b'}'):
                 data = ds_parse.json_cooked(x, do_decode=True)
+                if data is None or data['skipLearn']:
+                    continue
+                aggregates_cb_data(data, pred, d, evts)
 
-            # Skip wrongly formated lines or not activated lines
-            if data is None or data['skipLearn']:
-                continue
+        # Skip wrongly formated lines
+        if data is None:
+            continue
 
-            aggregates_cb_data(data, pred, d, evts)
         evts += 1
 
     if log_fp.endswith('.gz'):
@@ -242,7 +243,7 @@ def aggregates_cb_data(data, pred, d, evts):
     # update aggregates for additional policies from predictions
     for name in pred:
         # a-1: 0-index action
-        pred_prob = get_prediction_prob(data['a']-1, pred[name][evts])
+        pred_prob = get_prediction_prob(data['a']-1, pred[name][evts][0])
         d[ts_bin][name]['N'] += 1
         if pred_prob > 0:
             p_over_p = pred_prob/data['p']
@@ -270,53 +271,55 @@ def aggregates_ccb_data(data, pred, d, evts):
             d[ts_bin][name] = {'n':0.,'N':0,'d':0.,'Ne':0,'c':0.,'SoS':0}
 
     # update aggregates for online and baseline policies
-    d[ts_bin]['online']['d'] += len(data["_outcomes"])
-    d[ts_bin]['online']['N'] += len(data["_outcomes"])
-    d[ts_bin]['baseline1']['N'] += len(data["_outcomes"])
+    d[ts_bin]['online']['d'] += 1
+    d[ts_bin]['online']['N'] += 1
+    d[ts_bin]['baseline1']['N'] += 1
 
-    d[ts_bin]['baselineRand']['N'] += len(data["_outcomes"])
-    d[ts_bin]['baselineRand']['Ne'] += len(data["_outcomes"])
+    d[ts_bin]['baselineRand']['N'] += 1
+    d[ts_bin]['baselineRand']['Ne'] += 1
 
     for name in pred:
-        d[ts_bin][name]['N'] += len(data["_outcomes"])
+        d[ts_bin][name]['N'] += 1
+    
+    # currently ccb evaluations are supported only on the 1st slot
+    index = 0
+    item = data['_outcomes'][0]
+    reward = -float(item["_label_cost"])
+    abs_reward = abs(reward)
 
-    for index, item in enumerate(data['_outcomes']):
-        reward = -float(item["_label_cost"])
-        abs_reward = abs(reward)
+    d[ts_bin]['online']['n'] += reward
 
-        d[ts_bin]['online']['n'] += reward
-
-        if (item["_a"][0] == min(item["_a"])):
-            d[ts_bin]['baseline1']['Ne'] += len(data["_outcomes"])
-            d[ts_bin]['baseline1']['d'] += 1/item['_p'][0]
-            d[ts_bin]['baseline1']['n'] += reward/item["_p"][0]
-            d[ts_bin]['baseline1']['c'] = max(
-                d[ts_bin]['baseline1']['c'],
-                abs_reward / item["_p"][0]
-            )
-            d[ts_bin]['baseline1']['SoS'] += (reward/item["_p"][0])**2
-
-        d[ts_bin]['baselineRand']['d'] += 1/item['_p'][0]/len(item['_a'])
-        d[ts_bin]['baselineRand']['n'] += reward/item['_p'][0]/len(item['_a'])
-        d[ts_bin]['baselineRand']['c'] = max(
-            d[ts_bin]['baselineRand']['c'],
-            abs_reward/item['_p'][0]/len(item['_a'])
+    if (item["_a"][0] == min(item["_a"])):
+        d[ts_bin]['baseline1']['Ne'] += 1
+        d[ts_bin]['baseline1']['d'] += 1/item['_p'][0]
+        d[ts_bin]['baseline1']['n'] += reward/item["_p"][0]
+        d[ts_bin]['baseline1']['c'] = max(
+            d[ts_bin]['baseline1']['c'],
+            abs_reward / item["_p"][0]
         )
-        d[ts_bin]['baselineRand']['SoS'] += (reward/item['_p'][0]/len(item['_a']))**2
+        d[ts_bin]['baseline1']['SoS'] += (reward/item["_p"][0])**2
 
-        for name in pred:
-            pred_prob = get_prediction_prob(item['_a'][0], pred[name][evts][index])
-            if pred_prob > 0:
-                p_over_p = pred_prob/item['_p'][0]
-                d[ts_bin][name]['d'] += p_over_p
-                d[ts_bin][name]['Ne'] += 1
-                if reward != 0:
-                    d[ts_bin][name]['n'] += reward*p_over_p
-                    d[ts_bin][name]['c'] = max(
-                        d[ts_bin][name]['c'],
-                        abs_reward*p_over_p
-                    )
-                    d[ts_bin][name]['SoS'] += (reward*p_over_p)**2
+    d[ts_bin]['baselineRand']['d'] += 1/item['_p'][0]/len(item['_a'])
+    d[ts_bin]['baselineRand']['n'] += reward/item['_p'][0]/len(item['_a'])
+    d[ts_bin]['baselineRand']['c'] = max(
+        d[ts_bin]['baselineRand']['c'],
+        abs_reward/item['_p'][0]/len(item['_a'])
+    )
+    d[ts_bin]['baselineRand']['SoS'] += (reward/item['_p'][0]/len(item['_a']))**2
+
+    for name in pred:
+        pred_prob = get_prediction_prob(item['_a'][0], pred[name][evts][index])
+        if pred_prob > 0:
+            p_over_p = pred_prob/item['_p'][0]
+            d[ts_bin][name]['d'] += p_over_p
+            d[ts_bin][name]['Ne'] += 1
+            if reward != 0:
+                d[ts_bin][name]['n'] += reward*p_over_p
+                d[ts_bin][name]['c'] = max(
+                    d[ts_bin][name]['c'],
+                    abs_reward*p_over_p
+                )
+                d[ts_bin][name]['SoS'] += (reward*p_over_p)**2
     return d
 
 def add_parser_args(parser):
