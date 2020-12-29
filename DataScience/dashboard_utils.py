@@ -114,7 +114,7 @@ def create_stats(log_fp, log_type='cb', d=None, predictions_files=None):
     for pred_fp in predictions_files:
         if os.path.isfile(pred_fp):
             name = pred_fp.split('.')[-2]   # check that policy name is encoded in file_name
-            if name:                
+            if name:
                 with open(pred_fp) as f:
                     pred[name] = []
                     slot = []
@@ -154,7 +154,7 @@ def create_stats(log_fp, log_type='cb', d=None, predictions_files=None):
         if log_type == 'ccb':
             if x.startswith(b'{"Timestamp"') and x.strip().endswith(b'}'):
                 data = ds_parse.ccb_json_cooked(x)
-                if data is None:
+                if data is None or data.get("_skipLearn") == True:
                     continue
                 aggregates_ccb_data(data, pred, d, evts)
 
@@ -280,7 +280,7 @@ def aggregates_ccb_data(data, pred, d, evts):
 
     for name in pred:
         d[ts_bin][name]['N'] += 1
-    
+
     # currently ccb evaluations are supported only on the 1st slot
     index = 0
     item = data['_outcomes'][0]
