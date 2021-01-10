@@ -45,8 +45,8 @@ if __name__ == '__main__':
         main_parser.add_argument('--geneva_host', help="host for Geneva logging")
         main_parser.add_argument('--geneva_port', help="port for Geneva logging", type=int)
         main_parser.add_argument('--log_type', help="cooked log format e.g. cb, ccb", default='cb')
-        main_args, other_args = main_parser.parse_known_args(sys.argv[1:])        
-       
+        main_args, other_args = main_parser.parse_known_args(sys.argv[1:])
+
         # Parse LogDownloader args
         log_download_start_time = datetime.now()
         logdownloader_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
@@ -58,9 +58,9 @@ if __name__ == '__main__':
         ld_args, other_args = logdownloader_parser.parse_known_args(other_args)
         output_dir = os.path.join(ld_args.log_dir, ld_args.app_id)
         task_dir = os.path.dirname(os.path.dirname(ld_args.log_dir))
-  
+
         geneva_gbl_vals = {'appId': ld_args.app_id, 'jobId': main_args.evaluation_id}
-        
+
         Logger.create_loggers(geneva_namespace=main_args.geneva_namespace,
                               geneva_host=main_args.geneva_host,
                               geneva_port=main_args.geneva_port,
@@ -73,7 +73,7 @@ if __name__ == '__main__':
             Logger.info('Deleting ' + ld_args.log_dir)
             shutil.rmtree(ld_args.log_dir, ignore_errors=True)
 
-    
+
         # Download cooked logs
         output_gz_fp, total_download_size = LogDownloader.download_container(**vars(ld_args))
 
@@ -114,7 +114,7 @@ if __name__ == '__main__':
 
         if main_args.log_type == 'ccb':
             base_command = 'vw --ccb_explore_adf --epsilon 0 --dsjson -c '
-                
+
         if main_args.run_experimentation:
             experimentation_start_time = datetime.now()
             Logger.info('Running Experimentation')
@@ -167,6 +167,12 @@ if __name__ == '__main__':
                 other_args.append(model_fp)
             other_args.append('--min_num_features')
             other_args.append('1')
+
+            # Temporary ccb defaults until passing user provided ml args issue is resolved
+            if main_args.log_type == 'ccb':
+                other_args.append('--ml_args')
+                other_args.append("--ccb_explore_adf --epsilon 0 -l 0.01")
+
             fi_args, other_args = feature_importance_parser.parse_known_args(other_args)
 
             # Run FeatureImportance.py using output_gz_fp as input
