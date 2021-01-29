@@ -242,7 +242,7 @@ def generate_predictions_files(log_fp, policies, log_type):
 def add_parser_args(parser):
     parser.add_argument('-f','--file_path', help="data file path (.json or .json.gz format - each line is a dsjson)", required=True)
     parser.add_argument('-b','--base_command', help="base Vowpal Wabbit command (default: vw --cb_adf --dsjson -c )", default='vw --cb_adf --dsjson -c ')
-    parser.add_argument('-p','--n_proc', type=int, help="number of parallel processes to use (default: physical processors)", default=max(psutil.cpu_count(logical=False) - 1, 1))
+    parser.add_argument('-p','--n_proc', type=int, help="number of parallel processes to use (default: physical processors)", default=psutil.cpu_count(logical=False))
     parser.add_argument('--shared_namespaces', type=str, help="shared feature namespaces; e.g., 'abc' means namespaces a, b, and c (default: auto-detect from data file)", default='')
     parser.add_argument('--action_namespaces', type=str, help="action feature namespaces (default: auto-detect from data file)", default='')
     parser.add_argument('--marginal_namespaces', type=str, help="marginal feature namespaces (default: auto-detect from data file)", default='')
