@@ -1,0 +1,14 @@
+﻿SET @@FeaturePreviews = "DataPartitionedOutput:on";
+
+USE DATABASE [DecisionServiceDB];
+
+DECLARE @_appId string = "";    //your appId
+DECLARE @_account string = "";    // your account name
+DECLARE @_model string = "";  // your model
+
+DECLARE @_start DateTime = new DateTime(2020, 04, 28);  //your inclusive start date
+DECLARE @_end DateTime = new DateTime(2020, 04, 29);    //your non-inclusive end date
+
+DECLARE @_adlsPath = "/daily/";
+
+DecisionServiceDB.dbo.CB_E2E(@_account, @_appId, @_model, @_start, @_end, @_adlsPath);

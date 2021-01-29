@@ -21,6 +21,7 @@ namespace DecisionServiceExtractor
         private readonly ColumnInfo PdropColumn;
         private readonly ColumnInfo IsDanglingColumn;
         private readonly ColumnInfo SkipLearnColumn;
+        private readonly ColumnInfo RewardValueColumn;
 
         private readonly bool hasJsonObject;
         private FieldExpression[] expressions;
@@ -41,6 +42,7 @@ namespace DecisionServiceExtractor
             this.PdropColumn = new ColumnInfo(schema, "pdrop", typeof(float));
             this.IsDanglingColumn = new ColumnInfo(schema, "IsDangling", typeof(bool));
             this.SkipLearnColumn = new ColumnInfo(schema, "SkipLearn", typeof(bool));
+            this.RewardValueColumn = new ColumnInfo(schema, "RewardValue", typeof(float?));
 
             this.hasJsonObject = false;
             foreach (var fe in expressions)
@@ -185,6 +187,9 @@ namespace DecisionServiceExtractor
                                     case "EnqueuedTimeUtc":
                                         output.Set(this.EnqueuedTimeUtcColumn, (DateTime)jsonReader.ReadAsDateTime());
                                         output.Set(this.IsDanglingColumn, true);
+                                        break;
+                                    case "RewardValue":
+                                        Helpers.ExtractPropertyDoubleOpt(jsonReader, output, this.RewardValueColumn);
                                         break;
                                     default:
                                         jsonReader.Skip();

@@ -1,0 +1,19 @@
+﻿CREATE PROCEDURE IF NOT EXISTS [dbo].[CCB_E2E_fast](@_appId string, @_model string, @_start DateTime, @_end DateTime, @_adlsPath string)  
+AS  
+BEGIN 
+    DECLARE @Folder string = @_adlsPath + @_appId + "/{model}/";      //your folder
+    DECLARE @InputFile string = @Folder + "interactions-{date:yyyy}-{date:MM}-{date:dd}.csv";
+    DECLARE @OutputFileStatistics string = @Folder + "statistics-{date:yyyy}-{date:MM}-{date:dd}.csv";
+    
+    @Interactions = ExtractCCBDecisions(@InputFile, @_model, @_start, @_end);
+
+    @Statistics =
+        CCBStats
+        (
+            @Interactions
+        );
+
+    OUTPUT @Statistics
+    TO @OutputFileStatistics
+    USING Outputters.Csv(outputHeader:true);
+END;

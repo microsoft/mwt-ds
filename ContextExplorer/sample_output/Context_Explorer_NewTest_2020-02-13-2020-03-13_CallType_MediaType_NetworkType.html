@@ -92,9 +92,11 @@ ul li { padding: 3px 3px; }
 
 <div id="OverallTrend" class="tabcontent">
   <h3>Overall - Trend</h3>
-  Rewards for the control group are estimated with Inverse Propensity Scoring(IPS). Reference: <a href="https://en.wikipedia.org/wiki/Inverse_probability_weighting">Wikipedia</a>, <a href="https://github.com/microsoft/mwt-ds/blob/master/images/MWT-WhitePaper.pdf">Paper</a> page 12. 
+  Rewards for the control group are estimated with Inverse Propensity Scoring(IPS). 
+                       Reference: <a href="https://en.wikipedia.org/wiki/Inverse_probability_weighting">Wikipedia</a>, 
+                       <a href="https://github.com/microsoft/mwt-ds/blob/master/images/MWT-WhitePaper.pdf">Paper</a> page 12.
   <br><br>
-  <img src="pic\NewTest_All_2020-02-13-2020-03-13.png" width="1200"><br>
+  <img src="pic\NewTest_All_2020-02-13-2020-03-13_CallType_MediaType_NetworkType.png" width="1200"><br>
 
 </div>
 
@@ -143,27 +145,6 @@ ul li { padding: 3px 3px; }
       <td>NewTest</td>
       <td>1_1</td>
       <td>Audio</td>
-      <td>wifi</td>
-      <td>28</td>
-      <td>616</td>
-      <td>-0.094817</td>
-      <td>0.038415</td>
-      <td>0.133232</td>
-      <td>0.000000</td>
-      <td>*</td>
-      <td>737</td>
-      <td>18711</td>
-      <td>-0.080374</td>
-      <td>0.036286</td>
-      <td>0.116660</td>
-      <td>0.0</td>
-      <td>*</td>
-      <td>{'7': 1}</td>
-    </tr>
-    <tr>
-      <td>NewTest</td>
-      <td>1_1</td>
-      <td>Audio</td>
       <td>wired</td>
       <td>20</td>
       <td>613</td>
@@ -185,27 +166,6 @@ ul li { padding: 3px 3px; }
       <td>NewTest</td>
       <td>1_1</td>
       <td>Video</td>
-      <td>wifi</td>
-      <td>26</td>
-      <td>600</td>
-      <td>0.013455</td>
-      <td>0.064231</td>
-      <td>0.050775</td>
-      <td>0.000000</td>
-      <td>*</td>
-      <td>751</td>
-      <td>18724</td>
-      <td>0.012004</td>
-      <td>0.061820</td>
-      <td>0.049817</td>
-      <td>0.0</td>
-      <td>*</td>
-      <td>{'1': 1}</td>
-    </tr>
-    <tr>
-      <td>NewTest</td>
-      <td>1_1</td>
-      <td>Video</td>
       <td>wired</td>
       <td>14</td>
       <td>660</td>
@@ -219,6 +179,27 @@ ul li { padding: 3px 3px; }
       <td>-0.065755</td>
       <td>0.070655</td>
       <td>0.136410</td>
+      <td>0.0</td>
+      <td>*</td>
+      <td>{'7': 1}</td>
+    </tr>
+    <tr>
+      <td>NewTest</td>
+      <td>1_1</td>
+      <td>Audio</td>
+      <td>wifi</td>
+      <td>28</td>
+      <td>616</td>
+      <td>-0.094817</td>
+      <td>0.038415</td>
+      <td>0.133232</td>
+      <td>0.000000</td>
+      <td>*</td>
+      <td>737</td>
+      <td>18711</td>
+      <td>-0.080374</td>
+      <td>0.036286</td>
+      <td>0.116660</td>
       <td>0.0</td>
       <td>*</td>
       <td>{'7': 1}</td>
@@ -264,6 +245,27 @@ ul li { padding: 3px 3px; }
       <td>0.0</td>
       <td>*</td>
       <td>{'5': 1}</td>
+    </tr>
+    <tr>
+      <td>NewTest</td>
+      <td>1_1</td>
+      <td>Video</td>
+      <td>wifi</td>
+      <td>26</td>
+      <td>600</td>
+      <td>0.013455</td>
+      <td>0.064231</td>
+      <td>0.050775</td>
+      <td>0.000000</td>
+      <td>*</td>
+      <td>751</td>
+      <td>18724</td>
+      <td>0.012004</td>
+      <td>0.061820</td>
+      <td>0.049817</td>
+      <td>0.0</td>
+      <td>*</td>
+      <td>{'1': 1}</td>
     </tr>
     <tr>
       <td>NewTest</td>
@@ -348,7 +350,10 @@ ul li { padding: 3px 3px; }
 </table>
 
   <br><br>
-  <i><font size="2">* Note: Some contexts are filtered out due to sample size constraints and sensitivity limits. Please find information of all contexts in the <a href="log_all_contexts_NewTest_2020-02-13-2020-03-13.xlsx"> log file</a></font></i>
+  <i><font size="2">
+    * Note: Some contexts are filtered out due to sample size constraints and sensitivity limits. Please find information of all contexts in the <a href="log_all_contexts_NewTest_2020-02-13-2020-03-13_CallType_MediaType_NetworkType.xlsx">log file</a>. <br>
+    * Note: There could be multiple Last Exploit Actions when (1) the probablities of taking the actions are the same or (2) group continuous values. 
+  </font></i>
 
 </div>
 
@@ -356,10 +361,10 @@ ul li { padding: 3px 3px; }
   <h3>Context - Trend</h3>
   
   <b>Top Positive Movements</b><br>
-  <img src="pic\NewTest_1_1Audiowifi_2020-02-13-2020-03-13.png" width="1200"><br><img src="pic\NewTest_1_1Audiowired_2020-02-13-2020-03-13.png" width="1200"><br><img src="pic\NewTest_1_1Videowifi_2020-02-13-2020-03-13.png" width="1200"><br><img src="pic\NewTest_1_1Videowired_2020-02-13-2020-03-13.png" width="1200"><br><img src="pic\NewTest_GVCAudiowifi_2020-02-13-2020-03-13.png" width="1200"><br><img src="pic\NewTest_GVCVideowifi_2020-02-13-2020-03-13.png" width="1200"><br><img src="pic\NewTest_GVCVideowired_2020-02-13-2020-03-13.png" width="1200"><br>
+  <img src="pic\NewTest_1_1Audiowired_2020-02-13-2020-03-13_CallType_MediaType_NetworkType.png" width="1200"><br><img src="pic\NewTest_1_1Videowired_2020-02-13-2020-03-13_CallType_MediaType_NetworkType.png" width="1200"><br><img src="pic\NewTest_1_1Audiowifi_2020-02-13-2020-03-13_CallType_MediaType_NetworkType.png" width="1200"><br><img src="pic\NewTest_GVCAudiowifi_2020-02-13-2020-03-13_CallType_MediaType_NetworkType.png" width="1200"><br><img src="pic\NewTest_GVCVideowifi_2020-02-13-2020-03-13_CallType_MediaType_NetworkType.png" width="1200"><br><img src="pic\NewTest_1_1Videowifi_2020-02-13-2020-03-13_CallType_MediaType_NetworkType.png" width="1200"><br><img src="pic\NewTest_GVCVideowired_2020-02-13-2020-03-13_CallType_MediaType_NetworkType.png" width="1200"><br>
   <br>
   <b>Top Negative Movements</b><br>
-  <img src="pic\NewTest_GVCAudiowired_2020-02-13-2020-03-13.png" width="1200"><br>
+  <img src="pic\NewTest_GVCAudiowired_2020-02-13-2020-03-13_CallType_MediaType_NetworkType.png" width="1200"><br>
 
   
 </div>
