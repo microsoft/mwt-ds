@@ -1,5 +1,6 @@
 from subprocess import check_output, STDOUT, DEVNULL, Popen
-import multiprocessing, psutil
+import psutil
+from multiprocessing.pool import ThreadPool
 import sys, os
 import json, re
 from datetime import datetime, timedelta
@@ -100,7 +101,7 @@ def run_experiment(command):
     
 def run_experiment_set(command_list, n_proc):
     # Run the experiments in parallel using n_proc processes
-    p = multiprocessing.Pool(n_proc)
+    p = ThreadPool(n_proc)
     results = p.map(run_experiment, command_list)
     results.sort(key=lambda result: result.loss)
     p.close()
