@@ -4,4 +4,4 @@ azure.storage.blob==1.3.0
 numpy==1.17.0
 pandas==0.24.2
 fluent-logger==0.9.6
-memory_profiler
+memory-profiler==0.3
