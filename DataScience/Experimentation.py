@@ -11,6 +11,7 @@ from enum import Enum
 import numpy as np
 import collections
 from loggers import Logger
+from memory_profiler import profile
 
 class Command:
     def __init__(self, base, cb_type=None, marginal_list=None, ignore_list=None, interaction_list=None, regularization=None, learning_rate=None, power_t=None, clone_from=None):
@@ -86,6 +87,7 @@ def result_writer(command_list):
         experiment_file.write(line + "\n")
     experiment_file.flush()
     
+@profile
 def run_experiment(command):
     try:
         results = check_output(command.full_command.split(' '), stderr=STDOUT).decode("utf-8")
@@ -95,6 +97,8 @@ def run_experiment(command):
             Logger.info("Ave. Loss: {:12}Policy: {}".format(str(command.loss),command.full_command))
         else:
             Logger.error("Error for command {0}: {} lines with 'average loss = '. Expected 1".format(command.full_command, len(loss_lines)))
+        sys.stdout.flush()
+        sys.stderr.flush()
     except:
         Logger.exception("Error for command {}".format(command.full_command))
     return command
@@ -422,9 +426,5 @@ def main(args):
         
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-
-
     add_parser_args(parser)
-    main(parser.parse_args())
-
     main(parser.parse_args())

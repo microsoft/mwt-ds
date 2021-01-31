@@ -8,13 +8,11 @@ import dashboard_utils
 import LogDownloader
 from loggers import Logger
 
-import uuid
-
 def check_system():
     try:
         bytes_in_gb = 1024**3
-        Logger.info('Cpu count : {}\n'.format(psutil.cpu_count()) +
-                    'Cpu count : {}\n'.format(psutil.cpu_count(logical=False)) +
+        Logger.info('Logical Cpu count : {}\n'.format(psutil.cpu_count()) +
+                   'Cpu count : {}\n'.format(psutil.cpu_count(logical=False)) +
                     '/mnt Total size: {:.3f} GB\n'.format(shutil.disk_usage('/mnt').total / bytes_in_gb) +
                     '/mnt Used size:  {:.3f} GB\n'.format(shutil.disk_usage('/mnt').used  / bytes_in_gb) +
                     '/mnt Free size:  {:.3f} GB\n'.format(shutil.disk_usage('/mnt').free  / bytes_in_gb))
