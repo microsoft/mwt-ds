@@ -1,5 +1,6 @@
 from subprocess import check_output, STDOUT, DEVNULL, Popen
 import psutil
+import memory_profiler
 from multiprocessing.pool import ThreadPool
 import sys, os
 import json, re

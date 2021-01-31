@@ -1,4 +1,4 @@
-import argparse, json, os, psutil, sys, shutil
+import argparse, json, os, psutil, sys, shutil, memory_profiler
 from datetime import datetime
 from subprocess import check_output, STDOUT
 from AzureUtil import AzureUtil
