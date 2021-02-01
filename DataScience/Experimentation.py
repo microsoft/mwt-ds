@@ -86,7 +86,6 @@ def result_writer(command_list):
         experiment_file.write(line + "\n")
     experiment_file.flush()
     
-
 def run_experiment(command):
     try:
         results = check_output(command.full_command.split(' '), stderr=STDOUT).decode("utf-8")
@@ -102,7 +101,6 @@ def run_experiment(command):
         Logger.exception("Error for command {}".format(command.full_command))
     return command
 
-@profile
 def run_experiment_set(command_list, n_proc):
     # Run the experiments in parallel using n_proc processes
     p = ThreadPool(n_proc)
