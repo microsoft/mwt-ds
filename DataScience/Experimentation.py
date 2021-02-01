@@ -11,7 +11,6 @@ from enum import Enum
 import numpy as np
 import collections
 from loggers import Logger
-from memory_profiler import profile
 
 class Command:
     def __init__(self, base, cb_type=None, marginal_list=None, ignore_list=None, interaction_list=None, regularization=None, learning_rate=None, power_t=None, clone_from=None):
@@ -87,7 +86,7 @@ def result_writer(command_list):
         experiment_file.write(line + "\n")
     experiment_file.flush()
     
-@profile
+
 def run_experiment(command):
     try:
         results = check_output(command.full_command.split(' '), stderr=STDOUT).decode("utf-8")
@@ -143,15 +142,23 @@ def detect_namespaces(j_obj, ns_set, marginal_set):
                 ret_val = detect_namespaces(item, ns_set, marginal_set)
                 if ret_val in [PropType.BASIC, PropType.MARGINAL]:
                     ns_set.update([key])
-                    if ret_val is PropType.MARGINAL:
-                        marginal_set.update([key])
+                    # TODO : If we have more than one namespace starting from the same letter 
+                    # but only one of them has “constant” feature – in this case vw is spitting 
+                    # out warning message per example which is causing memory growth in Iris case
+                    # Uncomment following 2 lines once resolved                     
+                    # if ret_val is PropType.MARGINAL:
+                    #    marginal_set.update([key])
         elif type(value) is dict:
             # Recurse on the value
             ret_val = detect_namespaces(value, ns_set, marginal_set)
             if ret_val in [PropType.BASIC, PropType.MARGINAL]:
                 ns_set.update([key])
-                if ret_val is PropType.MARGINAL:
-                    marginal_set.update([key])
+                # TODO : If we have more than one namespace starting from the same letter 
+                # but only one of them has “constant” feature – in this case vw is spitting 
+                # out warning message per example which is causing memory growth in Iris case
+                # Uncomment following 2 lines once resolved
+                # if ret_val is PropType.MARGINAL:
+                #    marginal_set.update([key])
         elif value is not None:
             prop_type = PropType.BASIC
 
