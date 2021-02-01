@@ -1,6 +1,5 @@
 from subprocess import check_output, STDOUT, DEVNULL, Popen
 import psutil
-import memory_profiler
 from multiprocessing.pool import ThreadPool
 import sys, os
 import json, re
@@ -103,7 +102,8 @@ def run_experiment(command):
     except:
         Logger.exception("Error for command {}".format(command.full_command))
     return command
-    
+
+@profile
 def run_experiment_set(command_list, n_proc):
     # Run the experiments in parallel using n_proc processes
     p = ThreadPool(n_proc)
