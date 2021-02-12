@@ -95,10 +95,12 @@ def run_experiment(command):
             Logger.info("Ave. Loss: {:12}Policy: {}".format(str(command.loss),command.full_command))
         else:
             Logger.error("Error for command {0}: {} lines with 'average loss = '. Expected 1".format(command.full_command, len(loss_lines)))
+        sys.stdout.flush()
+        sys.stderr.flush()
     except:
         Logger.exception("Error for command {}".format(command.full_command))
     return command
-    
+
 def run_experiment_set(command_list, n_proc):
     # Run the experiments in parallel using n_proc processes
     p = ThreadPool(n_proc)
@@ -138,15 +140,23 @@ def detect_namespaces(j_obj, ns_set, marginal_set):
                 ret_val = detect_namespaces(item, ns_set, marginal_set)
                 if ret_val in [PropType.BASIC, PropType.MARGINAL]:
                     ns_set.update([key])
-                    if ret_val is PropType.MARGINAL:
-                        marginal_set.update([key])
+                    # TODO : If we have more than one namespace starting from the same letter 
+                    # but only one of them has “constant” feature – in this case vw is spitting 
+                    # out warning message per example which is causing memory growth in Iris case
+                    # Uncomment following 2 lines once resolved                     
+                    # if ret_val is PropType.MARGINAL:
+                    #    marginal_set.update([key])
         elif type(value) is dict:
             # Recurse on the value
             ret_val = detect_namespaces(value, ns_set, marginal_set)
             if ret_val in [PropType.BASIC, PropType.MARGINAL]:
                 ns_set.update([key])
-                if ret_val is PropType.MARGINAL:
-                    marginal_set.update([key])
+                # TODO : If we have more than one namespace starting from the same letter 
+                # but only one of them has “constant” feature – in this case vw is spitting 
+                # out warning message per example which is causing memory growth in Iris case
+                # Uncomment following 2 lines once resolved
+                # if ret_val is PropType.MARGINAL:
+                #    marginal_set.update([key])
         elif value is not None:
             prop_type = PropType.BASIC
 
@@ -422,9 +432,5 @@ def main(args):
         
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-
-
     add_parser_args(parser)
-    main(parser.parse_args())
-
     main(parser.parse_args())
