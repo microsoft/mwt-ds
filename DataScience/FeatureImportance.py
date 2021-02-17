@@ -119,8 +119,10 @@ def get_feature_importance(log_file, ml_args, warmstart_model=None, min_num_feat
     try:
         invert_hash_process.wait(invert_hash_timeout)
     except TimeoutExpired:
-        # Since the invert hash file is not generated, subsequent commands will fail as well so the feature importance computation stops early.
+        Logger.info('Invert hash file generation timed out after {0} seconds.'.format(invert_hash_timeout))
         invert_hash_process.kill()
+        Logger.info('Exit the computation of feature importance')
+        return [[],[]]
     inv_hash = get_feature_inv_hash(invHash_fp)
 
     print('\n=====================================')
@@ -162,8 +164,8 @@ def add_parser_args(parser):
     parser.add_argument('-d', '--data', type=str, help="input log file.", required=True)
     parser.add_argument('--ml_args', help="ML arguments (default: --cb_adf -l 0.01)", default='--cb_adf -l 0.01')
     parser.add_argument('-m', '--model', type=str, help="VW warmstart_model.", default=None)
-    parser.add_argument('-n', '--min_num_features', type=int, help="Minimum Number of features.", default=5)
-    parser.add_argument('--invert_hash_timeout', type=int, help="Timeout in seconds for computing invert hash (default: 5 hours).", default=5*3600)
+    parser.add_argument('-n', '--min_num_features', type=str, help="Minimum Number of features.", default='5')
+    parser.add_argument('--invert_hash_timeout', type=str, help="Timeout in seconds for computing invert hash (default: 5 hours).", default='18000')
 
 def main(args):
     try:
@@ -171,7 +173,7 @@ def main(args):
     except:
         Logger.error("Vowpal Wabbit executable not found. Please install and add it to your path")
         sys.exit(1)
-    return get_feature_importance(args.data, args.ml_args, args.model, args.min_num_features, args.invert_hash_timeout)
+    return get_feature_importance(args.data, args.ml_args, args.model, int(args.min_num_features), int(args.invert_hash_timeout))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
