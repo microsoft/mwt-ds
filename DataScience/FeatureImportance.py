@@ -35,7 +35,7 @@ Emotion2^sadness:157471:-1.35735
 '''
 
 import os, argparse, sys
-from subprocess import check_output, DEVNULL
+from subprocess import check_output, DEVNULL, Popen, TimeoutExpired
 from loggers import Logger
 
 def get_pretty_feature(feature):
@@ -77,7 +77,7 @@ def get_feature_inv_hash(fp):
             if (len(data) == 3):
                 inv_hash[data[1]] = data[0]
     return inv_hash
-    
+
 # return unique buckets of features from the feature funnel.
 # sample: input => [['c','b','a','d','e'],['b','c','a'],['a']] returns output => [['a'], ['b', 'c'], ['d', 'e']]
 def get_feature_buckets(features_funnel):
@@ -91,10 +91,10 @@ def get_feature_buckets(features_funnel):
             union_features.extend(unique_features)
     return feature_buckets
 
-def get_feature_importance(log_file, ml_args, warmstart_model=None, min_num_features=5):
+def get_feature_importance(log_file, ml_args, warmstart_model=None, min_num_features=5, invert_hash_timeout=5*3600):
     invHash_fp = log_file+'.invHash.txt'
 
-    if ' --l1 ' in ml_args: 
+    if ' --l1 ' in ml_args:
         temp = ml_args.split(' --l1 ',1)
         ml_args = temp[0]
         if ' ' in temp[1]:
@@ -105,7 +105,7 @@ def get_feature_importance(log_file, ml_args, warmstart_model=None, min_num_feat
             l1 = float(temp[1])
     else:
         l1 = 1e-7
-    
+
     vw_base = 'vw ' + ml_args + ' --dsjson --data {0} --quiet'.format(log_file)
     if warmstart_model:
         vw_base += ' -i {0}'.format(warmstart_model)
@@ -115,7 +115,12 @@ def get_feature_importance(log_file, ml_args, warmstart_model=None, min_num_feat
 
     vw_inv_hash_cmd = vw_base + ' --invert_hash {0}'.format(invHash_fp)
     Logger.info('command to get invert hash file: {0}'.format(vw_inv_hash_cmd))
-    os.system(vw_inv_hash_cmd)
+    invert_hash_process = Popen(vw_inv_hash_cmd.split())
+    try:
+        invert_hash_process.wait(invert_hash_timeout)
+    except TimeoutExpired:
+        # Since the invert hash file is not generated, subsequent commands will fail as well so the feature importance computation stops early.
+        invert_hash_process.kill()
     inv_hash = get_feature_inv_hash(invHash_fp)
 
     print('\n=====================================')
@@ -132,14 +137,14 @@ def get_feature_importance(log_file, ml_args, warmstart_model=None, min_num_feat
         features = extract_features(readModel_fp, inv_hash)
         num_features = len(features)
         Logger.info('L1: {0:.0e} - Num of Features: {1}, File - {2}'.format(l1, num_features, os.path.basename(readModel_fp)))
-        
+
         all_features_funnel.append(features)
-        
+
         # If we fall below the minimum number of features, then break out of the loop.
         if num_features < min_num_features:
             Logger.info('Number of features is {0} which is below the minimum of {1}. Exiting the loop with L1 value of: {2:.0e}'.format(num_features, min_num_features, l1))
             break
-            
+
         # Add a max run count so we avoid getting stuck in an infinite loop for any special case.
         if index > max_run_count:
             Logger.info('Run count exceeds max run count. Exiting the loop with L1 value of: {0:.0e}'.format(l1))
@@ -152,12 +157,13 @@ def get_feature_importance(log_file, ml_args, warmstart_model=None, min_num_feat
     pretty_feature_buckets = [[get_pretty_features(feature) for feature in feature_bucket] for feature_bucket in feature_buckets]
     pretty_feature_buckets = [[f for f in bucket if f.lower() not in not_required_features] for bucket in pretty_feature_buckets]
     return [feature_buckets, pretty_feature_buckets]
-    
+
 def add_parser_args(parser):
     parser.add_argument('-d', '--data', type=str, help="input log file.", required=True)
     parser.add_argument('--ml_args', help="ML arguments (default: --cb_adf -l 0.01)", default='--cb_adf -l 0.01')
     parser.add_argument('-m', '--model', type=str, help="VW warmstart_model.", default=None)
-    parser.add_argument('-n', '--min_num_features', type=str, help="Minimum Number of features.", default='5')
+    parser.add_argument('-n', '--min_num_features', type=int, help="Minimum Number of features.", default=5)
+    parser.add_argument('--invert_hash_timeout', type=int, help="Timeout in seconds for computing invert hash (default: 5 hours).", default=5*3600)
 
 def main(args):
     try:
@@ -165,7 +171,7 @@ def main(args):
     except:
         Logger.error("Vowpal Wabbit executable not found. Please install and add it to your path")
         sys.exit(1)
-    return get_feature_importance(args.data, args.ml_args, args.model, int(args.min_num_features))
+    return get_feature_importance(args.data, args.ml_args, args.model, args.min_num_features, args.invert_hash_timeout)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

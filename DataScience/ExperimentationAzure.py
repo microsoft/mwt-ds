@@ -22,30 +22,32 @@ def check_system():
         Logger.exception()
 
 if __name__ == '__main__':
+    # Parse system parameters
+    main_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+    main_parser.add_argument('--evaluation_id', help="evaluation id")
+    main_parser.add_argument('--output_folder', help="storage account container's job folder where output files are stored", required=True)
+    main_parser.add_argument('--dashboard_filename', help="name of the output dashboard file", default='aggregates.txt')
+    main_parser.add_argument('--summary_json', help="json file containing custom policy commands to run", default='')
+    main_parser.add_argument('--run_experimentation', help="run Experimentation.py", action='store_true')
+    main_parser.add_argument('--delete_logs_dir', help="delete logs directory before starting to download new logs", action='store_true')
+    main_parser.add_argument('--cleanup', help="delete logs and created files after use", action='store_true')
+    main_parser.add_argument('--get_feature_importance', help="run FeatureImportance.py", action='store_true')
+    main_parser.add_argument('--feature_importance_filename', help="name of the output feature importance file", default='featureimportance.json')
+    main_parser.add_argument('--feature_importance_raw_filename', help="name of the output feature importance file with raw (unparsed) features", default='featureimportanceraw.json')
+    main_parser.add_argument('--feature_importance_timeout', help="timeout for computing the feature importance (default: 5 hours)", type=int, default=5*3600)
+    main_parser.add_argument('--ml_args', help="the online policy that we need for calculating the feature importances", required=True)
+    main_parser.add_argument('--geneva_namespace', help="namespace for Geneva logging")
+    main_parser.add_argument('--geneva_host', help="host for Geneva logging")
+    main_parser.add_argument('--geneva_port', help="port for Geneva logging", type=int)
+    main_parser.add_argument('--log_type', help="cooked log format e.g. cb, ccb", default='cb')
+    main_args, other_args = main_parser.parse_known_args(sys.argv[1:])
+
     try:
         # Change directory to working directory to have vw.exe in path
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
         start_time = datetime.now()
         timestamp = start_time.strftime("%Y-%m-%d-%H_%M_%S")
 
-        # Parse system parameters
-        main_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-        main_parser.add_argument('--evaluation_id', help="evaluation id")
-        main_parser.add_argument('--output_folder', help="storage account container's job folder where output files are stored", required=True)
-        main_parser.add_argument('--dashboard_filename', help="name of the output dashboard file", default='aggregates.txt')
-        main_parser.add_argument('--summary_json', help="json file containing custom policy commands to run", default='')
-        main_parser.add_argument('--run_experimentation', help="run Experimentation.py", action='store_true')
-        main_parser.add_argument('--delete_logs_dir', help="delete logs directory before starting to download new logs", action='store_true')
-        main_parser.add_argument('--cleanup', help="delete logs and created files after use", action='store_true')
-        main_parser.add_argument('--get_feature_importance', help="run FeatureImportance.py", action='store_true')
-        main_parser.add_argument('--feature_importance_filename', help="name of the output feature importance file", default='featureimportance.json')
-        main_parser.add_argument('--feature_importance_raw_filename', help="name of the output feature importance file with raw (unparsed) features", default='featureimportanceraw.json')
-        main_parser.add_argument('--ml_args', help="the online policy that we need for calculating the feature importances", required=True)
-        main_parser.add_argument('--geneva_namespace', help="namespace for Geneva logging")
-        main_parser.add_argument('--geneva_host', help="host for Geneva logging")
-        main_parser.add_argument('--geneva_port', help="port for Geneva logging", type=int)
-        main_parser.add_argument('--log_type', help="cooked log format e.g. cb, ccb", default='cb')
-        main_args, other_args = main_parser.parse_known_args(sys.argv[1:])
 
         # Parse LogDownloader args
         log_download_start_time = datetime.now()
@@ -167,6 +169,10 @@ if __name__ == '__main__':
                 other_args.append(model_fp)
             other_args.append('--min_num_features')
             other_args.append('1')
+
+            # Add a timeout for computing invert hash so that FeatureImportance does not take forever to run.
+            other_args.append('--invert_hash_timeout')
+            other_args.append(str(main_args.feature_importance_timeout))
 
             # Temporary ccb defaults until passing user provided ml args issue is resolved
             if main_args.log_type == 'ccb':
