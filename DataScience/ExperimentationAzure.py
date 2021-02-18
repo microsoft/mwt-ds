@@ -33,6 +33,7 @@ if __name__ == '__main__':
         main_parser.add_argument('--evaluation_id', help="evaluation id")
         main_parser.add_argument('--output_folder', help="storage account container's job folder where output files are stored", required=True)
         main_parser.add_argument('--dashboard_filename', help="name of the output dashboard file", default='aggregates.txt')
+        main_parser.add_argument('--total_aggregates_filename', help="name of the output file for total aggregates", default='totalaggregates.json')
         main_parser.add_argument('--summary_json', help="json file containing custom policy commands to run", default='')
         main_parser.add_argument('--run_experimentation', help="run Experimentation.py", action='store_true')
         main_parser.add_argument('--delete_logs_dir', help="delete logs directory before starting to download new logs", action='store_true')
@@ -104,7 +105,7 @@ if __name__ == '__main__':
                         policyArgs = p['arguments']
                         Logger.info('Name: ' + policyName)
                         Logger.info('Command: ' + policyArgs)
-                        custom_command = "vw " + policyArgs + " -d " + output_gz_fp + " -p " + output_gz_fp + "." + policyName + ".pred"
+                        custom_command = "vw " + policyArgs + " -d " + output_gz_fp + " -p " + output_gz_fp + "." + policyName + ".pred" + " -f " + os.path.join(output_dir, 'model.' + policyName + '.vw')
                         try:
                             check_output(custom_command.split(' '), stderr=STDOUT)
                         except:
@@ -136,16 +137,23 @@ if __name__ == '__main__':
             azure_util.upload_to_blob(ld_args.app_id,  os.path.join(main_args.output_folder, "experiments.csv"), experiments_file_path)
             if main_args.cleanup: os.remove(experiments_file_path)
 
-        # Generate dashboard files
+        # Generate dashboard and model files
         dashboard_file_path = os.path.join(output_dir, main_args.dashboard_filename)
         d = dashboard_utils.create_stats(output_gz_fp, main_args.log_type)
-        dashboard_utils.output_dashboard_data(d, dashboard_file_path)
+        total_aggregates = dashboard_utils.output_dashboard_data(d, dashboard_file_path)
         azure_util.upload_to_blob(ld_args.app_id,  os.path.join(main_args.output_folder, main_args.dashboard_filename), dashboard_file_path)
+        total_aggregates_file_path = os.path.join(output_dir, main_args.total_aggregates_filename)
+        with open(total_aggregates_file_path, 'w') as f:
+            f.write(json.dumps({"d":total_aggregates}))
+        azure_util.upload_to_blob(ld_args.app_id,  os.path.join(main_args.output_folder, main_args.total_aggregates_filename), total_aggregates_file_path)
+        for modelfile in os.listdir(output_dir):
+            if modelfile.endswith(".vw"):
+                azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, modelfile),  os.path.join(output_dir, modelfile))
 
         if main_args.get_feature_importance:
             feature_importance_start_time = datetime.now()
             Logger.info('Download model file')
-            model_fp = None
+            online_model_fp = None
             blobs = azure_util.list_blobs(ld_args.app_id)
             for blob in blobs:
                 if '/model/' not in blob.name:
@@ -153,8 +161,8 @@ if __name__ == '__main__':
                 # blob.name looks like this: '20180416094500/model/2019/01/14.json'
                 blob_day = datetime.strptime(blob.name.split('/model/', 1)[1].split('_', 1)[0].split('.', 1)[0], '%Y/%m/%d')
                 if blob_day == ld_args.start_date:
-                    model_fp = os.path.join(output_dir, 'model.vw')
-                    azure_util.download_from_blob(ld_args.app_id, blob.name, model_fp)
+                    online_model_fp = os.path.join(output_dir, 'model.online.vw')
+                    azure_util.download_from_blob(ld_args.app_id, blob.name, online_model_fp)
 
             Logger.info('Generate Feature Importance')
             feature_importance_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
@@ -162,9 +170,9 @@ if __name__ == '__main__':
             other_args.append('--data')
             other_args.append(output_gz_fp)
 
-            if model_fp:
+            if online_model_fp:
                 other_args.append('--model')
-                other_args.append(model_fp)
+                other_args.append(online_model_fp)
             other_args.append('--min_num_features')
             other_args.append('1')
 
@@ -190,7 +198,7 @@ if __name__ == '__main__':
                 json.dump(feature_buckets, feature_importance_raw_file)
             azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, main_args.feature_importance_raw_filename), feature_importance_raw_file_path)
 
-        # Merge calculated policies into summary file path, upload summary file
+        # Merge calculated policies into summary file path, upload summary file and model files
         if main_args.summary_json:
             summary_file_path = os.path.join(output_dir, main_args.summary_json)
             if os.path.isfile(summary_file_path):
@@ -205,13 +213,19 @@ if __name__ == '__main__':
                                 for p in policy_data['policies']:
                                     summary_data['policyResults'].append({
                                         'name': p['name'],
-                                        'arguments' :p['arguments']
+                                        'arguments': p['arguments'],
+                                        'policySource': 'OfflineExperimentation'
                                     })
                     except:
                         Logger.exception()
                 with open(summary_file_path, 'w') as outfile:
                     json.dump(summary_data, outfile)
                 azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, main_args.summary_json), summary_file_path)
+
+                # upload model files if present.
+                for filename in os.listdir(output_dir):
+                    if os.path.isfile(os.path.join(output_dir, filename)) and filename.endswith(".vw"):
+                        azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, filename), os.path.join(output_dir, filename))
         Logger.info("Done executing job")
     except:
         Logger.exception('Job failed.')

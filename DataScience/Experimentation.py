@@ -239,6 +239,19 @@ def generate_predictions_files(log_fp, policies, log_type):
         
     return predictions_files
 
+def generate_model_files(log_fp, policies):
+    Logger.info('Generating model files for policies')
+    model_file_path_prefix = os.path.join(log_fp, 'model')
+    processes = []
+    for name, policy in policies:
+        model_fp = model_file_path_prefix + '.' + name + '.vw'
+        cmd = policy.full_command + ' -f ' + model_fp
+        p = Popen(cmd.split(' '), stdout=DEVNULL, stderr=DEVNULL)
+        processes.append(p)
+
+    for p in processes:
+        p.wait()
+
 def add_parser_args(parser):
     parser.add_argument('-f','--file_path', help="data file path (.json or .json.gz format - each line is a dsjson)", required=True)
     parser.add_argument('-b','--base_command', help="base Vowpal Wabbit command (default: vw --cb_adf --dsjson -c )", default='vw --cb_adf --dsjson -c ')
@@ -255,6 +268,7 @@ def add_parser_args(parser):
     parser.add_argument('--q_bruteforce_terms', type=int, help="number of quadratic pairs to test in brute-force phase (default: 2)", default=2)
     parser.add_argument('--q_greedy_stop', type=int, help="rounds without improvements after which quadratic greedy search phase is halted (default: 3)", default=3)
     parser.add_argument('--generate_predictions', help="generate prediction files for best policies", action='store_true')
+    parser.add_argument('--generate_models', help="generate model files for best policies", action='store_true')
     parser.add_argument('--log_type', help="cooked log format e.g. cb, ccb", default='cb')
 
 def main(args):
@@ -406,23 +420,31 @@ def main(args):
             best_command = results[0]
             best_commands.append(['Hyper2', results[0]])
 
-        # TODO: Repeat above process of tuning parameters and interactions until convergence / no more improvements.
-
     t1 = datetime.now()
     print("\n\n*************************")
     Logger.info("Best parameters found after {}:".format((t1-t0)-timedelta(microseconds=(t1-t0).microseconds)))
     best_command.prints()
     print("*************************")
 
+    # TODO: Repeat above process of tuning parameters and interactions until convergence / no more improvements.
+
+    t2 = datetime.now()
     if args.generate_predictions:
         _ = generate_predictions_files(args.file_path, best_commands, args.log_type)
         t2 = datetime.now()
         Logger.info('Predictions Generation Time: {}'.format((t2-t1)-timedelta(microseconds=(t2-t1).microseconds)))
-        Logger.info('Total Elapsed Time: {}'.format((t2-t0)-timedelta(microseconds=(t2-t0).microseconds)))
-        
+
+    t3 = datetime.now()
+    if args.generate_models:
+        Logger.info('Generating model files')
+        _ = generate_model_files(args.file_path, best_commands)
+        t3 = datetime.now()
+        Logger.info('Model File Generation Time: {}'.format((t3-t2)-timedelta(microseconds=(t3-t2).microseconds)))
+
+    Logger.info('Total Elapsed Time: {}'.format((t3-t0)-timedelta(microseconds=(t3-t0).microseconds)))
+            
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-
 
     add_parser_args(parser)
     main(parser.parse_args())
