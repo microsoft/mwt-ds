@@ -130,11 +130,11 @@ def run_experiment_legacy(command):
         loss_lines = [x for x in str(results).splitlines() if x.startswith('average loss = ')]
         if len(loss_lines) == 1:
             command.loss = float(loss_lines[0].split()[3])
-            print("Ave. Loss: {:12}Policy: {}".format(str(command.loss),command.full_command))
+            Logger.info("Ave. Loss: {:12}Policy: {}".format(str(command.loss),command.full_command))
         else:
-            print("Error for command {0}: {} lines with 'average loss = '. Expected 1".format(command.full_command, len(loss_lines)))
+            Logger.error("Error for command {0}: {} lines with 'average loss = '. Expected 1".format(command.full_command, len(loss_lines)))
     except Exception as e:
-        print("Error for command {}: {}".format(command.full_command, e))
+        Logger.exception("Error for command {}: {}".format(command.full_command, e))
     return command
     
 def run_experiment_set(command_list, n_proc, threshold=0):
