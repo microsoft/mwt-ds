@@ -1,4 +1,4 @@
-from subprocess import check_output, STDOUT, DEVNULL, Popen
+from subprocess import check_output, STDOUT, DEVNULL, Popen, PIPE
 import psutil
 from multiprocessing.pool import ThreadPool
 import sys, os
@@ -86,23 +86,61 @@ def result_writer(command_list):
         experiment_file.write(line + "\n")
     experiment_file.flush()
     
-def run_experiment(command):
+def extract_loss_lines(process, threshold):
+    counter = 0
+    loss_lines = []
+    while True:
+        line = process.stdout.readline().strip()
+        counter += 1
+        if not process.poll() is None:
+            break
+        if line.startswith('average loss = '):
+            loss_lines.append(line)
+
+        if counter > threshold:
+            return None
+    return loss_lines
+
+def run_experiment(command, threshold=0):
+    if threshold <= 0:
+        return run_experiment_legacy(command)
+
     try:
-        results = check_output(command.full_command.split(' '), stderr=STDOUT).decode("utf-8")
+        process = Popen(command.full_command.split(' '), universal_newlines=True, encoding='utf-8', stdout=PIPE, stderr=STDOUT)
+        loss_lines = extract_loss_lines(process, threshold)
+        if loss_lines is None:
+            Logger.error(f'Command {command.full_command} seems too have too many warnings and excluded from consideration')
+            process.stdout.close()
+            process.kill()
+        else:
+            process.stdout.close()
+            process.wait()
+            if len(loss_lines) == 1:
+                command.loss = float(loss_lines[0].split()[3])
+                Logger.info("Ave. Loss: {:12}Policy: {}".format(str(command.loss),command.full_command))
+            else:
+                Logger.error("Error for command {0}: {1} lines with 'average loss = '. Expected 1".format(command.full_command, len(loss_lines)))
+    except:
+        Logger.exception("Error for command {}".format(command.full_command))
+    return command
+
+def run_experiment_legacy(command):
+    try:
+        results = check_output(command.full_command.split(' '), stderr=STDOUT, universal_newlines=True)
         loss_lines = [x for x in str(results).splitlines() if x.startswith('average loss = ')]
         if len(loss_lines) == 1:
             command.loss = float(loss_lines[0].split()[3])
             Logger.info("Ave. Loss: {:12}Policy: {}".format(str(command.loss),command.full_command))
         else:
             Logger.error("Error for command {0}: {} lines with 'average loss = '. Expected 1".format(command.full_command, len(loss_lines)))
-    except:
-        Logger.exception("Error for command {}".format(command.full_command))
+    except Exception as e:
+        Logger.exception("Error for command {}: {}".format(command.full_command, e))
     return command
     
-def run_experiment_set(command_list, n_proc):
+def run_experiment_set(command_list, n_proc, threshold=0):
     # Run the experiments in parallel using n_proc processes
     p = ThreadPool(n_proc)
-    results = p.map(run_experiment, command_list)
+    results = p.starmap(run_experiment, [(c, threshold) for c in command_list])
     results.sort(key=lambda result: result.loss)
     p.close()
     p.join()
@@ -270,6 +308,7 @@ def add_parser_args(parser):
     parser.add_argument('--generate_predictions', help="generate prediction files for best policies", action='store_true')
     parser.add_argument('--generate_models', help="generate model files for best policies", action='store_true')
     parser.add_argument('--log_type', help="cooked log format e.g. cb, ccb", default='cb')
+    parser.add_argument('--invalid_command_threshold', help="threshold on number of output lines to consider command invalid", type=int, default=10000)
 
 def main(args):
     try:
@@ -358,7 +397,7 @@ def main(args):
     command_list = get_hp_command_list(base_command, best_command, args.cb_types, marginal_features, args.learning_rates, args.regularizations, args.power_t_rates)
 
     Logger.info('\nTesting {} different hyperparameters...'.format(len(command_list)))
-    results = run_experiment_set(command_list, args.n_proc)
+    results = run_experiment_set(command_list, args.n_proc, args.invalid_command_threshold)
     if results[0].loss < best_command.loss:
         best_command = results[0]
         best_commands.append(['Hyper1', results[0]])
@@ -380,7 +419,7 @@ def main(args):
                 command_list.append(command)
         
         Logger.info('\nTesting {} different interactions (brute-force phase)...'.format(len(command_list)))
-        results = run_experiment_set(command_list, args.n_proc)
+        results = run_experiment_set(command_list, args.n_proc, args.invalid_command_threshold)
         if results[0].loss < best_command.loss:
             best_command = results[0]
             best_commands.append(['Inter-len'+str(len(results[0].interaction_list)),results[0]])
@@ -402,7 +441,7 @@ def main(args):
             if len(command_list) == 0:
                 break
 
-            results = run_experiment_set(command_list, args.n_proc)
+            results = run_experiment_set(command_list, args.n_proc, args.invalid_command_threshold)
             if results[0].loss < best_command.loss:
                 best_command = results[0]
                 best_commands.append(['Inter-len'+str(len(results[0].interaction_list)),results[0]])
@@ -415,7 +454,7 @@ def main(args):
         command_list = get_hp_command_list(base_command, best_command, args.cb_types, marginal_features, args.learning_rates, args.regularizations, args.power_t_rates)
 
         Logger.info('\nTesting {} different hyperparameters...'.format(len(command_list)))
-        results = run_experiment_set(command_list, args.n_proc)
+        results = run_experiment_set(command_list, args.n_proc, args.invalid_command_threshold)
         if results[0].loss < best_command.loss:
             best_command = results[0]
             best_commands.append(['Hyper2', results[0]])
