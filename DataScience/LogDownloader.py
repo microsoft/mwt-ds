@@ -54,7 +54,6 @@ def add_parser_args(parser):
     parser.add_argument('-s','--start_date', help="downloading start date (included) - format YYYY-MM-DD", type=valid_date)
     parser.add_argument('-e','--end_date', help="downloading end date (included) - format YYYY-MM-DD", type=valid_date)
     parser.add_argument('-o','--overwrite_mode', type=int, help='''    0: never overwrite; ask the user whether blobs are currently used [default]
-    
     1: ask the user how to proceed when the files have different sizes or when the blobs are currently being used
     2: always overwrite; download currently used blobs
     3: never overwrite; append if the size is larger, without asking; download currently used blobs
