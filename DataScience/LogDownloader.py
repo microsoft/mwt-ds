@@ -145,6 +145,7 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
             # List all blobs and download them one by one
             Logger.info('Getting blobs list...')
             blobs = bbs.list_blobs(container)
+            #Sort blobs in descending order of time to pick cooked log files from end date to start date
             blobs = sorted(list(blobs), key=lambda b: b.name, reverse=True)
         except Exception as e:
             if e.args[0] == 'dictionary update sequence element #0 has length 1; 2 is required':
@@ -181,6 +182,7 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                 # If total downloaded file size + current file size has exceeded max_size then stop downloading more
                 Logger.info('Total downloaded cooked log size in MB : {}\n'.format(total_download_size_MB))
                 if((total_download_size_MB + bp.properties.content_length/(1024**2)) > max_size):
+                    Logger.info('Stop downloading logs as total max cooked log size of {} MB has been reached\n'.format(max_size))
                     break
                 if confirm:
                     if input("{} - Do you want to download [Y/n]? ".format(blob.name)) not in {'Y', 'y'}:
