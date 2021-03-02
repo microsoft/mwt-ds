@@ -72,6 +72,7 @@ def add_parser_args(parser):
     parser.add_argument('-v','--version', type=int, default=2, help='''version of log downloader to use:
     1: for uncooked logs (only for backward compatibility) [deprecated]
     2: for cooked logs [default]''')
+    parser.add_argument('--max_size', help="Maximum cooked log files to be downloaded in MB (default = 204800)", type=int, default=204800) # 200 GB default
 
 def update_progress(current, total):
     barLength = 50 # Length of the progress bar
@@ -79,7 +80,7 @@ def update_progress(current, total):
     block = int(barLength*progress)
     Logger.info("\rProgress: [{0}] {1:.1f}%".format( "#"*block + "-"*(barLength-block), progress*100))
 
-def download_container(app_id, log_dir, container=None, conn_string=None, account_name=None, sas_token=None, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, verbose=False, create_gzip_mode=-1, delta_mod_t=3600, max_connections=4, confirm=False, report_progress=True, if_match=None):
+def download_container(app_id, log_dir, container=None, conn_string=None, account_name=None, sas_token=None, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, verbose=False, create_gzip_mode=-1, delta_mod_t=3600, max_connections=4, confirm=False, report_progress=True, if_match=None, max_size=204800):
     t_start = time.time()
     if not container:
         container=app_id
@@ -144,6 +145,8 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
             # List all blobs and download them one by one
             Logger.info('Getting blobs list...')
             blobs = bbs.list_blobs(container)
+            #Sort blobs in descending order of time to pick cooked log files from end date to start date
+            blobs = sorted(list(blobs), key=lambda b: b.name, reverse=True)
         except Exception as e:
             if e.args[0] == 'dictionary update sequence element #0 has length 1; 2 is required':
                 Logger.error("Invalid Azure Storage ConnectionString.")
@@ -176,7 +179,11 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
 
             try:
                 bp = bbs.get_blob_properties(container, blob.name)
-
+                # If total downloaded file size + current file size has exceeded max_size then stop downloading more
+                Logger.info('Total downloaded cooked log size in MB : {}\n'.format(total_download_size_MB))
+                if((total_download_size_MB + bp.properties.content_length/(1024**2)) > max_size):
+                    Logger.info('Stop downloading logs as total max cooked log size of {} MB has been reached\n'.format(max_size))
+                    break
                 if confirm:
                     if input("{} - Do you want to download [Y/n]? ".format(blob.name)) not in {'Y', 'y'}:
                         print()
