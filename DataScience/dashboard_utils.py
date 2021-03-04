@@ -286,10 +286,13 @@ def aggregates_ccb_data(data, pred, d, evts):
     item = data['_outcomes'][0]
     reward = -float(item["_label_cost"])
     abs_reward = abs(reward)
-
+    if (data.get('_ba')):
+        baseline_action = data['_ba'][0]
+    else:
+        baseline_action = min(item['_a'])
     d[ts_bin]['online']['n'] += reward
 
-    if (item["_a"][0] == min(item["_a"])):
+    if (item['_a'][0] == baseline_action):
         d[ts_bin]['baseline1']['Ne'] += 1
         d[ts_bin]['baseline1']['d'] += 1/item['_p'][0]
         d[ts_bin]['baseline1']['n'] += reward/item["_p"][0]
