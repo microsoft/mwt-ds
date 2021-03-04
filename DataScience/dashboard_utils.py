@@ -294,7 +294,7 @@ def aggregates_ccb_data(data, pred, d, evts):
 
     d[ts_bin]['online']['n'] += reward
 
-    if (item['_a'][0] == baseline_action:
+    if (item['_a'][0] == baseline_action):
         d[ts_bin]['baseline1']['Ne'] += 1
         d[ts_bin]['baseline1']['d'] += 1/item['_p'][0]
         d[ts_bin]['baseline1']['n'] += reward/item['_p'][0]
