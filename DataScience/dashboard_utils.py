@@ -285,20 +285,24 @@ def aggregates_ccb_data(data, pred, d, evts):
     # currently ccb evaluations are supported only on the 1st slot
     index = 0
     item = data['_outcomes'][0]
-    reward = -float(item["_label_cost"])
+    reward = -float(item['_label_cost'])
     abs_reward = abs(reward)
+    if (data.get['_ba']):
+        baseline_action = data['_ba'][0]
+    else:
+        baseline_action = min(item['_a'])
 
     d[ts_bin]['online']['n'] += reward
 
-    if (item["_a"][0] == min(item["_a"])):
+    if (item['_a'][0] == baseline_action:
         d[ts_bin]['baseline1']['Ne'] += 1
         d[ts_bin]['baseline1']['d'] += 1/item['_p'][0]
-        d[ts_bin]['baseline1']['n'] += reward/item["_p"][0]
+        d[ts_bin]['baseline1']['n'] += reward/item['_p'][0]
         d[ts_bin]['baseline1']['c'] = max(
             d[ts_bin]['baseline1']['c'],
-            abs_reward / item["_p"][0]
+            abs_reward / item['_p'][0]
         )
-        d[ts_bin]['baseline1']['SoS'] += (reward/item["_p"][0])**2
+        d[ts_bin]['baseline1']['SoS'] += (reward/item['_p'][0])**2
 
     d[ts_bin]['baselineRand']['d'] += 1/item['_p'][0]/len(item['_a'])
     d[ts_bin]['baselineRand']['n'] += reward/item['_p'][0]/len(item['_a'])
