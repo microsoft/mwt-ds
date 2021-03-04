@@ -63,16 +63,17 @@ def output_dashboard_data(d, dashboard_file, commands={}, sep=':'):
 
         # total aggregates
         tot = df.agg({type+sep+field : max if field == 'c' else sum for type in df_col for field in df_col[type]}).replace(np.nan, 0.0)
-        d = []
+        total_aggregates = []
         for type in df_col:
             temp = collections.OrderedDict({field : tot[type+sep+field] for field in df_col[type]})
             temp["w"] = "tot"
             temp["t"] = type
             if type in commands.keys():
                 temp["command"] = command.to_commandline(commands[type])
-            d.append(temp)
-        f.write(json.dumps({"ts":"Total","d":d})+'\n')
+            total_aggregates.append(temp)
+        f.write(json.dumps({"ts":"Total","d":total_aggregates})+'\n')
     Logger.info('Dashboard file: {}'.format(dashboard_file))
+    return total_aggregates
 
 def merge_and_unique_stats(stats_files, dashboard_file):
     d = {}
