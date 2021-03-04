@@ -11,6 +11,7 @@
     <USQLProjectVersion>2</USQLProjectVersion>
     <Name>Scripts</Name>
     <RootNamespace>Scripts</RootNamespace>
+    <RuntimeVersion>default</RuntimeVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,9 +22,25 @@
     <OutputPath>bin\Release\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
+    <Script Include="AggregateStatistics.usql" />
+    <Script Include="DanglingRewardsAnalysis.usql" />
     <Script Include="Process.usql" />
+    <Script Include="ProcessCCB.usql" />
+    <Script Include="Sample.usql" />
+    <ScriptCode Include="AggregateStatistics.usql.cs">
+      <DependentUpon>AggregateStatistics.usql</DependentUpon>
+    </ScriptCode>
+    <ScriptCode Include="DanglingRewardsAnalysis.usql.cs">
+      <DependentUpon>DanglingRewardsAnalysis.usql</DependentUpon>
+    </ScriptCode>
     <ScriptCode Include="Process.usql.cs">
       <DependentUpon>Process.usql</DependentUpon>
+    </ScriptCode>
+    <ScriptCode Include="ProcessCCB.usql.cs">
+      <DependentUpon>ProcessCCB.usql</DependentUpon>
+    </ScriptCode>
+    <ScriptCode Include="Sample.usql.cs">
+      <DependentUpon>Sample.usql</DependentUpon>
     </ScriptCode>
   </ItemGroup>
   <!-- check for SDK Build target in current path then in USQLSDKPath-->

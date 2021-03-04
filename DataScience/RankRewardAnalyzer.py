@@ -122,6 +122,8 @@ def print_stats(local_fp, azure_path, verbose=False, plot_hist=False, hist_bin=1
 
             if x.startswith(b'{"_label_cost":'):
                 data = ds_parse.json_cooked(x)
+                if data is None:
+                    continue
                 ei = str(data['ei'], 'utf-8')
                 c = str(data['cost'], 'utf-8')
                 azure_data.append((ei, c))

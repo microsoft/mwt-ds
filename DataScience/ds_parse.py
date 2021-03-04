@@ -1,4 +1,4 @@
-import time,collections,os,types,gzip,sys,json
+import time, collections, os, types, gzip, sys, json
 
 def update_progress(current, total=None, prefix=''):
     if total:
@@ -14,7 +14,7 @@ def update_progress(current, total=None, prefix=''):
 
 #########################################################################  CREATE DSJSON FILES STATS #########################################################################
 
-header_str = 'version,date,# obs,# rews,sum rews,# obs multi,# rews multi a,sum rews multi a,# obs1,# rews1,sum rews1,rews1 ips,tot ips slot1,tot slot1,rews rand ips,tot rand ips,tot unique,tot,not joined unique,not joined,not activated,1,2,>2,max(a),time'
+header_str = 'version,date,# obs,# rews,sum rews,# obs multi,# rews multi a,sum rews multi a,# obs1,# rews1,sum rews1,rews1 ips,tot ips slot1,tot slot1,rews rand ips,tot rand ips,tot unique,tot,not joined unique,not joined,not activated,corrupted,1,2,>2,max(a),time'
 
 def process_files(files, output_file=None, d=None, e=None):
     t0 = time.time()
@@ -24,15 +24,15 @@ def process_files(files, output_file=None, d=None, e=None):
     print(header_str)
     for fp in fp_list:
         t1 = time.time()
-        stats, d_s, e_s, d_c, e_c, slot_len_c, rew_multi_a, baselineRandom, not_activated = process_dsjson_file(fp, d, e)
-        res_list = os.path.basename(fp).replace('_0.json','').split('_data_',1)+[sum(stats[x][i] for x in stats) for i in range(3)]+rew_multi_a+stats.get(1,[0,0,0,0,0,0])+baselineRandom+[len(d_s),d_c,len(e_s),e_c,not_activated,slot_len_c[1],slot_len_c[2],sum(slot_len_c[i] for i in slot_len_c if i > 2),max(i for i in slot_len_c if slot_len_c[i] > 0),'{:.1f}'.format(time.time()-t1)]
+        stats, d_s, e_s, d_c, e_c, slot_len_c, rew_multi_a, baselineRandom, not_activated, corrupted = process_dsjson_file(fp, d, e)
+        res_list = os.path.basename(fp).replace('_0.json','').split('_data_',1)+[sum(stats[x][i] for x in stats) for i in ['o','Nr','r']]+rew_multi_a+([stats[1][i] for i in ['o','Nr','r','n','d','N']] if 1 in stats else [0,0,0,0,0,0])+baselineRandom+[len(d_s),d_c,len(e_s),e_c,not_activated,corrupted,slot_len_c[1],slot_len_c[2],sum(slot_len_c[i] for i in slot_len_c if i > 2),max(i for i in slot_len_c if slot_len_c[i] > 0),'{:.1f}'.format(time.time()-t1)]
         print(','.join(map(str,res_list)))
         if output_file:
             f.write('\t'.join(map(str,res_list))+'\n')
     if output_file:
         f.close()
     print('Total time: {:.1f} sec'.format(time.time()-t0))
-    
+
 def process_dsjson_file(fp, d=None, e=None):
     stats = {}
     slot_len_c = collections.Counter()
@@ -41,6 +41,7 @@ def process_dsjson_file(fp, d=None, e=None):
     e_c = 0
     d_c = 0
     not_activated = 0
+    corrupted = 0
     rew_multi_a = [0,0,0]
     baselineRandom = [0,0]
     bytes_count = 0
@@ -53,16 +54,19 @@ def process_dsjson_file(fp, d=None, e=None):
                     update_progress(i+1,prefix=fp+' - ')
                 else:
                     update_progress(bytes_count,tot_bytes,fp+' - ')
-                
+
             if x.startswith(b'['):   # Ignore checkpoint info line
                 continue
 
-            if not (x.startswith(b'{"') or x.strip().endswith(b'}')):
-                print('Corrupted line: {}'.format(x))
+            if not (x.startswith(b'{"') and x.strip().endswith(b'}')):
+                corrupted += 1
                 continue
-            
+
             if x.startswith(b'{"_label_cost":'):
                 data = json_cooked(x)
+                if data is None:
+                    corrupted += 1
+                    continue
 
                 if data['skipLearn']:    # Ignore not activated lines
                     not_activated += 1
@@ -73,24 +77,33 @@ def process_dsjson_file(fp, d=None, e=None):
                     d.setdefault(data['ei'], []).append((data, fp, i))
                 d_c += 1
                 d_s.add(data['ei'])
+
+                ############################### Aggregates for each file ########################################
+                #
+                # 'o':   number of events with a joined observation
+                # 'Nr':  number of events with a non-zero reward
+                # 'r':   sum of rewards
+                # 'n':   IPS of numerator
+                # 'd':   IPS of denominator (SNIPS = n/d)
+                # 'N':   total number of events (IPS = n/N)
+                #
+                #################################################################################################
+
                 if data['a'] not in stats:
-                    stats[data['a']] = [0,0,0,0,0,0]
+                    stats[data['a']] = {'o':0,'Nr':0,'r':0.,'n':0.,'d':0.,'N':0}
 
-                stats[data['a']][5] += 1
-                if data['p'] <= 0:
-                    continue
-
-                stats[data['a']][4] += 1/data['p']
+                stats[data['a']]['N'] += 1
+                stats[data['a']]['d'] += 1/data['p']
                 baselineRandom[1] += 1/data['p']/data['num_a']
                 if data['o'] == 1:
-                    stats[data['a']][0] += 1
+                    stats[data['a']]['o'] += 1
                     if data['num_a'] > 1:
                         rew_multi_a[0] += 1
                 if data['cost'] != b'0':
                     r = -float(data['cost'])
-                    stats[data['a']][1] += 1
-                    stats[data['a']][2] += r
-                    stats[data['a']][3] += r/data['p']
+                    stats[data['a']]['Nr'] += 1
+                    stats[data['a']]['r'] += r
+                    stats[data['a']]['n'] += r/data['p']
                     baselineRandom[0] += r/data['p']/data['num_a']
                     if data['num_a'] > 1:
                         rew_multi_a[1] += 1
@@ -109,7 +122,7 @@ def process_dsjson_file(fp, d=None, e=None):
             len_text = update_progress(bytes_count,tot_bytes, fp+' - ')
         sys.stdout.write("\r" + " "*len_text + "\r")
         sys.stdout.flush()
-    return stats, d_s, e_s, d_c, e_c, slot_len_c, rew_multi_a, baselineRandom, not_activated
+    return stats, d_s, e_s, d_c, e_c, slot_len_c, rew_multi_a, baselineRandom, not_activated, corrupted
 
 def input_files_to_fp_list(files):
     if not (isinstance(files, types.GeneratorType) or isinstance(files, list)):
@@ -122,7 +135,7 @@ def input_files_to_fp_list(files):
         except:
             fp_list.append(x)
     return fp_list
-    
+
 ###############################################################################################################################################################################
 
 def json_cooked(x, do_devType=False, do_VWState=False, do_p_vec=False, do_decode=False):
@@ -145,7 +158,7 @@ def json_cooked(x, do_devType=False, do_VWState=False, do_p_vec=False, do_decode
         ind5 = ind4+13                  # len('","EventId":"') = 13
     ind6 = x.find(b'"',ind5)
     ind7 = x.find(b',"a"',ind5)
-    ind8 = x.find(b']',ind7+7)          # equal to: x.find('],"c',ind7+8)
+    ind8 = x.find(b'],"c"',ind7+7)
     if ind8 == -1:
         return None
 
@@ -159,26 +172,29 @@ def json_cooked(x, do_devType=False, do_VWState=False, do_p_vec=False, do_decode
     data['a'] = int(data['a_vec'][0])
     data['num_a'] = len(data['a_vec'])
     data['skipLearn'] = b'"_skipLearn":true' in x[ind2+34:ind3] # len('"_label_Action":1,"_labelIndex":0,') = 34
-    
+
+    if data['p'] < 1e-10 or data['a'] < 1 or data['num_a'] < 1:
+        return None
+
     if do_VWState:
         ind11 = x[-120:].find(b'VWState')
         data['model_id'] = x[-120+ind11+15:-4] if ind11 > -1 else b'N/A'
 
     if do_p_vec:
         data['p_vec'] = [float(p) for p in extract_field(x[-120-15*data['num_a']:], b'"p":[', b']').split(b',')]
-        
+
     if do_devType:
         data['devType'] = extract_field(x[ind8:],b'"DeviceType":"',b'"')
-            
-    if do_decode:
-        for key, value in data.items():            
-            if key == 'a_vec':                
-                data[key] = [z.decode() for z in value]
-            else:                
-                if type(value) is bytes:                    
-                    data[key] = value.decode()
 
+    if do_decode:
+        for key, value in data.items():
+            if key == 'a_vec':
+                data[key] = [z.decode() for z in value]
+            else:
+                if type(value) is bytes:
+                    data[key] = value.decode()
     return data
+
 
 def ccb_json_cooked(x):
     data = json.loads(x.decode("utf-8"))
@@ -200,7 +216,7 @@ def json_dangling(x):
         ind2 = x.find(b',',ind1+16)         # equal to: x.find(',"EnqueuedTimeUtc',ind1+16)
         ind3 = x.find(b'"',ind2+39)             # equal to: x.find('","EventId',ind2+39)
         ind4 = x.find(b'"',ind3+40)
-        
+
         data['r'] = x[ind1+16:ind2]         # len('","RewardValue":') = 16
         data['et'] = x[ind2+20:ind3]                    # len(',"EnqueuedTimeUtc":"') = 20
         data['ei'] = x[ind3+13:ind4]                    # len('","EventId":"') = 13
@@ -213,7 +229,7 @@ def json_dangling(x):
         data['r'] = x[15:ind2]                # len('{"RewardValue":') = 15
         data['et'] = x[ind3+19:ind4]                    # len(',"EnqueuedTimeUtc":"') = 20
         data['ei'] = x[ind4+13:ind5]                    # len('","EventId":"') = 13
-        
+
     data['ActionTaken'] = b'"DeferredAction":false' in x[:70]
     return data
 
@@ -309,7 +325,7 @@ def create_time_hist(d,e, normed=True, cumulative=True, scale_sec=1, n_bins=100,
         ei_ = ei_.intersection(ei)
         print('len(ei): {}'.format(len(ei)))
         print('len(ei_): {}'.format(len(ei_)))
-    
+
     for x in ei_:
         td = datetime.datetime.strptime(str(d[x][0][0]['ts'],'utf-8').split('.')[0].replace('Z',''), "%Y-%m-%dT%H:%M:%S")
         if td_day_start and td < datetime.datetime.strptime(td_day_start, "%Y-%m-%d"):
@@ -320,7 +336,7 @@ def create_time_hist(d,e, normed=True, cumulative=True, scale_sec=1, n_bins=100,
         else:
             te = datetime.datetime.strptime(str(ts,'utf-8').split('.', 1)[0].replace('Z',''), "%Y-%m-%dT%H:%M:%S")
         t_vec.append((x,(te-td).total_seconds()/scale_sec))
-    
+
     print('len(t_vec): {}'.format(len(t_vec)))
     plt.hist([x[1] for x in t_vec], n_bins, normed=normed, cumulative=cumulative, histtype='step')
     if xlabel:
@@ -328,7 +344,7 @@ def create_time_hist(d,e, normed=True, cumulative=True, scale_sec=1, n_bins=100,
     if ylabel:
         plt.ylabel(ylabel)
     plt.show()
-    
+
     return t_vec
 
 

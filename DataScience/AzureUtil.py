@@ -4,8 +4,7 @@ import os
 from loggers import Logger
 
 class AzureUtil:
-    def __init__(self, conn_string=None, account_name=None, sas_token=None, throw_ex=True):
-        self.throw_ex = throw_ex
+    def __init__(self, conn_string=None, account_name=None, sas_token=None):
         if sas_token and account_name:
             self.block_blob_service = BlockBlobService(account_name=account_name, sas_token=sas_token)
         elif conn_string:
@@ -38,10 +37,10 @@ class AzureUtil:
             Logger.exception("Error downloading from blob")
             if self.throw_ex: raise(e)
             
-    def download_all_blobs(self, storage_container_name, local_dir):
+    def download_all_blobs(self, storage_container_name, local_dir, throw_ex = False):
         generator = self.list_blobs(storage_container_name)
         for blob in generator:
-            self.download_from_blob(storage_container_name, blob.name, os.path.join(local_dir, blob.name))
+            self.download_from_blob(storage_container_name, blob.name, os.path.join(local_dir, blob.name), throw_ex)
             
     def list_blobs(self, storage_container_name):
         return self.block_blob_service.list_blobs(storage_container_name)

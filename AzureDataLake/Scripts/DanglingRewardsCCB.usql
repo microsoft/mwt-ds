@@ -1,0 +1,160 @@
+﻿SET @@FeaturePreviews = "DataPartitionedOutput:on";
+
+DECLARE @_appId string = "";    //your appId
+DECLARE @_model = "";
+
+DECLARE @_experimentalUnitDuration TimeSpan = new TimeSpan(9, 0, 0, 0); //days, hour, minutes, seconds
+ 
+DECLARE @_start DateTime = new DateTime(2020, 04, 20);  //your inclusive start date
+DECLARE @_end DateTime = new DateTime(2020, 04, 29);    //your non-inclusive end date
+    
+DECLARE @AppDailyFolder string = "/daily/" + @_appId + "/{model}/";   //your app statistics folder
+DECLARE @OutputFolder string = @AppDailyFolder + "dangling_rewards-" + @_start.ToString("yyyy_MM_dd") + "-" + @_end.ToString("yyyy_MM_dd") + "/";
+     
+DECLARE @InputFileInteractions string = @AppDailyFolder + "interactions-{date:yyyy}-{date:MM}-{date:dd}.csv";
+DECLARE @InputFileDanglingRewards string = @AppDailyFolder + "dangling-{date:yyyy}-{date:MM}-{date:dd}.csv";
+DECLARE @InputFileStatistics string = @AppDailyFolder + "statistics-{date:yyyy}-{date:MM}-{date:dd}.csv";
+
+DECLARE @OutputFileStatistics string = @OutputFolder + "statistics.csv";
+DECLARE @OutputFileMatched string = @OutputFolder + "matched-timediff-{date:yyyy}-{date:MM}-{date:dd}.csv";
+DECLARE @OutputFileMatchedAll string = @OutputFolder + "matched-timediff.csv";
+DECLARE @OutputFileNotMatchedAll string = @OutputFolder + "not_matched.csv";
+DECLARE @OutputFileNotMatched string = @OutputFolder + "not_matched-{date:yyyy}-{date:MM}-{date:dd}.csv";
+DECLARE @OutputFileChronology string = @OutputFolder + "chronology.csv";
+
+@Statistics = DecisionServiceDB.dbo.ExtractStats(@InputFileStatistics, @_model, @_start, @_end);
+
+@Interactions = DecisionServiceDB.dbo.ExtractCCBDecisions(@InputFileInteractions, @_model, @_start, @_end);
+
+@DanglingRewards = DecisionServiceDB.dbo.ExtractDanglingRewards(@InputFileDanglingRewards, @_model, @_start, @_end);
+
+@DanglingRewards =
+    SELECT EventId,
+           model,
+           MIN(EnqueuedTimeUtc).Value AS RewardTimestamp
+    FROM @DanglingRewards
+    GROUP BY EventId, model;
+
+
+@Matched =
+    SELECT @Interactions.SessionId,
+           @Interactions.SlotIdx,
+           @Interactions.EventId,
+           @Interactions.Timestamp AS InteractionTimestamp,
+           @DanglingRewards.RewardTimestamp AS RewardTimestamp,
+           @Interactions.model
+    FROM @Interactions
+         INNER JOIN
+             @DanglingRewards
+         ON @Interactions.EventId == @DanglingRewards.EventId AND @Interactions.model == @DanglingRewards.model;
+
+@Matched = SELECT SessionId, SlotIdx, EventId,
+                  (int)((RewardTimestamp - InteractionTimestamp).TotalMinutes) AS TimestampDiff,
+                  RewardTimestamp,
+                  InteractionTimestamp,
+                  RewardTimestamp.Date AS date,
+                  model
+    FROM @Matched;
+
+@MatchedByHourReward = SELECT RewardTimestamp.ToString("yyyy/MM/dd HH:mm") AS Timestamp,
+                        model,
+                COUNT() AS Events
+    FROM @Matched
+    GROUP BY RewardTimestamp.ToString("yyyy/MM/dd HH:mm"), model;
+
+@MatchedByHourInteraction = SELECT InteractionTimestamp.ToString("yyyy/MM/dd HH:mm") AS Timestamp,
+                        model,
+                COUNT() AS Events
+    FROM @Matched
+    GROUP BY InteractionTimestamp.ToString("yyyy/MM/dd HH:mm"), model;
+
+@Statistics =
+    SELECT @Statistics.*,
+           @MatchedByHourReward.Events AS LateRewards
+    FROM @Statistics
+         LEFT OUTER JOIN
+             @MatchedByHourReward
+         ON @Statistics.Timestamp == @MatchedByHourReward.Timestamp;
+
+@Statistics =
+    SELECT @Statistics.*,
+           @MatchedByHourInteraction.Events AS EarlyInteractions
+    FROM @Statistics
+         LEFT OUTER JOIN
+             @MatchedByHourInteraction
+         ON @Statistics.Timestamp == @MatchedByHourInteraction.Timestamp;
+
+@MatchedStatisticsAll =
+    SELECT TimestampDiff,
+           model,
+           COUNT() AS Events
+    FROM @Matched
+    GROUP BY TimestampDiff, model;
+
+@MatchedStatistics =
+    SELECT TimestampDiff,
+           model,
+           date,
+           COUNT() AS Events
+    FROM @Matched
+    GROUP BY TimestampDiff, date, model;
+
+@NotMatched =
+    SELECT Left.EventId,
+           Left.RewardTimestamp,
+           Left.RewardTimestamp.Date AS date,
+           Left.model
+    FROM @DanglingRewards AS Left
+         LEFT ANTISEMIJOIN
+         (
+         SELECT DISTINCT EventId, model
+         FROM @Matched
+              ) AS Right
+         ON Left.EventId == Right.EventId AND Left.model == Right.model;
+
+@NotMatchedStatisticsAll =
+    SELECT RewardTimestamp.ToString("yyyy/MM/dd HH:00") AS RewardTimestamp,
+           COUNT() AS DanglingRewards,
+           model
+    FROM @NotMatched
+    GROUP BY RewardTimestamp.ToString("yyyy/MM/dd HH:00"), model;
+
+@NotMatchedStatistics =
+    SELECT RewardTimestamp.ToString("yyyy/MM/dd HH:00") AS RewardTimestamp,
+           date,
+           model,
+           COUNT() AS DanglingRewards
+    FROM @NotMatched
+    GROUP BY RewardTimestamp.ToString("yyyy/MM/dd HH:00"), date, model;
+
+@DanglingRewardsChronology =
+    SELECT RewardTimestamp.ToString("yyyy/MM/dd HH:mm") AS RewardTimestamp,
+           model,
+           COUNT() AS Count
+    FROM @DanglingRewards
+    GROUP BY RewardTimestamp.ToString("yyyy/MM/dd HH:mm"), model;
+
+OUTPUT @DanglingRewardsChronology
+TO @OutputFileChronology
+USING Outputters.Csv(outputHeader:true);
+
+OUTPUT @Statistics
+TO @OutputFileStatistics
+USING Outputters.Csv(outputHeader:true);
+
+OUTPUT @MatchedStatisticsAll
+TO @OutputFileMatchedAll
+USING Outputters.Csv(outputHeader:true);
+
+OUTPUT @NotMatchedStatisticsAll
+TO @OutputFileNotMatchedAll
+USING Outputters.Csv(outputHeader:true);
+
+OUTPUT @MatchedStatistics
+TO @OutputFileMatched
+USING Outputters.Csv(outputHeader:true);
+
+OUTPUT @NotMatchedStatistics
+TO @OutputFileNotMatched
+USING Outputters.Csv(outputHeader:true);
+

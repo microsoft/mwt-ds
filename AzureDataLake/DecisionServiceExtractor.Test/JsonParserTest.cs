@@ -39,7 +39,8 @@ namespace DecisionServiceExtractor.Test
         {
             return new USqlSchema(
                 new USqlColumn<string>("EventId"),
-                new USqlColumn<DateTime>("EnqueuedTimeUtc")
+                new USqlColumn<DateTime>("EnqueuedTimeUtc"),
+                new USqlColumn<float?>("RewardValue")
                 );
         }
 
@@ -148,6 +149,25 @@ namespace DecisionServiceExtractor.Test
                 {
                     Assert.AreEqual("id", output.Get<string>("EventId"));
                     Assert.AreEqual(new DateTime(2018, 12, 13, 3, 27, 57), output.Get<DateTime>("EnqueuedTimeUtc"));
+                    Assert.AreEqual(846.7236f, output.Get<float?>("RewardValue"));
+                }
+            }
+        }
+
+        [TestMethod]
+        public void ParseActivationTest()
+        {
+            var danglingReward = @"{""RewardValue"":null,""ActionTaken"":true,""EnqueuedTimeUtc"":""2018-12-13T03:27:57.000Z"",""EventId"":""id"",""Observations"":[{""v"":""Unknown"",""ActionTaken"":true,""EventId"":""id"",""ActionId"":null}]}";
+            var extractor = new HeaderOnly();
+            var output = new USqlUpdatableRow(CreateDefaultRow(CreateDanglingRewardSchema()));
+            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(danglingReward)))
+            {
+                var input = new USqlStreamReader(stream);
+                foreach (var outputRow in extractor.Extract(input, output))
+                {
+                    Assert.AreEqual("id", output.Get<string>("EventId"));
+                    Assert.AreEqual(new DateTime(2018, 12, 13, 3, 27, 57), output.Get<DateTime>("EnqueuedTimeUtc"));
+                    Assert.AreEqual(null, output.Get<float?>("RewardValue"));
                 }
             }
         }

@@ -12,10 +12,9 @@ except ImportError as e:
     if input("azure.storage.blob is required. Do you want to install it [Y/n]? ") in {'Y', 'y'}:
         import pip
         pip.main(['install', 'azure.storage.blob'])
-        Logger.info('Please re-run script.')
-    Logger.exception()
-    sys.exit(1)
-
+        print('Please re-run script.')
+    sys.exit()
+    
 
 def valid_date(s):
     try:
@@ -43,6 +42,20 @@ def cmp_files(f1, f2, start_range_f1=0, start_range_f2=0, erase_checkpoint_line=
             if not b1:
                 return True
             prev_b1 = b1
+
+def erase_invalid_end_line(fp):
+    with open(fp,'rb+') as f:
+        f.seek(-1, os.SEEK_END)
+        pos = f.tell()
+        initial_pos = pos
+        while pos > 0 and f.read(1) != b'\n':
+            pos -= 1
+            f.seek(pos, os.SEEK_SET)
+
+        if pos < initial_pos:
+            print('Erasing invalid last line (to keep it use --keep_invalid_eof)')
+            f.seek(pos+1, os.SEEK_SET)
+            f.truncate()
 
 def add_parser_args(parser):
     parser.add_argument('-a','--app_id', help="app id (i.e., Azure storage blob container name)", required=True)
@@ -72,6 +85,9 @@ def add_parser_args(parser):
     parser.add_argument('-v','--version', type=int, default=2, help='''version of log downloader to use:
     1: for uncooked logs (only for backward compatibility) [deprecated]
     2: for cooked logs [default]''')
+    parser.add_argument('--keep_invalid_eof', help="avoid to erase the last line when it is invalid", action='store_true')
+    parser.add_argument('--max_download_size', help="download only head of file up to max_download_size bytes", type=int, default=None)
+
 
 def update_progress(current, total):
     barLength = 50 # Length of the progress bar
@@ -79,7 +95,7 @@ def update_progress(current, total):
     block = int(barLength*progress)
     Logger.info("\rProgress: [{0}] {1:.1f}%".format( "#"*block + "-"*(barLength-block), progress*100))
 
-def download_container(app_id, log_dir, container=None, conn_string=None, account_name=None, sas_token=None, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, verbose=False, create_gzip_mode=-1, delta_mod_t=3600, max_connections=4, confirm=False, report_progress=True, if_match=None):
+def download_container(app_id, log_dir, container=None, conn_string=None, account_name=None, sas_token=None, start_date=None, end_date=None, overwrite_mode=0, dry_run=False, version=2, verbose=False, create_gzip_mode=-1, delta_mod_t=3600, max_connections=4, confirm=False, report_progress=True, if_match=None, keep_invalid_eof=False, max_download_size=None):
     t_start = time.time()
     if not container:
         container=app_id
@@ -135,8 +151,9 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
         
     else: # using BlockBlobService python api for cooked logs
         try:
+            print('Establishing Azure Storage BlockBlobService connection using ',end='')
             if sas_token and account_name:
-                Logger.info('Establishing Azure Storage BlockBlobService connection using sas token...')
+                print('sas token...')
                 bbs = BlockBlobService(account_name=account_name, sas_token=sas_token)
             else:
                 Logger.info('Establishing Azure Storage BlockBlobService connection using connection string...')
@@ -145,10 +162,8 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
             Logger.info('Getting blobs list...')
             blobs = bbs.list_blobs(container)
         except Exception as e:
-            if e.args[0] == 'dictionary update sequence element #0 has length 1; 2 is required':
-                Logger.error("Invalid Azure Storage ConnectionString.")
-            elif type(e.args[0]) == str and e.args[0].startswith('The specified container does not exist.'):
-                Logger.error("The specified container ({}) does not exist.".format(container))
+            if type(e.args[0]) == str and e.args[0].startswith('The specified container does not exist.'):
+                print("Error: The specified container ({}) does not exist.".format(container))
             else:
                 Logger.error("\nType: {}\nArgs: {}".format(type(e).__name__, e.args))
             sys.exit(1)
@@ -224,35 +239,38 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                     t0 = time.time()
                     process_checker = update_progress if report_progress == True else None
                     if overwrite_mode in {3, 4} and file_size:
-                        temp_fp = fp + '.temp'
-                        cmpsize = min(file_size,8*1024**2)
-                        bbs.get_blob_to_path(container, blob.name, temp_fp, max_connections=max_connections, start_range=file_size-cmpsize, end_range=file_size-1, if_match=if_match)
-                        if cmp_files(fp, temp_fp, -cmpsize):
-                            Logger.info('Check validity of remote file...Valid!')
-                            Logger.info('Resume downloading to temp file with max_connections = {}...'.format(max_connections))
-                            bbs.get_blob_to_path(container, blob.name, temp_fp, progress_callback=process_checker, max_connections=max_connections, start_range=os.path.getsize(fp), if_match=if_match)
-                            download_time = time.time()-t0
-                            download_size_MB = os.path.getsize(temp_fp)/(1024**2) # file size in MB
-                            total_download_size_MB+=download_size_MB
-                            Logger.info('\nAppending to local file...')
-                            with open(fp, 'ab') as f1, open(temp_fp, 'rb') as f2:
-                                shutil.copyfileobj(f2, f1, length=100*1024**2)   # writing chunks of 100MB to avoid consuming memory
-                            Logger.info('Appending completed. Deleting temp file...')
-                            os.remove(temp_fp)
-                        else:
-                            os.remove(temp_fp)
-                            Logger.info('Check validity of remote file...Invalid! - Skip\n')
-                            continue
-                        Logger.info('Downloaded {:.3f} MB in {:.1f} sec. ({:.3f} MB/sec) - Total elapsed time: {:.1f} sec.\n'.format(download_size_MB, download_time, download_size_MB/download_time, time.time()-t0))
+                        if max_download_size is None or file_size < max_download_size:
+                            print('Check validity of remote file... ', end='')
+                            temp_fp = fp + '.temp'
+                            cmpsize = min(file_size,8*1024**2)
+                            bbs.get_blob_to_path(container, blob.name, temp_fp, max_connections=max_connections, start_range=file_size-cmpsize, end_range=file_size-1, if_match=if_match)
+                            if cmp_files(fp, temp_fp, -cmpsize):
+                                print('Valid!')
+                                print('Resume downloading to temp file with max_connections = {}...'.format(max_connections))
+                                bbs.get_blob_to_path(container, blob.name, temp_fp, progress_callback=process_checker, max_connections=max_connections, start_range=os.path.getsize(fp), if_match=if_match, end_range=max_download_size)
+                                download_time = time.time()-t0
+                                download_size_MB = os.path.getsize(temp_fp)/(1024**2) # file size in MB
+                                print('\nAppending to local file...')
+                                with open(fp, 'ab') as f1, open(temp_fp, 'rb') as f2:
+                                    shutil.copyfileobj(f2, f1, length=100*1024**2)   # writing chunks of 100MB to avoid consuming memory
+                                print('Appending completed. Deleting temp file...')
+                                os.remove(temp_fp)
+                            else:
+                                os.remove(temp_fp)
+                                print('Invalid! - Skip\n')
+                                continue
+                            print('Downloaded {:.3f} MB in {:.1f} sec. ({:.3f} MB/sec) - Total elapsed time: {:.1f} sec.'.format(download_size_MB, download_time, download_size_MB/download_time, time.time()-t0))
                     else:
-                        Logger.info('Downloading with max_connections = {}...'.format(max_connections))
-                        bbs.get_blob_to_path(container, blob.name, fp, progress_callback=process_checker, max_connections=max_connections, if_match=if_match)
+                        print('Downloading with max_connections = {}...'.format(max_connections))
+                        bbs.get_blob_to_path(container, blob.name, fp, progress_callback=process_checker, max_connections=max_connections, if_match=if_match, start_range=0, end_range=max_download_size)
                         download_time = time.time()-t0
                         download_size_MB = os.path.getsize(fp)/(1024**2) # file size in MB
-                        total_download_size_MB+=download_size_MB
-                        Logger.info('\nDownloaded {:.3f} MB in {:.1f} sec. ({:.3f} MB/sec)\n'.format(download_size_MB, download_time, download_size_MB/download_time))
-            except:
-                Logger.exception()
+                        print('\nDownloaded {:.3f} MB in {:.1f} sec. ({:.3f} MB/sec)'.format(download_size_MB, download_time, download_size_MB/download_time))
+                    if not keep_invalid_eof:
+                        erase_invalid_end_line(fp)
+                    print()
+            except Exception as e:
+                print('Error: {}'.format(e))
 
         if create_gzip_mode > -1:
             if selected_fps:
@@ -316,7 +334,7 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                                 for x in open(fn, 'rb'):
                                     if x.startswith(b'{"_label_cost') and x.strip().endswith(b'}'):     # reading only cooked lined
                                         data = ds_parse.json_cooked(x)
-                                        if data['ei'] not in d or float(data['cost']) < d[data['ei']][1]: # taking line with best reward
+                                        if data is not None and (data['ei'] not in d or float(data['cost']) < d[data['ei']][1]): # taking line with best reward
                                             d[data['ei']] = (data['ts'], float(data['cost']), x)
                             Logger.info(' - len(d): {}'.format(len(d)))
 
@@ -355,8 +373,18 @@ if __name__ == '__main__':
             kwargs['end_date'] = datetime.datetime.utcnow() 
 
     # Parse ds.config
-    auth_dict = dict(x.split(': ',1) for x in open('ds.config').read().split('[AzureStorageAuthentication]',1)[1].split('\n') if ': ' in x)
-    auth_str = auth_dict.get(kwargs['app_id'], auth_dict['$Default'])
-    kwargs.update(dict(x.split(':',1) for x in auth_str.split(',')))
+    try:
+        auth_dict = dict(x.split(': ',1) for x in open('ds.config').read().split('[AzureStorageAuthentication]',1)[1].split('\n') if ': ' in x)
+        auth_str = auth_dict.get(kwargs['app_id'], auth_dict['$Default'])
+        if ':' in auth_str:
+            kwargs.update(dict(x.split(':',1) for x in auth_str.split(',')))
+        else:
+            kwargs.update({'conn_string': auth_str})
+    except Exception as e:
+        if e.args[0] == 'dictionary update sequence element #0 has length 1; 2 is required':
+            print("Error: Invalid Azure Storage Authentication format: {}".format(auth_str))
+        else:
+            print("Error:\nType: {}\nArgs: {}".format(type(e).__name__, e.args))
+        sys.exit()
 
     download_container(**kwargs)

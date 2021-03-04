@@ -2,10 +2,10 @@ import pandas,ds_parse,json,collections,os,gzip,sys
 import numpy as np
 import argparse
 import time
-from loggers import Logger
+from DashboardMpi.helpers import command
 
 def get_ts_5min_bin(ts):
-    str_5min = str(ts[:14])
+    str_5min = ts[:14]
     x = int(float(ts[14:16])/5)*5
     if x < 10:
         str_5min += '0'
@@ -33,6 +33,7 @@ def get_prediction_prob(a0, pred_line):
         pred_prob = 1 if a0 == int(pred_line) else 0
 
     return pred_prob
+
 
 def output_dashboard_data(d, dashboard_file, commands={}, sep=':'):
     data_dict = collections.OrderedDict()
@@ -97,7 +98,8 @@ def merge_and_unique_stats(stats_files, dashboard_file):
     Logger.info('Output dashboard data...')
     output_dashboard_data(d, dashboard_file)
 
-def create_stats(log_fp, log_type='cb', d=None, predictions_files=None):
+def create_stats(log_fp, log_type='cb', d=None, predictions_files=None, is_summary=False, report_progress=True):
+
     t0 = time.time()
     if d is None:
         d = {}
@@ -113,19 +115,25 @@ def create_stats(log_fp, log_type='cb', d=None, predictions_files=None):
     pred = {}
     for pred_fp in predictions_files:
         if os.path.isfile(pred_fp):
-            name = pred_fp.split('.')[-2]   # check that policy name is encoded in file_name
+            if is_summary:
+                name = pred_fp.split('/')[-1].split('.')[-2]
+            else:
+                name = pred_fp.split('.')[-2] # check that policy name is encoded in file_name
             if name:
-                with open(pred_fp) as f:
-                    pred[name] = []
-                    slot = []
-                    for x in f:
-                        x = x.strip()
-                        if x:
-                            slot.append(x)
-                        else:
-                            pred[name].append(slot)
-                            slot = []
-                Logger.info('Loaded {} predictions from {}'.format(len(pred[name]), pred_fp))
+                if log_type == 'cb':
+                    pred[name] = [x.strip() for x in open(pred_fp) if x.strip()]
+                elif log_type == 'ccb':
+                    with open(pred_fp) as f:
+                        pred[name] = []
+                        slot = []
+                        for x in f:
+                            x = x.strip()
+                            if x:
+                                slot.append(x)
+                            else:
+                                pred[name].append(slot)
+                                slot = []
+                print('Loaded {} predictions from {}'.format(len(pred[name]), pred_fp))
             else:
                 Logger.info('Name is not valid - Skip: {}'.format(pred_fp))
         else:
@@ -141,50 +149,51 @@ def create_stats(log_fp, log_type='cb', d=None, predictions_files=None):
     tot_bytes = os.path.getsize(log_fp)
     evts = 0
     for i,x in enumerate(gzip.open(log_fp, 'rb') if log_fp.endswith('.gz') else open(log_fp, 'rb')):
-        # display progress
-        bytes_count += len(x)
-        if (i+1) % 1000 == 0:
-            if log_fp.endswith('.gz'):
-                ds_parse.update_progress(i+1)
-            else:
-                ds_parse.update_progress(bytes_count,tot_bytes)
+        if report_progress:
+            # display progress
+            bytes_count += len(x)
+            if (i+1) % 1000 == 0:
+                if log_fp.endswith('.gz'):
+                    ds_parse.update_progress(i+1)
+                else:
+                    ds_parse.update_progress(bytes_count,tot_bytes)
 
         data = None
 
         if log_type == 'ccb':
             if x.startswith(b'{"Timestamp"') and x.strip().endswith(b'}'):
                 data = ds_parse.ccb_json_cooked(x)
-                if data is None or data.get("_skipLearn") == True:
-                    continue
                 aggregates_ccb_data(data, pred, d, evts)
 
-        if log_type == 'ccb' or log_type == 'cb':
-            if x.startswith(b'{"_label_cost":') and x.strip().endswith(b'}'):
+        elif log_type == 'cb':
+            if is_summary:
+                data = json.loads(x.decode("utf-8"))
+            elif x.startswith(b'{"_label_cost":') and x.strip().endswith(b'}'):
                 data = ds_parse.json_cooked(x, do_decode=True)
-                if data is None or data['skipLearn']:
-                    continue
-                aggregates_cb_data(data, pred, d, evts)
 
-        # Skip wrongly formated lines
-        if data is None:
-            continue
+            # Skip wrongly formated lines or not activated lines
+            if data is None or data['skipLearn']:
+                continue
 
+            aggregates_cb_data(data, pred, d, evts)
         evts += 1
 
-    if log_fp.endswith('.gz'):
-        len_text = ds_parse.update_progress(i+1)
-    else:
-        len_text = ds_parse.update_progress(bytes_count,tot_bytes)
-    sys.stdout.write("\r" + " "*len_text + "\r")
-    sys.stdout.flush()
+    if report_progress:
+        if log_fp.endswith('.gz'):
+            len_text = ds_parse.update_progress(i+1)
+        else:
+            len_text = ds_parse.update_progress(bytes_count,tot_bytes)
+        sys.stdout.write("\r" + " "*len_text + "\r")
+        sys.stdout.flush()
 
-    Logger.info('Read {} lines - Processed {} events'.format(i+1,evts))
+    print('Read {} lines - Processed {} events'.format(i+1, evts))
+
     if any(len(pred[name]) != evts for name in pred):
-        Logger.error('Error: Prediction file length ({}) is different from number of events in log file ({})'.format([len(pred[name]) for name in pred],evts))
-        sys.exit(1)
-
-    Logger.info('Total Elapsed Time: {:.1f} sec.'.format(time.time()-t0))
+        print('Error: Prediction file length ({}) is different from number of events in log file ({})'.format([len(pred[name]) for name in pred], evts))
+        sys.exit()
+    print('Total Elapsed Time: {:.1f} sec.'.format(time.time()-t0))
     return d
+
 
 def aggregates_cb_data(data, pred, d, evts):
     if data['cost'] == b'0':
@@ -216,7 +225,7 @@ def aggregates_cb_data(data, pred, d, evts):
             ('baselineRand', {'n': 0., 'N': 0, 'd': 0., 'Ne': 0, 'c': 0., 'SoS': 0})
         ])
         for name in pred:
-            d[ts_bin][name] = {'n':0.,'N':0,'d':0.,'Ne':0,'c':0.,'SoS':0}
+            d[ts_bin][name] = {'n': 0., 'N': 0, 'd': 0., 'Ne': 0, 'c': 0., 'SoS': 0}
 
     # update aggregates for online and baseline policies
     d[ts_bin]['online']['d'] += 1
@@ -243,7 +252,7 @@ def aggregates_cb_data(data, pred, d, evts):
     # update aggregates for additional policies from predictions
     for name in pred:
         # a-1: 0-index action
-        pred_prob = get_prediction_prob(data['a']-1, pred[name][evts][0])
+        pred_prob = get_prediction_prob(data['a'] - 1, pred[name][evts])
         d[ts_bin][name]['N'] += 1
         if pred_prob > 0:
             p_over_p = pred_prob/data['p']
@@ -251,9 +260,10 @@ def aggregates_cb_data(data, pred, d, evts):
             d[ts_bin][name]['Ne'] += 1
             if r != 0:
                 d[ts_bin][name]['n'] += r*p_over_p
-                d[ts_bin][name]['c'] = max(d[ts_bin][name]['c'], abs_r*p_over_p)
+                d[ts_bin][name]['c'] = max(d[ts_bin][name]['c'], abs_r * p_over_p)
                 d[ts_bin][name]['SoS'] += (r*p_over_p)**2
     return d
+
 
 def aggregates_ccb_data(data, pred, d, evts):
     # binning timestamp every 5 min
@@ -271,59 +281,55 @@ def aggregates_ccb_data(data, pred, d, evts):
             d[ts_bin][name] = {'n':0.,'N':0,'d':0.,'Ne':0,'c':0.,'SoS':0}
 
     # update aggregates for online and baseline policies
-    d[ts_bin]['online']['d'] += 1
-    d[ts_bin]['online']['N'] += 1
-    d[ts_bin]['baseline1']['N'] += 1
+    d[ts_bin]['online']['d'] += len(data["_outcomes"])
+    d[ts_bin]['online']['N'] += len(data["_outcomes"])
+    d[ts_bin]['baseline1']['N'] += len(data["_outcomes"])
 
-    d[ts_bin]['baselineRand']['N'] += 1
-    d[ts_bin]['baselineRand']['Ne'] += 1
+    d[ts_bin]['baselineRand']['N'] += len(data["_outcomes"])
+    d[ts_bin]['baselineRand']['Ne'] += len(data["_outcomes"])
 
     for name in pred:
-        d[ts_bin][name]['N'] += 1
+        d[ts_bin][name]['N'] += len(data["_outcomes"])
 
-    # currently ccb evaluations are supported only on the 1st slot
-    index = 0
-    item = data['_outcomes'][0]
-    reward = -float(item["_label_cost"])
-    abs_reward = abs(reward)
-    if (data.get('_ba')):
-        baseline_action = data['_ba'][0]
-    else:
-        baseline_action = min(item['_a'])
-    d[ts_bin]['online']['n'] += reward
+    for index, item in enumerate(data['_outcomes']):
+        reward = -float(item["_label_cost"])
+        abs_reward = abs(reward)
 
-    if (item['_a'][0] == baseline_action):
-        d[ts_bin]['baseline1']['Ne'] += 1
-        d[ts_bin]['baseline1']['d'] += 1/item['_p'][0]
-        d[ts_bin]['baseline1']['n'] += reward/item["_p"][0]
-        d[ts_bin]['baseline1']['c'] = max(
-            d[ts_bin]['baseline1']['c'],
-            abs_reward / item["_p"][0]
+        d[ts_bin]['online']['n'] += reward
+
+        if (item["_a"][0] == min(item["_a"])):
+            d[ts_bin]['baseline1']['Ne'] += len(data["_outcomes"])
+            d[ts_bin]['baseline1']['d'] += 1/item['_p'][0]
+            d[ts_bin]['baseline1']['n'] += reward/item["_p"][0]
+            d[ts_bin]['baseline1']['c'] = max(
+                d[ts_bin]['baseline1']['c'],
+                abs_reward / item["_p"][0]
+            )
+            d[ts_bin]['baseline1']['SoS'] += (reward/item["_p"][0])**2
+
+        d[ts_bin]['baselineRand']['d'] += 1/item['_p'][0]/len(item['_a'])
+        d[ts_bin]['baselineRand']['n'] += reward/item['_p'][0]/len(item['_a'])
+        d[ts_bin]['baselineRand']['c'] = max(
+            d[ts_bin]['baselineRand']['c'],
+            abs_reward/item['_p'][0]/len(item['_a'])
         )
-        d[ts_bin]['baseline1']['SoS'] += (reward/item["_p"][0])**2
+        d[ts_bin]['baselineRand']['SoS'] += (reward/item['_p'][0]/len(item['_a']))**2
 
-    d[ts_bin]['baselineRand']['d'] += 1/item['_p'][0]/len(item['_a'])
-    d[ts_bin]['baselineRand']['n'] += reward/item['_p'][0]/len(item['_a'])
-    d[ts_bin]['baselineRand']['c'] = max(
-        d[ts_bin]['baselineRand']['c'],
-        abs_reward/item['_p'][0]/len(item['_a'])
-    )
-    d[ts_bin]['baselineRand']['SoS'] += (reward/item['_p'][0]/len(item['_a']))**2
-
-    for name in pred:
-        pred_prob = get_prediction_prob(item['_a'][0], pred[name][evts][index])
-        if pred_prob > 0:
-            p_over_p = pred_prob/item['_p'][0]
-            d[ts_bin][name]['d'] += p_over_p
-            d[ts_bin][name]['Ne'] += 1
-            if reward != 0:
-                d[ts_bin][name]['n'] += reward*p_over_p
-                d[ts_bin][name]['c'] = max(
-                    d[ts_bin][name]['c'],
-                    abs_reward*p_over_p
-                )
-                d[ts_bin][name]['SoS'] += (reward*p_over_p)**2
+        for name in pred:
+            pred_prob = get_prediction_prob(item['_a'][0], pred[name][evts][index])
+            if pred_prob > 0:
+                p_over_p = pred_prob/item['_p'][0]
+                d[ts_bin][name]['d'] += p_over_p
+                d[ts_bin][name]['Ne'] += 1
+                if reward != 0:
+                    d[ts_bin][name]['n'] += reward*p_over_p
+                    d[ts_bin][name]['c'] = max(
+                        d[ts_bin][name]['c'],
+                        abs_reward*p_over_p
+                    )
+                    d[ts_bin][name]['SoS'] += (reward*p_over_p)**2
     return d
+
 
 def add_parser_args(parser):
     parser.add_argument('-l','--log_fp', help="data file path (.json or .json.gz format - each line is a dsjson)", required=True)

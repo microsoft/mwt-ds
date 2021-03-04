@@ -1,0 +1,18 @@
+{
+    "exps": {
+		"NewTest": {
+			"context_feature_namespace": ["Features"],
+			"action_label_key": ["id"],
+			"default_action_index": 0,
+			"data_folder": "E:\\data\\20190729_context_explorer\\simulated_data\\logs"
+		}
+	},
+    "output_folder": "\\\\avdsp-share\\InputFiles\\p_learning\\Monitoring",
+    "show_top_sensitive_contexts": 20,
+    "min_daily_sample": 20,
+    "reduce_numerics":{
+        "max_unique_numbers": 20,
+        "n_buckets": 5
+    }
+}
+

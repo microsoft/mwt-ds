@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+* {box-sizing: border-box}
+
+body, html {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #000000;
+  padding: 10px;
+}
+
+table {
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+th, td {
+  text-align: center;
+  padding: 4px;
+  border: 1px solid #d9d9d9;
+}
+
+tr:nth-child(even){background-color: #f2f2f2}
+tr:nth-child(odd){background-color: #ffffff}
+td:nth-child(-n+4){background-color: #e6e6e6;}
+
+th {
+  background-color: #cccccc;
+}
+
+ul li { padding: 3px 3px; }
+
+.tablink {
+  background-color: #555;
+  color: white;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  font-size: 17px;
+  font-family: Arial, sans-serif;
+  width: 25%;
+}
+
+.tablink:hover {
+  background-color: #777;
+}
+
+.tabcontent {
+  display: none;
+  padding: 80px 20px;
+  height: 100%;
+}
+
+#Experiment {background-color: #f0f5f5;}
+#OverallTrend {background-color: #ecf9f2;}
+#ContextSummary {background-color: #e6f7ff;}
+#ContextTrend {background-color: #fff7e6;}
+
+</style>
+</head>
+<body>
+
+<h1 style="color:white;">Experiment NewTest - Context Explorer</h1>
+
+<h3 style="color:white;">2020-02-13 - 2020-03-13</h3>
+
+<button class="tablink" onclick="openPage('Experiment', this, '#75a3a3')"id="defaultOpen">Experiment</button>
+<button class="tablink" onclick="openPage('OverallTrend', this, 'green')">Overall Trend</button>
+<button class="tablink" onclick="openPage('ContextSummary', this, '#008ae6')">Context Summary</button>
+<button class="tablink" onclick="openPage('ContextTrend', this, 'orange')">Context Trend</button>
+
+<div id="Experiment" class="tabcontent">
+  <h3>Experiment Summary</h3>
+  <ul>
+    <li>Experiment ID: NewTest</li>
+    <li>Report Time Span: 2020-02-13 - 2020-03-13</li>
+
+  </ul>  
+  <h3> Navigate this Report: </h3>
+  <ul>
+    <li>Overall Trend: Plots for daily count and the main reward metric trend over time for the entire experiment.</li>
+    <li>Context Summary: A summary table for the latest and cumulative statistics by context. </li>
+    <li>Context Trend: Plots for daily count and the main reward metric trend over time by context. </li>
+  </ul>  
+
+</div>
+
+<div id="OverallTrend" class="tabcontent">
+  <h3>Overall - Trend</h3>
+  Rewards for the control group are estimated with Inverse Propensity Scoring(IPS). 
+                       Reference: <a href="https://en.wikipedia.org/wiki/Inverse_probability_weighting">Wikipedia</a>, 
+                       <a href="https://github.com/microsoft/mwt-ds/blob/master/images/MWT-WhitePaper.pdf">Paper</a> page 12.
+  <br><br>
+  <img src="pic\NewTest_All_2020-02-13-2020-03-13_CallType_MediaType_NetworkType.png" width="1200"><br>
+
+</div>
+
+<div id="ContextSummary" class="tabcontent">
+  <h3>Context Summary - Latest and Cumulative Performance</h3>
+  <ul>
+    <li>Latest Performance: data from the last full day -- 2020-03-13</li>
+    <li>Cumulative Performance: data aggregated for all dates within 2020-02-13 - 2020-03-13 </li>
+  </ul>  
+
+  <b>Top Positive Movements</b>
+  <table border="1" class="dataframe">
+  <thead>
+    <tr>
+      <th colspan="4" halign="left">Context</th>
+      <th colspan="2" halign="left">Count</th>
+      <th colspan="5" halign="left">Reward_Average</th>
+      <th colspan="2" halign="left">Cum_Count</th>
+      <th colspan="5" halign="left">Cum_Reward_Average</th>
+      <th>Last</th>
+    </tr>
+    <tr>
+      <th>Exp</th>
+      <th>CallType</th>
+      <th>MediaType</th>
+      <th>NetworkType</th>
+      <th>Control</th>
+      <th>Treatment</th>
+      <th>Control</th>
+      <th>Treatment</th>
+      <th>Delta</th>
+      <th>p-value</th>
+      <th>sig</th>
+      <th>Control</th>
+      <th>Treatment</th>
+      <th>Control</th>
+      <th>Treatment</th>
+      <th>Delta</th>
+      <th>p-value</th>
+      <th>sig</th>
+      <th>Exploit Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>NewTest</td>
+      <td>1_1</td>
+      <td>Audio</td>
+      <td>wired</td>
+      <td>20</td>
+      <td>613</td>
+      <td>-0.078481</td>
+      <td>0.075195</td>
+      <td>0.153676</td>
+      <td>0.000000</td>
+      <td>*</td>
+      <td>762</td>
+      <td>18716</td>
+      <td>-0.076536</td>
+      <td>0.073399</td>
+      <td>0.149936</td>
+      <td>0.0</td>
+      <td>*</td>
+      <td>{'2': 1}</td>
+    </tr>
+    <tr>
+      <td>NewTest</td>
+      <td>1_1</td>
+      <td>Video</td>
+      <td>wired</td>
+      <td>14</td>
+      <td>660</td>
+      <td>-0.036584</td>
+      <td>0.075915</td>
+      <td>0.112499</td>
+      <td>0.000000</td>
+      <td>*</td>
+      <td>757</td>
+      <td>18947</td>
+      <td>-0.065755</td>
+      <td>0.070655</td>
+      <td>0.136410</td>
+      <td>0.0</td>
+      <td>*</td>
+      <td>{'7': 1}</td>
+    </tr>
+    <tr>
+      <td>NewTest</td>
+      <td>1_1</td>
+      <td>Audio</td>
+      <td>wifi</td>
+      <td>28</td>
+      <td>616</td>
+      <td>-0.094817</td>
+      <td>0.038415</td>
+      <td>0.133232</td>
+      <td>0.000000</td>
+      <td>*</td>
+      <td>737</td>
+      <td>18711</td>
+      <td>-0.080374</td>
+      <td>0.036286</td>
+      <td>0.116660</td>
+      <td>0.0</td>
+      <td>*</td>
+      <td>{'7': 1}</td>
+    </tr>
+    <tr>
+      <td>NewTest</td>
+      <td>GVC</td>
+      <td>Audio</td>
+      <td>wifi</td>
+      <td>26</td>
+      <td>632</td>
+      <td>-0.052450</td>
+      <td>0.061070</td>
+      <td>0.113519</td>
+      <td>0.000000</td>
+      <td>*</td>
+      <td>759</td>
+      <td>18702</td>
+      <td>-0.049284</td>
+      <td>0.062814</td>
+      <td>0.112098</td>
+      <td>0.0</td>
+      <td>*</td>
+      <td>{'3': 1}</td>
+    </tr>
+    <tr>
+      <td>NewTest</td>
+      <td>GVC</td>
+      <td>Video</td>
+      <td>wifi</td>
+      <td>32</td>
+      <td>605</td>
+      <td>-0.023427</td>
+      <td>0.087424</td>
+      <td>0.110851</td>
+      <td>0.000000</td>
+      <td>*</td>
+      <td>732</td>
+      <td>18587</td>
+      <td>-0.000829</td>
+      <td>0.077970</td>
+      <td>0.078800</td>
+      <td>0.0</td>
+      <td>*</td>
+      <td>{'5': 1}</td>
+    </tr>
+    <tr>
+      <td>NewTest</td>
+      <td>1_1</td>
+      <td>Video</td>
+      <td>wifi</td>
+      <td>26</td>
+      <td>600</td>
+      <td>0.013455</td>
+      <td>0.064231</td>
+      <td>0.050775</td>
+      <td>0.000000</td>
+      <td>*</td>
+      <td>751</td>
+      <td>18724</td>
+      <td>0.012004</td>
+      <td>0.061820</td>
+      <td>0.049817</td>
+      <td>0.0</td>
+      <td>*</td>
+      <td>{'1': 1}</td>
+    </tr>
+    <tr>
+      <td>NewTest</td>
+      <td>GVC</td>
+      <td>Video</td>
+      <td>wired</td>
+      <td>18</td>
+      <td>621</td>
+      <td>0.057706</td>
+      <td>0.085413</td>
+      <td>0.027708</td>
+      <td>0.000067</td>
+      <td>*</td>
+      <td>1203</td>
+      <td>18708</td>
+      <td>0.064632</td>
+      <td>0.081562</td>
+      <td>0.016930</td>
+      <td>0.0</td>
+      <td>*</td>
+      <td>{'1': 1}</td>
+    </tr>
+  </tbody>
+</table>
+  <br>
+  <b>Top Negative Movements</b>
+  <table border="1" class="dataframe">
+  <thead>
+    <tr>
+      <th colspan="4" halign="left">Context</th>
+      <th colspan="2" halign="left">Count</th>
+      <th colspan="5" halign="left">Reward_Average</th>
+      <th colspan="2" halign="left">Cum_Count</th>
+      <th colspan="5" halign="left">Cum_Reward_Average</th>
+      <th>Last</th>
+    </tr>
+    <tr>
+      <th>Exp</th>
+      <th>CallType</th>
+      <th>MediaType</th>
+      <th>NetworkType</th>
+      <th>Control</th>
+      <th>Treatment</th>
+      <th>Control</th>
+      <th>Treatment</th>
+      <th>Delta</th>
+      <th>p-value</th>
+      <th>sig</th>
+      <th>Control</th>
+      <th>Treatment</th>
+      <th>Control</th>
+      <th>Treatment</th>
+      <th>Delta</th>
+      <th>p-value</th>
+      <th>sig</th>
+      <th>Exploit Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>NewTest</td>
+      <td>GVC</td>
+      <td>Audio</td>
+      <td>wired</td>
+      <td>486</td>
+      <td>653</td>
+      <td>0.110349</td>
+      <td>0.073671</td>
+      <td>-0.036677</td>
+      <td>0.0</td>
+      <td>*</td>
+      <td>13150</td>
+      <td>18905</td>
+      <td>0.107776</td>
+      <td>0.067073</td>
+      <td>-0.040703</td>
+      <td>0.0</td>
+      <td>*</td>
+      <td>{'0': 1}</td>
+    </tr>
+  </tbody>
+</table>
+
+  <br><br>
+  <i><font size="2">
+    * Note: Some contexts are filtered out due to sample size constraints and sensitivity limits. Please find information of all contexts in the <a href="log_all_contexts_NewTest_2020-02-13-2020-03-13_CallType_MediaType_NetworkType.xlsx">log file</a>. <br>
+    * Note: There could be multiple Last Exploit Actions when (1) the probablities of taking the actions are the same or (2) group continuous values. 
+  </font></i>
+
+</div>
+
+<div id="ContextTrend" class="tabcontent">
+  <h3>Context - Trend</h3>
+  
+  <b>Top Positive Movements</b><br>
+  <img src="pic\NewTest_1_1Audiowired_2020-02-13-2020-03-13_CallType_MediaType_NetworkType.png" width="1200"><br><img src="pic\NewTest_1_1Videowired_2020-02-13-2020-03-13_CallType_MediaType_NetworkType.png" width="1200"><br><img src="pic\NewTest_1_1Audiowifi_2020-02-13-2020-03-13_CallType_MediaType_NetworkType.png" width="1200"><br><img src="pic\NewTest_GVCAudiowifi_2020-02-13-2020-03-13_CallType_MediaType_NetworkType.png" width="1200"><br><img src="pic\NewTest_GVCVideowifi_2020-02-13-2020-03-13_CallType_MediaType_NetworkType.png" width="1200"><br><img src="pic\NewTest_1_1Videowifi_2020-02-13-2020-03-13_CallType_MediaType_NetworkType.png" width="1200"><br><img src="pic\NewTest_GVCVideowired_2020-02-13-2020-03-13_CallType_MediaType_NetworkType.png" width="1200"><br>
+  <br>
+  <b>Top Negative Movements</b><br>
+  <img src="pic\NewTest_GVCAudiowired_2020-02-13-2020-03-13_CallType_MediaType_NetworkType.png" width="1200"><br>
+
+  
+</div>
+
+<script>
+function openPage(pageName,elmnt,color) {
+  var i, tabcontent, tablinks;
+  tabcontent = document.getElementsByClassName("tabcontent");
+  for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+  tablinks = document.getElementsByClassName("tablink");
+  for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].style.backgroundColor = "";
+  }
+  document.getElementById(pageName).style.display = "block";
+  elmnt.style.backgroundColor = color;
+}
+
+// Get the element with id="defaultOpen" and click on it
+document.getElementById("defaultOpen").click();
+</script>
+   
+</body>
+</html> 

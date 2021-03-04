@@ -21,7 +21,7 @@ def update(files, dt_str=13):
         
             if x.startswith(b'{"_label') and x.strip().endswith(b'}'):
                 data = ds_parse.json_cooked(x)
-                if data['a'] <= 0:
+                if data is None:
                     continue
                 
                 c_imp_all.update([data['ts'][:dt_str]])
@@ -121,7 +121,7 @@ def create_act_d(l):
         
     return act_d,data,ctr_all
 
-def plot_act_d(act_d, data, num_ticks=31, plot_rew_zero=False, colors=['C0', 'C1', 'C2', 'C4', 'C6', 'C5', 'C7'], ms1=10, ms2=10):
+def plot_act_d(act_d, data, num_ticks=None, plot_rew_zero=False, colors=['C0', 'C1', 'C2', 'C4', 'C6', 'C5', 'C7'], ms1=10, ms2=10):
     vw_model_d = {}
     for i,x in enumerate(data):
         if x[-1] not in vw_model_d:
@@ -147,8 +147,20 @@ def plot_act_d(act_d, data, num_ticks=31, plot_rew_zero=False, colors=['C0', 'C1
         plt.plot([i for i,x in enumerate(data) if x[2] == 0], [x[0] for x in data if x[2] == 0], "r.", markersize=7, markeredgewidth=1, markeredgecolor='r', markerfacecolor='None')
     plt.plot([i for i,x in enumerate(data) if x[2] < 0], [x[0] for x in data if x[2] < 0], "b.", markersize=7, markeredgewidth=1, markeredgecolor='b', markerfacecolor='None')
 
-    indices = np.linspace(0, len(data)-1, num_ticks, endpoint=True, dtype=int)
-    plt.xticks(indices, [data[i][5].split('.')[0][5:-3].replace('T', '\n') for i in indices])
+    if num_ticks:
+        indices = np.linspace(0, len(data)-1, num_ticks, endpoint=True, dtype=int)
+        xticks = [data[i][5].split('.')[0][5:-3].replace('T', '\n') for i in indices]
+    else:
+        indices = []
+        xticks = []
+        old = None
+        for i,x in enumerate(data):
+            curr = data[i][5].split('.')[0][5:-3].replace('T', '\n')
+            if i == 0 or i+1 == len(data) or curr[:-3] != old[:-3]:
+                indices.append(i)
+                xticks.append(curr)
+            old = curr
+    plt.xticks(indices, xticks)
     plt.ylabel('Actions')
     plt.xlabel('Timestamp (UTC)')
     plt.show()

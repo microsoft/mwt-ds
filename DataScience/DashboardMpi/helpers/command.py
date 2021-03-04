@@ -18,7 +18,7 @@ def deserialize(s):
 
 
 def to_commandline(opts):
-    command = ''
+    command = 'vw'
     for key, val in opts.items():
         command = ' '.join([
             command,

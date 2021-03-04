@@ -1,6 +1,7 @@
-import subprocess
 import sys
-from helpers import command
+import subprocess
+from subprocess import check_output
+from DashboardMpi.helpers import command
 
 
 def _safe_to_float(str, default):
@@ -10,27 +11,26 @@ def _safe_to_float(str, default):
         return default
 
 
-def _cache(input, opts, env):
-    opts['-d'] = input
-    opts['--cache_file'] = env.cache_path_gen.get(input)
-    return (opts, run(build_command(env.vw_path, opts), env.logger))
+def _cache(log_path, opts, env):
+    opts['-d'] = log_path
+    opts['--cache_file'] = env.caches_provider.new_path(log_path)
+    return (opts, run(build_command(opts), env.logger))
 
 
 def _cache_func(input):
     return _cache(input[0], input[1], input[2])
 
 
-def _cache_multi(opts, env):
-    input_files = env.txt_provider.get()
+def _cache_multi(opts, env, file_path):
+    input_files = [file_path]
     inputs = list(map(lambda i: (i, opts, env), input_files))
-    result = env.job_pool.map(_cache_func, inputs)
-    return result
+    return env.job_pool.map(_cache_func, inputs)
 
 
-def _train(cache_file, opts, env):
-    opts['--cache_file'] = cache_file
-    opts['-f'] = env.model_path_gen.get(cache_file, opts)
-    result = (opts, run(build_command(env.vw_path, opts), env.logger))
+def _train(cache_path, opts, env):
+    opts['--cache_file'] = cache_path
+    opts['-f'] = env.models_provider.new_path(cache_path, opts)
+    result = (opts, run(build_command(opts), env.logger))
     return result
 
 
@@ -38,20 +38,31 @@ def _train_func(input):
     return _train(input[0], input[1], input[2])
 
 
+def _update_opts(r):
+    r[0]['-i'] = r[0]['-f']
+    return r[0]
+
+
+def _process_result(r):
+    command.generalize(r[0])
+    return (r[0], r[1]["average loss"])
+
+
 def _train_multi(opts, env):
-    cache_files = env.cache_provider.get()
-    for c in cache_files:
-        inputs = list(map(lambda o: (c, o, env), opts))
+    cache_files = env.caches_provider.list()
+    for index, cache in enumerate(cache_files):
+        inputs = list(map(lambda o: (cache, o, env), opts))
         result = env.job_pool.map(_train_func, inputs)
-        opts = list(map(lambda r: r[0], result))
-        for o in opts:
-            o['-i'] = o['-f']
-    return result
+
+        if index == len(cache_files) - 1:
+            return list(map(_process_result, result))
+        else:
+            opts = list(map(_update_opts, result))
 
 
-def _predict(cache_file, command_name, command, env):
-    command['-p'] = env.pred_path_gen.get(cache_file, command_name)
-    _train(cache_file, command, env)
+def _predict(cache_path, command_name, command, env):
+    command['-p'] = env.predictions_provider.new_path(cache_path, command_name)
+    _train(cache_path, command, env)
     return command_name, command
 
 
@@ -60,7 +71,7 @@ def _predict_func(input):
 
 
 def _predict_multi(labeled_opts, env):
-    cache_files = env.cache_provider.get()
+    cache_files = env.caches_provider.list()
     for c in cache_files:
         inputs = list(map(
             lambda lo: (c, lo[0], lo[1], env), labeled_opts.items()))
@@ -76,7 +87,8 @@ def _parse_vw_output(txt):
             index = line.find('=')
             key = line[0:index].strip()
             value = line[index + 1:].strip()
-            result[key] = value
+            if key == "average loss":
+                result[key] = _safe_to_float(value, sys.float_info.max)
     return result
 
 
@@ -89,27 +101,23 @@ def run(command, logger):
     )
     output, error = process.communicate()
     logger.debug(command)
+    logger.debug(error)
     return _parse_vw_output(error)
 
 
-def build_command(path, opts):
-    return ' '.join([path, command.to_commandline(opts)])
+def build_command(opts):
+    return command.to_commandline(opts)
 
 
-def cache(opts, env):
-    _cache_multi(opts, env)
+def cache(opts, env, file_path):
+    _cache_multi(opts, env, file_path)
     command.generalize(opts)
 
 
 def train(opts, env):
     if not isinstance(opts, list):
         opts = [opts]
-
-    result = _train_multi(opts, env)
-    for r in result:
-        command.generalize(r[0])
-    return list(map(lambda r: (r[0], _safe_to_float(r[1]['average loss'],
-                sys.float_info.max)), result))
+    return _train_multi(opts, env)
 
 
 def predict(labeled_commands, env):
@@ -119,6 +127,14 @@ def predict(labeled_commands, env):
     _predict_multi(labeled_commands, env)
     for kv in labeled_commands.items():
         command.generalize(kv[1])
+
+
+def check_vw_installed(logger):
+    try:
+        check_output(['vw', '-h'], stderr=subprocess.DEVNULL)
+    except Exception:
+        logger.error("Error: Vowpal Wabbit executable not found. Please install and add it to your path")
+        sys.exit()
 
 
 if __name__ == '__main__':

@@ -1,0 +1,52 @@
+﻿DECLARE @_appId string = "xbetgameshomespotlight";    //your appId
+
+DECLARE @_start DateTime = new DateTime(2019, 10, 22);  //your inclusive start date
+DECLARE @_end DateTime = new DateTime(2019, 11, 15);    //your non-inclusive end date
+
+DECLARE @AppDailyFolder string = "/daily/" + @_appId + "/";   //your app statistics folder
+DECLARE @OutputFolder string = @AppDailyFolder + "statistics-" +  @_start.ToString("yyyy_MM_dd") + "-" +  @_end.ToString("yyyy_MM_dd") + "/";
+     
+DECLARE @InputFiles string = @AppDailyFolder + "statistics-{date:yyyy}-{date:MM}-{date:dd}.csv";
+DECLARE @OutputFile string = @OutputFolder + "statistics.csv";
+
+@Statistics =
+    EXTRACT hour string,
+           model string,
+           obser float,
+           clicks float,
+           impressions float,
+           clicks1 float,
+           impressions1 float,
+           clicksIps1 float,
+           impressionsIps1 float,
+           clicksIpsR float,
+           impressionsIpsR float,
+           PassRatio float,
+           date DateTime
+    FROM @InputFiles
+    USING Extractors.Csv(skipFirstNRows:1);
+
+@Statistics =
+    SELECT *
+    FROM @Statistics
+    WHERE date >= @_start AND date < @_end;
+
+@Statistics = SELECT hour,
+                     model,
+                     SUM(obser) AS obser,
+                     SUM(clicks) AS clicks,
+                     SUM(impressions) AS impressions,
+                     SUM(clicks1) AS clicks1,
+                     SUM(impressions1) AS impressions1,
+                     SUM(clicksIps1) AS clicksIps1,
+                     SUM(impressionsIps1) AS impressionsIps1,
+                     SUM(clicksIpsR) AS clicksIpsR,
+                     SUM(impressionsIpsR) AS impressionsIpsR,
+                     (SUM(impressions * PassRatio) / SUM(impressions)) AS PassRatio
+    FROM @Statistics
+    GROUP BY hour, model;
+
+OUTPUT @Statistics
+TO @OutputFile
+USING Outputters.Csv(outputHeader:true);
+

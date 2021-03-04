@@ -59,8 +59,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CbParser.cs" />
+    <Compile Include="CcbExtractor.cs" />
+    <Compile Include="CcbParser.cs" />
+    <Compile Include="ColumnInfo.cs" />
+    <Compile Include="FieldExpression.cs" />
     <Compile Include="HeaderOnly.cs" />
+    <Compile Include="Helpers.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SafeJsonReader.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
