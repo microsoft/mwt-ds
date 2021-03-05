@@ -222,9 +222,9 @@ if __name__ == '__main__':
                                         'policySource': 'OfflineExperimentation'
                                     })
                                 summary_data['policyResults'].append({
-                                        'name': 'online',
-                                        'arguments': main_args.ml_args,
-                                        'policySource': 'Online'
+                                    'name': 'online',
+                                    'arguments': main_args.ml_args,
+                                    'policySource': 'Online'
                                     })
                     except:
                         Logger.exception()
