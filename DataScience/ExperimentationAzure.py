@@ -106,7 +106,7 @@ if __name__ == '__main__':
                         policyArgs = p['arguments']
                         Logger.info('Name: ' + policyName)
                         Logger.info('Command: ' + policyArgs)
-                        custom_command = "vw " + policyArgs + " -d " + output_gz_fp + " -p " + output_gz_fp + "." + policyName + ".pred" + " -f " + os.path.join(output_dir, 'model.' + policyName + '.vw')
+                        custom_command = "vw " + policyArgs + " -d " + output_gz_fp + " -p " + output_gz_fp + "." + policyName + ".pred" + " --save_resume -f " + os.path.join(output_dir, 'model.' + policyName + '.vw')
                         try:
                             check_output(custom_command.split(' '), stderr=STDOUT)
                         except:
@@ -220,6 +220,11 @@ if __name__ == '__main__':
                                         'name': p['name'],
                                         'arguments': p['arguments'],
                                         'policySource': 'OfflineExperimentation'
+                                    })
+                                summary_data['policyResults'].append({
+                                    'name': 'online',
+                                    'arguments': main_args.ml_args,
+                                    'policySource': 'Online'
                                     })
                     except:
                         Logger.exception()

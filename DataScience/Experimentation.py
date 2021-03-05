@@ -279,11 +279,12 @@ def generate_predictions_files(log_fp, policies, log_type):
 
 def generate_model_files(log_fp, policies):
     Logger.info('Generating model files for policies')
-    model_file_path_prefix = os.path.join(log_fp, 'model')
+    model_file_path_prefix = os.path.join(os.path.dirname(log_fp), 'model')
     processes = []
     for name, policy in policies:
         model_fp = model_file_path_prefix + '.' + name + '.vw'
-        cmd = policy.full_command + ' -f ' + model_fp
+        cmd = policy.full_command + ' --save_resume -f ' + model_fp
+        Logger.info('Generating model for policy Name: {} with cmd: {}'.format(name, cmd))
         p = Popen(cmd.split(' '), stdout=DEVNULL, stderr=DEVNULL)
         processes.append(p)
 
