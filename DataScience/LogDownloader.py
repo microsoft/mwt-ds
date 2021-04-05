@@ -60,9 +60,10 @@ def add_parser_args(parser):
     4: never overwrite; append if the size is larger, without asking; skip currently used blobs''', default=0)
     parser.add_argument('--dry_run', help="print which blobs would have been downloaded, without downloading", action='store_true')
     parser.add_argument('--create_gzip_mode', type=int, help='''Mode to create gzip file(s) for Vowpal Wabbit:
-    0: create one gzip file for each LastConfigurationEditDate prefix
-    1: create a unique gzip file by merging over file dates
-    2: create a unique gzip file by uniquing over EventId and sorting by Timestamp''', default=-1)
+    0: create one gzip file for each LastConfigurationEditDate prefix. Only run evaluation on oldest config folder.
+    1: create a unique gzip file by merging over file dates. Only uses largest cooked log file per day
+    2: create a unique gzip file by uniquing over EventId and sorting by Timestamp
+    3: create a unique gzip file by merging over file dates. Uses all cooked log files per day''', default=-1)
     parser.add_argument('--delta_mod_t', type=int, default=3600, help='time window in sec to detect if a file is currently in use (default=3600 - 1 hour)')
     parser.add_argument('--max_connections', type=int, default=4, help='number of max_connections (default=4)')
     parser.add_argument('--verbose', help="print more details", action='store_true')
@@ -284,6 +285,7 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                                     Logger.info('Adding: {}'.format(fp))
                                     with open(fp, 'rb') as f_in:
                                         shutil.copyfileobj(f_in, f_out, length=100*1024**2)   # writing chunks of 100MB to avoid consuming memory
+
                 elif create_gzip_mode == 1:
                     selected_fps.sort(key=lambda x : (list(map(int,x.split('_data_')[1].split('_')[:3])), -os.path.getsize(x), x))
                     selected_fps_merged = []
@@ -309,6 +311,7 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                                     Logger.info('Adding: {}'.format(fp))
                                     with open(fp, 'rb') as f_in:
                                         shutil.copyfileobj(f_in, f_out, length=1024**3)   # writing chunks of 1GB to avoid consuming memory
+
                 elif create_gzip_mode == 2:
                     selected_fps.sort(key=lambda x : (list(map(int,x.split('_data_')[1].split('_')[:3])), -os.path.getsize(x), x))
                     start_date = '-'.join(selected_fps[0].split('_data_')[1].split('_')[:3])
@@ -340,6 +343,25 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                                         update_progress(i, len(d))
                                 update_progress(i, len(d))
                                 print()
+
+                elif create_gzip_mode == 3:
+                    start_date = '-'.join(selected_fps[0].split('_data_')[1].split('_')[:3])
+                    end_date = '-'.join(selected_fps[-1].split('_data_')[1].split('_')[:3])
+                    output_fp = os.path.join(log_dir, app_id, app_id+'_merged_data_'+start_date+'_'+end_date+'.json.gz')
+                    Logger.info('Merge and zip files of all LastConfigurationEditDate to: {}'.format(output_fp))
+
+                    if not os.path.isfile(output_fp) or __name__ == '__main__' and input('Output file already exists. Do you want to overwrite [Y/n]? '.format(output_fp)) in {'Y', 'y'}:
+                        if dry_run:
+                            for fp in selected_fps:
+                                Logger.info('Adding: {}'.format(fp))
+                            Logger.info('--dry_run - Not downloading!')
+                        else:
+                            with gzip.open(output_fp, 'wb') as f_out:
+                                for fp in selected_fps:
+                                    Logger.info('Adding: {}'.format(fp))
+                                    with open(fp, 'rb') as f_in:
+                                        shutil.copyfileobj(f_in, f_out, length=1024**3)   # writing chunks of 1GB to avoid consuming memory
+                
                 else:
                     Logger.warning('Unrecognized --create_gzip_mode: {}, skipping creating gzip files.'.format(create_gzip_mode))
             else:
