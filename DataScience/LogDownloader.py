@@ -60,7 +60,7 @@ def add_parser_args(parser):
     4: never overwrite; append if the size is larger, without asking; skip currently used blobs''', default=0)
     parser.add_argument('--dry_run', help="print which blobs would have been downloaded, without downloading", action='store_true')
     parser.add_argument('--create_gzip_mode', type=int, help='''Mode to create gzip file(s) for Vowpal Wabbit:
-    0: create one gzip file for each LastConfigurationEditDate prefix
+    0: create one gzip file for each LastConfigurationEditDate prefix. Only run evaluation on oldest config folder.
     1: create a unique gzip file by merging over file dates. Only uses largest cooked log file per day
     2: create a unique gzip file by uniquing over EventId and sorting by Timestamp
     3: create a unique gzip file by merging over file dates. Uses all cooked log files per day''', default=-1)
@@ -291,10 +291,7 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                     selected_fps_merged = []
                     last_fp_date = None
                     for fp in selected_fps:
-                        # has number after 
                         fp_date = datetime.datetime.strptime('_'.join(fp.split('_data_')[1].split('_')[:3]), "%Y_%m_%d")
-                        #check for dups accross config dates
-                        #get multiple from same day
                         if fp_date != last_fp_date:
                             selected_fps_merged.append(fp)
                             last_fp_date = fp_date
@@ -349,18 +346,6 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
 
                 elif create_gzip_mode == 3:
                     selected_fps.sort(key=lambda x : (list(map(int,x.split('_data_')[1].split('_')[:3])), -os.path.getsize(x), x))
-                    # selected_fps_merged = []
-                    # last_fp_date_with_file_number = None
-
-                    # for fp in selected_fps:
-                    #     #within a day cooked logs are split up onto 250 mb files 
-                    #     #we want to file all unique files within a given day
-                    #     #get the file date with file number _YYYY_MM_DD_#*.json
-                    #     fp_date_with_file_number = fp.split('_data_')[1][:-5]
-                    #     if fp_date_with_file_number != last_fp_date_with_file_number:
-                    #         selected_fps_merged.append(fp)
-                    #         last_fp_date_with_file_number = fp_date_with_file_number
-
                     start_date = '-'.join(selected_fps[0].split('_data_')[1].split('_')[:3])
                     end_date = '-'.join(selected_fps[-1].split('_data_')[1].split('_')[:3])
                     output_fp = os.path.join(log_dir, app_id, app_id+'_merged_data_'+start_date+'_'+end_date+'.json.gz')
