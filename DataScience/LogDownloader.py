@@ -263,7 +263,8 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
 
         if create_gzip_mode > -1:
             if selected_fps:
-                selected_fps = [x for x in selected_fps if os.path.isfile(x)]
+                #order selected_fps from oldest cnfiguration folder to newest so that evaluations are run on the newest folder 
+                selected_fps = [x for x in selected_fps if os.path.isfile(x)].reverse()
                 if create_gzip_mode == 0:
                     models = {}
                     for fp in selected_fps:
@@ -284,12 +285,16 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                                     Logger.info('Adding: {}'.format(fp))
                                     with open(fp, 'rb') as f_in:
                                         shutil.copyfileobj(f_in, f_out, length=100*1024**2)   # writing chunks of 100MB to avoid consuming memory
+
                 elif create_gzip_mode == 1:
                     selected_fps.sort(key=lambda x : (list(map(int,x.split('_data_')[1].split('_')[:3])), -os.path.getsize(x), x))
                     selected_fps_merged = []
                     last_fp_date = None
                     for fp in selected_fps:
+                        # has number after 
                         fp_date = datetime.datetime.strptime('_'.join(fp.split('_data_')[1].split('_')[:3]), "%Y_%m_%d")
+                        #check for dups accross config dates
+                        #get multiple from same day
                         if fp_date != last_fp_date:
                             selected_fps_merged.append(fp)
                             last_fp_date = fp_date
@@ -309,6 +314,7 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                                     Logger.info('Adding: {}'.format(fp))
                                     with open(fp, 'rb') as f_in:
                                         shutil.copyfileobj(f_in, f_out, length=1024**3)   # writing chunks of 1GB to avoid consuming memory
+
                 elif create_gzip_mode == 2:
                     selected_fps.sort(key=lambda x : (list(map(int,x.split('_data_')[1].split('_')[:3])), -os.path.getsize(x), x))
                     start_date = '-'.join(selected_fps[0].split('_data_')[1].split('_')[:3])
@@ -340,6 +346,37 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                                         update_progress(i, len(d))
                                 update_progress(i, len(d))
                                 print()
+
+                elif create_gzip_mode == 3:
+                    selected_fps.sort(key=lambda x : (list(map(int,x.split('_data_')[1].split('_')[:3])), -os.path.getsize(x), x))
+                    selected_fps_merged = []
+                    last_fp_date_with_file_number = None
+
+                    for fp in selected_fps:
+                        #within a day cooked logs are split up onto 250 mb files 
+                        #we want to file all unique files within a given day
+                        #get the file date with file number _YYYY_MM_DD_#*.json
+                        fp_date_with_file_number = fp.split('_data_')[1][:-5]
+                        if fp_date_with_file_number != last_fp_date_with_file_number:
+                            selected_fps_merged.append(fp)
+                            last_fp_date_with_file_number = fp_date_with_file_number
+
+                    start_date = '-'.join(selected_fps_merged[0].split('_data_')[1].split('_')[:3])
+                    end_date = '-'.join(selected_fps_merged[-1].split('_data_')[1].split('_')[:3])
+                    output_fp = os.path.join(log_dir, app_id, app_id+'_merged_data_'+start_date+'_'+end_date+'.json.gz')
+                    Logger.info('Merge and zip files of all LastConfigurationEditDate to: {}'.format(output_fp))
+                    if not os.path.isfile(output_fp) or __name__ == '__main__' and input('Output file already exists. Do you want to overwrite [Y/n]? '.format(output_fp)) in {'Y', 'y'}:
+                        if dry_run:
+                            for fp in selected_fps_merged:
+                                Logger.info('Adding: {}'.format(fp))
+                            Logger.info('--dry_run - Not downloading!')
+                        else:
+                            with gzip.open(output_fp, 'wb') as f_out:
+                                for fp in selected_fps_merged:
+                                    Logger.info('Adding: {}'.format(fp))
+                                    with open(fp, 'rb') as f_in:
+                                        shutil.copyfileobj(f_in, f_out, length=1024**3)   # writing chunks of 1GB to avoid consuming memory
+                
                 else:
                     Logger.warning('Unrecognized --create_gzip_mode: {}, skipping creating gzip files.'.format(create_gzip_mode))
             else:
