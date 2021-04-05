@@ -345,11 +345,11 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                                 print()
 
                 elif create_gzip_mode == 3:
-                    selected_fps.sort(key=lambda x : (list(map(int,x.split('_data_')[1].split('_')[:3])), -os.path.getsize(x), x))
                     start_date = '-'.join(selected_fps[0].split('_data_')[1].split('_')[:3])
                     end_date = '-'.join(selected_fps[-1].split('_data_')[1].split('_')[:3])
                     output_fp = os.path.join(log_dir, app_id, app_id+'_merged_data_'+start_date+'_'+end_date+'.json.gz')
                     Logger.info('Merge and zip files of all LastConfigurationEditDate to: {}'.format(output_fp))
+
                     if not os.path.isfile(output_fp) or __name__ == '__main__' and input('Output file already exists. Do you want to overwrite [Y/n]? '.format(output_fp)) in {'Y', 'y'}:
                         if dry_run:
                             for fp in selected_fps:
