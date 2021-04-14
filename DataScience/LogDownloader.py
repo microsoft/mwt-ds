@@ -173,7 +173,6 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                     Logger.info('{} - Skip: imitation mode detected for configuration.\n'.format(blob.name))
                 continue
             
-            print(blob.name)
             blob_day = datetime.datetime.strptime(blob.name.split('/data/', 1)[1].split('_', 1)[0], '%Y/%m/%d')
             if (start_date and blob_day < start_date) or (end_date and end_date < blob_day):
                 if verbose:
@@ -371,7 +370,7 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
 
                     if not os.path.isfile(output_fp) or __name__ == '__main__' and input('Output file already exists. Do you want to overwrite [Y/n]? '.format(output_fp)) in {'Y', 'y'}:
                         if dry_run:
-                            for fp in selected_fps:
+                            for fp in merged_configs.files:
                                 Logger.info('Adding: {}'.format(fp))
                             Logger.info('--dry_run - Not downloading!')
                         else:
