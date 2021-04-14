@@ -62,4 +62,3 @@ class CookedLogSequence:
                 else:
                     Logger.info('duplicate file: {}'.format(fp))
         return CookedLogSequence(merged_files)
-        
