@@ -1,4 +1,5 @@
 import sys
+from functools import reduce
 from loggers import Logger
 from CookedLogSequence import CookedLogSequence
 
@@ -23,6 +24,16 @@ def valid_date(s):
         return datetime.datetime.strptime(s, "%Y-%m-%d")
     except ValueError:
         raise argparse.ArgumentTypeError("Not a valid date: '{0}'. Expected format: YYYY-MM-DD".format(s))
+
+def get_config_date_from_fp(fp):
+    return datetime.datetime.strptime(os.path.basename(fp).split('_data_',1)[0], "%Y%m%d%H%M%S")
+
+def get_file_day_from_fp(fp):
+    return int(os.path.basename(fp).split('_data_')[1].split('_')[2])
+
+def get_file_number_from_fp(fp):
+    print('')
+    return int(os.path.basename(fp).split('_data_')[1].split('_')[3][:-5])
         
 def cmp_files(f1, f2, start_range_f1=0, start_range_f2=0, erase_checkpoint_line=True):
     with open(f1, 'rb+' if erase_checkpoint_line else 'rb') as fp1, open(f2, 'rb') as fp2:
@@ -346,22 +357,9 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                                 print()
 
                 elif create_gzip_mode == 3:
-                    configs = {} 
-                    for fp in selected_fps:
-                        configs.setdefault(os.path.basename(fp).split('_data_',1)[0], []).append(fp)
-                    cooked_log_sequences = []
-                    for config in configs:
-                        #configs[config] is ordered from newest file to oldest file, ie 05_0000, 04_0000, ...
-                        #we need to process each config in the order they were written (oldest to newest) so the order needs to be reversed.
-                        configs[config].reverse()
-                        cooked_log_sequences.append(CookedLogSequence(configs[config]))
-
-                    #selected_fps is ordered from newest config folder to oldest
-                    #we want to process configs in the order they were written so the order needs to be reversed. 
-                    cooked_log_sequences.reverse()
-                    merged_configs = CookedLogSequence([])
-                    for sequence in cooked_log_sequences:
-                        merged_configs = merged_configs.merge(sequence)
+                    selected_fps.sort(key=lambda fp : (get_config_date_from_fp(fp), get_file_day_from_fp(fp), get_file_number_from_fp(fp)))
+                    
+                    merged_configs = reduce(lambda sequence, fp: sequence.merge(CookedLogSequence([fp])), selected_fps, CookedLogSequence([]))
                     
                     start_date = '-'.join(merged_configs.files[0].split('_data_')[1].split('_')[:3])
                     end_date = '-'.join(merged_configs.files[-1].split('_data_')[1].split('_')[:3])

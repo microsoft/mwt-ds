@@ -3,30 +3,32 @@ from loggers import Logger
 import re
 
 class CookedLogSequence:
+    timestamp_format = '%Y-%m-%dT%H:%M:%S.%f'
+    timestamp_pattern = r'[^\\]"Timestamp"\s*:\s*"(.*?)0Z"'
     def __init__(self, files):
         self.files = files
 
     def get_file_start_time(self, fp):
         with open(fp, 'r') as f:
             first_line = f.readline()
-            return datetime.strptime(re.search('Timestamp":"(.*?)0Z', first_line).group(1), "%Y-%m-%dT%H:%M:%S.%f")
+            return datetime.strptime(re.search(self.timestamp_pattern, first_line).group(1), self.timestamp_format)
             f.close()
     
     def get_file_end_time(self, fp):
         with open(fp, 'r') as f:
             last_line = f.readlines()[-1]
-            return datetime.strptime(re.search('Timestamp":"(.*?)0Z', last_line).group(1), "%Y-%m-%dT%H:%M:%S.%f")
+            return datetime.strptime(re.search(self.timestamp_pattern, last_line).group(1), self.timestamp_format)
             f.close()
     
     def get_first_ts(self):
         if (len(self.files) > 0):
             return self.get_file_start_time(self.files[0])
-        return datetime.strptime('2000-01-01T00:00:00.000000', "%Y-%m-%dT%H:%M:%S.%f")
+        return datetime.min
     
     def get_last_ts(self):
         if (len(self.files) > 0):
             return self.get_file_end_time(self.files[-1])
-        return datetime.strptime('2000-01-01T00:00:00.000000', "%Y-%m-%dT%H:%M:%S.%f")
+        return datetime.min
 
     #Merging of CookedLogSequence must be in sequential order
     #Ex. We have three sequences in the following order A B C
@@ -51,7 +53,7 @@ class CookedLogSequence:
                             if(should_append):
                                 output_fp.write(line)
                             else:
-                                cur_time = datetime.strptime(re.search('Timestamp":"(.*?)0Z', line).group(1), "%Y-%m-%dT%H:%M:%S.%f")
+                                cur_time = datetime.strptime(re.search(self.timestamp_pattern, line).group(1), self.timestamp_format)
                                 if (cur_time > merged_end_time):
                                     Logger.info('first non overlapping timestamp: {}'.format(cur_time))
                                     output_fp.write(line)
