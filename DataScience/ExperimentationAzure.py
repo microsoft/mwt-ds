@@ -106,7 +106,7 @@ if __name__ == '__main__':
                         policyArgs = p['arguments']
                         Logger.info('Name: ' + policyName)
                         Logger.info('Command: ' + policyArgs)
-                        custom_command = "vw " + policyArgs + " -d " + output_gz_fp + " -p " + output_gz_fp + "." + policyName + ".pred" + " --save_resume -f " + os.path.join(output_dir, 'model.' + policyName + '.vw')
+                        custom_command = "vw " + policyArgs + " -d " + output_gz_fp + " -p " + output_gz_fp + "." + policyName + ".pred"
                         try:
                             check_output(custom_command.split(' '), stderr=STDOUT)
                         except:
