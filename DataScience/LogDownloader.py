@@ -1,5 +1,8 @@
 import sys
+from collections import OrderedDict
+from functools import reduce
 from loggers import Logger
+from CookedLogSequence import CookedLogSequence
 
 if sys.maxsize < 2**32:     # check for 32-bit python version
     if input("32-bit python interpreter detected. There may be problems downloading large files. Do you want to continue anyway [Y/n]? ") not in {'Y', 'y'}:
@@ -22,6 +25,16 @@ def valid_date(s):
         return datetime.datetime.strptime(s, "%Y-%m-%d")
     except ValueError:
         raise argparse.ArgumentTypeError("Not a valid date: '{0}'. Expected format: YYYY-MM-DD".format(s))
+
+def get_config_date_from_fp(fp):
+    return datetime.datetime.strptime(os.path.basename(fp).split('_data_',1)[0], "%Y%m%d%H%M%S")
+
+def get_file_day_from_fp(fp):
+    return int(os.path.basename(fp).split('_data_')[1].split('_')[2])
+
+def get_file_number_from_fp(fp):
+    print('')
+    return int(os.path.basename(fp).split('_data_')[1].split('_')[3][:-5])
         
 def cmp_files(f1, f2, start_range_f1=0, start_range_f2=0, erase_checkpoint_line=True):
     with open(f1, 'rb+' if erase_checkpoint_line else 'rb') as fp1, open(f2, 'rb') as fp2:
@@ -171,7 +184,7 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                 if verbose:
                     Logger.info('{} - Skip: imitation mode detected for configuration.\n'.format(blob.name))
                 continue
-
+            
             blob_day = datetime.datetime.strptime(blob.name.split('/data/', 1)[1].split('_', 1)[0], '%Y/%m/%d')
             if (start_date and blob_day < start_date) or (end_date and end_date < blob_day):
                 if verbose:
@@ -345,19 +358,27 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                                 print()
 
                 elif create_gzip_mode == 3:
-                    start_date = '-'.join(selected_fps[0].split('_data_')[1].split('_')[:3])
-                    end_date = '-'.join(selected_fps[-1].split('_data_')[1].split('_')[:3])
+                    selected_fps.sort(key=lambda fp : (get_config_date_from_fp(fp), get_file_day_from_fp(fp), get_file_number_from_fp(fp)))
+
+                    configs = OrderedDict()
+                    for fp in selected_fps:
+                        configs.setdefault(os.path.basename(fp).split('_data_',1)[0], []).append(fp)
+
+                    merged_configs = reduce(lambda sequence, config: sequence.merge(CookedLogSequence(configs[config])), configs, CookedLogSequence([]))
+                    
+                    start_date = '-'.join(merged_configs.files[0].split('_data_')[1].split('_')[:3])
+                    end_date = '-'.join(merged_configs.files[-1].split('_data_')[1].split('_')[:3])
                     output_fp = os.path.join(log_dir, app_id, app_id+'_merged_data_'+start_date+'_'+end_date+'.json.gz')
                     Logger.info('Merge and zip files of all LastConfigurationEditDate to: {}'.format(output_fp))
 
                     if not os.path.isfile(output_fp) or __name__ == '__main__' and input('Output file already exists. Do you want to overwrite [Y/n]? '.format(output_fp)) in {'Y', 'y'}:
                         if dry_run:
-                            for fp in selected_fps:
+                            for fp in merged_configs.files:
                                 Logger.info('Adding: {}'.format(fp))
                             Logger.info('--dry_run - Not downloading!')
                         else:
                             with gzip.open(output_fp, 'wb') as f_out:
-                                for fp in selected_fps:
+                                for fp in merged_configs.files:
                                     Logger.info('Adding: {}'.format(fp))
                                     with open(fp, 'rb') as f_in:
                                         shutil.copyfileobj(f_in, f_out, length=1024**3)   # writing chunks of 1GB to avoid consuming memory
