@@ -1,4 +1,5 @@
 import sys
+from collections import OrderedDict
 from functools import reduce
 from loggers import Logger
 from CookedLogSequence import CookedLogSequence
@@ -358,8 +359,12 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
 
                 elif create_gzip_mode == 3:
                     selected_fps.sort(key=lambda fp : (get_config_date_from_fp(fp), get_file_day_from_fp(fp), get_file_number_from_fp(fp)))
-                    
-                    merged_configs = reduce(lambda sequence, fp: sequence.merge(CookedLogSequence([fp])), selected_fps, CookedLogSequence([]))
+
+                    configs = OrderedDict()
+                    for fp in selected_fps:
+                        configs.setdefault(os.path.basename(fp).split('_data_',1)[0], []).append(fp)
+
+                    merged_configs = reduce(lambda sequence, config: sequence.merge(CookedLogSequence(configs[config])), configs, CookedLogSequence([]))
                     
                     start_date = '-'.join(merged_configs.files[0].split('_data_')[1].split('_')[:3])
                     end_date = '-'.join(merged_configs.files[-1].split('_data_')[1].split('_')[:3])
