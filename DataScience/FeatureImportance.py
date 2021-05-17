@@ -35,7 +35,7 @@ Emotion2^sadness:157471:-1.35735
 '''
 
 import os, argparse, sys
-from subprocess import check_output, DEVNULL, Popen, TimeoutExpired
+from subprocess import check_output, DEVNULL, Popen, TimeoutExpired, run, STDOUT, PIPE
 from loggers import Logger
 
 def get_pretty_feature(feature):
@@ -115,14 +115,23 @@ def get_feature_importance(log_file, ml_args, warmstart_model=None, min_num_feat
 
     vw_inv_hash_cmd = vw_base + ' --invert_hash {0}'.format(invHash_fp)
     Logger.info('command to get invert hash file: {0}'.format(vw_inv_hash_cmd))
-    invert_hash_process = Popen(vw_inv_hash_cmd.split())
+    invert_hash_process = Popen(vw_inv_hash_cmd.split(), stderr=STDOUT, stdout=PIPE)
     try:
         invert_hash_process.wait(invert_hash_timeout)
+        outs = invert_hash_process.communicate()
     except TimeoutExpired:
         Logger.info('Invert hash file generation timed out after {0} seconds.'.format(invert_hash_timeout))
         invert_hash_process.kill()
         Logger.info('Exit the computation of feature importance')
         return [[],[]]
+    except:
+        Logger.error('Invert hash file generation failed')
+        outs = invert_hash_process.communicate()
+        invert_hash_process.kill()
+        raise
+    retcode = invert_hash_process.poll()
+    if not retcode:
+        Logger.error(outs)
     inv_hash = get_feature_inv_hash(invHash_fp)
 
     print('\n=====================================')
@@ -135,7 +144,9 @@ def get_feature_importance(log_file, ml_args, warmstart_model=None, min_num_feat
         vw_readable_model_cmd_base = vw_base + ' --readable_model {0}'.format(readModel_fp)
         vw_readable_model_cmd = vw_readable_model_cmd_base + ' -c --l1 {0}'.format(l1)
         index += 1
-        os.system(vw_readable_model_cmd)
+        outs = run(vw_readable_model_cmd, stderr=STDOUT, stdout=PIPE)
+        if not outs.returncode:
+            Logger.error(outs)
         features = extract_features(readModel_fp, inv_hash)
         num_features = len(features)
         Logger.info('L1: {0:.0e} - Num of Features: {1}, File - {2}'.format(l1, num_features, os.path.basename(readModel_fp)))
