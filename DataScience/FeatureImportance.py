@@ -144,7 +144,7 @@ def get_feature_importance(log_file, ml_args, warmstart_model=None, min_num_feat
         vw_readable_model_cmd_base = vw_base + ' --readable_model {0}'.format(readModel_fp)
         vw_readable_model_cmd = vw_readable_model_cmd_base + ' -c --l1 {0}'.format(l1)
         index += 1
-        outs = run(vw_readable_model_cmd, stderr=STDOUT, stdout=PIPE)
+        outs = run(vw_readable_model_cmd, stderr=STDOUT, stdout=PIPE, shell=True)
         if not outs.returncode:
             Logger.error(outs)
         features = extract_features(readModel_fp, inv_hash)
