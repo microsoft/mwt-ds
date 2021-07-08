@@ -29,6 +29,12 @@ def valid_date(s):
 def get_config_date_from_fp(fp):
     return datetime.datetime.strptime(os.path.basename(fp).split('_data_',1)[0], "%Y%m%d%H%M%S")
 
+def get_file_year_from_fp(fp):
+    return int(os.path.basename(fp).split('_data_')[1].split('_')[0])
+
+def get_file_month_from_fp(fp):
+    return int(os.path.basename(fp).split('_data_')[1].split('_')[1])
+
 def get_file_day_from_fp(fp):
     return int(os.path.basename(fp).split('_data_')[1].split('_')[2])
 
@@ -358,7 +364,7 @@ def download_container(app_id, log_dir, container=None, conn_string=None, accoun
                                 print()
 
                 elif create_gzip_mode == 3:
-                    selected_fps.sort(key=lambda fp : (get_config_date_from_fp(fp), get_file_day_from_fp(fp), get_file_number_from_fp(fp)))
+                    selected_fps.sort(key=lambda fp : (get_config_date_from_fp(fp), get_file_year_from_fp(fp), get_file_month_from_fp(fp), get_file_day_from_fp(fp), get_file_number_from_fp(fp)))
 
                     configs = OrderedDict()
                     for fp in selected_fps:

@@ -45,7 +45,7 @@ class CookedLogSequence:
                 #first file that has no overlap
                 candidate_index = i
                 break
-        #check if the file before candidate file has an averlap with the merged files (ie starts before merged_end_time and ends after)
+        #check if the file before candidate file has an overlap with the merged files (ie starts before merged_end_time and ends after)
         if candidate_index > 0 and CookedLogSequence.__get_file_end_time(files[candidate_index - 1]) > merged_end_time:
             return candidate_index - 1
         return candidate_index
