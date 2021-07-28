@@ -43,6 +43,7 @@ if __name__ == '__main__':
     main_parser.add_argument('--log_type', help="cooked log format e.g. cb, ccb", default='cb')
     main_args, other_args = main_parser.parse_known_args(sys.argv[1:])
 
+    job_status = 0 # success
     try:
         # Change directory to working directory to have vw.exe in path
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
@@ -202,45 +203,49 @@ if __name__ == '__main__':
             with open(feature_importance_raw_file_path, 'w') as feature_importance_raw_file:
                 json.dump(feature_buckets, feature_importance_raw_file)
             azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, main_args.feature_importance_raw_filename), feature_importance_raw_file_path)
-
-        # Merge calculated policies into summary file path, upload summary file and model files
-        if main_args.summary_json:
-            summary_file_path = os.path.join(output_dir, main_args.summary_json)
-            if os.path.isfile(summary_file_path):
-                with open(summary_file_path) as summary_file:
-                    summary_data = json.load(summary_file)
-                    summary_data['status'] = 0 # Success status
-                    try:
-                        policy_file_path = os.path.join(output_dir, "policy.json")
-                        if os.path.isfile(policy_file_path):
-                            with open(policy_file_path) as policy_file:
-                                policy_data = json.load(policy_file)
-                                for p in policy_data['policies']:
-                                    summary_data['policyResults'].append({
-                                        'name': p['name'],
-                                        'arguments': p['arguments'],
-                                        'policySource': 'OfflineExperimentation'
-                                    })
-                                summary_data['policyResults'].append({
-                                    'name': 'online',
-                                    'arguments': main_args.ml_args,
-                                    'policySource': 'Online'
-                                    })
-                    except:
-                        Logger.exception()
-                with open(summary_file_path, 'w') as outfile:
-                    json.dump(summary_data, outfile)
-                azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, main_args.summary_json), summary_file_path)
-
-                # upload model files if present.
-                for filename in os.listdir(output_dir):
-                    if os.path.isfile(os.path.join(output_dir, filename)) and filename.endswith(".vw"):
-                        azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, filename), os.path.join(output_dir, filename))
         Logger.info("Done executing job")
     except:
-        Logger.exception('Job failed.')
+        job_status = 2 # failed
+        Logger.exception('Job failed')
         sys.exit(1)
     finally:
+        try:
+            # Merge calculated policies into summary file path, upload summary file and model files
+            if main_args.summary_json:
+                summary_file_path = os.path.join(output_dir, main_args.summary_json)
+                if os.path.isfile(summary_file_path):
+                    with open(summary_file_path) as summary_file:
+                        summary_data = json.load(summary_file)
+                        summary_data['status'] = job_status
+                        try:
+                            policy_file_path = os.path.join(output_dir, "policy.json")
+                            if os.path.isfile(policy_file_path):
+                                with open(policy_file_path) as policy_file:
+                                    policy_data = json.load(policy_file)
+                                    for p in policy_data['policies']:
+                                        summary_data['policyResults'].append({
+                                            'name': p['name'],
+                                            'arguments': p['arguments'],
+                                            'policySource': 'OfflineExperimentation'
+                                        })
+                                    summary_data['policyResults'].append({
+                                        'name': 'online',
+                                        'arguments': main_args.ml_args,
+                                        'policySource': 'Online'
+                                        })
+                        except:
+                            Logger.exception("Failure loading policy")
+                    with open(summary_file_path, 'w') as outfile:
+                        json.dump(summary_data, outfile)
+                    azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, main_args.summary_json), summary_file_path)
+
+                    # upload model files if present.
+                    for filename in os.listdir(output_dir):
+                        if os.path.isfile(os.path.join(output_dir, filename)) and filename.endswith(".vw"):
+                            azure_util.upload_to_blob(ld_args.app_id, os.path.join(main_args.output_folder, filename), os.path.join(output_dir, filename))
+        except:
+                Logger.exception('Failure during finalizing')
+
         if main_args.cleanup:
             Logger.info('Deleting folder as part of cleanup: {}'.format(ld_args.log_dir))
             shutil.rmtree(ld_args.log_dir, ignore_errors=True)
