@@ -106,7 +106,7 @@ def get_feature_importance(log_file, ml_args, warmstart_model=None, min_num_feat
     else:
         l1 = 1e-7
 
-    vw_base = 'vw ' + ml_args + ' --dsjson --data {0} --quiet'.format(log_file)
+    vw_base = 'vw --predict_only_model ' + ml_args + ' --dsjson --data {0} --quiet'.format(log_file)
     if warmstart_model:
         vw_base += ' -i {0}'.format(warmstart_model)
 
