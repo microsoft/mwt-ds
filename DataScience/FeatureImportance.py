@@ -114,7 +114,10 @@ def get_feature_importance(log_file, ml_args, warmstart_model=None, min_num_feat
 
     vw_inv_hash_cmd = vw_base + ' --invert_hash {0}'.format(invHash_fp)
     print('command to get invert hash file: ' + vw_inv_hash_cmd)
-    os.system(vw_inv_hash_cmd)
+    invhash_ret = os.system(vw_inv_hash_cmd)
+    if(invhash_ret != 0):
+        err_msg = "Error: VW failed to generate inverse hash."
+        sys.exit(err_msg)
     inv_hash = get_feature_inv_hash(invHash_fp)
 
     print('\n=====================================')
